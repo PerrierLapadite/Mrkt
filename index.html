@@ -191,6 +191,31 @@ body[data-tab=prev] #editor{display:none}
 .lay{padding:8px 2px 6px!important;font-size:12.5px!important}
 .addnote{justify-self:start;border:0;background:none;padding:2px 2px;color:var(--mut);font:italic 600 14px var(--slab)}
 .notebox{display:grid}
+.target{flex-direction:column;align-items:stretch!important;gap:6px!important}
+.tchips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.tchips::-webkit-scrollbar{display:none}
+.chip.r{font:700 15px var(--slab);color:var(--ink);display:inline-flex;align-items:center;gap:5px}
+.chip.r.on{color:var(--bg)}
+.chip .th{width:20px;height:20px;font-size:14px}
+.chip.plus{border-style:dashed}
+.grp{background:var(--surface);border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+.grp.target{outline:2px solid var(--acc);outline-offset:-1px}
+.grp-h{display:grid;grid-template-columns:minmax(0,1fr) 40px;gap:8px;align-items:center;padding:10px 12px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.grp-h .rin{height:52px;background:var(--surface)}
+.grp-h .rin input{font:400 24px var(--disp)}
+.grp-h .rin input.b{color:var(--acc)}
+.grp-h .rin .colon{font:400 24px var(--disp);color:var(--mut);padding:0 2px}
+.grp-h .none{font:italic 600 15px var(--slab);color:var(--mut)}
+.gi{display:grid;gap:4px;padding:8px 12px;border-top:1px solid var(--line)}
+.gi:first-child{border-top:0}
+.gi.hot{background:var(--acc-soft);box-shadow:inset 4px 0 0 var(--acc)}
+.gi1{display:grid;grid-template-columns:44px minmax(0,1fr) 38px 38px;gap:6px;align-items:center}
+.gi1 .thumbbtn{width:44px;height:44px;padding:4px;font-size:26px;border-radius:8px}
+.gi1 .ib{width:38px;height:38px}
+.gi .addnote{padding-left:52px}
+.grp-f{display:flex;padding:8px 12px 12px}
+.grp-f .btn{flex:1}
+.newgrp{margin-top:2px}
 .lay{border:1px solid var(--line2);border-radius:10px;background:var(--surface);padding:10px 6px 8px;display:grid;justify-items:center;gap:6px;font:700 14px var(--slab)}
 .lay.on{outline:2px solid var(--ink);outline-offset:-1px}
 .lay svg{width:44px;height:32px;color:var(--mut)}
@@ -262,7 +287,7 @@ body[data-tab=prev] #mini{display:none}
           <button class="clr" id="qclr" aria-label="Clear">✕</button>
         </div>
         <div class="chips" id="cats"></div>
-        <div class="target" id="target"><span class="lbl">Add to</span><div class="seg"><button data-to="wants">I want</button><button data-to="have">I have</button></div></div>
+        <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
         <div class="grid" id="results"></div>
         <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
       </div>
@@ -275,10 +300,6 @@ body[data-tab=prev] #mini{display:none}
       </div>
       <div class="stack">
         <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span></div>
-        <div class="card ratiobar" id="ratioBar">
-          <div class="rb-t"><b>Same ratio for all</b><small></small></div>
-          <div class="rb-row"><div class="box ratio"><input id="defRa" inputmode="decimal" placeholder="1"><i>:</i><input id="defRb" inputmode="decimal" placeholder="40"></div><button class="btn pri sm" id="applyRatio">Apply</button></div>
-        </div>
         <div class="list" id="wantList"></div>
       </div>
 
@@ -979,13 +1000,15 @@ function defaults(type) {
     wants: [mkItem("duck-feather", { q: "100", p: "700" }), mkItem("tomato-sauce", { q: "30", p: "1100", hot: 1 })] };
   return { ...base, title: "Selling / Swapping", wantTitle: "What I want", cta: "Mix accepted",
     have: [mkItem("bem-set", { q: "10" })],
-    wants: [mkItem("lemon-curd", { ra: "1", rb: "40" }), mkItem("lobster-tail", { ra: "1", rb: "15", hot: 1 }), mkItem("duck-feather", { ra: "1", rb: "60" }),
-      mkItem("soy-sauce", { ra: "1", rb: "40" }), mkItem("strawberry-jam", { ra: "1", rb: "30", note: "1st page · no bb" })] };
+    addR: { ra: "50", rb: "89", give: "" },
+    wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["duck-feather", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60", 0, "1st page · no bb"]]
+      .map(([id, a, hot, note]) => mkItem(id, { ra: a, rb: "89", hot: hot || 0, note: note || "" })) };
 }
 const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name || TYPES[type].name });
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
+  if (!p.addR && num(p.defRa) > 0 && num(p.defRb) > 0) p.addR = { ra: p.defRa, rb: p.defRb, give: "" };
   if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
 let CUSTOM = store.get("hd5_custom", []);
@@ -1115,6 +1138,16 @@ function starShape(cx, cy, r, c) { ctx.beginPath(); for (let i = 0; i < 10; i++)
 /* ---------- data helpers ---------- */
 function giveItem(w) { const hv = st.have.filter(x => (x.name || "").trim() || x.ref); return hv.find(x => x.uid === w.give) || hv[0] || null; }
 const hasRatio = w => num(w.ra) > 0 && num(w.rb) > 0;
+/* ratio groups (trade): items sharing the same "give : get" ratio */
+function firstHave() { return st.have.find(x => (x.name || "").trim() || x.ref) || null; }
+function normGive(uid) { const g = st.have.find(x => x.uid === uid && ((x.name || "").trim() || x.ref)) || firstHave(); return g ? g.uid : ""; }
+function ratioKeyOf(ra, rb, give) { return num(ra) > 0 && num(rb) > 0 ? fmtR(num(ra)) + ":" + fmtR(num(rb)) + ":" + normGive(give) : "none"; }
+const ratioKey = w => ratioKeyOf(w.ra, w.rb, w.give);
+function ratioGroups(list) {
+  const m = new Map();
+  list.forEach(w => { const k = ratioKey(w); if (!m.has(k)) m.set(k, { key: k, ra: w.ra, rb: w.rb, give: normGive(w.give), none: k === "none", items: [] }); m.get(k).items.push(w); });
+  const g = [...m.values()]; return g.filter(x => !x.none).concat(g.filter(x => x.none));
+}
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
   const by = { qty: (x, y) => num(y.q) - num(x.q), value: (x, y) => itemValue(y) - itemValue(x), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[st.sort];
@@ -1199,8 +1232,13 @@ function draw() {
   const TT = totals();
   // Auto: past 12 items, switch to compact rows spread over several columns (the image grows wider, not longer)
   let lay = st.layout || "auto";
-  if (lay === "auto") lay = wants.length > 12 ? "compact" : "list";
-  const grid = lay === "grid2" || lay === "grid3", C = lay === "grid3" ? 3 : 2, compact = lay === "compact";
+  if (lay === "auto") lay = trade ? "groups" : wants.length > 12 ? "compact" : "list";
+  const grid = lay === "grid2" || lay === "grid3", C = lay === "grid3" ? 3 : 2, compact = lay === "compact", grouped = lay === "groups";
+  // ratio boxes: widen the image when there are many items so it doesn't get too tall
+  const GR = grouped ? ratioGroups(wants) : [], TW = 158, TG = 10, BP = 22;
+  const gPer = w => Math.max(1, Math.floor((w - 2 * M - 2 * BP + TG) / (TW + TG)));
+  const gRows = w => GR.reduce((a, g) => a + Math.ceil(g.items.length / gPer(w)), 0);
+  if (grouped) for (const Wc of [1080, 1400, 1720, 2040]) { W = Wc; if (gRows(Wc) * 150 + GR.length * 110 <= Wc * 1.25) break; }
   const CW = trade ? 470 : 660, CG = 48, RH = 60;
   let cc = 1, colW = 0;
   if (compact) {
@@ -1265,6 +1303,8 @@ function draw() {
     if (unit !== "coins") LCc.push({ k: "r", w: 88, l: "RINGS" });
   }
   const per = compact ? Math.ceil(wants.length / cc) : 0;
+  const tileH = g => 12 + 86 + 10 + 28 + (g.items.some(w => (w.note || "").trim()) ? 22 : 0) + 12;
+  if (grouped && wants.length) H += GR.reduce((a, g) => a + 84 + Math.ceil(g.items.length / gPer(W)) * tileH(g) + 14 + 26, 0) + 4;
   if (compact && wants.length) H += (LCc.length ? 34 : 0) + per * RH + 30;
 
   const showTot = !trade && st.showTotal !== false && TT.sub > 0;
@@ -1342,6 +1382,36 @@ function draw() {
   const lh = (st.wantTitle || "").trim().toUpperCase();
   if (lh && lh !== typeLabel) heading(lh, false); else { rule(M, W - M, y + 30, 1, T.ink); y += 74; }
   if (!wants.length) { txt("—", W / 2, y + 30, { f: "600", s: 30, c: T.mut, al: "center" }); y += 80; }
+  else if (grouped) {
+    const pr = gPer(W), tw = (W - 2 * M - 2 * BP - (pr - 1) * TG) / pr;
+    GR.forEach(g => {
+      const th = tileH(g), rowsN = Math.ceil(g.items.length / pr), bh = 84 + rowsN * th + 14;
+      ctx.fillStyle = T.card; ctx.fillRect(M, y, W - 2 * M, bh);
+      ctx.lineWidth = 2; ctx.strokeStyle = T.ink; ctx.strokeRect(M + 1, y + 1, W - 2 * M - 2, bh - 2);
+      ctx.lineWidth = 1; ctx.strokeRect(M + 7, y + 7, W - 2 * M - 14, bh - 14);
+      // header: "50 [my item] : 89"
+      const hy = y + 44;
+      if (g.none) txt("Make an offer", M + BP + 6, hy, { f: "D", s: 34, c: T.mut });
+      else {
+        let x = M + BP + 6; const s = 46, gi = st.have.find(h => h.uid === g.give);
+        x += txt(fmtR(num(g.ra)), x, hy + 2, { f: "D", s, c: T.ink });
+        if (gi) { icon(itemState(gi), gi.e, x + 12 + 26, hy, 52, 1); x += 12 + 52; }
+        x += 18; x += txt(":", x, hy, { f: "D", s, c: T.mut }) + 18;
+        txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.acc });
+      }
+      rule(M + 7, W - M - 7, y + 84, 1, T.ink);
+      g.items.forEach((w, i) => {
+        const c = i % pr, r = (i / pr) | 0, x = M + BP + c * (tw + TG), ty = y + 84 + 6 + r * th, cx = x + tw / 2;
+        if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x, ty + 2, tw, th - 4); starShape(x + tw - 16, ty + 18, 11, T.acc); }
+        ctx.beginPath(); ctx.arc(cx, ty + 12 + 43, 43, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
+        icon(itemState(w), w.e, cx, ty + 12 + 43, 78);
+        txt(w.name || "", cx, ty + 12 + 86 + 10 + 14, { f: "700", s: 21, c: T.ink, al: "center", maxW: tw - 6, min: 14 });
+        if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 86 + 10 + 28 + 10, { f: "500i", s: 16, c: T.mut, al: "center", maxW: tw - 6 });
+      });
+      y += bh + 26;
+    });
+    y += 4;
+  }
   else if (compact) {
     const hdr = LCc.length ? 34 : 0, colsPos = [];
     for (let c = 0; c < cc; c++) {
@@ -1538,10 +1608,52 @@ function renderCats() {
     if ((k.id === "perso" || k.id === "other") && !CAT.list.some(p => p.cat === k.id)) return;
     c.append(h("button", { class: "chip" + (curCat === k.id ? " on" : ""), onclick: () => { curCat = k.id; resLimit = 16; renderCats(); renderResults(); } }, CAT_EN[k.id] || k.id));
   });
-  const trade = st.type === "trade";
-  $("#target").hidden = !trade;
-  $$("#target button").forEach(b => { b.classList.toggle("on", b.dataset.to === (trade ? SETTINGS.to : "wants")); b.onclick = () => { SETTINGS.to = b.dataset.to; saveSettings(); renderCats(); renderResults(); }; });
+  renderTarget();
 }
+/* ---------- trade: where new items go (I have, or a ratio group) ---------- */
+const curAddKey = () => st.addR ? ratioKeyOf(st.addR.ra, st.addR.rb, st.addR.give) : "none";
+function ratioLabel(ra, rb) { return fmtR(num(ra)) + " : " + fmtR(num(rb)); }
+function setAddR(r) { st.addR = r ? { ra: r.ra, rb: r.rb, give: normGive(r.give) } : null; SETTINGS.to = "wants"; saveSettings(); saveSoon(); renderTarget(); renderResults(); markTargetGroup(); }
+function renderTarget() {
+  const trade = st.type === "trade";
+  $("#target").hidden = !trade; if (!trade) return;
+  const tc = $("#tchips"); tc.textContent = "";
+  const groups = ratioGroups(st.wants.filter(w => (w.name || "").trim() || w.ref)), k = curAddKey(), toHave = SETTINGS.to === "have";
+  const multi = st.have.filter(x => (x.name || "").trim() || x.ref).length > 1;
+  tc.append(h("button", { class: "chip" + (toHave ? " on" : ""), onclick: () => { SETTINGS.to = "have"; saveSettings(); renderTarget(); renderResults(); markTargetGroup(); } }, "I have"));
+  const seen = new Set();
+  groups.forEach(g => {
+    seen.add(g.key);
+    const gi = multi && !g.none ? st.have.find(x => x.uid === g.give) : null;
+    tc.append(h("button", { class: "chip r" + (!toHave && k === g.key ? " on" : ""), onclick: () => setAddR(g.none ? null : g) }, gi ? thumb(itemState(gi), gi.e) : null, g.none ? "No ratio" : ratioLabel(g.ra, g.rb)));
+  });
+  if (!toHave && !seen.has(k)) tc.append(h("button", { class: "chip r on" }, k === "none" ? "No ratio" : ratioLabel(st.addR.ra, st.addR.rb)));
+  tc.append(h("button", { class: "chip plus", onclick: newRatioSheet }, "+ Ratio"));
+}
+function newRatioSheet(it) {
+  const a = h("input", { inputMode: "decimal", placeholder: "50" }), b = h("input", { inputMode: "decimal", placeholder: "89", class: "b" });
+  const hv = st.have.filter(x => (x.name || "").trim() || x.ref); let give = normGive("");
+  const gw = h("div", { class: "row", style: "flex-wrap:wrap" });
+  const paintG = () => { gw.textContent = ""; if (hv.length > 1) hv.forEach(x => gw.append(h("button", { class: "chip r" + (x.uid === give ? " on" : ""), onclick: () => { give = x.uid; paintG(); } }, thumb(itemState(x), x.e), x.name || "item"))); };
+  paintG();
+  const go = () => {
+    if (!num(a.value) || !num(b.value)) return toast("Enter both numbers");
+    const r = { ra: a.value.trim(), rb: b.value.trim(), give };
+    closeSheet();
+    if (it && it.uid) { it.ra = r.ra; it.rb = r.rb; it.give = r.give; renderLists(); renderTarget(); changed(); toast(it.name + " → " + ratioLabel(r.ra, r.rb)); return; }
+    setAddR(r); toast("Now tap products to add them at " + ratioLabel(r.ra, r.rb));
+    $("#q").focus({ preventScroll: true }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" });
+  };
+  const existing = it && it.uid ? ratioGroups(st.wants.filter(w => (w.name || "").trim() || w.ref)).filter(g => !g.none && g.key !== ratioKey(it)) : [];
+  openSheet(it && it.uid ? "Ratio for " + (it.name || "item") : "New ratio", [
+    existing.length ? h("div", null, h("label", { class: "lbl" }, "Move to"), h("div", { class: "row", style: "flex-wrap:wrap" }, existing.map(g => h("button", { class: "chip r", onclick: () => { it.ra = g.ra; it.rb = g.rb; it.give = g.give; closeSheet(); renderLists(); renderTarget(); changed(); toast(it.name + " → " + ratioLabel(g.ra, g.rb)); } }, ratioLabel(g.ra, g.rb))))) : null,
+    h("div", null, h("label", { class: "lbl" }, existing.length ? "Or a new ratio" : "Ratio (I give : I get)"), h("div", { class: "grp-h", style: "grid-template-columns:1fr;border:0;padding:0;background:none" }, h("div", { class: "rin" }, a, h("span", { class: "colon" }, ":"), b))),
+    hv.length > 1 ? h("div", null, h("label", { class: "lbl" }, "I give"), gw) : null,
+    h("button", { class: "btn pri full", onclick: go }, it && it.uid ? "Apply" : "Use this ratio")
+  ]);
+  setTimeout(() => a.focus(), 250);
+}
+function markTargetGroup() { $$(".grp").forEach(g => g.classList.toggle("target", SETTINGS.to !== "have" && g.dataset.key === curAddKey())); }
 const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have : st.wants;
 function renderResults() {
   const q = $("#q").value;
@@ -1565,9 +1677,9 @@ function addFromCatalog(p) {
   const list = targetList(), ex = list.find(it => it.ref === p.id);
   if (ex) { flashItem(ex.uid); toast(p.en + " is already in the list"); return; }
   if (list.length >= 150) return toast("150 items max per post.");
-  list.push(mkItem(p.id, st.type === "trade" && list === st.wants ? { ra: st.defRa || "", rb: st.defRb || "" } : null)); pushRecent(p.id);
+  list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : null)); pushRecent(p.id);
   renderLists(); renderResults(); changed();
-  toast("✓ " + p.en + " added");
+  toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : ""));
 }
 $("#freeAdd").onclick = () => {
   const it = mkItem(null, { name: $("#q").value.trim(), e: "📦" });
@@ -1596,16 +1708,57 @@ function renderSummary() {
 /* ---------- item cards ---------- */
 function renderLists() {
   const trade = st.type === "trade";
-  $("#haveBox").hidden = !trade; $("#ratioBar").hidden = !trade;
-  $("#defRa").value = st.defRa || ""; $("#defRb").value = st.defRb || "";
+  $("#haveBox").hidden = !trade;
   $("#wantH").textContent = TYPES[st.type].list; $("#wantI").textContent = TYPES[st.type].li;
   const hl = $("#haveList"); hl.textContent = "";
   st.have.forEach(it => hl.append(haveCard(it)));
-  if (!st.have.length) hl.append(h("div", { class: "empty card" }, "Select “📦 I have” above the search to add what you offer."));
+  if (!st.have.length) hl.append(h("div", { class: "empty card" }, "Pick “I have” above the search to add what you offer."));
   const wl = $("#wantList"); wl.textContent = "";
-  st.wants.forEach(it => wl.append(itemCard(it)));
-  if (!st.wants.length) wl.append(h("div", { class: "empty card" }, "Use the search to add products."));
+  if (trade) {
+    ratioGroups(st.wants).forEach(g => wl.append(groupCard(g)));
+    wl.append(h("button", { class: "btn dashed newgrp", onclick: () => newRatioSheet() }, "+ New ratio group"));
+    markTargetGroup();
+  } else st.wants.forEach(it => wl.append(itemCard(it)));
+  if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
   renderSummary();
+}
+/* ---------- trade: one card per ratio ---------- */
+function groupCard(g) {
+  const card = h("div", { class: "grp", "data-key": g.key });
+  const hv = st.have.filter(x => (x.name || "").trim() || x.ref);
+  const a = h("input", { value: g.none ? "" : g.ra, inputMode: "decimal", placeholder: "50", "aria-label": "I give" });
+  const b = h("input", { value: g.none ? "" : g.rb, inputMode: "decimal", placeholder: "89", class: "b", "aria-label": "I get" });
+  const wasTarget = () => SETTINGS.to !== "have" && curAddKey() === g.key;
+  const apply = () => { const t = wasTarget(); g.items.forEach(w => { w.ra = a.value.trim(); w.rb = b.value.trim(); w.give = g.give; }); if (t) st.addR = { ra: a.value.trim(), rb: b.value.trim(), give: g.give }; g.key = ratioKeyOf(a.value, b.value, g.give); changed(); renderSummary(); };
+  a.oninput = apply; b.oninput = apply;
+  a.onchange = b.onchange = () => { renderLists(); renderTarget(); };
+  const giveBtn = h("button", { type: "button", class: "ti", title: "Which of your items you give" });
+  const gi = hv.find(x => x.uid === g.give);
+  giveBtn.append(gi ? thumb(itemState(gi), gi.e) : h("span", { class: "th" }, "📦")); if (hv.length > 1) giveBtn.append(h("small", null, "⇄"));
+  giveBtn.onclick = () => {
+    if (hv.length < 2) return toast(hv.length ? "Add more items under “I have” to choose between them" : "Add what you offer under “I have” first");
+    const i = hv.findIndex(x => x.uid === g.give), nx = hv[(i + 1) % hv.length].uid, t = wasTarget();
+    g.items.forEach(w => w.give = nx); if (t && st.addR) st.addR.give = nx;
+    renderLists(); renderTarget(); changed();
+  };
+  const menu = h("button", { class: "ib", "aria-label": "Group actions", onclick: () => openSheet(g.none ? "Items without ratio" : "Ratio " + ratioLabel(g.ra, g.rb), h("div", { class: "menu" },
+    h("button", { onclick: () => { closeSheet(); addHere(); } }, h("i", null, "＋"), "Add items to this group"),
+    h("button", { class: "danger", onclick: () => { if (!confirm("Remove the " + g.items.length + " items of this group?")) return; st.wants = st.wants.filter(w => !g.items.includes(w)); closeSheet(); renderLists(); renderTarget(); renderResults(); changed(); } }, h("i", null, "×"), "Remove this group and its items"))) }, "⋯");
+  const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(() => $("#q").focus({ preventScroll: true }), 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
+  card.append(
+    h("div", { class: "grp-h" }, h("div", { class: "rin" }, giveBtn, a, h("span", { class: "colon" }, ":"), b), menu),
+    h("div", null, g.items.map(groupRow)),
+    h("div", { class: "grp-f" }, h("button", { class: "btn sm", onclick: addHere }, "+ Add items here")));
+  return card;
+}
+function groupRow(it) {
+  const row = h("div", { class: "gi" + (it.hot ? " hot" : ""), "data-uid": it.uid });
+  const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
+  const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); row.classList.toggle("hot", !!it.hot); changed(); } }, "★");
+  row.append(h("div", { class: "gi1" }, h("button", { class: "thumbbtn", title: "Change image", onclick: () => imageSheet(it) }, thumb(itemState(it), it.e)), name, starB,
+    h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯")));
+  if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); row.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const ta = n.querySelector("textarea") || n.querySelector("button"); ta && (ta.click ? (ta.tagName === "BUTTON" ? ta.click() : ta.focus()) : 0); }); } }
+  return row;
 }
 function autoGrow(ta) { ta.style.height = "auto"; ta.style.height = Math.max(44, ta.scrollHeight + 2) + "px"; }
 function noteArea(it, ph) {
@@ -1687,6 +1840,8 @@ function itemMenu(it, list) {
     h("div", { class: "bigprev" }, thumb(itemState(it), it.e), h("div", null, h("b", null, it.name || "Untitled"), h("small", null, it.ref ? "From the library" : "Custom item"))),
     h("div", { class: "menu" },
       h("button", { onclick: () => { closeSheet(); setTimeout(() => imageSheet(it), 220); } }, h("i", null, "◧"), "Change image"),
+      st.type === "trade" && list === st.wants ? h("button", { onclick: () => { closeSheet(); setTimeout(() => newRatioSheet(it), 220); } }, h("i", null, ":"), "Change ratio") : null,
+      st.type === "trade" && list === st.wants && !(it.note || "").trim() ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i - 1, 0, it); }) }, h("i", null, "↑"), "Move up") : null,
       i < list.length - 1 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i + 1, 0, it); }) }, h("i", null, "↓"), "Move down") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.unshift(it); }) }, h("i", null, "⤒"), "Move to top") : null,
@@ -1740,13 +1895,6 @@ function renderDeals() {
   const r = $("#rate10"); r.value = String(Math.round(ringRate() * 10)); r.onchange = () => { if (!num(r.value)) return toast("Enter a number of coins"); SETTINGS.ring = String(num(r.value) / 10); saveSettings(); renderLists(); changed(); toast("Rate updated ✔"); };
   const rr2 = $("#rateRing"); rr2.textContent = ""; rr2.append(ringEl());
 }
-$("#defRa").oninput = e => { st.defRa = e.target.value; saveSoon(); };
-$("#defRb").oninput = e => { st.defRb = e.target.value; saveSoon(); };
-$("#applyRatio").onclick = () => {
-  if (!num(st.defRa) || !num(st.defRb)) return toast("Enter both numbers of the ratio first");
-  st.wants.forEach(w => { w.ra = st.defRa; w.rb = st.defRb; });
-  renderLists(); changed(); toast("Ratio " + st.defRa + " : " + st.defRb + " applied to all items");
-};
 /* ---------- style ---------- */
 const LAYOUTS = [
   { id: "auto", fr: "Auto", svg: '<svg viewBox="0 0 46 34" fill="currentColor"><rect x="1" y="2" width="44" height="8" rx="3"/><rect x="1" y="13" width="21" height="6" rx="2"/><rect x="24" y="13" width="21" height="6" rx="2"/><rect x="1" y="22" width="13" height="5" rx="2"/><rect x="16.5" y="22" width="13" height="5" rx="2"/><rect x="32" y="22" width="13" height="5" rx="2"/></svg>' },
