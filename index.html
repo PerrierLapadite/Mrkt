@@ -20,11 +20,12 @@
   --acc:#b5321e;--acc-ink:#fff;--acc-soft:rgba(181,50,30,.07);--ok:#3b7531;
   --slab:'Zilla Slab',Georgia,serif;--disp:'Alfa Slab One','Zilla Slab',Georgia,serif;
   --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+  --cin:#2f6fb0;--cout:#c4562a; /* chart: money in / out (CVD-checked) */
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#171512;--surface:#1f1c18;--surface2:#27231e;--ink:#efe5d2;--mut:#a3967f;--line:#34302a;--line2:#4a443a;
-  --acc:#e0714f;--acc-ink:#1a0d08;--acc-soft:rgba(224,113,79,.1);--ok:#7fc06f;color-scheme:dark}}
+  --acc:#e0714f;--acc-ink:#1a0d08;--acc-soft:rgba(224,113,79,.1);--ok:#7fc06f;--cin:#4f8bd3;--cout:#d96f43;color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
 [hidden]{display:none!important}
@@ -48,7 +49,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* ---------- layout ---------- */
 .app{max-width:1280px;margin:0 auto;padding:18px 14px}
 .panel{display:none;gap:14px;grid-template-columns:minmax(0,1fr)}
-body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist{display:grid}
+body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist,body[data-tab=stats] #p-stats{display:grid}
 #preview{display:none}
 body[data-tab=prev] #preview{display:block}
 body[data-tab=prev] #editor{display:none}
@@ -220,7 +221,7 @@ body[data-tab=prev] #editor{display:none}
 .upd .two{margin-top:4px}
 .done-note{font:italic 600 14px var(--slab);color:var(--ok)}
 .tabbar button{font-size:14px!important;letter-spacing:.01em!important}
-@media (max-width:999px){.tabbar{gap:2px!important;padding-left:4px!important;padding-right:4px!important}.tabbar button{font-size:12.5px!important;letter-spacing:0!important;padding:0 1px!important;min-width:0}.tabbar .dl{flex:1.25!important}}
+@media (max-width:999px){.tabbar{gap:2px!important;padding-left:4px!important;padding-right:4px!important}.tabbar button{font-size:12.5px!important;letter-spacing:0!important;padding:0 1px!important;min-width:0}}
 /* paste a list */
 .fmt{display:flex;flex-wrap:wrap;gap:6px}
 .fmt code{font:600 12.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
@@ -420,6 +421,59 @@ body[data-tab=prev] #editor{display:none}
 .osplit span{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:3px 9px 3px 4px;font-size:14px;background:var(--surface)}
 .osplit b{font-size:15px}
 .osh{margin:2px 0 0;font-size:12.5px}
+/* stats */
+.scard h2{font-size:19px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.kpis.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.kpi .k{font:700 11px var(--slab);letter-spacing:.07em;text-transform:uppercase;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v{font:400 23px/1.15 var(--disp);display:flex;align-items:center;gap:5px;margin-top:3px;white-space:nowrap;overflow:hidden}
+.kpis.three .kpi .v{font-size:19px}
+.kpi small{display:block;color:var(--mut);font-size:12px;margin-top:2px;line-height:1.3}
+.kpi.in{box-shadow:inset 3px 0 0 var(--cin)}
+.kpi.out{box-shadow:inset 3px 0 0 var(--cout)}
+.flegend{display:flex;gap:14px;font-size:13px;font-weight:600;color:var(--mut)}
+.flegend span,.ftip span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.sw.in{background:var(--cin)}
+.sw.out{background:var(--cout)}
+.fwrap{position:relative}
+.flow{width:100%;height:auto;display:block;touch-action:pan-y;user-select:none}
+.flow .bin{fill:var(--cin)}
+.flow .bout{fill:var(--cout)}
+.flow .base{stroke:var(--line2);stroke-width:1}
+.flow .ax{fill:var(--mut);font:600 10.5px var(--sans)}
+.flow .hov{fill:var(--ink);fill-opacity:.06}
+.ftip{position:absolute;top:-6px;transform:translate(-50%,-100%);background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 10px;display:grid;gap:2px;font-size:12.5px;font-weight:600;white-space:nowrap;pointer-events:none;z-index:2;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.ftip b{font-weight:700}
+.ftip small{opacity:.75}
+.ftab summary{cursor:pointer;color:var(--mut);font-weight:600;font-size:13.5px}
+.ftab .stab{margin-top:8px}
+.stab{width:100%;border-collapse:collapse;font-size:13.5px}
+.stab th{font:700 10.5px var(--slab);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);text-align:right;padding:0 0 6px 6px;white-space:nowrap}
+.stab th:first-child{text-align:left;padding-left:0}
+.stab td{border-top:1px solid var(--line);padding:7px 0 7px 6px;vertical-align:middle}
+.stab td.n{text-align:right;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.stab td.nm{padding-left:0;width:100%;max-width:0}
+.nmi{display:flex;align-items:center;gap:6px;font-weight:600;min-width:0}
+.nmi span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbar{display:block;height:4px;border-radius:0 2px 2px 0;margin-top:4px;background:var(--cin)}
+.sbar.out{background:var(--cout)}
+.smore{margin-top:8px}
+.recs{display:grid;gap:2px}
+.rec{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
+.rec:first-child{border-top:0;padding-top:0}
+.rec .ri{font-size:20px;line-height:1.2;text-align:center}
+.rec .k{font:700 11px var(--slab);letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.rec .v{font:700 17px var(--slab);display:flex;align-items:center;gap:6px;margin-top:1px;flex-wrap:wrap}
+.rec small{color:var(--mut);font-size:12.5px}
+.sh3{font:700 15px var(--slab);margin:6px 0 -2px}
+.spl{border:0!important;background:none!important;padding-left:0!important;color:var(--mut);font-weight:600}
+.wds{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;align-items:end}
+.wd{display:grid;gap:3px;justify-items:center;font-size:12px;color:var(--mut);font-weight:600}
+.wd .wb{height:70px;width:100%;max-width:28px;display:flex;align-items:flex-end}
+.wd .wb i{display:block;width:100%;background:var(--cin);border-radius:3px 3px 0 0}
+.wd b{color:var(--ink);font-size:12.5px;min-height:15px}
 /* order · advanced */
 #orderAdv{border-top:1px solid var(--line);margin-top:2px}
 .oadvt small{color:var(--mut);font-weight:500;font-size:13px}
@@ -469,8 +523,6 @@ body[data-tab=prev] #editor{display:none}
 .tabbar button{flex:1;min-height:48px;border:0;border-radius:8px;background:transparent;color:var(--mut);font:700 15px var(--slab);letter-spacing:.03em}
 .tabbar button i{display:none}
 .tabbar button.on{color:var(--ink);box-shadow:inset 0 -3px 0 var(--acc);border-radius:0}
-.tabbar .dl{flex:1.2;background:var(--acc);color:var(--acc-ink);border-radius:8px}
-.tabbar .dl.on{color:var(--acc-ink)}
 #mini{position:fixed;right:12px;bottom:calc(72px + var(--safe-b));z-index:35;width:60px;border:1px solid var(--ink);border-radius:4px;padding:0;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.25);background:var(--surface)}
 #mini canvas{display:block;width:100%;height:auto}
 body[data-tab=prev] #mini{display:none}
@@ -510,8 +562,8 @@ body[data-tab=prev] #mini{display:none}
     <button data-t="style">Style</button>
     <button data-t="order">Order</button>
     <button data-t="hist">History</button>
+    <button data-t="stats">Stats</button>
     <button data-t="prev">Preview</button>
-    <button class="dl" id="dlTab">Export</button>
   </nav>
   <div id="editor">
     <!-- ===== ITEMS ===== -->
@@ -584,6 +636,11 @@ body[data-tab=prev] #mini{display:none}
     <!-- ===== HISTORY ===== -->
     <section class="panel" id="p-hist">
       <div id="histOut" class="stack"></div>
+    </section>
+
+    <!-- ===== STATS ===== -->
+    <section class="panel" id="p-stats">
+      <div id="statsOut" class="stack"></div>
     </section>
 
     <!-- ===== ORDER ===== -->
@@ -2022,6 +2079,7 @@ function tab(t) {
   if (t === "order") renderOrder();
   if (t === "paste") renderPaste();
   if (t === "hist") renderHist();
+  if (t === "stats") renderStats();
   if (t !== "items") closeDrop();
   requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
@@ -2037,8 +2095,9 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
+    h("li", null, h("b", null, "Stats:"), " money in and out, items sold, bought and traded, sets (BEM…), records, best items and partners — with a chart and tables."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
-    h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
+    h("li", null, h("b", null, "Preview:"), " Download, Share or Copy the picture and post it on Discord.")),
   h("a", { class: "btn full guide", href: "guide.html", target: "_blank", rel: "noopener" }, "📖 Full guide"),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
 
@@ -2144,7 +2203,7 @@ $("#sdone").onclick = closeDrop;
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
-function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
+function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste", "stats"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 let jumpT = 0;
@@ -2447,10 +2506,6 @@ function getBlob() { draw(); return new Promise((res, rej) => { try { cv.toBlob(
 function saveBlob(b, name) { const u = URL.createObjectURL(b), a = h("a", { href: u, download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); }
 async function download() { try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed — reload the page and try again."); } }
 $("#dl").onclick = download;
-$("#dlTab").onclick = async () => {
-  if (navigator.canShare && matchMedia("(pointer:coarse)").matches) { try { const f = new File([await getBlob()], fname(), { type: "image/png" }); if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); return; } } catch (e) { if (e && e.name === "AbortError") return; } }
-  download();
-};
 $("#share").onclick = async () => {
   try {
     const f = new File([await getBlob()], fname(), { type: "image/png" });
@@ -3097,6 +3152,224 @@ function exportHistCsv() {
   HIST.forEach(e => e.lines.forEach(x => rows.push([new Date(e.t).toISOString().slice(0, 16).replace("T", " "), HT[e.type] || e.type, e.post, e.who || "", x.name, x.q, x.v, x.bulk || "", x.give || "", e.total || ""])));
   saveBlob(new Blob([rows.map(r => r.map(q).join(",")).join("\n")], { type: "text/csv" }), "hayday-history.csv");
   toast("History exported ✔");
+}
+
+/* =====================================================================
+   10. STATS — everything the History knows, in numbers, tables and one chart
+   (all posts together · sales = money in · purchases = money out · trades = items)
+   ===================================================================== */
+const SV = { per: "30", more: {} };
+const SV_PER = [["7", "7 days"], ["30", "30 days"], ["90", "90 days"], ["all", "All"]];
+const sk = x => x.ref || "n:" + norm(x.name || "");
+const sThumb = x => thumb(x.ref && CAT.byId[x.ref] ? prodState(x.ref) : null, x.e || "📦", "mini");
+const sOr = v => convs().map(k => k === "ring" ? fmtR(v / RING_RATE) + " rings" : curTxt(k, v / CUR[k].rate)).join(" or ");
+const sConv = v => convs().map(k => k === "ring" ? "≈ " + fmtR(v / RING_RATE) + " rings" : "≈ " + curTxt(k, v / CUR[k].rate)).join(" · ");
+const dOnly = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const WDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/** Start of the period (whole days: "7 days" = today + the 6 days before). */
+function statsSince() {
+  if (SV.per === "all") return HIST.length ? dOnly(Math.min(...HIST.map(e => e.t))) : dOnly(Date.now());
+  const d = new Date(dOnly(Date.now())); d.setDate(d.getDate() - (num(SV.per) - 1)); return d.getTime();
+}
+/** Crunch the History of the period into totals, per item, per partner, records and chart buckets. */
+function computeStats() {
+  const since = statsSince(), E = HIST.filter(e => e.t >= since);
+  const S = { since, E, in: 0, out: 0, nSale: 0, nBuy: 0, nTrade: 0, uSold: 0, uBought: 0, uTin: 0, uTout: 0, disc: 0, bonus: 0,
+    sold: new Map(), bought: new Map(), tin: new Map(), tout: new Map(), packs: new Map(), who: new Map(), days: new Map(), wd: Array(7).fill(0), hr: Array(24).fill(0), rec: {} };
+  const add = (m, x, q, v) => { const k = sk(x), o = m.get(k) || { ref: x.ref, e: x.e, name: x.name, q: 0, v: 0, n: 0, best: 0 }; o.q += q; o.v += v; o.n++; if (q > 0) o.best = Math.max(o.best, v / q); m.set(k, o); return o; };
+  const pack = ref => { const p = ref && CAT.byId[ref]; if (!p || !p.parts) return null; const o = S.packs.get(ref) || { p, out: 0, inT: 0, bought: 0, sold: 0, parts: p.parts.map(() => 0), deals: 0 }; S.packs.set(ref, o); return o; };
+  const rec = (k, val, e, extra) => { if (val > 0 && (!S.rec[k] || val > S.rec[k].val)) S.rec[k] = Object.assign({ val, e }, extra); };
+  E.forEach(e => {
+    const lines = e.lines || [], q = lines.reduce((a, l) => a + (l.q || 0), 0), d = new Date(e.t);
+    S.wd[(d.getDay() + 6) % 7]++; S.hr[d.getHours()]++;
+    const day = S.days.get(dOnly(e.t)) || { in: 0, out: 0, n: 0 }; day.n++; S.days.set(dOnly(e.t), day);
+    const who = (e.who || "").trim(), wk = who.toLowerCase();
+    const P = who ? (S.who.get(wk) || { name: who, n: 0, in: 0, out: 0, tr: 0 }) : null; if (P) { P.n++; S.who.set(wk, P); }
+    if (e.type === "vente") {
+      const tot = e.total || 0, sv = lines.reduce((a, l) => a + (l.v || 0), 0), f = sv > 0 ? tot / sv : 1;
+      S.in += tot; S.nSale++; S.uSold += q; day.in += tot; if (P) P.in += tot;
+      lines.forEach(l => { add(S.sold, l, l.q || 0, (l.v || 0) * f); const pk = pack(l.ref); if (pk) pk.sold += l.q || 0; if (l.q) rec("price", (l.v || 0) * f / l.q, e, { item: l }); });
+      if (e.disc > 0 && e.disc < 100) S.disc += tot / (1 - e.disc / 100) - tot;
+      rec("sale", tot, e); rec("saleQ", q, e);
+    } else if (e.type === "achat") {
+      const tot = e.total || 0;
+      S.out += tot; S.nBuy++; S.uBought += q; day.out += tot; if (P) P.out += tot; S.bonus += e.bonus || 0;
+      lines.forEach(l => { add(S.bought, l, l.q || 0, l.v || 0); const pk = pack(l.ref); if (pk) pk.bought += l.q || 0; });
+      rec("buy", tot, e);
+    } else if (e.type === "trade") {
+      S.nTrade++; S.uTin += q; if (P) P.tr++;
+      lines.forEach(l => { add(S.tin, l, l.q || 0, 0); const pk = pack(l.ref); if (pk) pk.inT += l.q || 0; });
+      let given = 0;
+      (e.gives || []).forEach(g => {
+        const n = g.n || 0; given += n; add(S.tout, g, n, 0);
+        const pk = pack(g.ref); if (pk) { const w = Math.round(n); pk.out += w; pk.deals++; packSplit(pk.p, w).forEach((x, i) => pk.parts[i] += x.n); }
+      });
+      S.uTout += given; rec("trade", q, e, { given });
+    }
+  });
+  S.days.forEach((d, t) => rec("day", d.in, null, { t, n: d.n }));
+  const best = (m, f) => [...m.values()].sort((a, b) => f(b) - f(a))[0];
+  S.topQ = best(S.sold, o => o.q); S.topV = best(S.sold, o => o.v);
+  S.topWho = best(S.who, o => o.in); S.freqWho = best(S.who, o => o.n);
+  return S;
+}
+/** Bars for the chart: days (7 / 30), weeks (90) or what fits the whole History. */
+function statsBuckets(S) {
+  const span = (Date.now() - S.since) / 864e5;
+  const unit = SV.per === "7" || SV.per === "30" ? "day" : SV.per === "90" ? "week" : span <= 31 ? "day" : span <= 190 ? "week" : "month";
+  const start = t => { const d = new Date(dOnly(t)); if (unit === "week") d.setDate(d.getDate() - (d.getDay() + 6) % 7); if (unit === "month") d.setDate(1); return d.getTime(); };
+  const next = t => { const d = new Date(t); if (unit === "day") d.setDate(d.getDate() + 1); else if (unit === "week") d.setDate(d.getDate() + 7); else d.setMonth(d.getMonth() + 1); return d.getTime(); };
+  const B = []; for (let t = start(S.since); t <= Date.now(); t = next(t)) B.push({ t, end: next(t), in: 0, out: 0, n: 0 });
+  S.E.forEach(e => { const b = B.find(x => e.t >= x.t && e.t < x.end); if (!b) return; b.n++; if (e.type === "vente") b.in += e.total || 0; if (e.type === "achat") b.out += e.total || 0; });
+  const lab = t => { const d = new Date(t); return unit === "month" ? d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" }) : SV.per === "7" ? d.toLocaleDateString("en-GB", { weekday: "short" }) : d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }); };
+  const long = b => unit === "day" ? dayLabel(b.t) : unit === "week" ? "Week of " + new Date(b.t).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : new Date(b.t).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  B.forEach(b => { b.lab = lab(b.t); b.long = long(b); });
+  return { unit, B };
+}
+
+/* ---------- pieces ---------- */
+const sCard = (title, ...kids) => h("div", { class: "card fieldset scard" }, h("div", { class: "ch" }, h("h2", null, title)), ...kids);
+function kpi(label, v, sub, cls) { return h("div", { class: "kpi" + (cls ? " " + cls : "") }, h("div", { class: "k" }, label), h("div", { class: "v" }, v), sub ? h("small", null, sub) : null); }
+const coinV = v => [h("i", { class: "coin" }), short(Math.round(v))];
+const plural = (n, w) => fmt(n) + " " + w + (n === 1 ? "" : "s");
+/** A table with a thin bar under each name (share of the biggest value). */
+function sTable(key, rows, cols, barOf, barCls) {
+  if (!rows.length) return h("p", { class: "hint" }, "Nothing yet for this period.");
+  const all = SV.more[key], shown = all ? rows : rows.slice(0, 8), max = Math.max(...rows.map(barOf), 1);
+  const t = h("table", { class: "stab" },
+    h("thead", null, h("tr", null, h("th", null, cols[0].t), ...cols.slice(1).map(c => h("th", null, c.t)))),
+    h("tbody", null, shown.map(r => h("tr", null,
+      h("td", { class: "nm" }, h("div", { class: "nmi" }, sThumb(r), h("span", null, r.name || "Item")), barOf ? h("i", { class: "sbar " + (barCls || ""), style: "width:" + Math.max(2, barOf(r) / max * 100).toFixed(1) + "%" }) : null),
+      ...cols.slice(1).map(c => h("td", { class: "n" }, c.f(r)))))));
+  return h("div", null, t, rows.length > 8 ? h("button", { class: "btn sm smore", onclick: () => { SV.more[key] = !all; renderStats(); } }, all ? "Show less" : "Show all " + rows.length) : null);
+}
+/** Money in (up) and out (down) over time — one axis, tap or hover a bar for the numbers. */
+function flowChart(S) {
+  const { B } = statsBuckets(S), maxIn = Math.max(0, ...B.map(b => b.in)), maxOut = Math.max(0, ...B.map(b => b.out));
+  if (!maxIn && !maxOut) return h("p", { class: "hint" }, "No coins in or out in this period (only trades).");
+  const W = 360, H = 200, L = 44, R = 6, T = 12, Bm = 24, pw = W - L - R, ph = H - T - Bm;
+  const up = ph * maxIn / (maxIn + maxOut), y0 = T + up, bw = pw / B.length, w = Math.max(1.5, Math.min(26, bw - 2));
+  const NS = "http://www.w3.org/2000/svg", s = (tag, a, txt) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "flow", role: "img", "aria-label": "Money in and out over time" });
+  const band = s("rect", { x: 0, y: T, width: bw, height: ph, class: "hov", opacity: 0 }); svg.append(band);
+  svg.append(s("line", { x1: L, x2: W - R, y1: y0, y2: y0, class: "base" }));
+  const ak = v => v >= 1e6 ? fmtR(v / 1e6) + "M" : v >= 1e3 ? (v < 1e4 ? fmtR(v / 1e3) : Math.round(v / 1e3)) + "k" : fmt(v);
+  const roomUp = y0 - T, roomDown = T + ph - y0;
+  if (maxIn && roomUp > 20) svg.append(s("text", { x: L - 6, y: T + 4, class: "ax", "text-anchor": "end" }, ak(maxIn)));
+  if (maxOut && roomDown > 20) svg.append(s("text", { x: L - 6, y: T + ph, class: "ax", "text-anchor": "end" }, "−" + ak(maxOut)));
+  svg.append(s("text", { x: L - 6, y: y0 + 3.5, class: "ax", "text-anchor": "end" }, "0"));
+  const bar = (x, hgt, dir) => { const r = Math.min(3, w / 2, hgt); if (hgt <= 0) return null; const y = dir > 0 ? y0 - hgt : y0 + hgt;
+    return dir > 0 ? `M${x} ${y0}V${y + r}Q${x} ${y} ${x + r} ${y}H${x + w - r}Q${x + w} ${y} ${x + w} ${y + r}V${y0}Z` : `M${x} ${y0}V${y - r}Q${x} ${y} ${x + r} ${y}H${x + w - r}Q${x + w} ${y} ${x + w} ${y - r}V${y0}Z`; };
+  B.forEach((b, i) => {
+    const x = L + i * bw + (bw - w) / 2;
+    // 1px gap on each side of the baseline; a small amount still shows as a 2px bar
+    const a = bar(x, b.in > 0 ? Math.max(2, b.in / maxIn * up - 1) : 0, 1), c = bar(x, b.out > 0 ? Math.max(2, b.out / maxOut * (ph - up) - 1) : 0, -1);
+    if (a) svg.append(s("path", { d: a, class: "bin" })); if (c) svg.append(s("path", { d: c, class: "bout" }));
+  });
+  const marks = B.length <= 7 ? B.map((_, i) => i) : [0, Math.floor((B.length - 1) / 2), B.length - 1];
+  marks.forEach(i => svg.append(s("text", { x: L + i * bw + bw / 2, y: H - 6, class: "ax", "text-anchor": i === 0 && B.length > 7 ? "start" : i === B.length - 1 && B.length > 7 ? "end" : "middle" }, B[i].lab)));
+  const tip = h("div", { class: "ftip", hidden: true }), wrap = h("div", { class: "fwrap" }, svg, tip);
+  const show = ev => {
+    const r = svg.getBoundingClientRect(), xs = (ev.clientX - r.left) * W / r.width, i = Math.floor((xs - L) / bw);
+    if (i < 0 || i >= B.length) return hide();
+    const b = B[i]; band.setAttribute("x", L + i * bw); band.setAttribute("width", bw); band.setAttribute("opacity", 1);
+    tip.textContent = ""; tip.append(h("b", null, b.long), h("span", null, h("i", { class: "sw in" }), "In " + fmt(Math.round(b.in))), h("span", null, h("i", { class: "sw out" }), "Out " + fmt(Math.round(b.out))), h("span", null, "Net " + (b.in - b.out >= 0 ? "+" : "−") + fmt(Math.abs(Math.round(b.in - b.out)))), h("small", null, plural(b.n, "deal")));
+    tip.hidden = false; const px = (L + i * bw + bw / 2) / W * r.width; tip.style.left = Math.min(Math.max(px, 70), r.width - 70) + "px";
+  };
+  const hide = () => { tip.hidden = true; band.setAttribute("opacity", 0); };
+  svg.addEventListener("pointermove", show); svg.addEventListener("pointerdown", show); svg.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") hide(); });
+  const legend = h("div", { class: "flegend" }, h("span", null, h("i", { class: "sw in" }), "In · sales"), h("span", null, h("i", { class: "sw out" }), "Out · purchases"));
+  const rows = B.filter(b => b.in || b.out);
+  const table = h("details", { class: "ftab" }, h("summary", null, "Show as table"),
+    h("table", { class: "stab" }, h("thead", null, h("tr", null, h("th", null, "When"), h("th", null, "In"), h("th", null, "Out"), h("th", null, "Net"))),
+      h("tbody", null, rows.map(b => h("tr", null, h("td", null, b.long), h("td", { class: "n" }, fmt(Math.round(b.in))), h("td", { class: "n" }, fmt(Math.round(b.out))), h("td", { class: "n" }, (b.in - b.out >= 0 ? "+" : "−") + fmt(Math.abs(Math.round(b.in - b.out)))))))));
+  return [legend, wrap, table];
+}
+function recRow(icon, label, main, sub) { return h("div", { class: "rec" }, h("span", { class: "ri" }, icon), h("div", null, h("div", { class: "k" }, label), h("div", { class: "v" }, main), sub ? h("small", null, sub) : null)); }
+const whenWho = e => [e && e.who ? e.who : null, e ? dayLabel(e.t) : null].filter(Boolean).join(" · ");
+
+/* ---------- the tab ---------- */
+function renderStats() {
+  const out = $("#statsOut"); out.textContent = "";
+  const per = h("div", { class: "seg" }, SV_PER.map(([v, l]) => h("button", { class: SV.per === v ? "on" : "", onclick: () => { SV.per = v; renderStats(); } }, l)));
+  out.append(h("div", { class: "card fieldset" }, h("div", { class: "ch" }, h("h2", null, "Stats")), per,
+    h("p", { class: "hint" }, "From your History — all your posts. A deal counts once you tap “✓ Mark as done” in Order.")));
+  if (!HIST.length) { out.append(h("div", { class: "empty card" }, "No stats yet. After a deal, open Order and tap “✓ Mark as done”: it lands in your History and here.", h("button", { class: "btn pri", style: "margin-top:12px", onclick: () => tab("order") }, "Go to Order"))); return; }
+  const S = computeStats(), net = S.in - S.out;
+  if (!S.E.length) { out.append(h("div", { class: "empty card" }, "Nothing in this period. Try “All”.")); return; }
+
+  // 1 · overview
+  out.append(sCard("Overview",
+    h("div", { class: "kpis" },
+      kpi("Money in", coinV(S.in), plural(S.nSale, "sale"), "in"),
+      kpi("Money out", coinV(S.out), plural(S.nBuy, "purchase"), "out"),
+      kpi("Balance", [h("i", { class: "coin" }), (net >= 0 ? "+" : "−") + short(Math.abs(Math.round(net)))], net >= 0 ? "you earned more than you spent" : "you spent more than you earned"),
+      kpi("Deals", fmt(S.E.length), [S.nSale && plural(S.nSale, "sale"), S.nBuy && plural(S.nBuy, "buy"), S.nTrade && plural(S.nTrade, "trade")].filter(Boolean).join(" · "))),
+    (S.in || S.out) && convs().length ? h("p", { class: "hint" }, [S.in ? "Earned ≈ " + sOr(S.in) : "", S.out ? "spent ≈ " + sOr(S.out) : ""].filter(Boolean).join(" · ").replace(/^s/, "S")) : null,
+    h("div", { class: "kpis" },
+      kpi("Items sold", short(S.uSold), S.nSale ? "≈ " + fmt(Math.round(S.uSold / S.nSale)) + " per sale" : null),
+      kpi("Items bought", short(S.uBought), S.nBuy ? "≈ " + fmt(Math.round(S.uBought / S.nBuy)) + " per purchase" : null)),
+    h("div", { class: "kpis" },
+      kpi("Average sale", S.nSale ? coinV(S.in / S.nSale) : "—"),
+      kpi("Average buy", S.nBuy ? coinV(S.out / S.nBuy) : "—")),
+    S.disc || S.bonus ? h("p", { class: "hint" }, [S.disc ? "Discounts given: " + fmt(Math.round(S.disc)) + " coins" : "", S.bonus ? "Bulk bonus paid: " + fmt(Math.round(S.bonus)) + " coins" : ""].filter(Boolean).join(" · ")) : null));
+
+  // 2 · chart
+  out.append(sCard("Money in & out", ...[flowChart(S)].flat()));
+
+  // 3 · records
+  const R = S.rec, recs = [];
+  if (R.sale) recs.push(recRow("🏆", "Biggest sale", coinV(R.sale.val), whenWho(R.sale.e)));
+  if (R.day) recs.push(recRow("📅", "Best day", coinV(R.day.val), dayLabel(R.day.t) + " · " + plural(R.day.n, "deal")));
+  if (S.topV) recs.push(recRow("💰", "Best-selling item (coins)", [sThumb(S.topV), S.topV.name], short(Math.round(S.topV.v)) + " coins · " + fmt(S.topV.q) + " sold"));
+  if (S.topQ && S.topQ !== S.topV) recs.push(recRow("📦", "Most sold item (units)", [sThumb(S.topQ), S.topQ.name], fmt(S.topQ.q) + " sold in " + plural(S.topQ.n, "sale")));
+  if (R.price) recs.push(recRow("💎", "Best price per item", [...coinV(R.price.val), " ea"], R.price.item.name + " · " + whenWho(R.price.e)));
+  if (R.saleQ && R.saleQ.e !== (R.sale && R.sale.e)) recs.push(recRow("🛒", "Most items in one sale", fmt(R.saleQ.val), whenWho(R.saleQ.e)));
+  if (R.buy) recs.push(recRow("🧾", "Biggest purchase", coinV(R.buy.val), whenWho(R.buy.e)));
+  if (R.trade) recs.push(recRow("🔁", "Biggest trade", fmt(R.trade.val) + " items received", fmt(Math.round(R.trade.given)) + " given · " + whenWho(R.trade.e)));
+  if (S.topWho && S.topWho.in) recs.push(recRow("⭐", "Top buyer", S.topWho.name, short(Math.round(S.topWho.in)) + " coins · " + plural(S.topWho.n, "deal")));
+  if (S.freqWho && S.freqWho.n > 1 && S.freqWho !== S.topWho) recs.push(recRow("🤝", "Most deals with", S.freqWho.name, plural(S.freqWho.n, "deal")));
+  const wd = S.wd.indexOf(Math.max(...S.wd)), hr = S.hr.indexOf(Math.max(...S.hr));
+  if (S.E.length > 2) recs.push(recRow("🕗", "Busiest time", WDAYS[wd] + "s · " + String(hr).padStart(2, "0") + ":00–" + String((hr + 1) % 24).padStart(2, "0") + ":00", plural(S.wd[wd], "deal") + " on " + WDAYS[wd] + "s"));
+  if (recs.length) out.append(sCard("Records", h("div", { class: "recs" }, recs)));
+
+  // 4 · items
+  const byV = m => [...m.values()].sort((a, b) => b.v - a.v || b.q - a.q), byQ = m => [...m.values()].sort((a, b) => b.q - a.q);
+  const avg = o => o.q ? short(Math.round(o.v / o.q)) : "—";
+  if (S.sold.size) out.append(sCard("Items sold", sTable("sold", byV(S.sold), [{ t: "Item" }, { t: "Sold", f: o => fmt(o.q) }, { t: "Coins", f: o => short(Math.round(o.v)) }, { t: "Avg ea", f: avg }], o => o.v, "in")));
+  if (S.bought.size) out.append(sCard("Items bought", sTable("bought", byV(S.bought), [{ t: "Item" }, { t: "Bought", f: o => fmt(o.q) }, { t: "Coins", f: o => short(Math.round(o.v)) }, { t: "Avg ea", f: avg }], o => o.v, "out")));
+
+  // 5 · trades & sets
+  if (S.nTrade || S.packs.size) {
+    const kids = [];
+    if (S.packs.size) {
+      kids.push(h("h3", { class: "sh3" }, "Sets (BEM, SEM, LEM…)"));
+      const P = [...S.packs.values()].sort((a, b) => (b.out + b.inT + b.bought + b.sold) - (a.out + a.inT + a.bought + a.sold));
+      kids.push(h("table", { class: "stab" }, h("thead", null, h("tr", null, h("th", null, "Set"), h("th", null, "Traded away"), h("th", null, "Traded in"), h("th", null, "Bought"), h("th", null, "Sold"))),
+        h("tbody", null, P.map(o => h("tr", null, h("td", { class: "nm" }, h("div", { class: "nmi" }, sThumb({ ref: o.p.id, e: o.p.e }), h("span", null, giveName({ ref: o.p.id })))),
+          h("td", { class: "n" }, fmt(o.out)), h("td", { class: "n" }, fmt(o.inT)), h("td", { class: "n" }, fmt(o.bought)), h("td", { class: "n" }, fmt(o.sold)))))));
+      P.filter(o => o.out).forEach(o => kids.push(h("div", { class: "osplit" }, h("span", { class: "spl" }, giveName({ ref: o.p.id }) + " given:"), o.p.parts.map((id, i) => h("span", null, thumb(prodState(id), (CAT.byId[id] || {}).e, "mini"), h("b", null, fmt(o.parts[i])), " " + ((CAT.byId[id] || {}).en || id))))));
+      kids.push(h("p", { class: "hint" }, "Sets count materials: 89 BEM = 30 Bolt · 30 Plank · 29 Duct Tape. Traded away = what you gave in trades."));
+    }
+    if (S.tin.size) kids.push(h("h3", { class: "sh3" }, "Received in trades"), sTable("tin", byQ(S.tin), [{ t: "Item" }, { t: "Received", f: o => fmt(o.q) }, { t: "Trades", f: o => fmt(o.n) }], o => o.q, "in"));
+    const toutNP = byQ(S.tout).filter(o => !(o.ref && CAT.byId[o.ref] && CAT.byId[o.ref].parts));
+    if (toutNP.length) kids.push(h("h3", { class: "sh3" }, "Given in trades"), sTable("tout", toutNP, [{ t: "Item" }, { t: "Given", f: o => fmtR(o.q) }, { t: "Trades", f: o => fmt(o.n) }], o => o.q, "out"));
+    out.append(sCard("Trades", h("div", { class: "kpis three" }, kpi("Trades", fmt(S.nTrade)), kpi("Received", fmt(S.uTin), "items"), kpi("Given", fmtR(S.uTout), "items")), ...kids));
+  }
+
+  // 6 · partners
+  if (S.who.size) {
+    const W = [...S.who.values()].sort((a, b) => (b.in + b.out) - (a.in + a.out) || b.n - a.n);
+    out.append(sCard("Partners", sTable("who", W.map(o => Object.assign({ e: "👤" }, o)), [{ t: "Name" }, { t: "Deals", f: o => fmt(o.n) }, { t: "Paid you", f: o => o.in ? short(Math.round(o.in)) : "—" }, { t: "You paid", f: o => o.out ? short(Math.round(o.out)) : "—" }], o => o.in + o.out, "in"),
+      h("p", { class: "hint" }, "Names typed in “Deal done?”. Deals without a name aren't listed here.")));
+  }
+
+  // 7 · when
+  const mx = Math.max(...S.wd, 1);
+  out.append(sCard("When you deal", h("div", { class: "wds" }, S.wd.map((n, i) => h("div", { class: "wd", title: WDAYS[i] + ": " + plural(n, "deal") },
+    h("div", { class: "wb" }, h("i", { style: "height:" + (n ? Math.max(6, n / mx * 100) : 0) + "%" })), h("b", null, n ? fmt(n) : ""), h("span", null, WDAYS[i].slice(0, 3))))),
+    h("p", { class: "hint" }, "Deals per day of the week, " + (SV.per === "all" ? "since your first deal" : "last " + SV.per + " days") + ".")));
 }
 
 /* =====================================================================
