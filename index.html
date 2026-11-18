@@ -1565,7 +1565,7 @@ function draw() {
   if (cta) H += 40 + 120 + 40;
   if ((st.sub || "").trim()) H += 46;
   const zL = Math.min(1.8, Math.max(1, W / 1080)); // site link size grows with wide pictures
-  H = Math.round(H + 64 + 34 * zL);
+  H = Math.round(H + 64 + 54 * zL);
   if (cv.width !== W) cv.width = W;
   if (cv.height !== H) cv.height = H;
 
@@ -1805,9 +1805,9 @@ function draw() {
 
   /* ---------- site link: small, centred at the bottom, inside the frame ---------- */
   {
-    const s = Math.round(20 * zL), ly = H - 35 - 26 * zL, tw = measure(SITE_URL, "700", s, 1), g = 14 * zL, l = 46 * zL;
-    txt(SITE_URL, W / 2, ly, { f: "700", s, c: T.mut, al: "center", sp: 1 });
-    rule(W / 2 - tw / 2 - g - l, W / 2 - tw / 2 - g, ly + 1, 1, T.mut); rule(W / 2 + tw / 2 + g, W / 2 + tw / 2 + g + l, ly + 1, 1, T.mut);
+    const s = Math.round(31 * zL), ly = H - 35 - 40 * zL, tw = measure(SITE_URL, "700", s, 1.5), g = 18 * zL, l = 64 * zL;
+    txt(SITE_URL, W / 2, ly, { f: "700", s, c: T.mut, al: "center", sp: 1.5 });
+    rule(W / 2 - tw / 2 - g - l, W / 2 - tw / 2 - g, ly + 1, 1.5, T.mut); rule(W / 2 + tw / 2 + g, W / 2 + tw / 2 + g + l, ly + 1, 1.5, T.mut);
   }
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
   $("#pvSize").textContent = W + " × " + H + " px";
