@@ -303,7 +303,8 @@ body[data-tab=prev] #editor{display:none}
 .list{gap:8px}
 .item{padding:10px 12px;gap:8px}
 .i1{grid-template-columns:48px minmax(0,1fr) 34px 34px;gap:4px}
-.thumbbtn{width:48px;height:48px;padding:4px;font-size:28px;border-radius:9px}
+.thumbbtn{width:48px;height:48px;padding:4px;font-size:28px;border-radius:9px;display:grid;place-items:center}
+.name.fixed{display:block;line-height:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:default;user-select:text}
 .haveitem .i1{grid-template-columns:48px minmax(0,1fr) 112px 34px}
 .ib{width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:var(--mut);font-size:19px}
 .ib:active{background:var(--surface2)}
@@ -1015,7 +1016,7 @@ function prodState(id) {
   if (!p) { s.fail = true; return s; }
   (async () => {
     const cands = [];
-    const ov = USERIMG.get("ov:" + id); if (ov) cands.push(ov);
+    const ov = null; // game pictures can't be replaced
     if (p.custom) { const c = USERIMG.get("c:" + id); if (c) cands.push(c); }
     if (p.parts && !ov) return composePack(s, p);
     if (LOCAL.has(id)) cands.push("images/" + id + ".png");
@@ -1225,6 +1226,8 @@ const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name ||
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
+  // game items always show their real name and picture
+  [...(p.have || []), ...(p.wants || [])].forEach(w => { const g = w && w.ref && CAT.byId[w.ref]; if (g) { w.name = g.en; w.img = ""; } });
   // v15: "Total in" = main currency (coins / rings / blankets) + ≈ rings / ≈ blankets switches
   if (!p.v15) { const u = p.totUnit || "both"; p.showR = u !== "coins"; p.showB = u !== "coins"; p.totUnit = u === "rings" ? "rings" : "coins"; p.v15 = 1; }
   if (!p.v13) { [...(p.have || []), ...(p.wants || [])].forEach(w => { if (w && w.note === "1st page · no bb") w.note = ""; }); p.v13 = 1; }
@@ -1423,14 +1426,14 @@ function ledgerVal(w, k) {
   if (k === "r") return v ? { t: fmtR(v / RING_RATE), ic: "ring", acc: 1 } : null;
   if (k === "b") return v ? { t: fmtR(v / BLANKET_RATE), ic: "blanket", acc: 1 } : null;
 }
-function ledgerRow(w, LC, cy, T, sc) {
+function ledgerRow(w, LC, cy, T, sc, compact) {
   sc = sc || 1;
   LC.forEach(c => {
     const v = ledgerVal(w, c.k); if (!v) return;
-    const s = (v.strong ? 27 : 24) * sc;
-    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w, min: 14 });
+    const s = (v.strong ? 29 : 24) * sc;
+    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w - (v.ic ? 26 * sc : 0), min: 13 });
     if (v.ic === "coin") coin(c.xr - tw - 19 * sc, cy, 10 * sc); else if (v.ic) curIcon(v.ic, c.xr - tw - 21 * sc, cy, 12 * sc);
-    if (v.sub && sc === 1) { const sw = txt(v.sub, c.xr, cy + 27, { f: "600i", s: 17, c: T.mut, al: "right", maxW: c.w }); }
+    if (v.sub && sc === 1 && !compact) { const sw = txt(v.sub, c.xr, cy + 27, { f: "600i", s: 17, c: T.mut, al: "right", maxW: c.w }); }
   });
 }
 function ledgerLine(w, c, xl, xr, cy, T, small) {
@@ -1477,7 +1480,7 @@ function draw() {
   const convK = ["r", "b"].filter(k => k !== mainK && (k === "r" ? st.showR !== false : st.showB !== false));
   const fiveCols = !trade && mainK === "t" && convK.length > 1 && wants.some(w => num(w.p) > 0);
   if (lay === "list" && fiveCols) W = 1240;
-  const CW = trade ? 470 : fiveCols ? 770 : 660, CG = 48, RH = 60;
+  const CW = trade ? 470 : fiveCols ? 900 : 780, CG = 48, RH = trade ? 60 : 72;
   let cc = 1, colW = 0;
   if (compact) {
     const maxC = trade ? 4 : 3;
@@ -1535,8 +1538,8 @@ function draw() {
   if (!wants.length) H += 80;
   const LCc = [];
   if (compact && !trade && wants.some(w => num(w.p) > 0)) {
-    const L2 = { t: { w: 124, l: "TOTAL" }, r: { w: 88, l: "RINGS" }, b: { w: 104, l: "BLANKETS" } };
-    LCc.push({ k: "p", w: 112, l: "PRICE / EA" }, { k: "q", w: 60, l: "QTY" });
+    const L2 = { t: { w: 156, l: "TOTAL" }, r: { w: 106, l: "RINGS" }, b: { w: 124, l: "BLANKETS" } };
+    LCc.push({ k: "p", w: 132, l: "PRICE / EA" }, { k: "q", w: 74, l: "QTY" });
     [mainK, ...convK].forEach(k => LCc.push({ k, ...L2[k] }));
   }
   const per = compact ? Math.ceil(wants.length / cc) : 0;
@@ -1545,7 +1548,9 @@ function draw() {
   if (compact && wants.length) H += (LCc.length ? 34 : 0) + per * RH + 30;
 
   const showTot = !trade && st.showTotal !== false && TT.sub > 0;
-  if (showTot) H += 34 + (TT.disc ? 88 : 0) + 74 + convK.length * 36 + 26;
+  // the total grows with the picture, so it stays readable when the image gets wide (many items)
+  const ts = Math.min(1.9, Math.max(1, W / 1080));
+  if (showTot) H += 8 + 26 * ts + (TT.disc ? 92 * ts : 0) + (88 + convK.length * 42) * ts + 26;
 
   const notes = [];
   if (details) details.split("\n").forEach(raw => {
@@ -1655,7 +1660,7 @@ function draw() {
       const x0 = M + c * (colW + CG), xr = x0 + colW, defs = LCc.map(d => ({ ...d }));
       let xx = xr; for (let i = defs.length - 1; i >= 0; i--) { defs[i].xr = xx; xx -= defs[i].w + 12; }
       colsPos.push({ x0, xr, defs, left: xx + 12 });
-      if (hdr && c * per < wants.length) defs.forEach(d => txt(d.l, d.xr, y + 10, { f: "700", s: 14, c: T.mut, sp: 2, al: "right" }));
+      if (hdr && c * per < wants.length) defs.forEach(d => txt(d.l, d.xr, y + 10, { f: "700", s: 16, c: T.mut, sp: 2, al: "right" }));
       if (c > 0) { ctx.fillStyle = hair; ctx.fillRect(Math.round(x0 - CG / 2), y, 1, hdr + per * RH); }
     }
     if (hdr) rule(M, W - M, y + 26, 1, hair);
@@ -1663,20 +1668,21 @@ function draw() {
     wants.forEach((w, i) => {
       const c = Math.floor(i / per), r = i % per, P0 = colsPos[c], ry = y + r * RH, cy = ry + RH / 2;
       if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(P0.x0 - 8, ry + 3, colW + 16, RH - 6); ctx.fillStyle = T.acc; ctx.fillRect(P0.x0 - 8, ry + 3, 4, RH - 6); }
-      icon(itemState(w), w.e, P0.x0 + 26, cy, 46);
-      let nx = P0.x0 + 60;
+      const big = !trade, iz = big ? 54 : 46;
+      icon(itemState(w), w.e, P0.x0 + iz / 2 + 3, cy, iz);
+      let nx = P0.x0 + iz + 14; const nx0 = nx;
       if (w.hot) { starShape(nx + 9, cy - 1, 10, T.acc); nx += 24; }
       const rw = trade ? (hasRatio(w) ? ratioW(w, 22) : 0) : (LCc.length ? P0.xr - P0.left : 0);
       const maxN = P0.xr - nx - (rw ? rw + 24 : 0);
-      let nw = txt(w.name || "", nx, cy, { f: "700", s: 24, c: T.ink, maxW: maxN, min: 16 });
+      let nw = txt(w.name || "", nx, cy, { f: "700", s: big ? 27 : 24, c: T.ink, maxW: maxN, min: 16 });
       const note = (w.note || "").trim().replace(/\n/g, " · ");
       if (note && maxN - nw > 60) nw += txt("  " + note, nx + nw, cy + 1, { f: "500i", s: 18, c: T.mut, maxW: maxN - nw });
       if (rw) {
         ctx.fillStyle = T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.32)";
         for (let x = nx + nw + 10; x < P0.xr - rw - 10; x += 8) { ctx.beginPath(); ctx.arc(x, cy + 7, 1.4, 0, 7); ctx.fill(); }
-        if (trade) drawRatio(w, P0.xr - rw, cy, 22, T); else ledgerRow(w, P0.defs, cy, T, .8);
+        if (trade) drawRatio(w, P0.xr - rw, cy, 22, T); else ledgerRow(w, P0.defs, cy, T, 1, true);
       }
-      if (r < per - 1 && i < wants.length - 1) rule(P0.x0 + 60, P0.xr, ry + RH, 1, hair);
+      if (r < per - 1 && i < wants.length - 1) rule(nx0, P0.xr, ry + RH, 1, hair);
     });
     y += per * RH + 30;
   }
@@ -1737,27 +1743,28 @@ function draw() {
 
   /* ---------- total (sell / buy) — coins first ---------- */
   if (showTot) {
-    y += 8; rule(M, W - M, y, 2.5, T.ink); rule(M, W - M, y + 7, 1, T.ink); y += 26;
+    const z = ts;
+    y += 8; rule(M, W - M, y, 2.5 * Math.min(z, 1.6), T.ink); rule(M, W - M, y + 7 * z, 1, T.ink); y += 26 * z;
     if (TT.disc) {
-      txt("Subtotal", M, y + 20, { f: "500i", s: 27, c: T.mut });
-      const sw = txt(fmt(TT.sub), W - M, y + 20, { f: "600", s: 27, c: T.mut, al: "right" }); rule(W - M - sw - 4, W - M + 4, y + 21, 2, T.mut);
-      y += 44;
-      txt((st.discLabel || "").trim() || "Discount", M, y + 20, { f: "600", s: 27, c: T.acc, maxW: W - 2 * M - 220 });
-      txt("−" + fmtR(TT.disc) + "%", W - M, y + 20, { f: "700", s: 27, c: T.acc, al: "right" });
-      y += 44;
+      txt("Subtotal", M, y + 20 * z, { f: "500i", s: 29 * z, c: T.mut });
+      const sw = txt(fmt(TT.sub), W - M, y + 20 * z, { f: "600", s: 29 * z, c: T.mut, al: "right" }); rule(W - M - sw - 4, W - M + 4, y + 21 * z, 2 * z, T.mut);
+      y += 46 * z;
+      txt((st.discLabel || "").trim() || "Discount", M, y + 20 * z, { f: "600", s: 29 * z, c: T.acc, maxW: W - 2 * M - 240 * z });
+      txt("−" + fmtR(TT.disc) + "%", W - M, y + 20 * z, { f: "700", s: 29 * z, c: T.acc, al: "right" });
+      y += 46 * z;
     }
-    const cy = y + 38;
-    txt("Total", M, cy + 2, { f: "D", s: 50, c: T.ink });
+    const cy = y + 42 * z;
+    txt("Total", M, cy + 2, { f: "D", s: 58 * z, c: T.ink });
     const big = { t: [fmt(TT.tot), "coin"], r: [fmtR(TT.rings), "ring"], b: [fmtR(TT.blankets), "blanket"] }[mainK];
-    const tw = txt(big[0], W - M, cy + 2, { f: "D", s: 58, c: T.ink, al: "right" });
-    if (big[1] === "coin") coin(W - M - tw - 30, cy, 21); else curIcon(big[1], W - M - tw - 32, cy, 24);
+    const tw = txt(big[0], W - M, cy + 2, { f: "D", s: 68 * z, c: T.ink, al: "right" });
+    if (big[1] === "coin") coin(W - M - tw - 34 * z, cy, 24 * z); else curIcon(big[1], W - M - tw - 36 * z, cy, 27 * z);
     // ≈ conversions, one per line: "≈ 90.1 rings", "≈ 67.6 blankets"
     convK.forEach((k, i) => {
       const n = k === "r" ? TT.rings : k === "b" ? TT.blankets : TT.tot, word = { r: "rings", b: "blankets", t: "coins" }[k];
-      const ly = cy + 54 + i * 36, rw2 = txt("≈ " + fmtR(n) + " " + word, W - M, ly, { f: "600i", s: 26, c: T.mut, al: "right" });
-      curIcon({ r: "ring", b: "blanket", t: "coin" }[k], W - M - rw2 - 22, ly - 2, 14);
+      const ly = cy + (62 + i * 42) * z, rw2 = txt("≈ " + fmtR(n) + " " + word, W - M, ly, { f: "600i", s: 31 * z, c: T.mut, al: "right" });
+      curIcon({ r: "ring", b: "blanket", t: "coin" }[k], W - M - rw2 - 26 * z, ly - 2, 17 * z);
     });
-    y += 74 + convK.length * 36 + 26;
+    y += (88 + convK.length * 42) * z + 26;
   }
 
   /* ---------- notes: lined paper ---------- */
@@ -2039,11 +2046,19 @@ function groupCard(g) {
     h("div", { class: "grp-f" }, h("button", { type: "button", class: "addhere", onclick: addHere }, "+ Add items here")));
   return card;
 }
+/* Game items keep their real name and picture (locked). Only custom items (not in the game list) get a name field. */
+function nameEl(it) {
+  const p = it.ref && CAT.byId[it.ref];
+  if (p) return h("div", { class: "name fixed", title: p.en }, p.en);
+  const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
+  return name;
+}
+const thumbEl = it => h("span", { class: "thumbbtn" }, thumb(itemState(it), it.e));
 function groupRow(it) {
   const row = h("div", { class: "gi" + (it.hot ? " hot" : ""), "data-uid": it.uid });
-  const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
+  const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); row.classList.toggle("hot", !!it.hot); changed(); } }, "★");
-  row.append(h("div", { class: "gi1" }, h("button", { class: "thumbbtn", title: "Change image", onclick: () => imageSheet(it) }, thumb(itemState(it), it.e)), name, starB,
+  row.append(h("div", { class: "gi1" }, thumbEl(it), name, starB,
     h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯")));
   if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); row.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const ta = n.querySelector("textarea") || n.querySelector("button"); ta && (ta.click ? (ta.tagName === "BUTTON" ? ta.click() : ta.focus()) : 0); }); } }
   return row;
@@ -2072,18 +2087,18 @@ function unitBtn(it, key, opts, after) {
 }
 function haveCard(it) {
   const card = h("div", { class: "item haveitem", "data-uid": it.uid });
-  const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
+  const name = nameEl(it);
   card.append(h("div", { class: "i1" },
-    h("button", { class: "thumbbtn", title: "Change image", onclick: () => imageSheet(it) }, thumb(itemState(it), it.e)),
+    thumbEl(it),
     name, stepper(it, () => {}),
     h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.have) }, "⋯")),
     noteArea(it, "Note (optional)"));
   return card;
 }
 function cardHead(it, card) {
-  const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
+  const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), title: "Highlight", "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); card.classList.toggle("hot", !!it.hot); changed(); } }, "★");
-  return h("div", { class: "i1" }, h("button", { class: "thumbbtn", title: "Change image", onclick: () => imageSheet(it) }, thumb(itemState(it), it.e)), name, starB, h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"));
+  return h("div", { class: "i1" }, thumbEl(it), name, starB, h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"));
 }
 function itemCard(it) {
   const card = h("div", { class: "item" + (it.hot ? " hot" : ""), "data-uid": it.uid });
@@ -2140,7 +2155,6 @@ function itemMenu(it, list) {
   openSheet(it.name || "Item", [
     h("div", { class: "bigprev" }, thumb(itemState(it), it.e), h("div", null, h("b", null, it.name || "Untitled"), h("small", null, it.ref ? "From the library" : "Custom item"))),
     h("div", { class: "menu" },
-      h("button", { onclick: () => { closeSheet(); setTimeout(() => imageSheet(it), 220); } }, h("i", null, "◧"), "Change image"),
       st.type === "trade" && list === st.wants ? h("button", { onclick: () => { closeSheet(); setTimeout(() => newRatioSheet(it), 220); } }, h("i", null, ":"), "Change ratio") : null,
       st.type === "trade" && list === st.wants && !(it.note || "").trim() ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i - 1, 0, it); }) }, h("i", null, "↑"), "Move up") : null,
@@ -2149,40 +2163,6 @@ function itemMenu(it, list) {
       h("button", { onclick: act(() => list.splice(i + 1, 0, Object.assign(clone(it), { uid: uid() }))) }, h("i", null, "⧉"), "Duplicate"),
       st.type === "trade" ? h("button", { onclick: act(() => { list.splice(i, 1); (list === st.have ? st.wants : st.have).push(normItem(it)); }) }, h("i", null, "⇄"), list === st.have ? "Move to “I want”" : "Move to “I have”") : null,
       h("button", { class: "danger", onclick: act(() => list.splice(i, 1)) }, h("i", null, "×"), "Remove"))
-  ]);
-}
-
-/* ---------- image sheet ---------- */
-function imageSheet(it, opts) {
-  opts = opts || {};
-  const target = opts.target || it;
-  const p = target.ref && CAT.byId[target.ref];
-  const done = msg => { closeSheet(); renderLists(); renderStyle(); renderResults(); changed(); if (msg) toast(msg); };
-  const q = h("input", { class: "inp", type: "search", placeholder: "Search a product image…", value: opts.noName ? "" : (target.name || "") });
-  const rename = h("input", { type: "checkbox", checked: !target.name });
-  const grid = h("div", { class: "grid", style: "margin-top:8px" });
-  const fill = () => { grid.textContent = ""; search(q.value, q.value ? "all" : "pop").slice(0, 40).forEach(pp => grid.append(h("button", { class: "tile", onclick: () => { target.ref = pp.id; target.img = ""; target.e = pp.e; if (rename.checked && !opts.noName) target.name = pp.en; pushRecent(pp.id); done("Image set: " + pp.en); } }, thumb(prodState(pp.id), pp.e), h("b", null, pp.en)))); };
-  q.oninput = debounce(fill, 90); fill();
-  const file = h("input", { type: "file", accept: "image/*" });
-  const forAll = h("input", { type: "checkbox", checked: true });
-  file.onchange = async () => {
-    try {
-      const d = await processFile(file.files[0]);
-      if (p && forAll.checked && !p.parts && !opts.noOverride) { USERIMG.set("ov:" + p.id, d); IDB.put("ov:" + p.id, d); resetProdImage(p.id); target.img = ""; done("Saved for every “" + p.en + "”"); }
-      else { const k = "u:" + uid(); USERIMG.set(k, d); IDB.put(k, d); target.img = "idb:" + k; done("Image uploaded ✔"); }
-    } catch (e) { toast("Couldn’t read this image."); }
-  };
-  const emo = h("input", { class: "inp", value: target.e || "", maxLength: 8, style: "font-size:24px;text-align:center;max-width:100px" });
-  openSheet(opts.title || "Item image", [
-    h("div", { class: "bigprev" }, thumb(opts.state ? opts.state() : itemState(target), target.e), h("div", null, h("b", null, target.name || (p ? p.en : opts.title || "Image")), h("small", null, target.img && target.img !== "none" ? "Custom image" : p ? "Game image" : "Emoji"))),
-    h("div", null, h("label", { class: "lbl" }, "Game image"), q, opts.noName ? null : h("label", { class: "switch", style: "min-height:36px;font-size:13px" }, "Rename the item too", rename), grid),
-    h("div", null, h("label", { class: "lbl" }, "Upload your own"), h("label", { class: "btn full filebtn" }, "📷 Choose a photo / screenshot", file),
-      p && !p.parts && !opts.noOverride ? h("label", { class: "switch", style: "min-height:36px;font-size:13px" }, "Use for every “" + p.en + "”", forAll) : null),
-    h("div", null, h("label", { class: "lbl" }, "Emoji"), h("div", { class: "row" }, emo,
-      h("button", { class: "btn", onclick: () => { target.e = emo.value.trim(); done(); } }, "Save"),
-      h("button", { class: "btn", onclick: () => { target.e = emo.value.trim() || target.e; target.img = "none"; done("Emoji only"); } }, "Emoji only"))),
-    target.img ? h("button", { class: "btn dashed", onclick: () => { target.img = ""; done("Game image restored"); } }, "↺ Back to the game image") : null,
-    p && USERIMG.has("ov:" + p.id) ? h("button", { class: "btn dashed danger", onclick: () => { USERIMG.delete("ov:" + p.id); IDB.del("ov:" + p.id); resetProdImage(p.id); done("Game image restored for “" + p.en + "”"); } }, "Remove your image for every “" + p.en + "”") : null
   ]);
 }
 
@@ -2239,7 +2219,7 @@ $("#resetP").onclick = function () {
 const fname = () => (slug(st.name || "post") || "post") + ".png";
 function getBlob() { draw(); return new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error("blob")), "image/png"); } catch (e) { rej(e); } }); }
 function saveBlob(b, name) { const u = URL.createObjectURL(b), a = h("a", { href: u, download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); }
-async function download() { try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed (an external image is blocked). Replace it with your own."); } }
+async function download() { try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed — reload the page and try again."); } }
 $("#dl").onclick = download;
 $("#dlTab").onclick = async () => {
   if (navigator.canShare && matchMedia("(pointer:coarse)").matches) { try { const f = new File([await getBlob()], fname(), { type: "image/png" }); if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); return; } } catch (e) { if (e && e.name === "AbortError") return; } }
