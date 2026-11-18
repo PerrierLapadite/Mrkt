@@ -348,6 +348,20 @@ body[data-tab=prev] #editor{display:none}
 .jump.show{opacity:1;pointer-events:auto}
 .jump button{width:38px;height:38px;font-size:17px;background:color-mix(in srgb,var(--surface) 92%,transparent)}
 @media (min-width:1000px){.jump{opacity:1;pointer-events:auto}}
+.bulk{display:grid;gap:8px}
+.bulk-rows{display:grid;gap:8px}
+.tier{display:grid;grid-template-columns:minmax(0,1.5fr) 18px minmax(0,1fr) 32px;gap:6px;align-items:center}
+.tier .box .u.mode{border:0;border-left:1px solid var(--line2);font:600 12.5px var(--sans);white-space:nowrap;cursor:pointer;color:var(--ink)}
+.tier .box .u.mode::after{content:" ▾";color:var(--mut);font-size:10px}
+.tier.th{font:700 12px var(--slab);letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin-bottom:-4px}
+.tier .tt{font:700 18px var(--sans);color:var(--mut);text-align:center}
+.tier .box input{text-align:center;padding:0 4px}
+.tier .box .u{padding:0 8px}
+.tier .box .pre{border-left:0;border-right:1px solid var(--line2);font-weight:700;color:var(--acc)}
+.tier .ib{color:var(--mut);font-size:16px}
+.sec-h .sum .tag.bulk{color:var(--ok)}
+.oline .bulkt{color:var(--ok);font-style:normal;font-weight:700}
+.ototal .bulkl{font:600 15px var(--slab);color:var(--ok);display:flex;align-items:center;gap:6px}
 .sbar .tchips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent)}
 
 /* ---------- preview ---------- */
@@ -435,9 +449,15 @@ body[data-tab=prev] #mini{display:none}
         <div class="ch"><h2 id="dealsH">Notes</h2></div>
         <div><textarea class="ta" data-k="details" rows="3" placeholder="One line per point — start with “-” for a bullet"></textarea></div>
         <div id="dealsMore">
-        <button type="button" class="more" id="dealsTog"><span>Discount &amp; total</span><small id="dealsSum"></small><i>›</i></button>
+        <button type="button" class="more" id="dealsTog"><span id="dealsT">Discount &amp; total</span><small id="dealsSum"></small><i>›</i></button>
         <div class="fieldset" id="dealsBody" hidden>
-        <div class="pct">
+        <div class="bulk" id="bulkBox" hidden>
+          <p class="hint">When someone sells you this much in one go, you pay this much more. Tap the unit to count in <b>% of an item</b>, units <b>per item</b> or units <b>per order</b>.</p>
+          <div class="tier th"><span>Sold in one go</span><span></span><span>You pay</span><span></span></div>
+          <div class="bulk-rows" id="bulkRows"></div>
+          <button type="button" class="btn sm dashed" id="bulkAdd">＋ Add a tier</button>
+        </div>
+        <div class="pct" id="discBox">
           <div><label class="lbl">Discount</label><div class="box"><input id="disc" inputmode="decimal" placeholder="0"><span class="u">%</span></div></div>
           <div><label class="lbl">Discount name</label><input class="inp" data-k="discLabel" placeholder="Bundle deal"></div>
         </div>
@@ -1129,6 +1149,29 @@ const CUR = {
 const isCur = u => u === "ring" || u === "blanket";
 /** Conversions shown for the current post (≈ rings, ≈ blankets). */
 const convs = () => ["ring", "blanket"].filter(k => k === "ring" ? st.showR !== false : st.showB !== false);
+/** Buying posts — bulk bonus tiers: when someone sells me at least `at`% of an item's quantity at once, I pay +`pct`%. */
+function bulkTiers(p) {
+  p = p || st;
+  if (!p || p.type !== "achat" || !Array.isArray(p.bulk)) return [];
+  return p.bulk.map(t => { const mode = t.mode === "qty" || t.mode === "order" ? t.mode : "pct"; return { mode, at: mode === "pct" ? Math.min(100, num(t.at)) : num(t.at), pct: num(t.pct) }; })
+    .filter(t => t.at > 0 && t.pct > 0).sort((a, b) => a.pct - b.pct || a.at - b.at);
+}
+/** Tier modes — what "sold in one go" counts: % of an item's quantity · units of one item · units in the whole order. */
+const BULK_MODES = { pct: "% of item", qty: "per item", order: "per order" };
+/** Does one sale of `q` units (item wanted: `wq`, whole order: `oq` units) reach tier `t`? */
+function bulkHit(t, q, wq, oq) {
+  if (t.mode === "qty") return q >= t.at;
+  if (t.mode === "order") return oq >= t.at;
+  return wq > 0 && q / wq >= t.at / 100 - 1e-9;
+}
+/** Bonus (%) for one line of an order. */
+const bulkForLine = (q, wq, oq) => bulkTiers().reduce((b, t) => bulkHit(t, q, wq, oq) ? Math.max(b, t.pct) : b, 0);
+/** "the full quantity at once" · "≥ 50% of the quantity at once" · "≥ 200 of an item at once" · "≥ 500 items in one order" */
+function bulkTxt(t) {
+  if (t.mode === "qty") return "≥ " + fmt(t.at) + " of an item at once";
+  if (t.mode === "order") return "≥ " + fmt(t.at) + " items in one order";
+  return t.at >= 100 ? "the full quantity at once" : "≥ " + fmtR(t.at) + "% of the quantity at once";
+}
 const curTxt = (k, n) => fmtR(n) + " " + (Math.abs(n - 1) < 1e-9 ? CUR[k].one : CUR[k].many);
 /** Value of an item in coins (sell / buy posts only — trade posts use ratios, no prices). */
 function itemValue(w) {
@@ -1211,7 +1254,7 @@ function mkItem(ref, extra) {
 }
 const frName = p => { const f = (p.fr || "").split("~")[0].trim(); return f ? f.charAt(0).toUpperCase() + f.slice(1) : p.en; };
 function defaults(type) {
-  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "coins", showR: true, showB: true, v15: 1, disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
+  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "coins", showR: true, showB: true, v15: 1, bulk: [], disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
   if (type === "vente") return { ...base, title: "Shop open", wantTitle: "Available now", cta: "DM to buy",
     wants: [mkItem("lobster-tail", { q: "20", p: "1500" }), mkItem("blanket", { q: "10", p: "1", pu: "ring", hot: 1 }), mkItem("olive-oil", { q: "50", p: "900" })] };
   if (type === "achat") return { ...base, title: "Wanted", wantTitle: "Looking for", cta: "Sell me yours",
@@ -1226,6 +1269,7 @@ const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name ||
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
+  if (!Array.isArray(p.bulk)) p.bulk = [];
   // game items always show their real name and picture
   [...(p.have || []), ...(p.wants || [])].forEach(w => { const g = w && w.ref && CAT.byId[w.ref]; if (g) { w.name = g.en; w.img = ""; } });
   // v15: "Total in" = main currency (coins / rings / blankets) + ≈ rings / ≈ blankets switches
@@ -1383,7 +1427,7 @@ function sortedWants() {
 function totals() {
   const wants = st.wants.filter(w => (w.name || "").trim() || w.ref);
   const sub = wants.reduce((a, w) => a + itemValue(w), 0);
-  const d = Math.min(100, Math.max(0, num(st.disc)));
+  const d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc))); // buying posts use the bulk bonus instead
   const tot = sub * (1 - d / 100);
   return { sub, disc: d, tot, rings: tot / RING_RATE, blankets: tot / BLANKET_RATE };
 }
@@ -1552,6 +1596,9 @@ function draw() {
   // the total grows with the picture, so it stays readable when the image gets wide (many items)
   const ts = Math.min(1.9, Math.max(1, W / 1080));
   if (showTot) H += 8 + 26 * ts + (TT.disc ? 92 * ts : 0) + (88 + convK.length * 42) * ts + 26;
+  // buying: bulk bonus box (each tier with the total of the whole list at that bonus)
+  const BT = trade ? [] : bulkTiers(), bRow = (showTot ? 70 + (convK.length ? 30 : 0) : 54) * ts;
+  if (BT.length) H += 24 + 56 * ts + BT.length * bRow + 18 * ts + 30;
 
   const notes = [];
   if (details) details.split("\n").forEach(raw => {
@@ -1768,6 +1815,30 @@ function draw() {
     });
     y += (88 + convK.length * 42) * z + 26;
   }
+  /* ---------- buying: bulk bonus ---------- */
+  if (BT.length) {
+    const z = ts, x0 = M, x1 = W - M, top = y + 24, bh = 56 * z + BT.length * bRow + 18 * z;
+    ctx.save(); rr(x0, top, x1 - x0, bh, 14 * z); ctx.fillStyle = T.tile; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = T.acc; ctx.stroke(); ctx.restore();
+    txt("BULK BONUS", x0 + 26 * z, top + 32 * z, { f: "700", s: 22 * z, c: T.acc, sp: 5 });
+    if (showTot) txt("total for the whole list", x1 - 26 * z, top + 32 * z, { f: "600i", s: 22 * z, c: T.mut, al: "right" });
+    let ry = top + 56 * z;
+    BT.forEach((t, i) => {
+      const cy = ry + (showTot ? 34 : 27) * z;
+      if (i) rule(x0 + 26 * z, x1 - 26 * z, ry, 1, hair);
+      const bw = txt("+" + fmtR(t.pct) + "%", x0 + 26 * z, cy, { f: "D", s: 38 * z, c: T.acc });
+      txt("if you sell me " + bulkTxt(t), x0 + 26 * z + bw + 18 * z, cy, { f: "600", s: 25 * z, c: T.ink, maxW: (showTot ? (x1 - x0) * .52 : x1 - x0 - bw - 80 * z) });
+      if (showTot) {
+        // the whole list sold this way: the bonus goes to every item that can reach this tier
+        const units = wants.reduce((a, w) => a + Math.max(0, num(w.q)), 0), open = wants.some(w => !(num(w.q) > 0));
+        const v = wants.reduce((a, w) => { const q = num(w.q), okT = t.mode === "qty" ? !(q > 0) || q >= t.at : t.mode === "order" ? open || units >= t.at : q > 0; return a + itemValue(w) * (okT ? 1 + t.pct / 100 : 1); }, 0), big = { t: [fmt(v), "coin"], r: [fmtR(v / RING_RATE), "ring"], b: [fmtR(v / BLANKET_RATE), "blanket"] }[mainK];
+        const tw = txt(big[0], x1 - 26 * z, cy, { f: "D", s: 36 * z, c: T.ink, al: "right" });
+        if (big[1] === "coin") coin(x1 - 26 * z - tw - 22 * z, cy, 14 * z); else curIcon(big[1], x1 - 26 * z - tw - 22 * z, cy, 15 * z);
+        if (convK.length) txt(convK.map(k => "≈ " + fmtR(v / (k === "r" ? RING_RATE : k === "b" ? BLANKET_RATE : 1)) + " " + { r: "rings", b: "blankets", t: "coins" }[k]).join(" · "), x1 - 26 * z, cy + 32 * z, { f: "600i", s: 21 * z, c: T.mut, al: "right" });
+      }
+      ry += bRow;
+    });
+    y = top + bh + 30;
+  }
 
   /* ---------- notes: lined paper ---------- */
   if (notes.length) {
@@ -1841,6 +1912,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
+    h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. Then, if you want, “Update my post” removes exactly what left (49 − 30 → 19 left) — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
@@ -1986,7 +2058,8 @@ function renderSummary() {
   const w = st.wants.filter(x => (x.name || "").trim() || x.ref), s = $("#summary"); s.textContent = "";
   if (st.type !== "trade") {
     const T = totals();
-    if (T.tot) s.append(...[T.disc ? h("span", { class: "tag", title: "Discount applied" }, "−" + fmtR(T.disc) + "%") : null, h("i", { class: "coin" }), fmt(T.tot), ...convEls(T.tot)].filter(Boolean));
+    const bt = bulkTiers(), bmax = bt.reduce((m, t) => Math.max(m, t.pct), 0);
+    if (T.tot) s.append(...[T.disc ? h("span", { class: "tag", title: "Discount applied" }, "−" + fmtR(T.disc) + "%") : null, bmax ? h("span", { class: "tag bulk", title: "Bulk bonus" }, "bulk +" + fmtR(bmax) + "%") : null, h("i", { class: "coin" }), fmt(T.tot), ...convEls(T.tot)].filter(Boolean));
   }
   $("#wantN").textContent = w.length ? w.length + (w.length > 1 ? " items" : " item") : "";
   $("#haveN").textContent = st.have.length ? st.have.length + (st.have.length > 1 ? " items" : " item") : "";
@@ -2176,12 +2249,35 @@ function itemMenu(it, list) {
 
 /* ---------- deals card (items tab) ---------- */
 let dealsOpen = null;
+/* buying: bulk bonus tiers — "[100]% of the quantity at once → [+20]%" */
+function renderBulk() {
+  const rows = $("#bulkRows"), list = st.bulk || (st.bulk = []); rows.textContent = "";
+  const upd = () => { changed(); renderSummary(); const bt = bulkTiers(); $("#dealsSum").textContent = bt.length ? "bulk up to +" + fmtR(Math.max(...bt.map(t => t.pct))) + "%" : ""; };
+  list.forEach((t, i) => {
+    const mode = t.mode === "qty" || t.mode === "order" ? t.mode : "pct";
+    const a = h("input", { value: t.at || "", inputMode: "decimal", placeholder: "100", "aria-label": "Sold in one go (" + BULK_MODES[mode] + ")", oninput: () => { t.at = a.value; upd(); } });
+    const mb = h("button", { type: "button", class: "u mode", title: "Tap to change: % of an item’s quantity · units of one item · units in the whole order", onclick: () => { t.mode = { pct: "qty", qty: "order", order: "pct" }[mode]; upd(); renderBulk(); } }, BULK_MODES[mode]);
+    const b = h("input", { value: t.pct || "", inputMode: "decimal", placeholder: "10", "aria-label": "Bonus (%)", oninput: () => { t.pct = b.value; upd(); } });
+    rows.append(h("div", { class: "tier" },
+      h("div", { class: "box" }, a, mb),
+      h("span", { class: "tt" }, "→"),
+      h("div", { class: "box" }, h("span", { class: "u pre" }, "+"), b, h("span", { class: "u" }, "%")),
+      h("button", { type: "button", class: "ib", "aria-label": "Remove this tier", onclick: () => { list.splice(i, 1); dealsOpen = true; changed(); renderDeals(); renderSummary(); } }, "✕")));
+  });
+  $("#bulkBox .tier.th").hidden = !list.length;
+  const add = $("#bulkAdd"); add.hidden = list.length >= 4;
+  add.onclick = () => { list.push({ at: "", pct: "", mode: "pct" }); dealsOpen = true; renderDeals(); const ins = $$("#bulkRows .tier input"); if (ins.length) ins[ins.length - 2].focus(); };
+}
 function renderDeals() {
   const trade = st.type === "trade";
+  const buy = st.type === "achat", bt = bulkTiers();
   $("#dealsMore").hidden = trade; $("#dealsH").textContent = "Notes";
-  const sum = [num(st.disc) > 0 ? "−" + fmtR(num(st.disc)) + "%" : "", st.showTotal === false ? "total hidden" : st.totUnit === "rings" ? "in rings" : st.totUnit === "blankets" ? "in blankets" : "", !convs().length ? "no ≈" : ""].filter(Boolean).join(" · ");
+  $("#dealsT").textContent = buy ? "Bulk bonus & total" : "Discount & total";
+  $("#discBox").hidden = buy; $("#bulkBox").hidden = !buy;
+  if (buy) renderBulk();
+  const sum = [!buy && num(st.disc) > 0 ? "−" + fmtR(num(st.disc)) + "%" : "", buy && bt.length ? "bulk up to +" + fmtR(Math.max(...bt.map(t => t.pct))) + "%" : "", st.showTotal === false ? "total hidden" : st.totUnit === "rings" ? "in rings" : st.totUnit === "blankets" ? "in blankets" : "", !convs().length ? "no ≈" : ""].filter(Boolean).join(" · ");
   $("#dealsSum").textContent = sum;
-  const open = dealsOpen == null ? num(st.disc) > 0 : dealsOpen;
+  const open = dealsOpen == null ? (buy ? bt.length > 0 : num(st.disc) > 0) : dealsOpen;
   $("#dealsBody").hidden = !open; $("#dealsTog").classList.toggle("open", open);
   $("#dealsTog").onclick = () => { dealsOpen = !open; renderDeals(); };
   const d = $("#disc"); if (document.activeElement !== d) d.value = st.disc || ""; d.oninput = () => { st.disc = d.value; changed(); renderSummary(); };
@@ -2352,7 +2448,9 @@ function priceLine(L) {
     return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b } : null, v: 0 });
   }
   const u = unitPrice(R.w);
-  return Object.assign(R, { u, v: u * q });
+  // buying: bulk bonus when the seller sells a big part of the item's quantity in one go
+  const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(q, wq, ORDER.oq || 0) : 0;
+  return Object.assign(R, { u, bulk, base: u * q, v: u * q * (1 + bulk / 100) });
 }
 const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
 function priceLabel(w) {
@@ -2371,6 +2469,8 @@ function renderOrder() {
   ORDER.prev = ORDER.lines;
   const out = $("#orderOut"); out.textContent = "";
   if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line, with its quantity.")); return; }
+  // units in the whole order (for "per order" bulk tiers)
+  ORDER.oq = ORDER.lines.reduce((a, L) => { const R = resolveLine(L); return a + (R.w ? Math.max(0, L.q || 0) : 0); }, 0);
   const rows = ORDER.lines.map(L => Object.assign(L, { r: priceLine(L) }));
   const list = h("div", { class: "card olist" });
   rows.forEach(L => {
@@ -2383,7 +2483,7 @@ function renderOrder() {
     else if (trade) {
       right = r.ratio ? h("span", { class: "ov" }, fmtR(r.ratio.give), r.ratio.g ? thumb(itemState(r.ratio.g), r.ratio.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
       sub = r.ratio ? "Ratio " + fmtR(r.ratio.a) + " : " + fmtR(r.ratio.b) + (r.ratio.g ? " " + pName(r.ratio.g) : "") : "No ratio in your post";
-    } else { right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—"); sub = priceLabel(w); }
+    } else { right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—"); sub = [priceLabel(w), r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null]; }
     list.append(h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : "") },
       thumb(w ? itemState(w) : r.prod ? prodState(r.prod.id) : null, w ? w.e : r.prod ? r.prod.e : "❔", "oth"),
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
@@ -2400,11 +2500,15 @@ function renderOrder() {
     if (!by.size) tot.append(h("div", { class: "v" }, "—"));
     by.forEach(o => tot.append(h("div", { class: "v" }, fmtR(Math.ceil(o.n * 100) / 100) + " ", o.g ? pName(o.g) : "of your items", o.g ? thumb(itemState(o.g), o.g.e, "mini") : null)));
   } else {
-    const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = Math.min(100, Math.max(0, num(st.disc)));
+    const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
+    const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
     const useD = d > 0 && ORDER.applyDisc, total = useD ? sub * (1 - d / 100) : sub;
     tot.append(h("div", { class: "k" }, st.type === "achat" ? "Total to pay" : "Total to receive"),
       h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(total)),
       ...convs().map(k => h("div", { class: "rings" }, "≈ " + curTxt(k, total / CUR[k].rate) + " ", curEl(k))));
+    if (bonus > 0) tot.append(h("div", { class: "bulkl" }, "incl. bulk bonus +" + fmt(bonus) + " coins"));
+    if (hasTiers) tot.append(h("label", { class: "switch sm" }, "Apply the bulk bonus", h("input", { type: "checkbox", checked: ORDER.applyBulk !== false, onchange: e => { ORDER.applyBulk = e.target.checked; renderOrder(); } })));
+    ORDER.bonus = bonus;
     if (d > 0) tot.append(h("label", { class: "switch sm" }, "Apply your discount (−" + fmtR(d) + "%" + (useD ? ", was " + fmt(sub) : "") + ")", h("input", { type: "checkbox", checked: ORDER.applyDisc, onchange: e => { ORDER.applyDisc = e.target.checked; renderOrder(); } })));
     ORDER.total = total; ORDER.sub = sub; ORDER.useD = useD; ORDER.d = d;
   }
@@ -2475,14 +2579,15 @@ function replyText() {
     if (trade) return x.r.ratio ? `${fmt(x.q)}× ${n} → ${fmtR(x.r.ratio.give)} ${x.r.ratio.g ? pName(x.r.ratio.g) : ""}`.trim() : `${fmt(x.q)}× ${n} → no ratio`;
     const w = x.r.w, p = num(w.p);
     const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmt(p)} ea`;
-    return `${fmt(x.q)}× ${n} — ${how} = ${fmt(x.r.v)}`;
+    const bk = x.r.bulk ? ` +${fmtR(x.r.bulk)}% bulk` : "";
+    return `${fmt(x.q)}× ${n} — ${how}${bk} = ${fmt(x.r.v)}`;
   });
   let foot = "";
   if (trade) {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; by.set(k, (by.get(k) || 0) + R.give); });
     foot = "**You get: " + [...by].map(([k, n]) => fmtR(Math.ceil(n * 100) / 100) + " " + k).join(" + ") + "**";
   } else {
-    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Bulk bonus: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   return lines.join("\n") + "\n" + foot;
 }
