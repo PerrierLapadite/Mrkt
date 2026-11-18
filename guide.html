@@ -82,6 +82,13 @@ th{font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color
 .m-bar span{flex:1;text-align:center;padding:9px 0;white-space:nowrap}
 .m-bar .on{color:var(--ink);box-shadow:inset 0 -3px 0 var(--acc)}
 .m-bar .ex{flex:1.25;background:var(--acc);color:#fff;border-radius:8px}
+.m-dtop{display:flex;align-items:center;gap:8px;font:700 16px var(--slab)}
+.m-dtop small{margin-left:auto;color:var(--mut);font:600 12px var(--sans)}
+.m-dtype{font:700 11px var(--slab);letter-spacing:.05em;text-transform:uppercase;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.m-dprog{height:8px;border-radius:4px;background:var(--bg);border:1px solid var(--line);margin:10px 0 4px;overflow:hidden}
+.m-dprog i{display:block;height:100%;background:#2f6fb0}
+.m-dline{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;font:600 14px var(--sans)}
+.m-dline small{font:700 11px var(--slab);letter-spacing:.05em;color:var(--mut)}
 .m-srow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font:700 15px var(--slab)}
 .m-srow:first-child{border-top:0}
 .m-srow .q{color:var(--mut)}
@@ -228,7 +235,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <header class="top">
   <div class="in"><a class="brand" href="./">Market Studio</a><span class="sp"></span><a class="btn" href="./">Open the site</a></div>
   <nav class="toc" id="toc">
-    <a href="#basics">Basics</a><a href="#add">Add items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#total">Discount &amp; bulk</a><a href="#paste">Paste</a><a href="#order">Order</a><a href="#search">Search</a><a href="#history">History</a><a href="#profile">Profile &amp; Inventory</a><a href="#stats">Stats</a><a href="#style">Style</a><a href="#export">Post it</a><a href="#know">Good to know</a><a href="#faq">Questions</a>
+    <a href="#basics">Basics</a><a href="#add">Add items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#total">Discount &amp; bulk</a><a href="#paste">Paste</a><a href="#order">Order</a><a href="#search">Search</a><a href="#deals">Deals</a><a href="#history">History</a><a href="#profile">Profile &amp; Inventory</a><a href="#stats">Stats</a><a href="#style">Style</a><a href="#export">Post it</a><a href="#know">Good to know</a><a href="#faq">Questions</a>
   </nav>
 </header>
 
@@ -256,15 +263,15 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li><b>Trade</b> = swap with ratios. <b>Selling</b> / <b>Buying</b> = with prices.</li>
     <li><b>＋</b> makes another post. Each post keeps its own items and style.</li>
   </ul>
-  <div class="mock"><div class="m-bar"><span class="on">Items</span><span>Paste</span><span>Style</span><span>Order</span><span>Search</span><span>History</span><span>Preview</span></div></div>
+  <div class="mock"><div class="m-bar"><span class="on">Items</span><span>Paste</span><span>Style</span><span>Order</span><span>Deals</span><span>Preview</span><span class="ex">🔍 Search</span></div></div>
   <table>
     <tr><td><b>Items</b></td><td>Your list: add items, ratios or prices.</td></tr>
     <tr><td><b>Paste</b></td><td>Build a post from a text list.</td></tr>
     <tr><td><b>Style</b></td><td>Title, your name, colours, layout, backup.</td></tr>
     <tr><td><b>Order</b></td><td>Price a buyer’s or seller’s message.</td></tr>
-    <tr><td><b>Search</b></td><td>Paste a buyer’s “buying” list: what you have, at their prices.</td></tr>
-    <tr><td><b>History</b></td><td>Your past deals and totals.</td></tr>
-    <tr><td><b>Profile</b> <span class="k">M</span></td><td>Top right: your pseudo, your <b>Inventory</b> (barn &amp; silo) and your <b>Stats</b>.</td></tr>
+    <tr><td><b class="acc">🔍 Search</b></td><td>The button apart, at the right: paste a buyer’s “buying” list → what you have in your inventory, at their prices.</td></tr>
+    <tr><td><b>Deals</b></td><td>Several deals at once, every-day trades: confirm or cancel them.</td></tr>
+    <tr><td><b>Profile</b> <span class="k">M</span></td><td>Top right: your pseudo, your <b>Inventory</b> (barn &amp; silo), your <b>Stats</b> and your <b>History</b>.</td></tr>
     <tr><td><b class="acc">Preview</b></td><td>See the picture, then Download, Share or Copy it for Discord.</td></tr>
   </table>
   <div class="note">Everything saves by itself. The <b>?</b> button at the top opens a short help. On a computer, the picture stays on the right.</div>
@@ -288,6 +295,8 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>Empty search? Browse by category: Popular, Expansion sets, Crops… <b>Show more</b> for more.</li>
     <li><b>Enter</b> adds the first result. An item already in your list isn’t added twice.</li>
     <li>Not in the game list? <b>＋ Custom item</b> (it keeps the name you type).</li>
+    <li><b>📷 Add from screenshots</b> (under the results): pick barn / silo screenshots — the items and their numbers go into your list (and your inventory if you want). See <a href="#profile">Inventory</a>.</li>
+    <li>A small <b style="color:#c8361f">red number</b> on an item = your inventory has less than your post offers (e.g. 50 left for 132 in the post).</li>
     <li>The search bar stays at the top while you scroll.</li>
   </ul>
   <div class="note">Game items always show their <b>real name and picture</b>. They can’t be renamed or changed.</div>
@@ -500,7 +509,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <!-- SEARCH -->
 <section class="step" id="search">
   <h2><span class="n">8</span>Search: a buyer’s list</h2>
-  <p class="say">A buyer posts “buying nachos, bacon fries 3k…”? Paste it in <b>Search</b>: you see right away what you have in your <a href="#profile">Inventory</a>, at their prices.</p>
+  <p class="say">A buyer posts “buying nachos, bacon fries 3k…”? Tap the <b>🔍 Search</b> button (apart, at the right of the bar) and paste it: you see right away what you have in your <a href="#profile">Inventory</a>, at their prices.</p>
   <div class="mock">
     <div class="m-card">
       <div class="m-srow"><span><span class="gi xs" data-id="goat-cheese" data-e="🧀"></span> Goat Cheese</span><span class="q">×10</span><span class="v"><i class="coin"></i>20,000</span></div>
@@ -524,10 +533,38 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   </ul>
 </section>
 
+<!-- DEALS -->
+<section class="step" id="deals">
+  <h2><span class="n">9</span>Deals: several at once</h2>
+  <p class="say">One buyer is paying, another sends a list, a friend does a daily BEM trade? Keep them all in <b>Deals</b> and finish each one when it's done.</p>
+  <div class="mock">
+    <div class="m-card">
+      <div class="m-dtop"><span class="m-dtype">🔁 Trade</span><b>HadeZ</b><small>every day</small></div>
+      <div class="m-dprog"><i style="width:43%"></i></div>
+      <div class="m-dline"><span>Day 3 / 7</span><b style="color:#b26b00">Today: to do</b></div>
+      <div class="m-dline"><small>YOU GIVE / DAY</small><span><span class="gi xs" data-id="bem-set" data-e="🏚️"></span> 89 BEM</span></div>
+      <div class="m-dline"><small>YOU GET / DAY</small><span><span class="gi xs" data-id="goat-cheese" data-e="🧀"></span> 50 Goat Cheese</span></div>
+      <div class="two" style="margin-top:8px"><div class="m-btn dark">✓ Today done</div><div class="m-btn light">Copy</div></div>
+    </div>
+  </div>
+  <h3>Add a deal</h3>
+  <ul class="tips">
+    <li>From <b>Order</b> or <b>Search</b>: <b>⏳ Save for later</b>. The box empties so you can handle the next one right away — nothing changes yet.</li>
+    <li>By hand: <b>＋ New deal</b> → Trade, Sale or Purchase · the partner's name · what you give and what you get (items or coins) · <b>Once</b> or <b>Every day</b> for how many days (e.g. 89 BEM a day for 7 days).</li>
+  </ul>
+  <h3>Follow them</h3>
+  <ul class="tips">
+    <li>Each card shows what you give and get. <b style="color:#c8361f">Red</b> = your inventory doesn't have it any more; <b style="color:#b26b00">orange</b> = you have it, but not for all your open deals together.</li>
+    <li>Every-day trades: <b>Day 3 / 7</b>, <b>Today ✓</b> or <b>Today: to do</b>, and how many more days your inventory covers.</li>
+    <li><b>✓ Done</b> (or <b>✓ Today done</b>): saved in History and Stats, your inventory follows, and the post it came from is lowered like in Order. <b>Undo</b> appears right after.</li>
+    <li><b>⋯</b> → Edit, Copy or Cancel. Finished and cancelled deals stay at the bottom (you can reopen them). The red number on the <b>Deals</b> tab = open deals.</li>
+  </ul>
+</section>
+
 <!-- 8 HISTORY -->
 <section class="step" id="history">
-  <h2><span class="n">9</span>History</h2>
-  <p class="say">Every deal you marked as done, with your totals.</p>
+  <h2><span class="n">10</span>History</h2>
+  <p class="say">In your profile (top right) → <b>History</b>: every deal marked as done, with your totals.</p>
   <div class="mock">
     <div class="chips"><span class="chip">7 days</span><span class="chip on">30 days</span><span class="chip">All</span></div>
     <div class="hstats">
@@ -552,7 +589,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <!-- 9 STYLE -->
 <!-- PROFILE & INVENTORY -->
 <section class="step" id="profile">
-  <h2><span class="n">10</span>Profile &amp; Inventory</h2>
+  <h2><span class="n">11</span>Profile &amp; Inventory</h2>
   <p class="say">The round button at the top right is <b>your profile</b>: your pseudo, your Inventory and your Stats.</p>
   <ul class="tips">
     <li><b>Pseudo</b>: type it once — it becomes the username on all your pictures.</li>
@@ -579,7 +616,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 9 STATS -->
 <section class="step" id="stats">
-  <h2><span class="n">11</span>Stats</h2>
+  <h2><span class="n">12</span>Stats</h2>
   <p class="say">In your profile (top right) → <b>Stats</b>: your numbers, from your History — what came in, what went out, and your best deals.</p>
   <div class="mock">
     <div class="chips"><span class="chip">7 days</span><span class="chip on">30 days</span><span class="chip">90 days</span><span class="chip">All</span></div>
@@ -607,7 +644,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 </section>
 
 <section class="step" id="style">
-  <h2><span class="n">12</span>Style</h2>
+  <h2><span class="n">13</span>Style</h2>
   <p class="say">How the picture looks. It never changes your items.</p>
   <div class="papers">
     <figure><div class="pic" data-pic="theme_grange"></div>Barn</figure>
@@ -628,7 +665,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 10 EXPORT -->
 <section class="step" id="export">
-  <h2><span class="n">13</span>Post it on Discord</h2>
+  <h2><span class="n">14</span>Post it on Discord</h2>
   <p class="say">Open <b>Preview</b> (on a computer, the picture is always on the right), then:</p>
   <div class="mock"><div class="two"><div class="m-btn">Download</div><div class="m-btn light">Share</div></div><div class="m-btn light" style="margin-top:8px">Copy</div></div>
   <ul class="tips">
@@ -641,7 +678,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 11 GOOD TO KNOW -->
 <section class="step" id="know">
-  <h2><span class="n">14</span>Good to know</h2>
+  <h2><span class="n">15</span>Good to know</h2>
   <div class="rates">
     <div class="rate"><span class="gi" data-id="diamond-ring" data-e="💍"></span><div>10 rings = <span class="nw">8,244 <i class="coin"></i></span><small>Fixed rate, the same for everyone.</small></div></div>
     <div class="rate"><span class="gi" data-id="blanket" data-e="🛏️"></span><div>10 blankets = <span class="nw">10,980 <i class="coin"></i></span><small>Fixed rate, the same for everyone.</small></div></div>

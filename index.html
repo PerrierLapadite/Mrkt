@@ -421,6 +421,10 @@ body[data-tab=prev] #editor{display:none}
 .osplit span{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:3px 9px 3px 4px;font-size:14px;background:var(--surface)}
 .osplit b{font-size:15px}
 .osh{margin:2px 0 0;font-size:12.5px}
+/* the buyer search stands apart at the end of the bar (not one of the post tabs) */
+.tabbar .srch{flex:1.35!important;display:flex;align-items:center;justify-content:center;gap:4px;margin-left:6px;background:var(--ink)!important;color:var(--bg)!important;border-radius:10px!important;box-shadow:none!important}
+.tabbar .srch svg{width:15px;height:15px;flex:none}
+.tabbar .srch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)!important}
 /* deals */
 .tabbar button{position:relative}
 .tbdg{position:absolute;top:4px;right:calc(50% - 30px);min-width:17px;height:17px;border-radius:9px;background:var(--acc);color:#fff;font:700 11px/17px var(--sans);padding:0 4px;letter-spacing:0}
@@ -658,9 +662,9 @@ body[data-tab=prev] #mini{display:none}
     <button data-t="paste">Paste</button>
     <button data-t="style">Style</button>
     <button data-t="order">Order</button>
-    <button data-t="search">Search</button>
     <button data-t="deals">Deals</button>
     <button data-t="prev">Preview</button>
+    <button data-t="search" class="srch" aria-label="Buyer search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>Search</button>
   </nav>
   <div id="editor">
     <!-- ===== ITEMS ===== -->
@@ -4392,7 +4396,6 @@ function renderOngoing() {
     closed.map(d => h("div", { class: "dcl" }, h("span", null, DTYPE[d.e.type].i), h("div", null, h("b", null, d.who || DTYPE[d.e.type].t), h("small", null, (d.status === "done" ? "Done " : "Cancelled ") + dayLabel(d.closed) + (d.daily ? " · " + plural(d.daily.log.length, "day") : "") + " · " + dealText(d))),
       h("button", { class: "btn sm", onclick: () => { d.status = "open"; delete d.closed; saveDeals(); renderOngoing(); } }, "Reopen"))),
     h("button", { class: "btn sm", style: "margin-top:8px", onclick: () => { if (!confirm("Remove the finished and cancelled deals from this list? (Your History keeps the done ones.)")) return; DEALS = DEALS.filter(d => d.status === "open"); saveDeals(); renderOngoing(); } }, "Clear this list")));
-  out.append(h("button", { class: "btn full", onclick: () => tab("hist") }, "🕘 My History"));
 }
 function dealChip(x, res, out) {
   const p = x.ref && CAT.byId[x.ref];
