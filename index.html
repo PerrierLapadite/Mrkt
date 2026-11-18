@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Market Studio · Hay Day</title>
-<meta name="description" content="Make clean Hay Day trade, selling and buying posts for Discord — real game images, ratio groups, totals in coins and diamond rings.">
+<meta name="description" content="Hay Day trade post maker">
 <meta property="og:title" content="Market Studio · Hay Day">
-<meta property="og:description" content="Make clean Hay Day trade, selling and buying posts for Discord — real game images, ratio groups, totals in coins and diamond rings.">
+<meta property="og:description" content="Hay Day trade post maker">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#f3ecdf" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
@@ -291,6 +291,63 @@ body[data-tab=prev] #editor{display:none}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .pct{display:grid;grid-template-columns:110px 1fr;gap:10px}
 
+/* ---------- v14: calmer items tab ---------- */
+.sec-h{flex-wrap:wrap;align-items:baseline;row-gap:2px}
+.sec-h h3{flex:none}
+.sec-h>span{font:italic 600 14px var(--slab);color:var(--mut)}
+.sec-h .sum{margin-left:auto;display:flex;align-items:center;gap:6px;font:700 18px var(--slab);white-space:nowrap}
+.sec-h .sum:empty{display:none}
+.sec-h .sum small{font:italic 600 13.5px var(--slab);color:var(--mut)}
+.sec-h .sum .tag{font:700 12px var(--slab);color:var(--acc);border:1px solid currentColor;border-radius:5px;padding:0 4px;align-self:center}
+.list{gap:8px}
+.item{padding:10px 12px;gap:8px}
+.i1{grid-template-columns:48px minmax(0,1fr) 34px 34px;gap:4px}
+.thumbbtn{width:48px;height:48px;padding:4px;font-size:28px;border-radius:9px}
+.haveitem .i1{grid-template-columns:48px minmax(0,1fr) 112px 34px}
+.ib{width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:var(--mut);font-size:19px}
+.ib:active{background:var(--surface2)}
+.ib.star{color:var(--line2);font-size:18px}
+.ib.star.on{color:var(--acc);border:0}
+.i2{grid-template-columns:minmax(0,1fr) 12px 118px;gap:6px;align-items:center}
+.i2 .x{text-align:center;color:var(--mut);font-weight:700;font-size:15px}
+.box .u{padding:0 9px}
+.i3{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-height:22px}
+.i3 .notebox{flex:none}
+.i3 .notebox.open{flex:1 0 100%;order:3}
+.i3 .val{margin-left:auto;padding:0;font:700 17px var(--slab);gap:6px}
+.i3 .val .eqs{color:var(--mut);font-weight:600}
+.i3 .val small{font:italic 600 13.5px var(--slab);color:var(--mut)}
+.i3 .val.zero{font:italic 600 13px var(--slab);color:var(--mut)}
+.mpline{font:600 13px var(--slab);color:var(--mut);display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:-2px}
+.mpline b{color:var(--acc)}
+.addnote{font-size:13.5px;padding:2px 0;opacity:.85}
+.gi{padding:6px 10px}
+.gi1{grid-template-columns:42px minmax(0,1fr) 32px 32px;gap:4px}
+.gi1 .thumbbtn{width:42px;height:42px;padding:4px;font-size:24px}
+.gi1 .ib{width:32px;height:32px}
+.gi .name{font-size:17px}
+.gi .addnote{padding-left:48px}
+.grp-h{padding:8px 10px}
+.grp-h .rin{height:48px}
+.grp-f{padding:0 4px 4px}
+.addhere{border:0;background:none;color:var(--mut);font:600 14px/1 -apple-system,system-ui,sans-serif;min-height:38px;padding:0 10px}
+.addhere:active{color:var(--ink)}
+.newgrp{min-height:42px}
+.spbtn{justify-self:start;border:0;background:none;color:var(--mut);font:600 14px -apple-system,system-ui,sans-serif;min-height:32px;padding:0 2px;margin:-4px 0 -2px}
+.ratiobar .rb-t{display:flex;align-items:center;justify-content:space-between}
+.ratiobar .rb-t button{border:0;background:none;color:var(--mut);width:30px;height:30px;font-size:15px;padding:0}
+.lfilter .inp{min-height:40px}
+.more{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;border:0;border-top:1px solid var(--line);background:none;padding:10px 0 0;font:700 15px var(--slab);color:var(--ink);text-align:left}
+.more small{margin-left:auto;font:italic 600 13.5px var(--slab);color:var(--mut)}
+.more i{font-style:normal;color:var(--mut);font-size:20px;line-height:1;transition:transform .2s}
+.more.open i{transform:rotate(90deg)}
+#dealsBody{margin-top:10px}
+.jump{opacity:0;pointer-events:none;transition:opacity .25s;gap:6px}
+.jump.show{opacity:1;pointer-events:auto}
+.jump button{width:38px;height:38px;font-size:17px;background:color-mix(in srgb,var(--surface) 92%,transparent)}
+@media (min-width:1000px){.jump{opacity:1;pointer-events:auto}}
+.sbar .tchips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent)}
+
 /* ---------- preview ---------- */
 .pv-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
 #cv{display:block;width:100%;height:auto;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -362,14 +419,12 @@ body[data-tab=prev] #mini{display:none}
         </div>
       </div>
 
-      <div class="card summary" id="summary"></div>
-
       <div id="haveBox" class="stack">
         <div class="sec-h"><div class="ic"></div><h3 id="haveH">I have</h3><span id="haveN"></span></div>
         <div class="list" id="haveList"></div>
       </div>
       <div class="stack">
-        <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span></div>
+        <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span><div class="sum" id="summary"></div></div>
         <div class="lfilter" id="lfilter" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input class="inp" id="lf" type="search" placeholder="Filter my items" autocomplete="off" autocapitalize="off"></div>
         <div class="list" id="wantList"></div>
       </div>
@@ -377,13 +432,16 @@ body[data-tab=prev] #mini{display:none}
       <div class="card fieldset">
         <div class="ch"><h2 id="dealsH">Notes</h2></div>
         <div><textarea class="ta" data-k="details" rows="3" placeholder="One line per point — start with “-” for a bullet"></textarea></div>
-        <div id="dealsMore" class="fieldset">
+        <div id="dealsMore">
+        <button type="button" class="more" id="dealsTog"><span>Discount &amp; total</span><small id="dealsSum"></small><i>›</i></button>
+        <div class="fieldset" id="dealsBody" hidden>
         <div class="pct">
           <div><label class="lbl">Discount</label><div class="box"><input id="disc" inputmode="decimal" placeholder="0"><span class="u">%</span></div></div>
           <div><label class="lbl">Discount name</label><input class="inp" data-k="discLabel" placeholder="Bundle deal"></div>
         </div>
         <label class="switch">Show the total<input type="checkbox" id="showTot"></label>
         <div><label class="lbl">Total in</label><div class="seg" id="totSeg"><button data-u="coins">Coins</button><button data-u="both">Coins + rings</button><button data-u="rings">Rings</button></div></div>
+        </div>
         </div>
       </div>
     </section>
@@ -1144,13 +1202,14 @@ function defaults(type) {
   return { ...base, title: "Selling / Swapping", wantTitle: "What I want", cta: "Mix accepted",
     have: [mkItem("bem-set", { q: "10" })],
     addR: { ra: "50", rb: "89", give: "" },
-    wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["duck-feather", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60", 0, "1st page · no bb"]]
+    wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["duck-feather", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60"]]
       .map(([id, a, hot, note]) => mkItem(id, { ra: a, rb: "89", hot: hot || 0, note: note || "" })) };
 }
 const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name || TYPES[type].name, user: (typeof st !== "undefined" && st && st.user) || "" });
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
+  if (!p.v13) { [...(p.have || []), ...(p.wants || [])].forEach(w => { if (w && w.note === "1st page · no bb") w.note = ""; }); p.v13 = 1; }
   if (!p.addR && num(p.defRa) > 0 && num(p.defRb) > 0) p.addR = { ra: p.defRa, rb: p.defRb, give: "" };
   if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
@@ -1790,7 +1849,8 @@ function renderTarget() {
   });
   if (!toHave && !seen.has(k)) tc.append(h("button", { class: "chip r on" }, k === "none" ? "No ratio" : ratioLabel(st.addR.ra, st.addR.rb)));
   tc.append(h("button", { class: "chip plus", onclick: newRatioSheet }, "+ Ratio"));
-  const on = tc.querySelector(".on"); if (on) requestAnimationFrame(() => { tc.scrollLeft = Math.max(0, on.offsetLeft - tc.clientWidth / 2 + on.offsetWidth / 2); });
+  // keep the selected chip visible without cutting the first ones
+  const on = tc.querySelector(".on"); if (on) requestAnimationFrame(() => { const a = tc.getBoundingClientRect(), b = on.getBoundingClientRect(); if (b.right > a.right - 28) tc.scrollLeft += b.right - a.right + 40; else if (b.left < a.left) tc.scrollLeft -= a.left - b.left + 12; });
 }
 function newRatioSheet(it) {
   const a = h("input", { inputMode: "decimal", placeholder: "50" }), b = h("input", { inputMode: "decimal", placeholder: "89", class: "b" });
@@ -1843,6 +1903,8 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop();
 function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+let jumpT = 0;
+addEventListener("scroll", () => { const j = $("#jump"); if (j.hidden) return; j.classList.add("show"); clearTimeout(jumpT); jumpT = setTimeout(() => j.classList.remove("show"), 2600); }, { passive: true });
 addEventListener("scroll", debounce(updJump, 100), { passive: true }); addEventListener("resize", debounce(updJump, 150));
 /* filter my own list */
 function applyListFilter() {
@@ -1871,16 +1933,10 @@ function flashItem(u) { const el = document.querySelector(`[data-uid="${u}"]`); 
 
 /* ---------- summary ---------- */
 function renderSummary() {
-  const w = st.wants.filter(x => (x.name || "").trim() || x.ref), T = totals(), s = $("#summary"); s.textContent = "";
-  if (st.type === "trade") {
-    const hv = st.have.filter(x => (x.name || "").trim() || x.ref), set = w.filter(hasRatio).length;
-    s.append(h("div", null, h("div", { class: "k" }, "Offering"), h("div", { class: "v" }, String(hv.length) + (hv.length > 1 ? " items" : " item"))),
-      h("div", { class: "rings" }, h("div", { class: "k" }, "Wanted"), h("div", { class: "v" }, String(w.length)), h("div", { class: "coins" }, set === w.length ? (w.length ? "✓ all ratios set" : "") : (w.length - set) + " ratio" + (w.length - set > 1 ? "s" : "") + " missing")));
-  } else {
-    s.append(h("div", null, h("div", { class: "k" }, "Items"), h("div", { class: "v" }, String(w.length))),
-      h("div", { class: "rings" }, h("div", { class: "k" }, T.disc ? "Total after −" + fmtR(T.disc) + "%" : "Total"),
-        h("div", { class: "v" }, T.tot ? [h("i", { class: "coin" }), fmt(T.tot)] : "—"),
-        T.tot ? h("div", { class: "coins" }, "≈ " + fmtR(T.rings), ringEl()) : null));
+  const w = st.wants.filter(x => (x.name || "").trim() || x.ref), s = $("#summary"); s.textContent = "";
+  if (st.type !== "trade") {
+    const T = totals();
+    if (T.tot) s.append(...[T.disc ? h("span", { class: "tag", title: "Discount applied" }, "−" + fmtR(T.disc) + "%") : null, h("i", { class: "coin" }), fmt(T.tot), h("small", null, "≈ " + fmtR(T.rings)), ringEl()].filter(Boolean));
   }
   $("#wantN").textContent = w.length ? w.length + (w.length > 1 ? " items" : " item") : "";
   $("#haveN").textContent = st.have.length ? st.have.length + (st.have.length > 1 ? " items" : " item") : "";
@@ -1899,21 +1955,23 @@ function renderLists() {
     ratioGroups(st.wants).forEach(g => wl.append(groupCard(g)));
     wl.append(h("button", { class: "btn dashed newgrp", onclick: () => newRatioSheet() }, "+ New ratio group"));
     markTargetGroup();
-  } else { if (st.wants.length) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
+  } else { if (st.wants.length > 1) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
   if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
   $("#lfilter").hidden = st.wants.length + st.have.length < 7;
   if ($("#lfilter").hidden) $("#lf").value = ""; else applyListFilter();
   renderSummary(); requestAnimationFrame(updJump);
 }
 /* ---------- sell / buy: one price for every item (e.g. everything at 5×MP) ---------- */
+let spOpen = false;
 function samePriceBar() {
+  if (!spOpen) return h("button", { type: "button", class: "spbtn", onclick: () => { spOpen = true; renderLists(); setTimeout(() => { const i = $("#wantList .ratiobar input"); i && i.focus(); }, 30); } }, "＝ Same price for all…");
   const t = { pu: st.allPu || "xmp", p: st.allP || "" };
   const inp = h("input", { value: t.p, inputMode: "text", placeholder: "5", "aria-label": "Price for all", oninput: () => { const m = inp.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i); if (m) { t.pu = "xmp"; inp.value = m[1]; ub.repaint(); } t.p = inp.value; st.allP = t.p; st.allPu = t.pu; saveSoon(); } });
   const ub = unitBtn(t, "pu", ["xmp", "coin", "ring"], () => { st.allPu = t.pu; saveSoon(); });
-  return h("div", { class: "card ratiobar" }, h("div", { class: "rb-t" }, h("b", null, "Same price for all")),
+  return h("div", { class: "card ratiobar" }, h("div", { class: "rb-t" }, h("b", null, "Same price for all"), h("button", { type: "button", "aria-label": "Close", onclick: () => { spOpen = false; renderLists(); } }, "✕")),
     h("div", { class: "rb-row" }, h("div", { class: "box" }, inp, ub), h("button", { class: "btn pri sm", onclick: () => {
       if (!num(t.p)) return toast("Enter a price first");
-      st.wants.forEach(w => { w.p = t.p; w.pu = t.pu; }); renderLists(); changed();
+      st.wants.forEach(w => { w.p = t.p; w.pu = t.pu; }); spOpen = false; renderLists(); changed();
       toast("All items at " + fmtR(num(t.p)) + (t.pu === "xmp" ? "×MP" : t.pu === "ring" ? " ring(s)" : " coins") + " each");
     } }, "Apply")));
 }
@@ -1943,7 +2001,7 @@ function groupCard(g) {
   card.append(
     h("div", { class: "grp-h" }, h("div", { class: "rin" }, giveBtn, a, h("span", { class: "colon" }, ":"), b), menu),
     h("div", null, g.items.map(groupRow)),
-    h("div", { class: "grp-f" }, h("button", { class: "btn sm", onclick: addHere }, "+ Add items here")));
+    h("div", { class: "grp-f" }, h("button", { type: "button", class: "addhere", onclick: addHere }, "+ Add items here")));
   return card;
 }
 function groupRow(it) {
@@ -1960,13 +2018,13 @@ function noteArea(it, ph) {
   const box = h("div", { class: "notebox" });
   const open = focus => {
     const ta = h("textarea", { class: "ta note", rows: 1, value: it.note || "", placeholder: ph, oninput: () => { it.note = ta.value; autoGrow(ta); changed(); } });
-    box.replaceChildren(ta); requestAnimationFrame(() => { autoGrow(ta); if (focus) ta.focus(); });
+    box.replaceChildren(ta); box.classList.add("open"); requestAnimationFrame(() => { autoGrow(ta); if (focus) ta.focus(); });
   };
   if ((it.note || "").trim()) open(false); else box.append(h("button", { type: "button", class: "addnote", onclick: () => open(true) }, "+ Note"));
   return box;
 }
 function stepper(it, after) {
-  const inp = h("input", { value: it.q || "", inputMode: "numeric", placeholder: "–", "aria-label": "Quantity", oninput: () => { it.q = inp.value; after(); changed(); } });
+  const inp = h("input", { value: it.q || "", inputMode: "numeric", placeholder: "Qty", "aria-label": "Quantity", oninput: () => { it.q = inp.value; after(); changed(); } });
   const bump = d => { const v = Math.max(0, Math.round(num(it.q)) + d); it.q = v ? String(v) : ""; inp.value = it.q; after(); changed(); };
   return h("div", { class: "box step" }, h("button", { type: "button", "aria-label": "Less", onclick: () => bump(-1) }, "−"), inp, h("button", { type: "button", "aria-label": "More", onclick: () => bump(1) }, "+"));
 }
@@ -2015,31 +2073,29 @@ function itemCard(it) {
     return card;
   }
   const val = h("div", { class: "val" });
-  // xMP line (read-only): "Max price 138 · from the wiki — 5×MP = 690 each"
-  const mpVal = h("b"), mpSrc = h("small"), mpEq = h("span", { class: "eq" });
-  const mpRow = h("div", { class: "mprow" }, h("span", { class: "l" }, "Max price"), h("span", { class: "mpv" }, h("i", { class: "coin" }), mpVal), mpSrc, mpEq);
+  // xMP (read-only, fixed game price): "Max price 87 · 5×MP = 435 each"
+  const mp = h("div", { class: "mpline" });
   const upd = () => {
-    const v = itemValue(it); val.textContent = ""; val.classList.toggle("zero", !v);
-    val.append(h("span", { class: "l" }, "Total"), v ? h("span", { class: "r" }, h("i", { class: "coin" }), fmt(v), h("small", null, "· " + fmtR(v / ringRate())), ringEl()) : h("span", { class: "r" }, it.pu === "xmp" && num(it.p) && !itemMax(it) ? (it.ref ? "max price not available" : "×MP needs a game item") : "—"));
-    mpRow.hidden = it.pu !== "xmp";
+    const v = itemValue(it), src = maxSource(it); val.textContent = ""; val.classList.toggle("zero", !v);
+    if (v) val.append(h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), h("small", null, "≈ " + fmtR(v / ringRate())), ringEl());
+    else if (it.pu === "xmp" && num(it.p) && !itemMax(it)) val.append(!it.ref ? "×MP needs a game item" : src === "loading" ? "loading…" : "max price not available");
+    mp.hidden = it.pu !== "xmp"; mp.textContent = "";
     if (it.pu === "xmp") {
-      const auto = it.ref ? maxPrice(it.ref) : 0, src = maxSource(it);
-      mpVal.textContent = auto ? fmt(auto) : src === "loading" ? "…" : "—";
-      mpSrc.textContent = { wiki: "game price (wiki)", table: "game price", loading: "loading…", none: it.ref ? "not found" : "custom item", "sum of the 3 materials": "sum of the 3 materials" }[src] || "";
-      const m = itemMax(it); mpEq.textContent = m && num(it.p) ? fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each" : "";
+      const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
+      mp.title = { wiki: "Game max price (wiki)", table: "Game max price", "sum of the 3 materials": "Sum of the 3 materials" }[src] || "";
+      mp.append("Max price", h("i", { class: "coin" }), auto ? fmt(auto) : src === "loading" ? "…" : "—");
+      if (m && num(it.p)) mp.append("·", h("b", null, fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each"));
     }
     renderSummary();
   };
   VAL_UPD.push(upd);
   const ub = unitBtn(it, "pu", ["coin", "ring", "xmp"], upd);
-  const p = h("input", { value: it.p || "", inputMode: "text", placeholder: "0 or 5x", "aria-label": "Price each", oninput: () => {
+  const p = h("input", { value: it.p || "", inputMode: "text", placeholder: "Price each", "aria-label": "Price each", oninput: () => {
     const m = p.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i) || p.value.match(/^\s*(?:x|×)\s*(\d+(?:[.,]\d+)?)\s*$/i);
     if (m) { it.pu = "xmp"; it.p = m[1]; p.value = m[1]; ub.repaint(); } else it.p = p.value;
     upd(); changed(); } });
-  card.append(h("div", { class: "i2" },
-    h("label", { class: "fld" }, h("span", null, "Price each"), h("div", { class: "box" }, p, ub)),
-    h("label", { class: "fld" }, h("span", null, "Quantity"), stepper(it, upd))), mpRow, val,
-    noteArea(it, "Note (optional)"));
+  card.append(h("div", { class: "i2" }, h("div", { class: "box" }, p, ub), h("span", { class: "x", "aria-hidden": "true" }, "×"), stepper(it, upd)), mp,
+    h("div", { class: "i3" }, noteArea(it, "Note (optional)"), val));
   upd();
   return card;
 }
@@ -2096,12 +2152,19 @@ function imageSheet(it, opts) {
 }
 
 /* ---------- deals card (items tab) ---------- */
+let dealsOpen = null;
 function renderDeals() {
   const trade = st.type === "trade";
-  $("#dealsMore").hidden = trade; $("#dealsH").textContent = trade ? "Notes" : "Notes & total";
-  const d = $("#disc"); d.value = st.disc || ""; d.oninput = () => { st.disc = d.value; changed(); renderSummary(); };
-  $("#showTot").checked = st.showTotal !== false; $("#showTot").onchange = e => { st.showTotal = e.target.checked; changed(); };
-  $$("#totSeg button").forEach(b => { b.classList.toggle("on", b.dataset.u === (st.totUnit || "both")); b.onclick = () => { st.totUnit = b.dataset.u; renderDeals(); changed(); }; });
+  $("#dealsMore").hidden = trade; $("#dealsH").textContent = "Notes";
+  const sum = [num(st.disc) > 0 ? "−" + fmtR(num(st.disc)) + "%" : "", st.showTotal === false ? "total hidden" : st.totUnit === "coins" ? "coins only" : st.totUnit === "rings" ? "rings only" : ""].filter(Boolean).join(" · ");
+  $("#dealsSum").textContent = sum;
+  const open = dealsOpen == null ? num(st.disc) > 0 : dealsOpen;
+  $("#dealsBody").hidden = !open; $("#dealsTog").classList.toggle("open", open);
+  $("#dealsTog").onclick = () => { dealsOpen = !open; renderDeals(); };
+  const d = $("#disc"); if (document.activeElement !== d) d.value = st.disc || ""; d.oninput = () => { st.disc = d.value; changed(); renderSummary(); };
+  d.onchange = () => { dealsOpen = true; renderDeals(); };
+  $("#showTot").checked = st.showTotal !== false; $("#showTot").onchange = e => { st.showTotal = e.target.checked; dealsOpen = true; changed(); renderDeals(); };
+  $$("#totSeg button").forEach(b => { b.classList.toggle("on", b.dataset.u === (st.totUnit || "both")); b.onclick = () => { st.totUnit = b.dataset.u; dealsOpen = true; renderDeals(); changed(); }; });
 }
 /* ---------- style ---------- */
 const LAYOUTS = [
