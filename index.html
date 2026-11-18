@@ -194,6 +194,31 @@ body[data-tab=prev] #editor{display:none}
 .lay{padding:8px 2px 6px!important;font-size:12.5px!important}
 .addnote{justify-self:start;border:0;background:none;padding:2px 2px;color:var(--mut);font:italic 600 14px var(--slab)}
 .notebox{display:grid}
+/* sticky search bar + drop-down results */
+.sbar{position:sticky;top:0;z-index:25;margin:-18px -14px 0;padding:10px 14px 10px;background:var(--bg);border-bottom:1px solid var(--line2)}
+.sbar .target{margin-top:8px}
+.sbar .tchips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.sbar .tchips::-webkit-scrollbar{display:none}
+.sbar .target{flex-direction:row!important;align-items:center!important;gap:8px!important}
+.sdrop{position:absolute;left:8px;right:8px;top:calc(100% + 6px);max-height:min(62vh,560px);overflow:auto;box-shadow:0 14px 40px rgba(20,14,8,.28);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.sdrop .chips{margin-top:0}
+.lfilter{position:relative}
+.lfilter svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--mut);pointer-events:none}
+.lfilter .inp{padding-left:40px;min-height:40px}
+.fhide{display:none!important}
+.jump{position:fixed;right:12px;bottom:calc(78px + var(--safe-b));z-index:35;display:grid;gap:8px}
+.jump button{width:42px;height:42px;border-radius:50%;border:1px solid var(--ink);background:var(--surface);color:var(--ink);font:700 19px var(--slab);box-shadow:0 4px 14px rgba(0,0,0,.18);padding:0}
+@media (min-width:1000px){.sbar{margin:0 0 0;top:72px;border:1px solid var(--line);border-radius:12px}.jump{bottom:24px;right:calc(50% + 20px)}}
+.upd{display:grid;gap:8px;border-top:3px solid var(--ink)}
+.upd h3{margin:0;font:700 17px var(--slab)}
+.upd label{display:grid;grid-template-columns:24px 32px minmax(0,1fr) auto;gap:8px;align-items:center;font-weight:600;font-size:14.5px}
+.upd label input{width:20px;height:20px;accent-color:var(--ink);margin:0}
+.upd label .th{width:32px;height:32px;font-size:20px}
+.upd label b{font:700 15px var(--slab);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upd label span{font:700 14px var(--slab);white-space:nowrap;color:var(--mut)}
+.upd label span em{font-style:normal;color:var(--acc)}
+.upd .two{margin-top:4px}
+.done-note{font:italic 600 14px var(--slab);color:var(--ok)}
 .tabbar button{font-size:14px!important;letter-spacing:.01em!important}
 .olist{padding:4px 0}
 .oline{display:grid;grid-template-columns:40px minmax(0,1fr) 74px auto;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
@@ -322,16 +347,19 @@ body[data-tab=prev] #mini{display:none}
   <div id="editor">
     <!-- ===== ITEMS ===== -->
     <section class="panel" id="p-items">
-      <div class="card">
+      <div class="sbar" id="sbar">
         <div class="sbox" id="sbox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="inp" id="q" type="search" placeholder="Search a product" autocomplete="off" autocapitalize="off" enterkeyhint="done">
+          <input class="inp" id="q" type="search" placeholder="Search a product to add" autocomplete="off" autocapitalize="off" enterkeyhint="done">
           <button class="clr" id="qclr" aria-label="Clear">✕</button>
         </div>
-        <div class="chips" id="cats"></div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
-        <div class="grid" id="results"></div>
-        <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
+        <div class="sdrop card" id="sdrop" hidden>
+          <div class="chips" id="cats"></div>
+          <div class="grid" id="results"></div>
+          <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
+          <button class="btn pri full" id="sdone" style="margin-top:10px">Done</button>
+        </div>
       </div>
 
       <div class="card summary" id="summary"></div>
@@ -342,6 +370,7 @@ body[data-tab=prev] #mini{display:none}
       </div>
       <div class="stack">
         <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span></div>
+        <div class="lfilter" id="lfilter" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input class="inp" id="lf" type="search" placeholder="Filter my items" autocomplete="off" autocapitalize="off"></div>
         <div class="list" id="wantList"></div>
       </div>
 
@@ -423,6 +452,7 @@ body[data-tab=prev] #mini{display:none}
   </aside>
 </main>
 
+<div class="jump" id="jump" hidden><button id="jTop" aria-label="Go to top">↑</button><button id="jBot" aria-label="Go to bottom">↓</button></div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-h"><h3 id="sheetT"></h3><button class="ib" id="sheetX" aria-label="Close">✕</button></div><div class="sheet-b" id="sheetB"></div></div>
 <div id="toast" role="status"></div>
@@ -1696,15 +1726,18 @@ function tab(t) {
   $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   if (t === "prev") draw();
   if (t === "order") renderOrder();
+  if (t !== "items") closeDrop();
+  requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
 }
 $$("#tabbar [data-t]").forEach(b => b.onclick = () => tab(b.dataset.t));
 $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help" },
   h("ol", null,
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
-    h("li", null, h("b", null, "Search products"), " and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
+    h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic. “Same price for all” sets every item at once."),
-    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy."),
+    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. Then, if you want, “Update my post” removes exactly what left (49 − 30 → 19 left) — Undo is there if needed."),
+    h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
@@ -1757,6 +1790,7 @@ function renderTarget() {
   });
   if (!toHave && !seen.has(k)) tc.append(h("button", { class: "chip r on" }, k === "none" ? "No ratio" : ratioLabel(st.addR.ra, st.addR.rb)));
   tc.append(h("button", { class: "chip plus", onclick: newRatioSheet }, "+ Ratio"));
+  const on = tc.querySelector(".on"); if (on) requestAnimationFrame(() => { tc.scrollLeft = Math.max(0, on.offsetLeft - tc.clientWidth / 2 + on.offsetWidth / 2); });
 }
 function newRatioSheet(it) {
   const a = h("input", { inputMode: "decimal", placeholder: "50" }), b = h("input", { inputMode: "decimal", placeholder: "89", class: "b" });
@@ -1785,7 +1819,7 @@ function markTargetGroup() { $$(".grp").forEach(g => g.classList.toggle("target"
 const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have : st.wants;
 function renderResults() {
   const q = $("#q").value;
-  $("#sbox").classList.toggle("has", !!q);
+  $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q;
   const res = search(q, q ? "all" : curCat), box = $("#results");
   box.textContent = "";
   if (!res.length) { box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, q ? "No product found — add it as a custom item." : "Nothing here yet.")); $("#moreRes").hidden = true; return; }
@@ -1798,7 +1832,26 @@ function renderResults() {
   $("#moreRes").hidden = res.length <= resLimit;
 }
 $("#moreRes").onclick = () => { resLimit += 48; renderResults(); };
-$("#q").addEventListener("input", debounce(() => { resLimit = baseLimit(); renderResults(); }, 90));
+/* drop-down results: open while searching, close with Done / Esc / tap outside */
+function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; renderCats(); renderResults(); }
+function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
+$("#q").addEventListener("focus", openDrop);
+$("#sdone").onclick = closeDrop;
+document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
+/* ↑ / ↓ jump buttons for long lists */
+function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
+$("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
+$("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+addEventListener("scroll", debounce(updJump, 100), { passive: true }); addEventListener("resize", debounce(updJump, 150));
+/* filter my own list */
+function applyListFilter() {
+  const f = norm($("#lf").value), all = st.wants.concat(st.have);
+  $$("#wantList [data-uid], #haveList [data-uid]").forEach(el => { const it = all.find(x => x.uid === el.dataset.uid); el.classList.toggle("fhide", !!f && !(it && norm((it.name || "") + " " + (it.note || "")).includes(f))); });
+  $$("#wantList .grp").forEach(g => g.classList.toggle("fhide", !!f && !g.querySelector(".gi:not(.fhide)")));
+}
+$("#lf").addEventListener("input", debounce(applyListFilter, 120));
+$("#q").addEventListener("input", debounce(() => { openDrop(); resLimit = baseLimit(); renderResults(); }, 90));
 $("#q").addEventListener("keydown", e => { if (e.key === "Enter") { const r = search($("#q").value, "all")[0]; if (r) addFromCatalog(r); e.preventDefault(); } });
 $("#qclr").onclick = () => { $("#q").value = ""; resLimit = 16; renderResults(); $("#q").focus(); };
 function addFromCatalog(p) {
@@ -1848,7 +1901,9 @@ function renderLists() {
     markTargetGroup();
   } else { if (st.wants.length) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
   if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
-  renderSummary();
+  $("#lfilter").hidden = st.wants.length + st.have.length < 7;
+  if ($("#lfilter").hidden) $("#lf").value = ""; else applyListFilter();
+  renderSummary(); requestAnimationFrame(updJump);
 }
 /* ---------- sell / buy: one price for every item (e.g. everything at 5×MP) ---------- */
 function samePriceBar() {
@@ -2222,6 +2277,7 @@ function priceLabel(w) {
 function renderOrder() {
   if (document.body.dataset.tab !== "order") return;
   const trade = st.type === "trade";
+  if (ORDER.done && ORDER.done.text === ORDER.text) return renderDone();
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
   ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit } : {}));
   ORDER.prev = ORDER.lines;
@@ -2267,6 +2323,61 @@ function renderOrder() {
   if (missing) tot.append(h("p", { class: "owarn" }, missing + " line" + (missing > 1 ? "s" : "") + " not counted — tap the name to pick the right item from your post."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
   out.append(tot);
+  if (ORDER.dismissed !== ORDER.text) { const P = proposal(rows); if (P.length) out.append(updCard(P, trade)); }
+}
+/* ---------- optional: update the post after the deal (exact quantities) ---------- */
+function proposal(rows) {
+  const trade = st.type === "trade", agg = new Map();
+  rows.forEach(L => {
+    if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + Math.ceil(R.give - 1e-9)); }
+    else { const w = L.r && L.r.w; if (w && L.q > 0) agg.set(w, (agg.get(w) || 0) + L.q); }
+  });
+  return [...agg].map(([w, n]) => { const have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
+    .filter(p => !trade || p.have > 0);
+}
+function updCard(P, trade) {
+  const card = h("div", { class: "card upd" });
+  const title = trade ? "Update your stock?" : st.type === "achat" ? "Remove what you bought from your post?" : "Remove what you sold from your post?";
+  card.append(h("h3", null, title), h("p", { class: "hint" }, "Optional — only the ticked lines change, with the exact quantities."));
+  P.forEach(p => {
+    const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
+    const what = p.have ? [fmt(p.have) + " → ", p.left ? fmt(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
+    card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, pName(p.w) + (trade ? "" : "  −" + fmt(p.n))), h("span", null, ...what)));
+  });
+  card.append(h("div", { class: "two" },
+    h("button", { class: "btn pri", onclick: () => applyUpdate(P, trade) }, "Update my post"),
+    h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")));
+  return card;
+}
+function applyUpdate(P, trade) {
+  const sel = P.filter(p => p.on);
+  if (!sel.length) return toast("Nothing ticked");
+  const reply = replyText();
+  ORDER.undo = { pid: st.id, wants: clone(st.wants), have: clone(st.have) };
+  const list = trade ? st.have : st.wants, notes = [];
+  sel.forEach(p => {
+    const i = list.indexOf(p.w); if (i < 0) return;
+    if (p.have && p.left > 0) { p.w.q = String(p.left); notes.push(pName(p.w) + ": " + fmt(p.have) + " → " + fmt(p.left)); }
+    else { list.splice(i, 1); notes.push(pName(p.w) + ": removed"); }
+  });
+  ORDER.done = { text: ORDER.text, pid: st.id, reply, notes };
+  renderLists(); renderTarget(); renderResults(); changed(); renderOrder();
+  toast("Post updated ✔");
+}
+function renderDone() {
+  const out = $("#orderOut"); out.textContent = "";
+  const D = ORDER.done;
+  out.append(h("div", { class: "card upd" }, h("h3", null, "Post updated ✓"),
+    h("div", { class: "done-note" }, D.notes.join(" · ")),
+    h("button", { class: "btn gold full", onclick: async () => { try { await navigator.clipboard.writeText(D.reply); toast("Reply copied ✔"); } catch (e) { openSheet("Reply", h("textarea", { class: "ta", rows: 10, value: D.reply, readOnly: true })); } } }, "Copy the reply for Discord"),
+    h("div", { class: "two" },
+      h("button", { class: "btn", onclick: () => {
+        const U = ORDER.undo, p = STATE.list.find(x => x.id === U.pid); if (!p) return;
+        p.wants = U.wants; p.have = U.have; ORDER.done = null; ORDER.undo = null;
+        if (st.id !== p.id) selectProfile(p.id); else { renderLists(); renderTarget(); renderResults(); changed(); }
+        renderOrder(); toast("Undone — your post is back as before");
+      } }, "Undo"),
+      h("button", { class: "btn", onclick: () => { ORDER.done = null; $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); $("#orderIn").focus(); } }, "New order"))));
 }
 const renderOrderSoon = debounce(renderOrder, 250);
 function replyText() {
