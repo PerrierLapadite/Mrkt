@@ -194,6 +194,13 @@ body[data-tab=prev] #editor{display:none}
 .lay{padding:8px 2px 6px!important;font-size:12.5px!important}
 .addnote{justify-self:start;border:0;background:none;padding:2px 2px;color:var(--mut);font:italic 600 14px var(--slab)}
 .notebox{display:grid}
+.xmp{font:400 15px var(--disp);letter-spacing:.02em}
+.mprow{display:grid;grid-template-columns:auto 110px 1fr;gap:4px 10px;align-items:center}
+.mprow .l{font:700 12px var(--slab);color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.mprow small{font:italic 600 13px var(--slab);color:var(--mut)}
+.mprow .eq{grid-column:1/-1;font:700 14px var(--slab);color:var(--acc)}
+.mpbox{height:38px}
+.mpbox input{font-size:16px}
 .inp,.ta,.sel,.note,.box input,.rin input{font-size:16px}
 .helpb{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;font:700 17px var(--slab);color:var(--ink);padding:0;align-self:center}
 .help ol{margin:0;padding-left:20px;display:grid;gap:10px;line-height:1.45}
@@ -633,6 +640,10 @@ const POPULAR = ["bem-set","sem-set","lem-set","tem-set","bolt","plank","duct-ta
 // Noms de fichiers wiki particuliers (sinon : Title_Snake_Case du nom anglais)
 const WIKI_BLACKLIST = new Set(["Field","Apple Tree","Shop Icon","Coins","Coin","Experience","Honey Mask","Caffè Latte","Caffè Mocha","Diamond","Diamonds","Voucher"]);
 
+/* Max prices (roadside shop) of crops & fruits — source: hayday247.blogspot.com sortable table (Jan 2024).
+   Every other item's max price is read live from the Hay Day wiki (infobox "price: 1 to N"), then cached. */
+const MAXP_BASE = {"apple":39,"banana":104,"beetroot":14,"bell-pepper":36,"blackberry":82,"broccoli":22,"cabbage":18,"cacao":86,"carrot":7,"cherry":68,"chickpea":18,"chili-pepper":36,"clay":18,"coconut":108,"coffee-bean":64,"corn":7,"cotton":29,"cucumber":14,"eggplant":14,"garlic":14,"ginger":29,"grapes":32,"guava":112,"indigo":25,"lemon":93,"lettuce":32,"lily":22,"mango":101,"mint":32,"mushroom":11,"oats":7,"olive":82,"onion":40,"orange":97,"passion-fruit":18,"peach":100,"peanuts":234,"peony":36,"pineapple":14,"plum":82,"pomegranate":111,"potato":36,"pumpkin":32,"raspberry":46,"rice":18,"sesame":18,"soybean":11,"strawberry":50,"sugarcane":14,"sunflower":22,"tea-leaf":43,"tomato":43,"watermelon":40,"wheat":4};
+
 "use strict";
 /* =====================================================================
    1. OUTILS
@@ -978,9 +989,66 @@ const ringRate = () => RING_RATE;
 /** Value of an item in coins (sell / buy posts only — trade posts use ratios, no prices). */
 function itemValue(w) {
   if (st && st.type === "trade") return 0;
-  const p = num(w.p); if (!p) return 0;
-  return p * (num(w.q) || 1) * (w.pu === "ring" ? ringRate() : 1);
+  return unitPrice(w) * (num(w.q) || 1);
 }
+/** Price of one unit in coins — from coins, rings (fixed rate) or xMP (× the game's max price). */
+function unitPrice(w) {
+  const p = num(w.p); if (!p) return 0;
+  if (w.pu === "ring") return p * ringRate();
+  if (w.pu === "xmp") { const m = itemMax(w); return m ? p * m : 0; }
+  return p;
+}
+/* ---------- max prices: manual > wiki (cached) > built-in table; sets = sum of their 3 materials ---------- */
+let MAXP = store.get("hd5_maxp", {});           // id -> max price from the wiki (0 = not found)
+const mpQueue = [], mpPending = new Set(); let mpActive = 0;
+const itemMax = w => num(w.mp) > 0 ? num(w.mp) : maxPrice(w.ref);
+function maxPrice(id) {
+  const p = id && CAT.byId[id]; if (!p) return 0;
+  if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) : 0; }
+  if (MAXP[id] > 0) return MAXP[id];
+  if (!(id in MAXP) && !p.custom) queueMax(id);
+  return MAXP_BASE[id] || 0;
+}
+function maxSource(w) {
+  if (num(w.mp) > 0) return "custom";
+  const p = w.ref && CAT.byId[w.ref]; if (!p) return "none";
+  if (p.parts) return maxPrice(p.id) ? "sum of the 3 materials" : (p.parts.some(x => mpPending.has(x)) ? "loading" : "none");
+  if (MAXP[p.id] > 0) return "wiki";
+  if (mpPending.has(p.id)) return MAXP_BASE[p.id] ? "table" : "loading";
+  return MAXP_BASE[p.id] ? "table" : "none";
+}
+function queueMax(id) { if (mpPending.has(id)) return; mpPending.add(id); mpQueue.push(id); pumpMax(); }
+function pumpMax() {
+  while (mpActive < 4 && mpQueue.length) {
+    const id = mpQueue.shift(); mpActive++;
+    fetchMax(id).then(v => { if (v !== null) { MAXP[id] = v; store.set("hd5_maxp", MAXP); } })
+      .finally(() => { mpActive--; mpPending.delete(id); maxLoaded(); pumpMax(); });
+  }
+}
+/** Same method as hd.jjtechdev.com: the wiki infobox "price" reads "1 to N" → N is the max price. */
+async function fetchMax(id) {
+  const p = CAT.byId[id], page = p.en.replace(/ /g, "_");
+  for (const section of ["0", ""]) {
+    let html;
+    try {
+      const q = { origin: "*", action: "parse", page, format: "json", prop: "text", redirects: "1", disablelimitreport: "1", disableeditsection: "1" };
+      if (section) q.section = section;
+      const j = await (await fetch(WIKI_API + "?" + new URLSearchParams(q))).json();
+      if (j.error) return 0;
+      html = j.parse && j.parse.text && j.parse.text["*"];
+    } catch (e) { return null; } // offline: retry next time
+    if (!html) continue;
+    const el = new DOMParser().parseFromString(html, "text/html").querySelector("[data-source='price'], [data-source='Price'], [data-source='maxprice']");
+    if (!el) continue;
+    const t = el.textContent, m = t.match(/to\s*([\d,.]+)/i);
+    const nums = m ? [num(m[1])] : (t.match(/\d[\d,]*/g) || []).map(num);
+    const v = Math.max(0, ...nums.filter(n => n > 0));
+    if (v) return v;
+  }
+  return 0;
+}
+let VAL_UPD = [];
+const maxLoaded = debounce(() => { VAL_UPD.forEach(f => { try { f(); } catch (e) {} }); scheduleDraw(); renderSummary(); }, 120);
 function normItem(it) {
   if (!it.uid) it.uid = uid();
   ["name", "note", "e", "img", "q", "p", "ra", "rb"].forEach(k => { if (it[k] == null) it[k] = ""; });
@@ -1197,7 +1265,11 @@ function drawAmounts(a, xr, cy, s, T, center) {
 /* ---------- ledger: price per unit → qty → total → rings ---------- */
 function ledgerVal(w, k) {
   const p = num(w.p), q = num(w.q), v = itemValue(w);
-  if (k === "p") return p ? { t: w.pu === "ring" ? fmtR(p) : fmt(p), ic: w.pu === "ring" ? "ring" : "coin" } : null;
+  if (k === "p") {
+    if (!p) return null;
+    if (w.pu === "xmp") { const u = unitPrice(w); return { t: fmtR(p) + "×MP", sub: u ? fmt(u) + " ea" : "max price ?" }; }
+    return { t: w.pu === "ring" ? fmtR(p) : fmt(p), ic: w.pu === "ring" ? "ring" : "coin" };
+  }
   if (k === "q") return { t: q > 0 ? "×" + fmt(q) : "×1" };
   if (k === "t") return v ? { t: fmt(v), ic: "coin", strong: 1 } : null;
   if (k === "r") return v ? { t: fmtR(v / ringRate()), ic: "ring", acc: 1 } : null;
@@ -1207,8 +1279,9 @@ function ledgerRow(w, LC, cy, T, sc) {
   LC.forEach(c => {
     const v = ledgerVal(w, c.k); if (!v) return;
     const s = (v.strong ? 27 : 24) * sc;
-    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right" });
+    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w, min: 14 });
     if (v.ic === "coin") coin(c.xr - tw - 19 * sc, cy, 10 * sc); else if (v.ic === "ring") ringIcon(c.xr - tw - 21 * sc, cy, 12 * sc);
+    if (v.sub && sc === 1) { const sw = txt(v.sub, c.xr, cy + 27, { f: "600i", s: 17, c: T.mut, al: "right", maxW: c.w }); }
   });
 }
 function ledgerLine(w, c, xl, xr, cy, T, small) {
@@ -1216,6 +1289,7 @@ function ledgerLine(w, c, xl, xr, cy, T, small) {
   const lab = { p: "Price / ea", q: "Qty", t: "Total", r: "Rings" }[c.k];
   txt(lab, xl, cy, { f: v.strong ? "700" : "600", s: small ? 18 : 21, c: v.strong ? T.ink : T.mut });
   const s = (v.strong ? 25 : 21) - (small ? 3 : 0);
+  if (v.sub) { const sw = txt("(" + v.sub + ")", xr, cy + 1, { f: "600i", s: small ? 14 : 16, c: T.mut, al: "right" }); xr -= sw + 8; }
   const tw = txt(v.t, xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right" });
   if (v.ic === "coin") coin(xr - tw - 17, cy, 9); else if (v.ic === "ring") ringIcon(xr - tw - 19, cy, 11);
 }
@@ -1590,7 +1664,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
   h("ol", null,
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
     h("li", null, h("b", null, "Search products"), " and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
-    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each (coins or rings) and the quantity. Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic."),
+    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, or ×MP — type “5x” or “5xmp” for 5 × the item’s max price. Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
@@ -1727,14 +1801,26 @@ function renderLists() {
   const hl = $("#haveList"); hl.textContent = "";
   st.have.forEach(it => hl.append(haveCard(it)));
   if (!st.have.length) hl.append(h("div", { class: "empty card" }, "Pick “I have” above the search to add what you offer."));
-  const wl = $("#wantList"); wl.textContent = "";
+  const wl = $("#wantList"); wl.textContent = ""; VAL_UPD = [];
   if (trade) {
     ratioGroups(st.wants).forEach(g => wl.append(groupCard(g)));
     wl.append(h("button", { class: "btn dashed newgrp", onclick: () => newRatioSheet() }, "+ New ratio group"));
     markTargetGroup();
-  } else st.wants.forEach(it => wl.append(itemCard(it)));
+  } else { if (st.wants.length) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
   if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
   renderSummary();
+}
+/* ---------- sell / buy: one price for every item (e.g. everything at 5×MP) ---------- */
+function samePriceBar() {
+  const t = { pu: st.allPu || "xmp", p: st.allP || "" };
+  const inp = h("input", { value: t.p, inputMode: "text", placeholder: "5", "aria-label": "Price for all", oninput: () => { const m = inp.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i); if (m) { t.pu = "xmp"; inp.value = m[1]; ub.repaint(); } t.p = inp.value; st.allP = t.p; st.allPu = t.pu; saveSoon(); } });
+  const ub = unitBtn(t, "pu", ["xmp", "coin", "ring"], () => { st.allPu = t.pu; saveSoon(); });
+  return h("div", { class: "card ratiobar" }, h("div", { class: "rb-t" }, h("b", null, "Same price for all")),
+    h("div", { class: "rb-row" }, h("div", { class: "box" }, inp, ub), h("button", { class: "btn pri sm", onclick: () => {
+      if (!num(t.p)) return toast("Enter a price first");
+      st.wants.forEach(w => { w.p = t.p; w.pu = t.pu; }); renderLists(); changed();
+      toast("All items at " + fmtR(num(t.p)) + (t.pu === "xmp" ? "×MP" : t.pu === "ring" ? " ring(s)" : " coins") + " each");
+    } }, "Apply")));
 }
 /* ---------- trade: one card per ratio ---------- */
 function groupCard(g) {
@@ -1790,11 +1876,11 @@ function stepper(it, after) {
   return h("div", { class: "box step" }, h("button", { type: "button", "aria-label": "Less", onclick: () => bump(-1) }, "−"), inp, h("button", { type: "button", "aria-label": "More", onclick: () => bump(1) }, "+"));
 }
 function unitBtn(it, key, opts, after) {
-  const labels = { coin: () => [h("i", { class: "coin" }), "coins"], ring: () => [ringEl(), "rings"], none: () => ["—"] };
+  const labels = { coin: () => [h("i", { class: "coin" }), "coins"], ring: () => [ringEl(), "rings"], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
   const b = h("button", { type: "button", class: "u", title: "Change unit" });
   const paint = () => { b.textContent = ""; b.append(...labels[it[key]]()); };
   b.onclick = () => { it[key] = opts[(opts.indexOf(it[key]) + 1) % opts.length]; paint(); after(); changed(); };
-  paint(); return b;
+  b.repaint = paint; paint(); return b;
 }
 function haveCard(it) {
   const card = h("div", { class: "item haveitem", "data-uid": it.uid });
@@ -1834,15 +1920,31 @@ function itemCard(it) {
     return card;
   }
   const val = h("div", { class: "val" });
+  // xMP line: "Max price 36 (wiki) · 5×MP = 180 each" — max price editable
+  const mpIn = h("input", { value: it.mp || "", inputMode: "numeric", "aria-label": "Max price", oninput: () => { it.mp = mpIn.value; upd(); changed(); } });
+  const mpSrc = h("small"), mpEq = h("span", { class: "eq" });
+  const mpRow = h("div", { class: "mprow" }, h("span", { class: "l" }, "Max price"), h("div", { class: "box mpbox" }, mpIn, h("span", { class: "u" }, h("i", { class: "coin" }))), mpSrc, mpEq);
   const upd = () => {
     const v = itemValue(it); val.textContent = ""; val.classList.toggle("zero", !v);
-    val.append(h("span", { class: "l" }, "Total"), v ? h("span", { class: "r" }, h("i", { class: "coin" }), fmt(v), h("small", null, "· " + fmtR(v / ringRate())), ringEl()) : h("span", { class: "r" }, "—"));
+    val.append(h("span", { class: "l" }, "Total"), v ? h("span", { class: "r" }, h("i", { class: "coin" }), fmt(v), h("small", null, "· " + fmtR(v / ringRate())), ringEl()) : h("span", { class: "r" }, it.pu === "xmp" && num(it.p) && !itemMax(it) ? "enter the max price" : "—"));
+    mpRow.hidden = it.pu !== "xmp";
+    if (it.pu === "xmp") {
+      const auto = it.ref ? maxPrice(it.ref) : 0, src = maxSource(it);
+      mpIn.placeholder = auto ? fmt(auto) : src === "loading" ? "…" : "?";
+      mpSrc.textContent = { custom: "set by you", wiki: "from the wiki", table: "built-in", loading: "loading…", none: "not found — type it", "sum of the 3 materials": "sum of the 3 materials" }[src] || "";
+      const m = itemMax(it); mpEq.textContent = m && num(it.p) ? fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each" : "";
+    }
     renderSummary();
   };
-  const p = h("input", { value: it.p || "", inputMode: "decimal", placeholder: "0", "aria-label": "Price each", oninput: () => { it.p = p.value; upd(); changed(); } });
+  VAL_UPD.push(upd);
+  const ub = unitBtn(it, "pu", ["coin", "ring", "xmp"], upd);
+  const p = h("input", { value: it.p || "", inputMode: "text", placeholder: "0 or 5x", "aria-label": "Price each", oninput: () => {
+    const m = p.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i) || p.value.match(/^\s*(?:x|×)\s*(\d+(?:[.,]\d+)?)\s*$/i);
+    if (m) { it.pu = "xmp"; it.p = m[1]; p.value = m[1]; ub.repaint(); } else it.p = p.value;
+    upd(); changed(); } });
   card.append(h("div", { class: "i2" },
-    h("label", { class: "fld" }, h("span", null, "Price each"), h("div", { class: "box" }, p, unitBtn(it, "pu", ["coin", "ring"], upd))),
-    h("label", { class: "fld" }, h("span", null, "Quantity"), stepper(it, upd))), val,
+    h("label", { class: "fld" }, h("span", null, "Price each"), h("div", { class: "box" }, p, ub)),
+    h("label", { class: "fld" }, h("span", null, "Quantity"), stepper(it, upd))), mpRow, val,
     noteArea(it, "Note (optional)"));
   upd();
   return card;
