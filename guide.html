@@ -82,6 +82,26 @@ th{font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color
 .m-bar span{flex:1;text-align:center;padding:9px 0;white-space:nowrap}
 .m-bar .on{color:var(--ink);box-shadow:inset 0 -3px 0 var(--acc)}
 .m-bar .ex{flex:1.25;background:var(--acc);color:#fff;border-radius:8px}
+.m-srow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font:700 15px var(--slab)}
+.m-srow:first-child{border-top:0}
+.m-srow .q{color:var(--mut)}
+.m-srow .v{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.m-srow.tot{font-size:16px;border-top:2px solid var(--ink)}
+.fmtl{margin:10px 0}
+.fmtl>div{padding:8px 0;border-top:1px solid var(--line)}
+.fmtl>div:first-child{border-top:0}
+.fmtl .k{white-space:normal;display:inline-block}
+.fmtl small{display:block;color:var(--mut);font-size:14px;margin-top:3px}
+.steps3{display:grid;gap:8px;margin:10px 0}
+.steps3>div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 10px 44px;position:relative}
+.steps3 .no{position:absolute;left:12px;top:9px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 14px var(--slab)}
+.m-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.m-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;display:grid;gap:2px}
+.m-kpi small{font:700 10.5px var(--slab);letter-spacing:.07em;color:var(--mut)}
+.m-kpi b{font:400 21px var(--disp);display:flex;align-items:center;gap:5px}
+.m-kpi span{font-size:12.5px;color:var(--mut)}
+.m-kpi.in{box-shadow:inset 3px 0 0 #2f6fb0}
+.m-kpi.out{box-shadow:inset 3px 0 0 #c4562a}
 .m-search{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--ink);border-radius:12px;height:48px;padding:0 14px;font-size:17px}
 .m-search .caret{width:2px;height:22px;background:var(--acc);margin-left:-8px;animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
@@ -150,6 +170,14 @@ th{font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color
 .m-chk .bx{width:20px;height:20px;border-radius:4px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 13px var(--sans)}
 .m-chk .gi{width:26px;height:26px;font-size:18px}
 .m-chk .r{color:var(--mut);white-space:nowrap}
+.m-rule{display:grid;grid-template-columns:minmax(0,1.2fr) 40px minmax(0,1fr);gap:6px;margin-top:8px}
+.m-rule>*{border:1px solid var(--line2);border-radius:10px;background:var(--card);height:40px;display:flex;align-items:center;padding:0 10px;font:600 14px var(--sans)}
+.m-rule b{justify-content:center;font-size:17px}
+.m-rule small{color:var(--mut);margin-left:auto;font-weight:700;font-size:12px}
+.m-rule .coin{margin-left:auto}
+.m-chips{display:flex;flex-wrap:wrap;gap:6px}
+.m-chips>span{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:3px 8px 3px 3px;font:600 13px var(--sans)}
+.m-chips small{color:var(--mut);font-weight:700}
 .m-sw{display:flex;align-items:center;justify-content:space-between;font:600 15px var(--sans);padding:4px 0}
 .m-sw i{width:44px;height:26px;border-radius:99px;background:var(--ink);position:relative;flex:none}
 .m-sw i::after{content:"";position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff}
@@ -200,7 +228,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <header class="top">
   <div class="in"><a class="brand" href="./">Market Studio</a><span class="sp"></span><a class="btn" href="./">Open the site</a></div>
   <nav class="toc" id="toc">
-    <a href="#basics">Basics</a><a href="#add">Add items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#total">Discount &amp; bulk</a><a href="#paste">Paste</a><a href="#order">Order</a><a href="#history">History</a><a href="#style">Style</a><a href="#export">Export</a><a href="#know">Good to know</a><a href="#faq">Questions</a>
+    <a href="#basics">Basics</a><a href="#add">Add items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#total">Discount &amp; bulk</a><a href="#paste">Paste</a><a href="#order">Order</a><a href="#search">Search</a><a href="#history">History</a><a href="#profile">Profile &amp; Inventory</a><a href="#stats">Stats</a><a href="#style">Style</a><a href="#export">Post it</a><a href="#know">Good to know</a><a href="#faq">Questions</a>
   </nav>
 </header>
 
@@ -228,15 +256,16 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li><b>Trade</b> = swap with ratios. <b>Selling</b> / <b>Buying</b> = with prices.</li>
     <li><b>＋</b> makes another post. Each post keeps its own items and style.</li>
   </ul>
-  <div class="mock"><div class="m-bar"><span class="on">Items</span><span>Paste</span><span>Style</span><span>Order</span><span>History</span><span>Preview</span><span class="ex">Export</span></div></div>
+  <div class="mock"><div class="m-bar"><span class="on">Items</span><span>Paste</span><span>Style</span><span>Order</span><span>Search</span><span>History</span><span>Preview</span></div></div>
   <table>
     <tr><td><b>Items</b></td><td>Your list: add items, ratios or prices.</td></tr>
     <tr><td><b>Paste</b></td><td>Build a post from a text list.</td></tr>
     <tr><td><b>Style</b></td><td>Title, your name, colours, layout, backup.</td></tr>
     <tr><td><b>Order</b></td><td>Price a buyer’s or seller’s message.</td></tr>
+    <tr><td><b>Search</b></td><td>Paste a buyer’s “buying” list: what you have, at their prices.</td></tr>
     <tr><td><b>History</b></td><td>Your past deals and totals.</td></tr>
-    <tr><td><b>Preview</b></td><td>See the picture.</td></tr>
-    <tr><td><b class="acc">Export</b></td><td>Send the picture to Discord.</td></tr>
+    <tr><td><b>Profile</b> <span class="k">M</span></td><td>Top right: your pseudo, your <b>Inventory</b> (barn &amp; silo) and your <b>Stats</b>.</td></tr>
+    <tr><td><b class="acc">Preview</b></td><td>See the picture, then Download, Share or Copy it for Discord.</td></tr>
   </table>
   <div class="note">Everything saves by itself. The <b>?</b> button at the top opens a short help. On a computer, the picture stays on the right.</div>
 </section>
@@ -279,6 +308,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   </div>
   <ul class="tips">
     <li><b>50 : 89</b> = you give 50 of your item for 89 of theirs. The first number is always yours.</li>
+    <li><b>Sets count materials.</b> 89 BEM = 89 materials, split evenly: 30 Bolt · 30 Plank · 29 Duct Tape. Same for SEM, LEM, TEM and Tools.</li>
     <li>Items with the same ratio share one box. Change the big numbers → the whole box changes.</li>
   </ul>
   <h3>I have</h3>
@@ -411,8 +441,13 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   </div>
   <ul class="tips">
     <li>Any format: <span class="k">x26</span>, <span class="k">26x</span>, <span class="k">26 carrot pie</span>, <span class="k">carrot pie: 26</span>, plurals and short names.</li>
+    <li><b>No quantity?</b> Just <span class="k">carrot pie</span> = the whole quantity in your post. The box shows <span class="k">ALL</span>. Type a number to change it. No quantity in your post either → 1, with “how many?”.</li>
     <li><span class="flag">!</span> = not in your post, not counted. <span class="flag y">?</span> = several possible items. Tap the name to fix it.</li>
+    <li><b>Not enough?</b> Asked 10 but only 5 left → the line says “only 5 left — 5 missing” and only 5 are counted. The reply shows only what you really have: “5× Fish Burger”. Buying: more than you want → “50 extra”, not counted. A switch counts everything instead.</li>
+    <li><b>Remove what’s missing</b> (one tap): 10 asked, 1 left → 1 · none left → the line goes. Buying: <b>Remove the extra</b>.</li>
+    <li><b>×</b> at the end of a line removes it. <b>Every line</b>: type <span class="k">10</span> → <b>Set</b> = 10 of each, <b>All</b> = everything in your post. <b>Undo</b> appears after each of these.</li>
     <li>You can change any quantity. A switch applies your discount (Selling).</li>
+    <li><b>Other price?</b> Tap a price (<span class="k">✎</span>) to set a price for this order only: <span class="k">5x</span> = 5×MP, or <span class="k">4000</span>. The old price is crossed out, the total and the reply follow. Your post does not change. <b>Post price</b> goes back.</li>
     <li><b>Copy the reply</b>: a ready message with each line and the total.</li>
   </ul>
   <h3>Buying: the bulk bonus is added</h3>
@@ -426,6 +461,23 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     </div>
   </div>
   <ul class="tips"><li>Each line that reaches a tier shows “+10% bulk”. A switch turns the bonus off.</li></ul>
+  <h3>Advanced: add a group of items</h3>
+  <div class="mock">
+    <div class="m-card">
+      <div class="m-sw">Advanced<i></i></div>
+      <div class="m-rule"><span>Quantity ▾</span><b>≥</b><span>30 <small>units</small></span></div>
+      <div class="m-rule"><span>Price ea ▾</span><b>≤</b><span>5,000 <i class="coin"></i></span></div>
+      <div style="font:700 15px var(--sans);margin:8px 0 6px">2 items match</div>
+      <div class="m-chips"><span><span class="gi xs" data-id="carrot-pie" data-e="🥧"></span>Carrot Pie <small>60</small></span><span><span class="gi xs" data-id="lobster-tail" data-e="🦞"></span>Lobster Tail <small>49</small></span></div>
+      <div class="two" style="margin-top:8px"><div class="m-btn dark">Add 2 items</div><div class="m-btn light">Replace order</div></div>
+    </div>
+  </div>
+  <ul class="tips">
+    <li>Turn on <b>Advanced</b> under the order box to pick items <b>by rules</b> instead of typing them.</li>
+    <li>Rules: <b>Price ea</b>, <b>Price ×MP</b>, <b>Quantity</b> in your post, <b>Category</b>. <span class="k">≥</span> / <span class="k">≤</span>: tap to switch. Several rules = items must match all of them.</li>
+    <li><b>How many of each</b>: all in the post, or the same number for every item (e.g. 20 each).</li>
+    <li><b>Add</b> puts the items at the end of the order (not twice). <b>Replace order</b> starts again with only them. Your post does not change.</li>
+  </ul>
   <h3>Deal done</h3>
   <div class="mock">
     <div class="m-card">
@@ -441,13 +493,40 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>Ticked lines leave your post with the <b>exact</b> quantities: 30 sold of 49 → 19 left; all sold → removed.</li>
     <li>The deal goes to your <a href="#history">History</a>, with the name if you type one.</li>
     <li>Untick what you want to keep. <b>Undo</b> puts everything back.</li>
-    <li>Trade posts: the calculator uses your ratios (“You give 50 BEM Sets”) and lowers your “I have” stock.</li>
+    <li>Trade posts: the calculator uses your ratios (“You give 89 BEM”), shows the split (30 Bolt · 30 Plank · 29 Duct Tape) and lowers your “I have” stock.</li>
+  </ul>
+</section>
+
+<!-- SEARCH -->
+<section class="step" id="search">
+  <h2><span class="n">8</span>Search: a buyer’s list</h2>
+  <p class="say">A buyer posts “buying nachos, bacon fries 3k…”? Paste it in <b>Search</b>: you see right away what you have in your <a href="#profile">Inventory</a>, at their prices.</p>
+  <div class="mock">
+    <div class="m-card">
+      <div class="m-srow"><span><span class="gi xs" data-id="goat-cheese" data-e="🧀"></span> Goat Cheese</span><span class="q">×10</span><span class="v"><i class="coin"></i>20,000</span></div>
+      <div class="m-srow"><span><span class="gi xs" data-id="peach-jam" data-e="🍑"></span> Peach Jam <small style="color:#b26b00">only 8</small></span><span class="q">×8</span><span class="v"><i class="coin"></i>40,000</span></div>
+      <div class="m-srow"><span><span class="gi xs" data-id="marmalade" data-e="🍊"></span> Marmalade</span><span class="q">×15</span><span class="v"><i class="coin"></i>75,000</span></div>
+      <div class="m-srow tot"><span>Total to receive</span><span></span><span class="v"><i class="coin"></i>135,000</span></div>
+    </div>
+  </div>
+  <div class="fmtl">
+    <div><span class="k">(10) nachos, bacon fries 3k</span><small>10 of each, 3,000 each</small></div>
+    <div><span class="k">15 marmalade, 10 peach jam 5k each</span><small>15 and 10, both 5,000</small></div>
+    <div><span class="k">egg / lobster / big roll sushi 4k</span><small>Egg Sushi, Lobster Sushi, Big Roll Sushi</small></div>
+    <div><span class="k">4k each BLT, seafood, … 3k</span><small>a price at the start or after a group counts for the items before it</small></div>
+    <div><span class="k">quantities 5-10</span><small>no number given → 10 (you can change it)</small></div>
+    <div><span class="k">20+ cornbread</span><small>20</small></div>
+  </div>
+  <ul class="tips">
+    <li>Only what you have is listed. Not enough? It gives what you have (“only 8”). What you don't have is in <b>Not in your inventory</b>.</li>
+    <li>Tap a name to fix it, the price (✎) to change it, <b>×</b> to remove a line. “?” = not recognised: tap it to pick the item.</li>
+    <li><b>Copy the reply</b> (“I can sell you: …”), then <b>✓ Deal done</b>: it goes to your History and Stats, and your inventory goes down. <b>Undo</b> if needed.</li>
   </ul>
 </section>
 
 <!-- 8 HISTORY -->
 <section class="step" id="history">
-  <h2><span class="n">8</span>History</h2>
+  <h2><span class="n">9</span>History</h2>
   <p class="say">Every deal you marked as done, with your totals.</p>
   <div class="mock">
     <div class="chips"><span class="chip">7 days</span><span class="chip on">30 days</span><span class="chip">All</span></div>
@@ -471,8 +550,64 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 </section>
 
 <!-- 9 STYLE -->
+<!-- PROFILE & INVENTORY -->
+<section class="step" id="profile">
+  <h2><span class="n">10</span>Profile &amp; Inventory</h2>
+  <p class="say">The round button at the top right is <b>your profile</b>: your pseudo, your Inventory and your Stats.</p>
+  <ul class="tips">
+    <li><b>Pseudo</b>: type it once — it becomes the username on all your pictures.</li>
+  </ul>
+  <h3>Your inventory from screenshots</h3>
+  <div class="steps3">
+    <div><span class="no">1</span>In the game, open your <b>Barn</b> and take a screenshot. Scroll, take another, until you've seen everything. Same for the <b>Silo</b>.</div>
+    <div><span class="no">2</span>Profile → Inventory → <b>📷 Screenshots</b>: pick them all at once.</div>
+    <div><span class="no">3</span>Check the list: each picture, the item found and its number. Orange = to check. Then <b>Save</b>.</div>
+  </div>
+  <ul class="tips">
+    <li>Everything is read <b>on your phone</b> — your screenshots are never sent anywhere.</li>
+    <li>Use the original screenshots (not cropped or resized). The numbers are read exactly; the item is found from its picture.</li>
+    <li>Wrong item? Tap it and pick the right one: the site <b>learns</b> from your fixes and gets it right next time.</li>
+    <li><b>Update these items</b> changes only what was read. <b>Replace my barn</b> (or silo) when your screenshots show all of it.</li>
+  </ul>
+  <h3>By hand, and live</h3>
+  <ul class="tips">
+    <li><b>＋ Add items</b>: search an item and tap it (with how many), or type a list: <span class="k">carrot pie 26, bolt 30</span>.</li>
+    <li>Filter <b>Barn / Silo</b>, search, sort, change a number with <b>− / +</b>, <b>×</b> to remove. <b>Copy the list</b> gives “Bolt x196…”.</li>
+    <li><b>Update it with my deals</b> (on by default): a deal marked as done in Order or Search changes your inventory — sold goes out, bought or received comes in. Sets (BEM…) change their materials.</li>
+  </ul>
+</section>
+
+<!-- 9 STATS -->
+<section class="step" id="stats">
+  <h2><span class="n">11</span>Stats</h2>
+  <p class="say">In your profile (top right) → <b>Stats</b>: your numbers, from your History — what came in, what went out, and your best deals.</p>
+  <div class="mock">
+    <div class="chips"><span class="chip">7 days</span><span class="chip on">30 days</span><span class="chip">90 days</span><span class="chip">All</span></div>
+    <div class="m-kpis">
+      <div class="m-kpi in"><small>MONEY IN</small><b><i class="coin"></i>1.3M</b><span>18 sales</span></div>
+      <div class="m-kpi out"><small>MONEY OUT</small><b><i class="coin"></i>58,200</b><span>3 purchases</span></div>
+      <div class="m-kpi"><small>BALANCE</small><b><i class="coin"></i>+1.2M</b><span>earned more than spent</span></div>
+      <div class="m-kpi"><small>DEALS</small><b>26</b><span>18 sales · 3 buys · 5 trades</span></div>
+    </div>
+  </div>
+  <table>
+    <tr><td><b>Overview</b></td><td>Money in (sales), money out (purchases), balance, deals, items sold and bought, averages, discounts and bulk bonus paid.</td></tr>
+    <tr><td><b>Money in &amp; out</b></td><td>A chart by day, week or month: sales go up, purchases go down.</td></tr>
+    <tr><td><b>Records</b></td><td>Biggest sale and purchase, best day, best item, best price per item, biggest trade, top buyer, busiest time.</td></tr>
+    <tr><td><b>Items</b></td><td>Tables of what you sold and bought: quantity, coins, average price each.</td></tr>
+    <tr><td><b>Trades</b></td><td>Items received and given, and your <b>sets</b> (BEM, SEM, LEM…): traded away, traded in, bought, sold — with the split (Bolt · Plank · Duct Tape).</td></tr>
+    <tr><td><b>Partners</b></td><td>Who you deal with: deals, what they paid you, what you paid them.</td></tr>
+    <tr><td><b>When you deal</b></td><td>Deals per day of the week.</td></tr>
+  </table>
+  <ul class="tips">
+    <li>Tap a bar of the chart to see that day: in, out, net. <b>Show as table</b> gives the same numbers in a list.</li>
+    <li>Stats count <b>all your posts</b>. A deal appears once you tap <b>✓ Mark as done</b> in Order.</li>
+    <li>To see a partner, type their name in “Deal done?”. Deleting a deal from your History removes it from the stats.</li>
+  </ul>
+</section>
+
 <section class="step" id="style">
-  <h2><span class="n">9</span>Style</h2>
+  <h2><span class="n">12</span>Style</h2>
   <p class="say">How the picture looks. It never changes your items.</p>
   <div class="papers">
     <figure><div class="pic" data-pic="theme_grange"></div>Barn</figure>
@@ -493,12 +628,12 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 10 EXPORT -->
 <section class="step" id="export">
-  <h2><span class="n">10</span>Post it on Discord</h2>
-  <p class="say">Tap the red <b>Export</b> button.</p>
-  <div class="mock"><div class="m-bar"><span>Items</span><span>Paste</span><span>Style</span><span>Order</span><span>History</span><span>Preview</span><span class="ex">Export</span></div></div>
+  <h2><span class="n">13</span>Post it on Discord</h2>
+  <p class="say">Open <b>Preview</b> (on a computer, the picture is always on the right), then:</p>
+  <div class="mock"><div class="two"><div class="m-btn">Download</div><div class="m-btn light">Share</div></div><div class="m-btn light" style="margin-top:8px">Copy</div></div>
   <ul class="tips">
-    <li><b>Phone</b>: the share menu opens — send it straight to Discord or save it.</li>
-    <li><b>Computer</b>: the picture downloads. In <b>Preview</b> you also have <b>Copy</b>, then paste in Discord (<span class="k">Ctrl V</span>).</li>
+    <li><b>Share</b> (phone): the share menu opens — send it straight to Discord or save it.</li>
+    <li><b>Download</b> saves the picture. <b>Copy</b>, then paste it in Discord (<span class="k">Ctrl V</span>).</li>
     <li>Long lists switch to a compact layout: the picture gets <b>wider</b>, and the totals bigger, so it stays readable.</li>
     <li>The site’s address is printed small at the bottom of every picture.</li>
   </ul>
@@ -506,7 +641,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 11 GOOD TO KNOW -->
 <section class="step" id="know">
-  <h2><span class="n">11</span>Good to know</h2>
+  <h2><span class="n">14</span>Good to know</h2>
   <div class="rates">
     <div class="rate"><span class="gi" data-id="diamond-ring" data-e="💍"></span><div>10 rings = <span class="nw">8,244 <i class="coin"></i></span><small>Fixed rate, the same for everyone.</small></div></div>
     <div class="rate"><span class="gi" data-id="blanket" data-e="🛏️"></span><div>10 blankets = <span class="nw">10,980 <i class="coin"></i></span><small>Fixed rate, the same for everyone.</small></div></div>
@@ -529,7 +664,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 42× Pumpkin Pie — 900 ea = 37,800
 30× Lobster Tail — 1,500 ea = 45,000
 **Total: 94,500 coins ≈ 115 💍 · ≈ 86.1 blankets**</pre></div></details>
-  <details><summary>Export failed</summary><div>Reload the page and try again.</div></details>
+  <details><summary>Download failed</summary><div>Reload the page and try again.</div></details>
   <details><summary>My posts disappeared</summary><div>Your browser data was cleared. Style → Backup → <b>Import</b> your last backup.</div></details>
   <details><summary>New phone or computer?</summary><div>Style → Backup → <b>Export</b> on the old one, then <b>Import</b> the file on the new one.</div></details>
 </section>
