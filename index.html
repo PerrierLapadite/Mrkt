@@ -48,7 +48,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* ---------- layout ---------- */
 .app{max-width:1280px;margin:0 auto;padding:18px 14px}
 .panel{display:none;gap:14px;grid-template-columns:minmax(0,1fr)}
-body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order{display:grid}
+body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist{display:grid}
 #preview{display:none}
 body[data-tab=prev] #preview{display:block}
 body[data-tab=prev] #editor{display:none}
@@ -220,6 +220,41 @@ body[data-tab=prev] #editor{display:none}
 .upd .two{margin-top:4px}
 .done-note{font:italic 600 14px var(--slab);color:var(--ok)}
 .tabbar button{font-size:14px!important;letter-spacing:.01em!important}
+@media (max-width:999px){.tabbar{gap:2px!important;padding-left:4px!important;padding-right:4px!important}.tabbar button{font-size:12.5px!important;letter-spacing:0!important;padding:0 1px!important;min-width:0}.tabbar .dl{flex:1.25!important}}
+/* paste a list */
+.fmt{display:flex;flex-wrap:wrap;gap:6px}
+.fmt code{font:600 12.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
+.pline{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
+.pline:first-child{border-top:0}
+.pline.bad{background:var(--acc-soft)}
+.pline.ign{opacity:.5}
+.pline .pv{font:700 15px var(--slab);text-align:right;white-space:nowrap}
+.pline .pv small{display:block;font:italic 600 12.5px var(--slab);color:var(--mut)}
+.psec{font:700 12px var(--slab);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:10px 12px 2px}
+/* history */
+.hstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.hstat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.hstat .k{font:700 11.5px var(--slab);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.hstat .v{font:400 20px/1.15 var(--disp);display:flex;align-items:center;gap:5px;margin-top:2px;white-space:nowrap;overflow:hidden}
+.hstat small{font:italic 600 12.5px var(--slab);color:var(--mut)}
+.hday{font:700 14px var(--slab);color:var(--mut);margin:6px 2px -2px}
+.hent{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.hent>button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;width:100%;border:0;background:none;text-align:left;padding:11px 13px;color:var(--ink)}
+.hent .tg{display:inline-block;font:700 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:5px;padding:2px 6px;margin-right:6px;vertical-align:1px}
+.tg.vente{background:#e3efdc;color:#3b7531}.tg.achat{background:#dfe8f6;color:#2c5aa0}.tg.trade{background:#f6e3dc;color:#b5321e}
+.hent .who{font:700 16px var(--slab)}
+.hent .tm{font:600 13px var(--sans);color:var(--mut)}
+.hent .amt{grid-row:1/3;grid-column:2;align-self:center;font:400 19px var(--disp);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.hent .its{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font:600 13.5px var(--sans);color:var(--mut)}
+.hent .its .th{width:22px;height:22px;font-size:15px}
+.hent .det{border-top:1px solid var(--line);padding:8px 13px 12px;display:grid;gap:6px}
+.hent .dl2{display:flex;justify-content:space-between;gap:10px;font:600 14.5px var(--slab)}
+.hent .dl2 em{font-style:normal;color:var(--ok)}
+.deal .who{min-height:42px}
+.upd label.switch{display:flex;grid-template-columns:none;font:600 15px var(--sans)}
+.upd label.switch input{width:46px;height:28px;margin:0;accent-color:auto}
+.hent .amt .th{width:24px;height:24px;font-size:16px}
+.hstat .v{font-size:18px}
 .olist{padding:4px 0}
 .oline{display:grid;grid-template-columns:40px minmax(0,1fr) 74px auto;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
 .oline:first-child{border-top:0}
@@ -416,8 +451,10 @@ body[data-tab=prev] #mini{display:none}
 <main class="app">
   <nav class="tabbar" id="tabbar">
     <button data-t="items">Items</button>
+    <button data-t="paste">Paste</button>
     <button data-t="style">Style</button>
     <button data-t="order">Order</button>
+    <button data-t="hist">History</button>
     <button data-t="prev">Preview</button>
     <button class="dl" id="dlTab">Export</button>
   </nav>
@@ -472,6 +509,26 @@ body[data-tab=prev] #mini{display:none}
         </div>
         </div>
       </div>
+    </section>
+
+    <!-- ===== PASTE A LIST ===== -->
+    <section class="panel" id="p-paste">
+      <div class="card fieldset">
+        <div class="ch"><h2>Paste a list</h2></div>
+        <p class="hint">One item per line, with its quantity and price — or a ratio for trades.</p>
+        <div class="fmt"><code>lobster tail x20 1500</code><code>blanket x10 1r</code><code>corn 300 5xmp</code><code>tomato sauce x30 2b</code><code>lemon curd 50:89</code><code>have: bem x10</code></div>
+        <textarea class="ta" id="pasteIn" rows="7" placeholder="Paste or type your list here"></textarea>
+        <div class="two"><button class="btn" id="pastePaste">Paste</button><button class="btn" id="pasteClear">Clear</button></div>
+        <div><label class="lbl">Put it in</label><div class="seg" id="pasteTo"><button data-v="new">A new post</button><button data-v="add">This post</button></div></div>
+        <div id="pasteNew"><label class="lbl">Type</label><div class="seg" id="pasteType"><button data-v="trade">Trade</button><button data-v="vente">Selling</button><button data-v="achat">Buying</button></div></div>
+        <div id="pasteAdd" hidden><label class="lbl" id="pasteAddL">“This post”</label><div class="seg" id="pasteHow"><button data-v="add">Add to the list</button><button data-v="replace">Replace the list</button></div></div>
+      </div>
+      <div id="pasteOut" class="stack"></div>
+    </section>
+
+    <!-- ===== HISTORY ===== -->
+    <section class="panel" id="p-hist">
+      <div id="histOut" class="stack"></div>
     </section>
 
     <!-- ===== ORDER ===== -->
@@ -1329,6 +1386,9 @@ function loadState() {
 }
 const saveSoon = debounce(() => { if (!store.set("hd5_state", STATE)) toast("Storage full: export a backup (Style tab)."); }, 400);
 const saveSettings = () => store.set("hd5_settings", SETTINGS);
+/* deals marked as done in the Order tab (newest first) */
+let HIST = store.get("hd5_hist", []); if (!Array.isArray(HIST)) HIST = [];
+const saveHist = () => { if (HIST.length > 1000) HIST.length = 1000; store.set("hd5_hist", HIST); };
 function changed() { scheduleDraw(); saveSoon(); renderSummary(); }
 function pushRecent(id) { if (!id) return; SETTINGS.recent = [id, ...(SETTINGS.recent || []).filter(x => x !== id)].slice(0, 18); saveSettings(); }
 
@@ -1904,6 +1964,8 @@ function tab(t) {
   $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   if (t === "prev") draw();
   if (t === "order") renderOrder();
+  if (t === "paste") renderPaste();
+  if (t === "hist") renderHist();
   if (t !== "items") closeDrop();
   requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
@@ -1915,8 +1977,10 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
-    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. Then, if you want, “Update my post” removes exactly what left (49 − 30 → 19 left) — Undo is there if needed."),
+    h("li", null, h("b", null, "Paste:"), " paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
+    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
+    h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
   h("a", { class: "btn full guide", href: "guide.html", target: "_blank", rel: "noopener" }, "📖 Full guide"),
@@ -2024,7 +2088,7 @@ $("#sdone").onclick = closeDrop;
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
-function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
+function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 let jumpT = 0;
@@ -2346,7 +2410,7 @@ $("#copy").onclick = async () => {
 /* ---------- backup ---------- */
 $("#bkOut").onclick = () => {
   const imgs = {}; USERIMG.forEach((v, k) => imgs[k] = v);
-  saveBlob(new Blob([JSON.stringify({ app: "hd-studio", v: 6, state: STATE, settings: SETTINGS, custom: CUSTOM, images: imgs })], { type: "application/json" }), "hayday-studio-backup.json");
+  saveBlob(new Blob([JSON.stringify({ app: "hd-studio", v: 7, state: STATE, settings: SETTINGS, custom: CUSTOM, images: imgs, history: HIST })], { type: "application/json" }), "hayday-studio-backup.json");
   toast("Backup exported ✔");
 };
 $("#bkIn").onchange = async e => {
@@ -2357,6 +2421,7 @@ $("#bkIn").onchange = async e => {
       STATE = o.state; CUSTOM = o.custom || []; store.set("hd5_custom", CUSTOM);
       if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; saveSettings(); }
       Object.entries(o.images || {}).forEach(([k, v]) => { USERIMG.set(k, v); IDB.put(k, v); });
+      if (Array.isArray(o.history)) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(o.history.filter(e => e && !have.has(e.id))).sort((a, b) => b.t - a.t); saveHist(); }
     } else if (Array.isArray(o.l)) { store.set("tp4", o); localStorage.removeItem("hd5_state"); loadState(); }
     else throw 0;
     STATE.list.forEach(normProfile);
@@ -2528,7 +2593,7 @@ function renderOrder() {
   if (missing) tot.append(h("p", { class: "owarn" }, missing + " line" + (missing > 1 ? "s" : "") + " not counted — tap the name to pick the right item from your post."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
   out.append(tot);
-  if (ORDER.dismissed !== ORDER.text) { const P = proposal(rows); if (P.length) out.append(updCard(P, trade)); }
+  if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
 }
 /* ---------- optional: update the post after the deal (exact quantities) ---------- */
 function proposal(rows) {
@@ -2540,47 +2605,75 @@ function proposal(rows) {
   return [...agg].map(([w, n]) => { const have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
 }
+/* ---------- deal done: update the post (optional) + save it in the History tab ---------- */
 function updCard(P, trade) {
-  const card = h("div", { class: "card upd" });
-  const title = trade ? "Update your stock?" : st.type === "achat" ? "Remove what you bought from your post?" : "Remove what you sold from your post?";
-  card.append(h("h3", null, title), h("p", { class: "hint" }, "Optional — only the ticked lines change, with the exact quantities."));
-  P.forEach(p => {
-    const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
-    const what = p.have ? [fmt(p.have) + " → ", p.left ? fmt(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
-    card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, pName(p.w) + (trade ? "" : "  −" + fmt(p.n))), h("span", null, ...what)));
-  });
-  card.append(h("div", { class: "two" },
-    h("button", { class: "btn pri", onclick: () => applyUpdate(P, trade) }, "Update my post"),
-    h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")));
+  const card = h("div", { class: "card upd deal" });
+  card.append(h("h3", null, "Deal done?"));
+  if (P.length) {
+    const what = trade ? "Lower your “I have” stock" : st.type === "achat" ? "Remove what you bought from your post" : "Remove what you sold from your post";
+    card.append(h("p", { class: "hint" }, what + " — only the ticked lines change, with the exact quantities."));
+    P.forEach(p => {
+      const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
+      const w = p.have ? [fmt(p.have) + " → ", p.left ? fmt(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
+      card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, pName(p.w) + (trade ? "" : "  −" + fmt(p.n))), h("span", null, ...w)));
+    });
+  }
+  const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); who.hidden = !save.checked; } });
+  const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; } });
+  who.hidden = !save.checked;
+  card.append(h("label", { class: "switch sm" }, "Save it in my History", save), who,
+    h("div", { class: "two" },
+      h("button", { class: "btn pri", onclick: () => applyDeal(P, trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
+      h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")));
   return card;
 }
-function applyUpdate(P, trade) {
+/** One History entry from the order on screen. */
+function histEntry(who) {
+  const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w && !x.r.ignored);
+  const gives = new Map();
+  if (trade) L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; const o = gives.get(k) || { name: k, ref: R.g ? R.g.ref : null, e: R.g ? R.g.e : "", n: 0 }; o.n += R.give; gives.set(k, o); });
+  return {
+    id: uid(), t: Date.now(), type: st.type, post: st.name || TYPES[st.type].name, who: who || "",
+    lines: L.map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: x.q || 0, v: Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
+    gives: [...gives.values()].map(o => ({ ...o, n: Math.round(o.n * 100) / 100 })),
+    total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
+    reply: replyText()
+  };
+}
+function applyDeal(P, trade, keep, who) {
   const sel = P.filter(p => p.on);
-  if (!sel.length) return toast("Nothing ticked");
-  const reply = replyText();
+  if (!sel.length && !keep) return toast("Tick a line or “Save it in my History”");
+  const reply = replyText(), notes = [];
   ORDER.undo = { pid: st.id, wants: clone(st.wants), have: clone(st.have) };
-  const list = trade ? st.have : st.wants, notes = [];
+  let hid = null;
+  if (keep) { const e = histEntry(who); HIST.unshift(e); saveHist(); hid = e.id; notes.push("Saved in History"); }
+  const list = trade ? st.have : st.wants;
   sel.forEach(p => {
     const i = list.indexOf(p.w); if (i < 0) return;
     if (p.have && p.left > 0) { p.w.q = String(p.left); notes.push(pName(p.w) + ": " + fmt(p.have) + " → " + fmt(p.left)); }
     else { list.splice(i, 1); notes.push(pName(p.w) + ": removed"); }
   });
-  ORDER.done = { text: ORDER.text, pid: st.id, reply, notes };
-  renderLists(); renderTarget(); renderResults(); changed(); renderOrder();
-  toast("Post updated ✔");
+  ORDER.done = { text: ORDER.text, pid: st.id, reply, notes, hid, upd: sel.length > 0 };
+  ORDER.who = "";
+  if (sel.length) { renderLists(); renderTarget(); renderResults(); changed(); }
+  renderOrder();
+  toast(keep && sel.length ? "Done — post updated and saved ✔" : keep ? "Saved in History ✔" : "Post updated ✔");
 }
 function renderDone() {
   const out = $("#orderOut"); out.textContent = "";
   const D = ORDER.done;
-  out.append(h("div", { class: "card upd" }, h("h3", null, "Post updated ✓"),
+  out.append(h("div", { class: "card upd" }, h("h3", null, "Deal done ✓"),
     h("div", { class: "done-note" }, D.notes.join(" · ")),
     h("button", { class: "btn gold full", onclick: async () => { try { await navigator.clipboard.writeText(D.reply); toast("Reply copied ✔"); } catch (e) { openSheet("Reply", h("textarea", { class: "ta", rows: 10, value: D.reply, readOnly: true })); } } }, "Copy the reply for Discord"),
+    D.hid ? h("button", { class: "btn full", onclick: () => tab("hist") }, "See my History") : null,
     h("div", { class: "two" },
       h("button", { class: "btn", onclick: () => {
-        const U = ORDER.undo, p = STATE.list.find(x => x.id === U.pid); if (!p) return;
-        p.wants = U.wants; p.have = U.have; ORDER.done = null; ORDER.undo = null;
-        if (st.id !== p.id) selectProfile(p.id); else { renderLists(); renderTarget(); renderResults(); changed(); }
-        renderOrder(); toast("Undone — your post is back as before");
+        const U = ORDER.undo, p = STATE.list.find(x => x.id === U.pid);
+        if (D.hid) { HIST = HIST.filter(e => e.id !== D.hid); saveHist(); }
+        if (p && D.upd) { p.wants = U.wants; p.have = U.have; }
+        ORDER.done = null; ORDER.undo = null;
+        if (p && D.upd) { if (st.id !== p.id) selectProfile(p.id); else { renderLists(); renderTarget(); renderResults(); changed(); } }
+        renderOrder(); toast("Undone");
       } }, "Undo"),
       h("button", { class: "btn", onclick: () => { ORDER.done = null; $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); $("#orderIn").focus(); } }, "New order"))));
 }
@@ -2625,6 +2718,208 @@ function pickSheet(L) {
 $("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
 $("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); };
+
+/* =====================================================================
+   9. HISTORY — deals marked as done in the Order tab
+   ===================================================================== */
+const HV = { per: "30", f: "all", open: null };
+const HT = { vente: "Sold", achat: "Bought", trade: "Trade" };
+function dayLabel(t) {
+  const d = new Date(t), now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (t >= d0) return "Today";
+  if (t >= d0 - 864e5) return "Yesterday";
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined });
+}
+const short = v => v >= 1e6 ? (Math.round(v / 1e5) / 10) + "M" : v >= 1e5 ? Math.round(v / 1e3) + "k" : fmt(v);
+const hm = t => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+function renderHist() {
+  const out = $("#histOut"); out.textContent = "";
+  const since = HV.per === "all" ? 0 : Date.now() - num(HV.per) * 864e5;
+  const inPer = HIST.filter(e => e.t >= since);
+  const sum = k => inPer.filter(e => e.type === k).reduce((a, e) => a + (e.total || 0), 0), cnt = k => inPer.filter(e => e.type === k).length;
+  const stat = (label, k) => h("div", { class: "hstat" }, h("div", { class: "k" }, label),
+    k === "trade" ? h("div", { class: "v" }, String(cnt(k))) : h("div", { class: "v" }, h("i", { class: "coin" }), short(sum(k))),
+    h("small", null, cnt(k) + (cnt(k) === 1 ? " deal" : " deals")));
+  const per = h("div", { class: "seg" }, [["7", "7 days"], ["30", "30 days"], ["all", "All"]].map(([v, l]) => h("button", { class: HV.per === v ? "on" : "", onclick: () => { HV.per = v; renderHist(); } }, l)));
+  out.append(h("div", { class: "card fieldset" }, h("div", { class: "ch" }, h("h2", null, "History")), per, h("div", { class: "hstats" }, stat("Sold", "vente"), stat("Bought", "achat"), stat("Trades", "trade"))));
+  if (!HIST.length) { out.append(h("div", { class: "empty card" }, "No deal yet. After a deal, open the Order tab and tap “✓ Mark as done”.")); return; }
+  const chips = h("div", { class: "chips", style: "margin:0" }, [["all", "All"], ["vente", "Sold"], ["achat", "Bought"], ["trade", "Trades"]].map(([v, l]) => h("button", { class: "chip" + (HV.f === v ? " on" : ""), onclick: () => { HV.f = v; renderHist(); } }, l)));
+  out.append(chips);
+  const list = inPer.filter(e => HV.f === "all" || e.type === HV.f);
+  if (!list.length) out.append(h("div", { class: "empty card" }, "Nothing for this period."));
+  let day = "";
+  list.forEach(e => {
+    const dl = dayLabel(e.t); if (dl !== day) { day = dl; out.append(h("div", { class: "hday" }, dl)); }
+    out.append(histCard(e));
+  });
+  out.append(h("div", { class: "two", style: "margin-top:6px" },
+    h("button", { class: "btn", onclick: exportHistCsv }, "Export (CSV)"),
+    h("button", { class: "btn danger", onclick: () => { if (!confirm("Delete your whole History?")) return; HIST = []; saveHist(); renderHist(); } }, "Clear History")));
+}
+function histCard(e) {
+  const open = HV.open === e.id, trade = e.type === "trade";
+  const thumbOf = x => thumb(x.ref && CAT.byId[x.ref] ? prodState(x.ref) : null, x.e || "📦");
+  const its = e.lines.slice(0, 3).map(x => [thumbOf(x), fmt(x.q) + "× " + x.name]).flat();
+  if (e.lines.length > 3) its.push("+" + (e.lines.length - 3) + " more");
+  const amt = trade ? h("span", { class: "amt" }, ...e.gives.slice(0, 1).map(g => [fmtR(g.n), thumbOf(g)]).flat())
+    : h("span", { class: "amt" }, h("i", { class: "coin" }), fmt(e.total));
+  const head = h("button", { onclick: () => { HV.open = open ? null : e.id; renderHist(); } },
+    h("div", null, h("span", { class: "tg " + e.type }, HT[e.type] || "Deal"), h("span", { class: "who" }, e.who || e.post)),
+    amt, h("div", { class: "tm" }, hm(e.t) + (e.who ? " · " + e.post : "")), h("div", { class: "its" }, ...its));
+  const card = h("div", { class: "hent" }, head);
+  if (open) {
+    const det = h("div", { class: "det" });
+    e.lines.forEach(x => det.append(h("div", { class: "dl2" }, h("span", null, fmt(x.q) + "× " + x.name, x.bulk ? h("em", null, "  +" + fmtR(x.bulk) + "% bulk") : null),
+      h("span", null, trade ? (x.give ? "→ " + fmtR(x.give) : "—") : fmt(x.v)))));
+    if (trade) e.gives.forEach(g => det.append(h("div", { class: "dl2" }, h("b", null, "You gave"), h("b", null, fmtR(g.n) + " " + g.name))));
+    else {
+      if (e.bonus) det.append(h("div", { class: "dl2" }, h("span", null, "Bulk bonus"), h("em", null, "+" + fmt(e.bonus))));
+      if (e.disc) det.append(h("div", { class: "dl2" }, h("span", null, "Discount"), h("span", null, "−" + fmtR(e.disc) + "%")));
+      det.append(h("div", { class: "dl2" }, h("b", null, "Total"), h("b", null, fmt(e.total) + " coins")),
+        h("div", { class: "dl2", style: "color:var(--mut);font-style:italic" }, h("span", null, ""), h("span", null, convs().map(k => "≈ " + curTxt(k, e.total / CUR[k].rate)).join(" · "))));
+    }
+    det.append(h("div", { class: "two" },
+      h("button", { class: "btn sm", onclick: async () => { try { await navigator.clipboard.writeText(e.reply || ""); toast("Reply copied ✔"); } catch (er) { openSheet("Reply", h("textarea", { class: "ta", rows: 10, value: e.reply || "", readOnly: true })); } } }, "Copy the reply"),
+      h("button", { class: "btn sm danger", onclick: () => { HIST = HIST.filter(x => x.id !== e.id); saveHist(); renderHist(); toast("Deal deleted"); } }, "Delete")));
+    card.append(det);
+  }
+  return card;
+}
+function exportHistCsv() {
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const rows = [["date", "type", "post", "with", "item", "qty", "coins", "bulk %", "you gave", "deal total"]];
+  HIST.forEach(e => e.lines.forEach(x => rows.push([new Date(e.t).toISOString().slice(0, 16).replace("T", " "), HT[e.type] || e.type, e.post, e.who || "", x.name, x.q, x.v, x.bulk || "", x.give || "", e.total || ""])));
+  saveBlob(new Blob([rows.map(r => r.map(q).join(",")).join("\n")], { type: "text/csv" }), "hayday-history.csv");
+  toast("History exported ✔");
+}
+
+/* =====================================================================
+   10. PASTE A LIST — build a post from a pasted text list
+   ===================================================================== */
+const PASTE = { text: "", to: "new", type: null, how: "add", picks: {} };
+const NUM = "(\\d+(?:[.,]\\d+)?\\s*k?)";
+/** One line → { name, q, p, pu, ra, rb, have } — prices: 1500 · @1500 · 1.5k · 1r / 1 ring / 💍 · 2b / 2 blankets · 5xmp; qty: x20 · 20x · 20 pcs; ratio: 50:89. */
+function parseListLine(raw, sec) {
+  let s = " " + raw.replace(/💍/g, " r ").replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+•·]|\d+[.)])\s+/, " ").replace(/\s+/g, " ") + " ";
+  const o = { raw: raw.trim(), q: "", p: "", pu: "coin", ra: "", rb: "", have: sec === "have" };
+  const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], " "); return true; } return false; };
+  take(/^\s*(?:i\s*have|have|offer(?:ing)?|giving)\s*[:\-–]\s*/i, () => { o.have = true; });
+  take(/\s(?:i\s*want|want|wtb|looking\s*for)\s*[:\-–]\s*/i, () => { o.have = false; });
+  take(/(\d+(?:[.,]\d+)?)\s*[:/]\s*(\d+(?:[.,]\d+)?)/, m => { o.ra = m[1]; o.rb = m[2]; });
+  take(new RegExp("\\s" + NUM + "\\s*(?:x|×)?\\s*mp\\b", "i"), m => { o.p = m[1]; o.pu = "xmp"; });
+  take(new RegExp("\\s" + NUM + "\\s*(?:r|rings?|dr|diamond\\s*rings?)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; o.pu = "ring"; });
+  take(new RegExp("\\s" + NUM + "\\s*(?:b|bl|blankets?)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; o.pu = "blanket"; });
+  if (!o.p) take(new RegExp("(?:@|\\bfor\\b|\\bprice\\b|\\bat\\b)\\s*" + NUM, "i"), m => { o.p = m[1]; }) ||
+    take(new RegExp("\\s" + NUM + "\\s*(?:c|coins?|ea|each|/u|/ea|per\\s*unit)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; });
+  take(new RegExp("(?:\\s|^)(?:x|×)\\s*" + NUM + "(?=\\s|$|[,.;])", "i"), m => { o.q = m[1]; }) ||
+    take(new RegExp("\\s" + NUM + "\\s*(?:x|×|pcs?|pieces?)(?=\\s|$|[,.;])", "i"), m => { o.q = m[1]; });
+  // bare numbers: quantity first, then price
+  const bare = [...s.matchAll(/(?:^|\s)(\d+(?:[.,]\d+)?\s*k?)(?=\s|$|[,.;])/gi)].map(m => m[1]);
+  bare.forEach(n => {
+    if (!o.q) { o.q = n; s = s.replace(n, " "); }
+    else if (!o.p && !o.ra) { o.p = n; s = s.replace(n, " "); }
+  });
+  o.name = s.replace(/\d+(?:[.,]\d+)?/g, " ").replace(/[:=\-–—|,;()[\]@]+/g, " ").replace(/\b(?:x|each|ea|coins?|for|at|price)\b/gi, " ").replace(/\s+/g, " ").trim();
+  o.q = o.q ? String(Math.round(num(o.q.replace(/\s/g, "")))) : "";
+  o.p = o.p ? String(num(o.p.replace(/\s/g, ""))) : "";
+  return o;
+}
+function parseList(text) {
+  const out = []; let sec = "want";
+  String(text || "").split(/\r?\n|;/).forEach(raw => {
+    const t = raw.replace(/[*_`~>#:]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/\s+/g, " ").trim().toLowerCase();
+    if (!t) return;
+    if (/^(i have|have|offering|offer|my stock|giving)$/.test(t)) { sec = "have"; return; }
+    if (/^(i want|want|wanted|what i want|looking for|wtb|wts|selling|buying|for sale|shop|items?)$/.test(t)) { sec = "want"; return; }
+    const o = parseListLine(raw, sec);
+    if (!o.name || !/[a-z]/i.test(o.name)) return;
+    out.push(o);
+  });
+  return out;
+}
+/** Library match for a pasted name (plurals, short names, French names). */
+function matchProduct(name, pick) {
+  if (pick === "-") return { ignored: true };
+  if (pick === "+") return { custom: true };
+  if (pick && CAT.byId[pick]) return { p: CAT.byId[pick], sure: true };
+  const r = findMatches(name, CAT.list, p => p.en);
+  if (r.length) return { p: r[0].x, sure: !(r[1] && r[1].sc >= r[0].sc - .01) };
+  const s = search(name, "all")[0];
+  return s ? { p: s, sure: false } : {};
+}
+function pasteLines() {
+  return parseList(PASTE.text).map((L, i) => Object.assign(L, { i, m: matchProduct(L.name, PASTE.picks[i + "|" + L.raw]) }));
+}
+function renderPaste() {
+  const L = pasteLines(), anyRatio = L.some(x => x.ra || x.have);
+  const type = PASTE.type || (anyRatio ? "trade" : "vente");
+  $$("#pasteTo button").forEach(b => { b.classList.toggle("on", b.dataset.v === PASTE.to); b.onclick = () => { PASTE.to = b.dataset.v; renderPaste(); }; });
+  $$("#pasteType button").forEach(b => { b.classList.toggle("on", b.dataset.v === type); b.onclick = () => { PASTE.type = b.dataset.v; renderPaste(); }; });
+  $$("#pasteHow button").forEach(b => { b.classList.toggle("on", b.dataset.v === PASTE.how); b.onclick = () => { PASTE.how = b.dataset.v; renderPaste(); }; });
+  $("#pasteNew").hidden = PASTE.to !== "new"; $("#pasteAdd").hidden = PASTE.to !== "add";
+  $("#pasteAddL").textContent = "“" + (st.name || TYPES[st.type].name) + "”";
+  const out = $("#pasteOut"); out.textContent = "";
+  if (!L.length) { out.append(h("div", { class: "empty card" }, "Your items will show here, ready to check.")); return; }
+  const target = PASTE.to === "new" ? type : st.type, trade = target === "trade";
+  const list = h("div", { class: "card olist" });
+  let sec = null;
+  L.forEach(x => {
+    const s2 = trade && x.have ? "have" : "want";
+    if (trade && s2 !== sec) { sec = s2; list.append(h("div", { class: "psec" }, s2 === "have" ? "I have" : "I want")); }
+    const m = x.m, p = m.p;
+    const nameBtn = h("button", { class: "oname", onclick: () => pastePick(x) }, m.custom ? x.name : p ? p.en : x.name, !m.ignored && !m.custom && (!p || !m.sure) ? h("span", { class: "flag" }, p ? "?" : "!") : null);
+    const sub = m.ignored ? "Ignored — tap to pick" : m.custom ? "Custom item" : !p ? "Not found — tap to pick" : x.name.toLowerCase() !== p.en.toLowerCase() ? "from “" + x.name + "”" : "";
+    let val;
+    if (trade) val = x.have ? (x.q ? "×" + fmt(num(x.q)) : "") : x.ra ? fmtR(num(x.ra)) + " : " + fmtR(num(x.rb)) : h("small", null, "no ratio");
+    else val = [x.q ? "×" + fmt(num(x.q)) : h("small", null, "no qty"), x.p ? h("small", null, x.pu === "xmp" ? fmtR(num(x.p)) + "×MP" : x.pu === "ring" ? curTxt("ring", num(x.p)) : x.pu === "blanket" ? curTxt("blanket", num(x.p)) : fmt(num(x.p)) + " ea") : h("small", null, "no price")];
+    list.append(h("div", { class: "pline" + (m.ignored ? " ign" : !p && !m.custom ? " bad" : "") },
+      thumb(p ? prodState(p.id) : null, p ? p.e : m.custom ? "📦" : "❔", "oth"),
+      h("div", { class: "omid" }, nameBtn, sub ? h("small", null, sub) : null),
+      h("div", { class: "pv" }, ...[].concat(val))));
+  });
+  out.append(list);
+  const ok = L.filter(x => !x.m.ignored && (x.m.p || x.m.custom)).length, bad = L.filter(x => !x.m.ignored && !x.m.p && !x.m.custom).length;
+  const label = PASTE.to === "new" ? "Create the " + TYPES[type].name + " post (" + ok + ")" : PASTE.how === "replace" ? "Replace the list (" + ok + ")" : "Add " + ok + " item" + (ok > 1 ? "s" : "");
+  out.append(h("div", { class: "card fieldset" },
+    bad ? h("p", { class: "owarn", style: "margin:0" }, bad + " line" + (bad > 1 ? "s" : "") + " not found — tap the name to pick the item, or they’ll be skipped.") : null,
+    h("button", { class: "btn gold full", disabled: !ok, onclick: () => applyPaste(L, type) }, label)));
+}
+function pastePick(x) {
+  const key = x.i + "|" + x.raw, r = search(x.name, "all").slice(0, 6);
+  const set = v => { PASTE.picks[key] = v; closeSheet(); renderPaste(); };
+  openSheet("“" + x.name + "” is…", h("div", { class: "menu pick" },
+    r.map(p => h("button", { onclick: () => set(p.id) }, thumb(prodState(p.id), p.e, "mini"), p.en)),
+    h("button", { onclick: () => set("+") }, h("i", null, "＋"), "A custom item “" + x.name + "”"),
+    h("button", { class: "danger", onclick: () => set("-") }, h("i", null, "×"), "Ignore this line")));
+}
+function applyPaste(L, type) {
+  let P = st;
+  if (PASTE.to === "new") {
+    P = mkProfile(type); P.wants = []; if (type === "trade") P.have = [];
+    STATE.list.push(P); normProfile(P);
+  } else if (PASTE.how === "replace") { P.wants = []; if (P.type === "trade" && L.some(x => x.have)) P.have = []; }
+  const trade = P.type === "trade";
+  let n = 0;
+  L.forEach(x => {
+    const m = x.m; if (m.ignored || (!m.p && !m.custom)) return;
+    const toHave = trade && x.have, list = toHave ? P.have : P.wants;
+    if (list.length >= 150) return;
+    const f = toHave ? { q: x.q } : trade ? { ra: x.ra, rb: x.rb } : { q: x.q, p: x.p, pu: x.pu };
+    Object.keys(f).forEach(k => { if (f[k] === "" && k !== "pu") delete f[k]; });
+    if (!x.p) delete f.pu;
+    const ex = m.p ? list.find(w => w.ref === m.p.id) : null;
+    if (ex) Object.assign(ex, f);
+    else list.push(m.p ? mkItem(m.p.id, f) : mkItem(null, Object.assign({ name: x.name, e: "📦" }, f)));
+    n++;
+  });
+  if (trade) { const hv = P.have.filter(x => (x.name || "").trim() || x.ref); P.wants.forEach(w => { if (!w.give && hv[0]) w.give = hv[0].uid; }); }
+  PASTE.text = ""; PASTE.picks = {}; PASTE.type = null; $("#pasteIn").value = "";
+  selectProfile(P.id); tab("items");
+  toast(PASTE.to === "new" ? "“" + P.name + "” created with " + n + " items ✔" : n + " item" + (n > 1 ? "s" : "") + " added ✔");
+}
+$("#pasteIn").addEventListener("input", debounce(() => { PASTE.text = $("#pasteIn").value; PASTE.picks = {}; renderPaste(); }, 200));
+$("#pasteClear").onclick = () => { $("#pasteIn").value = ""; PASTE.text = ""; PASTE.picks = {}; PASTE.type = null; renderPaste(); $("#pasteIn").focus(); };
+$("#pastePaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); $("#pasteIn").value = t; PASTE.text = t; PASTE.picks = {}; renderPaste(); } catch (e) { toast("Long-press in the box and choose Paste"); $("#pasteIn").focus(); } };
 
 </script>
 <!-- Images des produits : wiki communautaire Hay Day (hayday.fandom.com). Hay Day et ses visuels appartiennent à Supercell. -->
