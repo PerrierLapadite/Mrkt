@@ -408,6 +408,30 @@ body[data-tab=prev] #editor{display:none}
 .opb i{font-style:normal;color:var(--acc);text-decoration:none}
 .oline.deal .opb{color:var(--acc);font-weight:700}
 .oline s{color:var(--mut)}
+/* order · advanced */
+#orderAdv{border-top:1px solid var(--line);margin-top:2px}
+.oadvt small{color:var(--mut);font-weight:500;font-size:13px}
+.oadv{display:grid;gap:8px;padding-bottom:2px}
+.arule{display:grid;grid-template-columns:minmax(0,1.15fr) 44px minmax(0,1fr) 40px;gap:6px;align-items:center}
+.arule.cat{grid-template-columns:minmax(0,1.15fr) minmax(0,1.6fr) 40px}
+.arule.off{opacity:.45}
+.arule .sel{padding:0 8px;min-height:44px;font-weight:600;font-size:14px}
+.arule .box input{padding:0 8px}
+.au{flex:none;padding:0 9px;color:var(--mut);font-size:12px;font-weight:700;display:flex;align-items:center}
+.aop,.adel{min-height:44px;padding:0;font-size:18px;font-weight:700}
+.adel{color:var(--mut);border-color:transparent;background:transparent}
+.aadd{justify-self:start}
+.ah{margin:-2px 0 0;font-size:12.5px}
+.aqty{display:grid;gap:6px;margin-top:4px}
+.aqty .lbl{margin:0}
+.aqn{max-width:160px}
+.acount{font-weight:700;margin-top:6px}
+.acount small{color:var(--mut);font-weight:600}
+.achips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.achip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 3px;border:1px solid var(--line2);border-radius:8px;font-size:13px;font-weight:600;max-width:100%}
+.achip small{color:var(--mut);font-weight:700}
+.achip.in{opacity:.4}
+.achip.more{padding:3px 8px;color:var(--mut)}
 .oedit{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding-top:6px}
 .oedit .ol{font:italic 600 13px var(--slab);color:var(--acc)}
 .oedit .box{height:40px}
@@ -557,6 +581,7 @@ body[data-tab=prev] #mini{display:none}
         <p class="hint" id="orderFor"></p>
         <textarea class="ta" id="orderIn" rows="7" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
         <div class="two"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderClear">Clear</button></div>
+        <div id="orderAdv"></div>
       </div>
       <div id="orderOut" class="stack"></div>
     </section>
@@ -1997,7 +2022,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
     h("li", null, h("b", null, "Paste:"), " paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
-    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
+    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
@@ -2556,10 +2581,12 @@ function renderOrder() {
   if (document.body.dataset.tab !== "order") return;
   { const ae = document.activeElement; if (ae && ae.dataset && ae.dataset.edit != null) ORDER.editFocus = ae.dataset.edit; } // keep typing after a refresh
   const trade = st.type === "trade";
-  if (ORDER.done && ORDER.done.text === ORDER.text) return renderDone();
+  const adv = () => { if (typeof advSync === "function") advSync(); };
+  if (ORDER.done && ORDER.done.text === ORDER.text) { adv(); return renderDone(); }
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
   ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit } : {}));
   ORDER.prev = ORDER.lines;
+  adv();
   const out = $("#orderOut"); out.textContent = "";
   if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
   // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
@@ -2801,6 +2828,132 @@ function pickSheet(L) {
 $("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
 $("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); };
+
+/* =====================================================================
+   ORDER · ADVANCED — add a group of post items to the order by rules
+   (price ea, price ×MP, quantity in the post, category). Order-only:
+   the post never changes. Lines are written in the order box, so the
+   stock check, special prices, bulk and the reply all work as usual.
+   ===================================================================== */
+const ADV_F = { p: "Price ea", x: "Price ×MP", q: "Quantity", c: "Category" };
+const advSt = () => {
+  const A = SETTINGS.oadv || (SETTINGS.oadv = {});
+  if (!Array.isArray(A.rules)) A.rules = [{ f: "q", op: "ge", v: "" }];
+  if (!A.qm) A.qm = "all";
+  return A;
+};
+const advPost = () => st.wants.filter(w => (w.name || "").trim() || w.ref);
+const advCat = w => (w.ref && CAT.byId[w.ref] && CAT.byId[w.ref].cat) || "perso";
+/** The value a rule looks at, for one post item (0 = unknown → no match). */
+function advMetric(w, f) {
+  if (f === "q") return num(w.q);
+  const u = unitPrice(w);
+  if (f === "p") return u;
+  if (f === "x") { if (w.pu === "xmp") return num(w.p); const m = w.ref ? maxPrice(w.ref) : 0; return m && u ? u / m : 0; }
+  return 0;
+}
+const advLive = r => r.f === "c" ? !!r.v : String(r.v || "").trim() !== "" && num(r.v) > 0;
+const advOff = r => st.type === "trade" && (r.f === "p" || r.f === "x"); // trade posts have ratios, no prices
+function advMatches() {
+  const A = advSt(), rules = A.rules.filter(r => advLive(r) && !advOff(r));
+  const inOrder = new Set((ORDER.lines || []).map(L => resolveLine(L).w).filter(Boolean));
+  const hits = advPost().filter(w => rules.every(r => {
+    if (r.f === "c") return advCat(w) === r.v;
+    const m = advMetric(w, r.f), v = num(r.v);
+    return m > 0 && (r.op === "le" ? m <= v + 1e-9 : m >= v - 1e-9);
+  }));
+  return { hits, rules, fresh: hits.filter(w => !inOrder.has(w)) };
+}
+
+let advKey = "";
+/** Called by renderOrder: rebuild the panel when the post changes, else only refresh the preview (keeps typing focus). */
+function advSync(force) {
+  const box = $("#orderAdv"); if (!box || !st) return;
+  const A = advSt(), key = [st.id, st.type, A.on ? 1 : 0, advPost().length].join("|");
+  if (force || key !== advKey || !box.firstChild) { advKey = key; advBuild(box); } else advPreview();
+}
+function advBuild(box) {
+  const A = advSt(), trade = st.type === "trade";
+  box.textContent = "";
+  box.append(h("label", { class: "switch sm oadvt" },
+    h("span", null, "Advanced", h("small", null, " · add items by " + (trade ? "quantity or category" : "price, quantity…"))),
+    h("input", { type: "checkbox", checked: !!A.on, onchange: e => { A.on = e.target.checked; saveSettings(); advSync(true); } })));
+  if (!A.on) return;
+  const cats = [...new Set(advPost().map(advCat))];
+  const wrap = h("div", { class: "oadv" });
+  A.rules.forEach((r, i) => {
+    const fs = h("select", { class: "sel", "aria-label": "Rule", onchange: e => { r.f = e.target.value; r.v = r.f === "c" ? cats[0] || "" : ""; saveSettings(); advSync(true); } },
+      Object.entries(ADV_F).map(([k, t]) => h("option", { value: k, selected: r.f === k }, t)));
+    let mid;
+    if (r.f === "c") {
+      if (!cats.includes(r.v)) r.v = cats[0] || "";
+      mid = h("select", { class: "sel wide", "aria-label": "Category", onchange: e => { r.v = e.target.value; saveSettings(); advPreview(); } },
+        cats.map(c => h("option", { value: c, selected: r.v === c }, CAT_EN[c] || c)));
+    } else {
+      const op = h("button", { type: "button", class: "btn aop", title: "At least / at most", onclick: () => { r.op = r.op === "le" ? "ge" : "le"; op.textContent = r.op === "le" ? "≤" : "≥"; saveSettings(); advPreview(); } }, r.op === "le" ? "≤" : "≥");
+      const inp = h("input", { value: r.v || "", inputMode: "decimal", placeholder: r.f === "q" ? "30" : r.f === "x" ? "3" : "1000", "aria-label": ADV_F[r.f],
+        oninput: e => { r.v = e.target.value; saveSettings(); advPreview(); } });
+      const unit = h("span", { class: "au" }, r.f === "q" ? "units" : r.f === "x" ? "×MP" : h("i", { class: "coin" }));
+      mid = [op, h("div", { class: "box" }, inp, unit)];
+    }
+    const del = h("button", { type: "button", class: "btn adel", "aria-label": "Remove this rule", onclick: () => { A.rules.splice(i, 1); saveSettings(); advSync(true); } }, "×");
+    wrap.append(h("div", { class: "arule" + (r.f === "c" ? " cat" : "") + (advOff(r) ? " off" : "") }, fs, mid, del));
+    if (advOff(r)) wrap.append(h("p", { class: "hint ah" }, "Trade posts have no prices — this rule is skipped."));
+  });
+  const free = ["p", "q", "x", "c"].find(f => !A.rules.some(r => r.f === f)) || "p";
+  if (A.rules.length < 4) wrap.append(h("button", { type: "button", class: "btn sm aadd", onclick: () => { A.rules.push({ f: free, op: "ge", v: free === "c" ? cats[0] || "" : "" }); saveSettings(); advSync(true); } }, "+ Rule"));
+  wrap.append(h("p", { class: "hint ah" }, A.rules.length > 1 ? "Items must match every rule." : A.rules.length ? "Empty rule = every item." : "No rule = every item of your post."));
+  // how many of each
+  const qn = h("input", { value: A.qn || "", inputMode: "numeric", placeholder: "20", "aria-label": "How many of each", oninput: e => { A.qn = e.target.value; saveSettings(); advPreview(); } });
+  const seg = h("div", { class: "seg" },
+    h("button", { type: "button", class: A.qm !== "n" ? "on" : "", onclick: () => { A.qm = "all"; saveSettings(); advSync(true); } }, "All in the post"),
+    h("button", { type: "button", class: A.qm === "n" ? "on" : "", onclick: () => { A.qm = "n"; saveSettings(); advSync(true); setTimeout(() => qn.focus(), 30); } }, "Same number"));
+  wrap.append(h("div", { class: "aqty" }, h("span", { class: "lbl" }, "How many of each"), seg, A.qm === "n" ? h("div", { class: "box aqn" }, qn, h("span", { class: "au" }, "each")) : null));
+  wrap.append(h("div", { id: "advPrev" }));
+  box.append(wrap);
+  advPreview();
+}
+function advPreview() {
+  const P = $("#advPrev"); if (!P) return;
+  const A = advSt(), { hits, fresh } = advMatches(), inOrder = hits.length - fresh.length;
+  P.textContent = "";
+  P.append(h("div", { class: "acount" }, hits.length ? fmt(hits.length) + " item" + (hits.length > 1 ? "s" : "") + " match" + (hits.length > 1 ? "" : "es") : "No item matches",
+    inOrder ? h("small", null, " · " + fmt(inOrder) + " already in the order") : null));
+  if (hits.length) {
+    const f = (A.rules.find(r => advLive(r) && !advOff(r) && r.f !== "c") || {}).f;
+    const val = w => f === "q" ? fmt(num(w.q)) : f === "x" ? fmtR(advMetric(w, "x")) + "×" : f === "p" ? fmt(unitPrice(w)) : num(w.q) ? fmt(num(w.q)) : "";
+    const chips = h("div", { class: "achips" });
+    hits.slice(0, 24).forEach(w => chips.append(h("span", { class: "achip" + (fresh.includes(w) ? "" : " in") }, thumb(itemState(w), w.e, "mini"), pName(w), val(w) ? h("small", null, val(w)) : null)));
+    if (hits.length > 24) chips.append(h("span", { class: "achip more" }, "+" + (hits.length - 24)));
+    P.append(chips);
+  }
+  const n = fresh.length, hasText = !!(ORDER.text || "").trim();
+  P.append(h("div", { class: hasText ? "two" : "" },
+    h("button", { type: "button", class: "btn pri", disabled: !n, onclick: () => advApply(false) }, n ? "Add " + fmt(n) + " item" + (n > 1 ? "s" : "") : "Nothing new"),
+    hasText ? h("button", { type: "button", class: "btn", disabled: !hits.length, onclick: () => advApply(true) }, "Replace order") : null));
+}
+/** Write the matching items as lines of the order (each line is tied to its post item). */
+function advApply(replace) {
+  const A = advSt(), { hits, fresh } = advMatches(), list = replace ? hits : fresh;
+  if (!list.length) return toast(hits.length ? "Already in the order" : "No item matches");
+  const n = A.qm === "n" ? Math.round(num(A.qn)) : 0;
+  if (A.qm === "n" && !(n > 0)) { toast("Type how many of each"); const e = $("#orderAdv .aqn input"); e && e.focus(); return; }
+  const clean = s => { s = String(s).replace(/[;|•·\r\n*_`~>#]/g, " ").replace(/\s+/g, " ").trim(); return /[a-z]/i.test(s) ? s : "Item " + s; };
+  const add = list.map(w => {
+    const nm = clean(pName(w));
+    // a name ending with a number would be read as a quantity → write the quantity
+    const tail = n ? " x" + n : /\d\s*k?$/i.test(nm) ? " x" + (Math.round(num(w.q)) || 1) : "";
+    return { raw: nm + tail, pick: w.uid };
+  });
+  const keep = replace ? [] : parseOrder(ORDER.text).map((L, i) => { const p = (ORDER.prev || [])[i]; return p && p.raw === L.raw ? p : L; });
+  const base = replace ? "" : (ORDER.text || "").replace(/\s+$/, "");
+  ORDER.text = (base ? base + "\n" : "") + add.map(x => x.raw).join("\n");
+  ORDER.prev = keep.concat(add);
+  $("#orderIn").value = ORDER.text;
+  renderOrder();
+  toast((replace ? "Order: " : "Added ") + fmt(add.length) + " item" + (add.length > 1 ? "s" : ""));
+  const o = $("#orderOut"); o && o.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 /* =====================================================================
    9. HISTORY — deals marked as done in the Order tab
