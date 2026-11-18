@@ -256,8 +256,16 @@ body[data-tab=prev] #editor{display:none}
 .hent .amt .th{width:24px;height:24px;font-size:16px}
 .hstat .v{font-size:18px}
 .olist{padding:4px 0}
-.oline{display:grid;grid-template-columns:40px minmax(0,1fr) 74px auto;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
-.oline:first-child{border-top:0}
+.oline{display:grid;grid-template-columns:38px minmax(0,1fr) 70px auto 22px;gap:7px;align-items:center;padding:9px 8px 9px 12px;border-top:1px solid var(--line)}
+.odel{width:22px;height:32px;border:0;background:none;color:var(--mut);font-size:19px;font-weight:700;padding:0;line-height:1}
+.odel:active{color:var(--acc)}
+.obar{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.obar .ol{font:700 12px var(--slab);color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.obar .box{height:38px}
+.obar .box input{padding:0 8px}
+.oundo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--acc-soft);font-weight:600;font-size:14px;border-bottom:1px solid var(--line)}
+.oundo .btn{min-height:32px}
+.oline:first-child,.obar+.oline,.oundo+.oline{border-top:0}
 .oline.bad{background:var(--acc-soft)}
 .oline.warn .oname .flag{background:#e6a93a}
 .oline.ign{opacity:.5}
@@ -2623,6 +2631,18 @@ function renderOrder() {
   });
   const rows = ORDER.lines.map((L, i) => Object.assign(L, { i, r: priceLine(L) }));
   const list = h("div", { class: "card olist" });
+  const U = ORDER.undoEdit;
+  if (U && U.after === ORDER.text) list.append(h("div", { class: "oundo" }, h("span", null, U.what), h("button", { class: "btn sm", onclick: () => orderSet(U.prev, U.text) }, "Undo")));
+  else ORDER.undoEdit = null;
+  // same quantity for every line at once ("10 of each"), or back to all of the post
+  const live = rows.filter(L => L.r.w && !L.r.ignored);
+  if (live.length > 1) {
+    const ni = h("input", { value: ORDER.allN || "", inputMode: "numeric", placeholder: "10", "aria-label": "Quantity for every line", oninput: () => { ORDER.allN = ni.value; }, onkeydown: e => { if (e.key === "Enter") setAll(ni.value); } });
+    list.append(h("div", { class: "obar" }, h("span", { class: "ol" }, "Every line"),
+      h("div", { class: "box" }, ni, h("span", { class: "au" }, "each")),
+      h("button", { class: "btn sm", onclick: () => setAll(ni.value) }, "Set"),
+      h("button", { class: "btn sm", title: "The whole quantity of each item in your post", onclick: () => setAll("all") }, "All")));
+  }
   rows.forEach(L => {
     const r = L.r, w = r.w;
     const q = h("input", { value: L.q, inputMode: "numeric", "aria-label": "Quantity", oninput: () => { L.q = Math.round(num(q.value)); L.qEdit = 1; renderOrderSoon(); } });
@@ -2645,7 +2665,8 @@ function renderOrder() {
     const row = h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : r.short ? " short" : "") + (L.pp && num(L.pp.p) > 0 ? " deal" : "") },
       thumb(w ? itemState(w) : r.prod ? prodState(r.prod.id) : null, w ? w.e : r.prod ? r.prod.e : "❔", "oth"),
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
-      h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right);
+      h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right,
+      h("button", { class: "odel", "aria-label": "Remove this line", title: "Remove this line", onclick: () => dropLine(L) }, "×"));
     // another price, for this order only
     if (w && !trade && L._edit) {
       const pp = L.pp || (L.pp = { p: "", pu: w.pu || "coin" });
@@ -2670,10 +2691,12 @@ function renderOrder() {
       h("h3", null, buy ? "⚠ More than you want" : "⚠ Not enough in your post"),
       ...shorts.map(L => h("div", { class: "sl" }, thumb(itemState(L.r.w), L.r.w.e, "mini"), h("b", null, pName(L.r.w)),
         h("span", null, fmt(L.q) + " asked · " + (buy ? "you want " + fmt(L._cap) : L._cap ? fmt(L._cap) + " left" : "none left") + " → ", h("em", null, fmt(L.r.short) + (buy ? " extra" : " missing"))))),
+      h("button", { class: "btn pri", onclick: fitStock }, buy ? "Remove the extra" : "Remove what’s missing"),
       h("label", { class: "switch sm" }, buy ? "Count only what I want" : "Count only what I have", h("input", { type: "checkbox", checked: ORDER.capStock !== false, onchange: e => { ORDER.capStock = e.target.checked; renderOrder(); } }))));
   }
   // totals
-  const missing = rows.filter(L => !L.r.ignored && (!L.r.w || (!trade && !L.r.v) || (trade && !L.r.ratio))).length;
+  // not counted = unknown item, or no price / no ratio in your post (not the lines you're out of stock for)
+  const missing = rows.filter(L => !L.r.ignored && (!L.r.w || (!trade && !L.r.u) || (trade && !L.r.ratio))).length;
   const tot = h("div", { class: "card ototal" });
   if (trade) {
     const by = new Map();
@@ -2801,27 +2824,55 @@ function renderDone() {
       h("button", { class: "btn", onclick: () => { ORDER.done = null; $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); $("#orderIn").focus(); } }, "New order"))));
 }
 const renderOrderSoon = debounce(renderOrder, 250);
+/* ---------- edit the order in one tap (the order box is rewritten, one item per line) ---------- */
+const cleanLine = s => String(s).replace(/[;|•·\r\n]/g, " ").replace(/\s+/g, " ").trim();
+/** One line of the order box for this line: its item name + a quantity (none = all of the post). */
+function lineRaw(L, q) { const w = L.r && L.r.w; return cleanLine(w ? pName(w) : L.name) + (q == null ? "" : " x" + q); }
+/** Replace the order lines (keeps the picks, typed quantities and special prices of each line). */
+function orderSet(lines, text) {
+  ORDER.text = text != null ? text : lines.map(L => L.raw).join("\n");
+  ORDER.prev = lines; $("#orderIn").value = ORDER.text; renderOrder();
+}
+function editOrder(what, lines) {
+  const before = { text: ORDER.text, prev: ORDER.prev.map(L => Object.assign({}, L)) };
+  orderSet(lines);
+  ORDER.undoEdit = { what, text: before.text, prev: before.prev, after: ORDER.text }; renderOrder();
+}
+const tie = (L, o) => Object.assign({}, L, { pick: L.r && L.r.w ? L.r.w.uid : L.pick }, o); // a copy: Undo keeps the old line
+function dropLine(L) { editOrder((L.r && L.r.w ? pName(L.r.w) : L.name) + " removed", ORDER.lines.filter(x => x !== L)); }
+/** "10 of each" for every line — or "all": the whole quantity of each item in your post. */
+function setAll(v) {
+  const all = v === "all", n = Math.round(num(v));
+  if (!all && !(n > 0)) { toast("Type a quantity, e.g. 10"); return; }
+  ORDER.allN = all ? ORDER.allN : String(n);
+  editOrder(all ? "Every line: all in your post" : "Every line: " + fmt(n) + " each", ORDER.lines.map(L => !L.r || !L.r.w || L.r.ignored ? L
+    : tie(L, all ? { raw: lineRaw(L), q: 1, qEdit: 0, qGuess: true } : { raw: lineRaw(L, n), q: n, qEdit: 1 })));
+}
+/** Keep only what you can do: 10 asked, 1 left → 1 · none left → line removed (buying: what you still want). */
+function fitStock() {
+  const short = ORDER.lines.filter(L => L.r && L.r.w && L._short > 0); if (!short.length) return;
+  const gone = short.filter(L => !L._cap).length;
+  editOrder(fmt(short.length - gone) + " line" + (short.length - gone === 1 ? "" : "s") + " lowered" + (gone ? " · " + fmt(gone) + " removed" : ""),
+    ORDER.lines.filter(L => !(L._short > 0 && !L._cap)).map(L => L._short > 0 ? tie(L, { raw: lineRaw(L, L._cap), q: L._cap, qEdit: 1 }) : L));
+}
 function replyText() {
   const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w);
   const lines = L.map(x => {
     const n = pName(x.r.w);
-    if (trade) { const R = x.r.ratio; return R ? `${fmt(x.q)}× ${n} → ${packOf(R.g) ? fmt(giveWhole(R.give)) : fmtR(R.give)} ${giveName(R.g)}` : `${fmt(x.q)}× ${n} → no ratio`; }
+    if (trade) { const R = x.r.ratio; if (!(x.q > 0)) return null; return R ? `${fmt(x.q)}× ${n} → ${packOf(R.g) ? fmt(giveWhole(R.give)) : fmtR(R.give)} ${giveName(R.g)}` : `${fmt(x.q)}× ${n} → no ratio`; }
     const w = dealItem(x.r.w, x), p = num(w.p);
     const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmt(p)} ea`;
     const bk = x.r.bulk ? ` +${fmtR(x.r.bulk)}% bulk` : "";
-    if (x.r.short && ORDER.capStock !== false) {
-      if (!x._cap) return `${fmt(x.q)}× ${n} — ${st.type === "achat" ? "not needed" : "sold out"}`;
-      return `${fmt(x.q)}× ${n} — ${how}${bk} → ${st.type === "achat" ? "I take " + fmt(x._cap) : fmt(x._cap) + " available"} = ${fmt(x.r.v)}`;
-    }
-    return `${fmt(x.q)}× ${n} — ${how}${bk} = ${fmt(x.r.v)}`;
-  });
+    // only what is really counted: 10 asked, 1 left → "1× …"; none left → not in the reply
+    const qn = ORDER.capStock !== false && x._cap != null ? x._cap : x.q;
+    if (!(qn > 0)) return null;
+    return `${fmt(qn)}× ${n} — ${how}${bk} = ${fmt(x.r.v)}`;
+  }).filter(Boolean);
   let foot = "";
   if (trade) {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
     foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), s = splitTxt(o.g, o.n); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
-    const sh = ORDER.capStock !== false ? L.filter(x => x.r.short > 0) : [];
-    if (sh.length) foot += (st.type === "achat" ? "Not needed: " : "Not available: ") + sh.map(x => fmt(x.r.short) + " " + pName(x.r.w)).join(", ") + "\n";
     foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   return lines.join("\n") + "\n" + foot;
