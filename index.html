@@ -408,6 +408,10 @@ body[data-tab=prev] #editor{display:none}
 .opb i{font-style:normal;color:var(--acc);text-decoration:none}
 .oline.deal .opb{color:var(--acc);font-weight:700}
 .oline s{color:var(--mut)}
+.osplit{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.osplit span{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:3px 9px 3px 4px;font-size:14px;background:var(--surface)}
+.osplit b{font-size:15px}
+.osh{margin:2px 0 0;font-size:12.5px}
 /* order · advanced */
 #orderAdv{border-top:1px solid var(--line);margin-top:2px}
 .oadvt small{color:var(--mut);font-weight:500;font-size:13px}
@@ -2567,6 +2571,14 @@ function priceLine(L) {
 }
 /** Small tag when the quantity was filled from the post (no quantity in the message). */
 const autoTag = L => L._auto === 2 ? h("b", { class: "autot q" }, "how many? · ") : null;
+/* ---------- trade: sets (BEM, SEM, LEM…) are counted in materials, split evenly: 89 BEM = 30 Bolt · 30 Plank · 29 Duct Tape ---------- */
+const packOf = g => { const p = g && g.ref && CAT.byId[g.ref]; return p && p.parts ? p : null; };
+const giveName = g => { const p = packOf(g); return p ? (p.id === "tool-set" ? "Tools" : p.en.replace(/ Set$/, "")) : g ? pName(g) : "of your items"; };
+const giveWhole = n => n > 0 ? Math.max(1, Math.round(n)) : 0;
+/** How many you give: whole materials for a set, else as before (2 decimals, rounded up). */
+const giveAmt = (g, n) => packOf(g) ? giveWhole(n) : Math.ceil(n * 100 - 1e-6) / 100;
+function packSplit(p, n) { const k = p.parts.length, b = Math.floor(n / k), r = n - b * k; return p.parts.map((id, i) => ({ id, n: b + (i < r ? 1 : 0), name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })); }
+const splitTxt = (g, n) => { const p = packOf(g); return p ? packSplit(p, giveWhole(n)).map(x => fmt(x.n) + " " + x.name).join(" · ") : ""; };
 /** The post item, or a copy priced with the price set for this order only (the post doesn't change). */
 const dealItem = (w, L) => L && L.pp && num(L.pp.p) > 0 ? Object.assign({}, w, { p: L.pp.p, pu: L.pp.pu || "coin" }) : w;
 const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
@@ -2619,8 +2631,10 @@ function renderOrder() {
     if (r.ignored) { right = h("span", { class: "miss" }, "—"); sub = "Ignored — tap to pick an item"; }
     else if (!w) { right = h("span", { class: "miss" }, "—"); sub = r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick"; }
     else if (trade) {
-      right = r.ratio ? h("span", { class: "ov" }, fmtR(r.ratio.give), r.ratio.g ? thumb(itemState(r.ratio.g), r.ratio.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
-      sub = [autoTag(L), r.ratio ? "Ratio " + fmtR(r.ratio.a) + " : " + fmtR(r.ratio.b) + (r.ratio.g ? " " + pName(r.ratio.g) : "") : "No ratio in your post"];
+      const R = r.ratio, pk = R && packOf(R.g);
+      right = R ? h("span", { class: "ov" }, pk ? fmt(giveWhole(R.give)) : fmtR(R.give), R.g ? thumb(itemState(R.g), R.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
+      // "89 BEM for 50" — what you give for how many of this item
+      sub = [autoTag(L), R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) : "No ratio in your post"];
     } else {
       right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—");
       const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : "none left — " + fmt(r.short) + " missing") : null;
@@ -2666,8 +2680,13 @@ function renderOrder() {
     rows.forEach(L => { const R = L.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
     tot.append(h("div", { class: "k" }, "You give"));
     if (!by.size) tot.append(h("div", { class: "v" }, "—"));
-    by.forEach(o => tot.append(h("div", { class: "v" }, fmtR(Math.ceil(o.n * 100) / 100) + " ", o.g ? pName(o.g) : "of your items", o.g ? thumb(itemState(o.g), o.g.e, "mini") : null)));
-    by.forEach(o => { const s = o.g ? num(o.g.q) : 0; if (s > 0 && Math.ceil(o.n - 1e-9) > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + pName(o.g) + " — " + fmt(Math.ceil(o.n - 1e-9) - s) + " missing")); });
+    by.forEach(o => {
+      const p = packOf(o.g), n = giveAmt(o.g, o.n);
+      tot.append(h("div", { class: "v" }, (p ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + " ", o.g ? thumb(itemState(o.g), o.g.e, "mini") : null));
+      if (p) tot.append(h("div", { class: "osplit" }, packSplit(p, n).map(x => h("span", null, thumb(prodState(x.id), x.e, "mini"), h("b", null, fmt(x.n)), " " + x.name))),
+        h("p", { class: "hint osh" }, "= " + fmt(n) + " materials, split evenly between the " + p.parts.length + "."));
+    });
+    by.forEach(o => { const s = o.g ? num(o.g.q) : 0, need = packOf(o.g) ? giveWhole(o.n) : Math.ceil(o.n - 1e-9); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + " — " + fmt(need - s) + " missing")); });
   } else {
     const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
     const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
@@ -2703,10 +2722,10 @@ function renderOrder() {
 function proposal(rows) {
   const trade = st.type === "trade", agg = new Map();
   rows.forEach(L => {
-    if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + Math.ceil(R.give - 1e-9)); }
+    if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + R.give); }
     else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
   });
-  return [...agg].map(([w, n]) => { const have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
+  return [...agg].map(([w, n0]) => { const n = trade ? (packOf(w) ? giveWhole(n0) : Math.ceil(n0 - 1e-9)) : n0, have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
 }
 /* ---------- deal done: update the post (optional) + save it in the History tab ---------- */
@@ -2719,7 +2738,7 @@ function updCard(P, trade) {
     P.forEach(p => {
       const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
       const w = p.have ? [fmt(p.have) + " → ", p.left ? fmt(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
-      card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, pName(p.w) + (trade ? "" : "  −" + fmt(p.n))), h("span", null, ...w)));
+      card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, (trade ? giveName(p.w) : pName(p.w)) + "  −" + fmt(p.n)), h("span", null, ...w)));
     });
   }
   const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); who.hidden = !save.checked; } });
@@ -2735,11 +2754,11 @@ function updCard(P, trade) {
 function histEntry(who) {
   const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w && !x.r.ignored);
   const gives = new Map();
-  if (trade) L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; const o = gives.get(k) || { name: k, ref: R.g ? R.g.ref : null, e: R.g ? R.g.e : "", n: 0 }; o.n += R.give; gives.set(k, o); });
+  if (trade) L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = gives.get(k) || { g: R.g, name: giveName(R.g), ref: R.g ? R.g.ref : null, e: R.g ? R.g.e : "", n: 0 }; o.n += R.give; gives.set(k, o); });
   return {
     id: uid(), t: Date.now(), type: st.type, post: st.name || TYPES[st.type].name, who: who || "",
     lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0, v: Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
-    gives: [...gives.values()].map(o => ({ ...o, n: Math.round(o.n * 100) / 100 })),
+    gives: [...gives.values()].map(({ g, ...o }) => ({ ...o, n: packOf(g) ? giveWhole(o.n) : Math.round(o.n * 100) / 100, split: splitTxt(g, o.n) || undefined })),
     total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
     reply: replyText()
   };
@@ -2786,7 +2805,7 @@ function replyText() {
   const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w);
   const lines = L.map(x => {
     const n = pName(x.r.w);
-    if (trade) return x.r.ratio ? `${fmt(x.q)}× ${n} → ${fmtR(x.r.ratio.give)} ${x.r.ratio.g ? pName(x.r.ratio.g) : ""}`.trim() : `${fmt(x.q)}× ${n} → no ratio`;
+    if (trade) { const R = x.r.ratio; return R ? `${fmt(x.q)}× ${n} → ${packOf(R.g) ? fmt(giveWhole(R.give)) : fmtR(R.give)} ${giveName(R.g)}` : `${fmt(x.q)}× ${n} → no ratio`; }
     const w = dealItem(x.r.w, x), p = num(w.p);
     const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmt(p)} ea`;
     const bk = x.r.bulk ? ` +${fmtR(x.r.bulk)}% bulk` : "";
@@ -2798,8 +2817,8 @@ function replyText() {
   });
   let foot = "";
   if (trade) {
-    const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; by.set(k, (by.get(k) || 0) + R.give); });
-    foot = "**You get: " + [...by].map(([k, n]) => fmtR(Math.ceil(n * 100) / 100) + " " + k).join(" + ") + "**";
+    const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
+    foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), s = splitTxt(o.g, o.n); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
     const sh = ORDER.capStock !== false ? L.filter(x => x.r.short > 0) : [];
     if (sh.length) foot += (st.type === "achat" ? "Not needed: " : "Not available: ") + sh.map(x => fmt(x.r.short) + " " + pName(x.r.w)).join(", ") + "\n";
@@ -3007,7 +3026,7 @@ function histCard(e) {
     const det = h("div", { class: "det" });
     e.lines.forEach(x => det.append(h("div", { class: "dl2" }, h("span", null, fmt(x.q) + "× " + x.name, x.bulk ? h("em", null, "  +" + fmtR(x.bulk) + "% bulk") : null),
       h("span", null, trade ? (x.give ? "→ " + fmtR(x.give) : "—") : fmt(x.v)))));
-    if (trade) e.gives.forEach(g => det.append(h("div", { class: "dl2" }, h("b", null, "You gave"), h("b", null, fmtR(g.n) + " " + g.name))));
+    if (trade) e.gives.forEach(g => det.append(h("div", { class: "dl2" }, h("b", null, "You gave"), h("b", null, fmtR(g.n) + " " + g.name + (g.split ? " (" + g.split + ")" : "")))));
     else {
       if (e.bonus) det.append(h("div", { class: "dl2" }, h("span", null, "Bulk bonus"), h("em", null, "+" + fmt(e.bonus))));
       if (e.disc) det.append(h("div", { class: "dl2" }, h("span", null, "Discount"), h("span", null, "−" + fmtR(e.disc) + "%")));
