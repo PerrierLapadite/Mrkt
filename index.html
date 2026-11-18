@@ -266,7 +266,7 @@ body[data-tab=prev] #editor{display:none}
 .oname{border:0;background:none;padding:0;text-align:left;font:700 16px var(--slab);color:var(--ink);display:flex;align-items:center;gap:6px;min-width:0}
 .oname .flag{flex:none;width:18px;height:18px;border-radius:50%;background:var(--acc);color:#fff;font:700 12px/18px var(--slab);text-align:center}
 .omid small{font:italic 600 12.5px var(--slab);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.oq{display:flex;align-items:center;gap:2px;border:1px solid var(--line2);border-radius:8px;padding:0 6px;height:36px;background:var(--surface)}
+.oq{display:flex;align-items:center;gap:2px;min-width:0;overflow:hidden;border:1px solid var(--line2);border-radius:8px;padding:0 6px;height:36px;background:var(--surface)}
 .oq span{color:var(--mut);font-weight:700}
 .oq input{width:100%;min-width:0;border:0;background:none;outline:none;font-weight:700;text-align:right}
 .ov{display:inline-flex;align-items:center;gap:5px;font:700 16px var(--slab);white-space:nowrap}
@@ -396,6 +396,9 @@ body[data-tab=prev] #editor{display:none}
 .tier .ib{color:var(--mut);font-size:16px}
 .sec-h .sum .tag.bulk{color:var(--ok)}
 .oline .bulkt{color:var(--ok);font-style:normal;font-weight:700}
+.oline .autot{color:#b26b00;font-style:normal;font-weight:700}
+.oq.all{border-color:var(--ok)}
+.oq.all span{color:var(--ok);font-size:10px;flex:none;text-transform:uppercase;letter-spacing:.04em}
 .ototal .bulkl{font:600 15px var(--slab);color:var(--ok);display:flex;align-items:center;gap:6px}
 .ototal .brk{display:flex;justify-content:space-between;gap:10px;font:600 15px var(--slab);color:var(--mut)}
 .ototal .brk.bulkl{color:var(--ok)}
@@ -552,7 +555,7 @@ body[data-tab=prev] #mini{display:none}
       <div class="card fieldset">
         <div class="ch"><h2>Order calculator</h2></div>
         <p class="hint" id="orderFor"></p>
-        <textarea class="ta" id="orderIn" rows="7" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt x21"></textarea>
+        <textarea class="ta" id="orderIn" rows="7" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
         <div class="two"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderClear">Clear</button></div>
       </div>
       <div id="orderOut" class="stack"></div>
@@ -2487,7 +2490,7 @@ function parseOrder(text) {
     else if ((m = s.match(new RegExp("^(.*?[a-z)'’])\\s*[:=\\-–]?\\s+" + Q + "\\s*(?:pcs?|pieces?|x)?$", "i")))) { name = m[1]; q = m[2]; }
     name = name.replace(/\s*[:=\-–]+\s*$/, "").trim();
     if (!name) return;
-    out.push({ raw: raw.trim(), name, q: q ? Math.round(num(q.replace(/\s/g, ""))) : 1, qGuess: !q });
+    out.push({ raw: raw.trim(), name, q: q ? Math.round(num(q.replace(/\s/g, ""))) : 1, qGuess: !q }); // no quantity → filled with the post's quantity in renderOrder
   });
   return out;
 }
@@ -2537,6 +2540,8 @@ function priceLine(L) {
   const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(qq, wq, ORDER.oq || 0) : 0;
   return Object.assign(R, { u, bulk, qq, short: L._short || 0, base: u * qq, v: u * qq * (1 + bulk / 100) });
 }
+/** Small tag when the quantity was filled from the post (no quantity in the message). */
+const autoTag = L => L._auto === 2 ? h("b", { class: "autot q" }, "how many? · ") : null;
 /** The post item, or a copy priced with the price set for this order only (the post doesn't change). */
 const dealItem = (w, L) => L && L.pp && num(L.pp.p) > 0 ? Object.assign({}, w, { p: L.pp.p, pu: L.pp.pu || "coin" }) : w;
 const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
@@ -2556,9 +2561,19 @@ function renderOrder() {
   ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit } : {}));
   ORDER.prev = ORDER.lines;
   const out = $("#orderOut"); out.textContent = "";
-  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line, with its quantity.")); return; }
+  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
   // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
   const capOn = ORDER.capStock !== false, avail = new Map(); ORDER.oq = 0;
+  // no quantity given → the whole quantity of the item in your post (minus what other lines already ask for)
+  const asked = new Map(), auto = L => L.qGuess && !L.qEdit;
+  ORDER.lines.forEach(L => { L._auto = 0; const R = resolveLine(L); if (R.w && !auto(L)) asked.set(R.w, (asked.get(R.w) || 0) + Math.max(0, L.q || 0)); });
+  ORDER.lines.forEach(L => {
+    if (!auto(L)) return;
+    const R = resolveLine(L), wq = R.w ? num(R.w.q) : 0;
+    if (!R.w) { L.q = 1; return; }
+    if (!(wq > 0)) { L.q = 1; L._auto = 2; return; } // no quantity in the post either
+    const n = Math.max(0, wq - (asked.get(R.w) || 0)); L.q = n; L._auto = 1; asked.set(R.w, (asked.get(R.w) || 0) + n);
+  });
   ORDER.lines.forEach(L => {
     const R = resolveLine(L), q = Math.max(0, L.q || 0); L._cap = null; L._short = 0;
     if (!R.w) return;
@@ -2578,18 +2593,18 @@ function renderOrder() {
     else if (!w) { right = h("span", { class: "miss" }, "—"); sub = r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick"; }
     else if (trade) {
       right = r.ratio ? h("span", { class: "ov" }, fmtR(r.ratio.give), r.ratio.g ? thumb(itemState(r.ratio.g), r.ratio.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
-      sub = r.ratio ? "Ratio " + fmtR(r.ratio.a) + " : " + fmtR(r.ratio.b) + (r.ratio.g ? " " + pName(r.ratio.g) : "") : "No ratio in your post";
+      sub = [autoTag(L), r.ratio ? "Ratio " + fmtR(r.ratio.a) + " : " + fmtR(r.ratio.b) + (r.ratio.g ? " " + pName(r.ratio.g) : "") : "No ratio in your post"];
     } else {
       right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—");
       const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : "none left — " + fmt(r.short) + " missing") : null;
       const deal = L.pp && num(L.pp.p) > 0;
       const pb = h("button", { class: "opb" + (deal ? " on" : ""), title: "Another price for this order only", onclick: () => { L._edit = !L._edit; if (L._edit && !L.pp) L.pp = { p: "", pu: w.pu || "coin" }; renderOrder(); if (L._edit) setTimeout(() => { const e = $(`[data-edit="${L.i}"]`); e && e.focus(); }, 30); } }, deal ? priceLabel(dealItem(w, L)) : priceLabel(w), h("i", null, " ✎"));
-      sub = [deal ? h("s", null, priceLabel(w).split(" · ")[0]) : null, deal ? " " : null, pb, r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null, sh];
+      sub = [autoTag(L), deal ? h("s", null, priceLabel(w).split(" · ")[0]) : null, deal ? " " : null, pb, r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null, sh];
     }
     const row = h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : r.short ? " short" : "") + (L.pp && num(L.pp.p) > 0 ? " deal" : "") },
       thumb(w ? itemState(w) : r.prod ? prodState(r.prod.id) : null, w ? w.e : r.prod ? r.prod.e : "❔", "oth"),
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
-      h("div", { class: "oq" }, h("span", null, "×"), q), right);
+      h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right);
     // another price, for this order only
     if (w && !trade && L._edit) {
       const pp = L.pp || (L.pp = { p: "", pu: w.pu || "coin" });
