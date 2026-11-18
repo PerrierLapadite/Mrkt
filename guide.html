@@ -294,7 +294,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>The results stay open: add several, then tap <b>Done</b>.</li>
     <li>Empty search? Browse by category: Popular, Expansion sets, Crops… <b>Show more</b> for more.</li>
     <li><b>Enter</b> adds the first result. An item already in your list isn’t added twice.</li>
-    <li>Above the results, choose where items come from: <b>📖 Almanac</b> (every game item) · <b>📦 Inventory</b> (your farms — all of them or some; items come with the quantity you have, <b>Add all</b> adds them at once) · <b>📝 From a text</b> (a pasted list).</li>
+    <li>Above the results, <b>Add from</b>: <b>📚 Base</b> (every game item) · <b>📦 Inventory</b> (your farms — all of them or some; items come with the quantity you have, <b>Add all</b> adds them at once) · <b>📝 Text</b> (a pasted list).</li>
     <li>Not in the game list? <b>＋ Custom item</b> (it keeps the name you type).</li>
     <li><b>📷 Add from screenshots</b> (under the results): pick barn / silo screenshots — the items and their numbers go into your list (and your inventory if you want). See <a href="#profile">Inventory</a>.</li>
     <li><b>Out of stock</b>: ⋯ on an item → “Out of stock”. It stays in your post, <s>faded and struck through</s> on the picture, isn't in the totals, and Order says “out of stock”. Tap the red “out of stock” tag to put it back.</li>
@@ -409,7 +409,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <!-- 6 PASTE -->
 <section class="step" id="paste">
   <h2><span class="n">6</span>Add from a text</h2>
-  <p class="say">Already have your list as text? <b>Items</b> → tap the search bar → <b>📝 From a text</b>, and paste it (‹ Items brings you back).</p>
+  <p class="say">Already have your list as text? <b>Items</b> → tap the search bar → <b>📝 Text</b>: the box opens right there, paste your list, check it, <b>Add</b>. You stay in Items.</p>
   <div class="mock">
     <div class="m-paste">lobster tail x20 1500<br>blanket x10 1r<br>corn 300 5xmp</div>
     <div class="m-arrow">↓</div>
@@ -418,7 +418,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
       <div class="m-ol"><span class="gi" data-id="blanket" data-e="🛏️"></span><b>Blanket</b><span class="r">×10<small>1 ring</small></span></div>
       <div class="m-ol"><span class="gi" data-id="corn" data-e="🌽"></span><b>Corn</b><span class="r">×300<small>5×MP</small></span></div>
     </div>
-    <div class="m-btn">Create the Selling post (3)</div>
+    <div class="m-btn">Add 3 items</div>
   </div>
   <h3>How to write a line</h3>
   <table>
@@ -431,8 +431,9 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   </table>
   <ul class="tips">
     <li>The preview shows how each line was read. <span class="flag">!</span> = not found: tap the name to pick the item, make it custom, or ignore the line.</li>
-    <li><b>A new post</b>: the type is picked by itself (Trade if there are ratios), you can change it.</li>
-    <li><b>This post</b>: add to the list, or replace it. An item already there is updated, not doubled.</li>
+    <li>The items go into the post you're on. An item already there is updated, not doubled.</li>
+    <li>Trade post: lines with a ratio go to “I want”, <span class="k">have:</span> lines to “I have” (lines without ratio follow the <b>Add to</b> choice).</li>
+    <li>To turn a whole old post into a new post, use <b>Import</b> (⤓ at the top right).</li>
   </ul>
 </section>
 
@@ -643,7 +644,6 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>Trades: <span class="k">Need 💍 50:89</span> under <span class="k">Have BEM</span> = they give 50 rings for 89 BEM → here “you give 89 BEM : you get 50”.</li>
     <li>Struck lines (<s>70:89</s>) come in as <b>out of stock</b> (⊘ to change it).</li>
     <li><b>Emojis</b> become the items: each row shows the picture read on your screenshot next to the item found — a saw comes in as <b>Saw</b>. Wrong or <b>?</b>: tap it and pick the right item. Your pick is <b>remembered</b>: the next import recognises that picture by itself.</li>
-    <li><b>“1st page jams”</b>, <span class="k">fp juices</span>, <span class="k">Mixed Juices (2nd page)</span>, <span class="k">1st 📄 JAMS</span> = every product on that page of the machine in the game → they all come in, with the same ratio. <span class="k">Mixed Jams</span> or <span class="k">sauces</span> alone = all of them. <b>📄 Machine pages</b> (under Read the text) shows each page; set how many products your game shows per page.</li>
     <li>Faces and stickers after a ratio (<span class="k">50:89 😶</span>) are left out.</li>
     <li>Other lines (“Dm &amp; ping”, “Partial 50+”) become the notes of the post.</li>
     <li>Everything is read on your phone; the text reader loads the first time (internet needed). Use the original screenshots. If a word is misread, fix it in the list — or paste the text instead.</li>

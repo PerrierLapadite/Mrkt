@@ -224,6 +224,12 @@ body[data-tab=prev] #editor{display:none}
 @media (max-width:999px){.tabbar{gap:2px!important;padding-left:4px!important;padding-right:4px!important}.tabbar button{font-size:12.5px!important;letter-spacing:0!important;padding:0 1px!important;min-width:0}}
 /* paste a list */
 .fmt{display:flex;flex-wrap:wrap;gap:6px}
+#textPick{display:grid;gap:8px;margin-top:8px}
+#textPick .fmt{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#textPick .fmt::-webkit-scrollbar{display:none}
+#textPick .fmt code{white-space:nowrap}
+#textPick .olist{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+#pasteOut .btn.gold{position:sticky;bottom:0;box-shadow:0 -6px 14px var(--surface)}
 .fmt code{font:600 12.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
 .pline{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
 .pline:first-child{border-top:0}
@@ -298,7 +304,6 @@ body[data-tab=prev] #editor{display:none}
 .mpbox{height:38px}
 .mpbox input{font-size:16px}
 .inp,.ta,.sel,.note,.box input,.rin input{font-size:16px}
-.helpb{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;font:700 17px var(--slab);color:var(--ink);padding:0;align-self:center}
 .help ol{margin:0;padding-left:20px;display:grid;gap:10px;line-height:1.45}
 .help .hint{margin-top:12px}
 .help .guide{margin-top:14px;text-decoration:none;color:var(--ink)}
@@ -426,7 +431,8 @@ body[data-tab=prev] #editor{display:none}
 .tabbar .srch svg{width:15px;height:15px;flex:none}
 .tabbar .srch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)!important}
 /* items: where new items come from */
-.srcseg{margin-bottom:10px}
+.srcrow{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;margin-bottom:10px}
+.srcrow .lbl{margin:0;white-space:nowrap}
 .srcseg button{font-size:13px;padding:0 4px}
 .ipgrid .tile .iqb{position:absolute;right:4px;bottom:22px;background:var(--ink);color:var(--bg);border-radius:7px;font:700 11px/16px var(--sans);padding:0 5px}
 .ipgrid .tile{position:relative}
@@ -438,11 +444,16 @@ body[data-tab=prev] #editor{display:none}
 .dfarm{gap:8px;align-items:center}
 .dfarm .sel{min-height:36px;padding:0 8px;width:auto}
 /* import */
-.brand h1{white-space:nowrap}
-@media (max-width:389px){.brand h1{font-size:22px}.brand{gap:8px}}
-.impb{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:0;display:grid;place-items:center;align-self:center}
-.impb svg{width:19px;height:19px}
-.impb.on{background:var(--ink);color:var(--bg)}
+.brand h1{white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;font-size:clamp(17px,5.4vw,26px)}
+/* header buttons: same size, never squeezed */
+.tools{flex:none;display:flex;align-items:center;gap:8px}
+.hbtn{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:0;display:grid;place-items:center;font:400 17px/1 var(--disp);transition:background .15s,color .15s}
+.hbtn svg{width:20px;height:20px}
+.hbtn:active{transform:scale(.94)}
+.hbtn.on{background:var(--ink);color:var(--bg)}
+.hbtn.me{background:var(--ink);color:var(--bg)}
+.hbtn.me.on{box-shadow:0 0 0 3px var(--acc)}
+@media (max-width:375px){.tools{gap:6px}.hbtn{width:36px;height:36px}}
 .impc.off>*:not(.ihead){opacity:.4}
 .ihead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
 .irw{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto 22px;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
@@ -531,8 +542,6 @@ body[data-tab=prev] #editor{display:none}
 .thumbbtn .sbad,.sbad{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:10px;background:#c8361f;color:#fff;font:700 11px/20px var(--sans);padding:0 5px;text-align:center;box-shadow:0 0 0 2px var(--bg);z-index:1}
 .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c8361f;margin-left:5px;vertical-align:4px}
 /* profile · inventory · search */
-.meb{width:34px;height:34px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);font:400 17px/1 var(--disp);padding:0;align-self:center;display:grid;place-items:center}
-.meb.on{box-shadow:0 0 0 3px var(--acc)}
 .back{justify-self:start;border:0;background:none;color:var(--mut);font:700 15px var(--slab);padding:2px 0;min-height:32px}
 .mehead{display:flex;align-items:center;gap:12px}
 .mehead h2{margin:0;font-size:22px}
@@ -570,16 +579,6 @@ body[data-tab=prev] #editor{display:none}
 .spick span:not(.th):not(.flag){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .spick .inm{display:flex;flex-direction:column;min-width:0;line-height:1.15;white-space:normal!important;overflow-wrap:anywhere}
 .spick .inm small{font:600 11.5px var(--sans);color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.linkb{border:0;background:none;color:var(--acc);font:700 14px var(--sans);padding:6px 0;text-align:left;min-height:32px}
-.mpg{display:grid;gap:10px}
-.mpm{border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;gap:6px;background:var(--surface)}
-.mph{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.mph b{font:700 15px var(--slab)}
-.mpn{display:flex;align-items:center;gap:6px;font:600 13px var(--sans);color:var(--mut);white-space:nowrap}
-.mpn .btn{min-width:32px;padding:0 8px}
-.mpr{display:grid;grid-template-columns:54px minmax(0,1fr);align-items:center;gap:6px}
-.mpr small{font:700 12px var(--sans);color:var(--mut)}
-.mpi{display:flex;flex-wrap:wrap;gap:4px}
 .scb{width:22px;height:22px;accent-color:var(--ink)}
 .obar.sh{grid-template-columns:minmax(0,1fr) auto}
 .obar .dq{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);font-weight:600;white-space:nowrap}
@@ -725,7 +724,7 @@ body[data-tab=prev] #mini{display:none}
 </head>
 <body data-tab="items">
 <header class="top">
-  <div class="brand"><h1>Market Manager</h1><span style="flex:1"></span><button class="helpb" id="helpBtn" aria-label="How it works">?</button><button class="impb" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="meb" id="meBtn" aria-label="My profile">👤</button></div>
+  <div class="brand"><h1>Market Manager</h1><span style="flex:1"></span><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -749,8 +748,9 @@ body[data-tab=prev] #mini{display:none}
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
         <div class="sdrop card" id="sdrop" hidden>
-          <div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📖 Almanac</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 From a text</button></div>
+          <div class="srcrow"><span class="lbl">Add from</span><div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📚 Base</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 Text</button></div></div>
           <div id="invPick" hidden></div>
+          <div id="textPick" hidden></div>
           <div id="catPick">
           <div class="chips" id="cats"></div>
           <div class="grid" id="results"></div>
@@ -798,21 +798,6 @@ body[data-tab=prev] #mini{display:none}
     </section>
 
     <!-- ===== PASTE A LIST ===== -->
-    <section class="panel" id="p-paste">
-      <button class="back" id="pasteBack">‹ Items</button>
-      <div class="card fieldset">
-        <div class="ch"><h2>Add from a text</h2></div>
-        <p class="hint">One item per line, with its quantity and price — or a ratio for trades.</p>
-        <div class="fmt"><code>lobster tail x20 1500</code><code>blanket x10 1r</code><code>corn 300 5xmp</code><code>tomato sauce x30 2b</code><code>lemon curd 50:89</code><code>have: bem x10</code></div>
-        <textarea class="ta" id="pasteIn" rows="7" placeholder="Paste or type your list here"></textarea>
-        <div class="two"><button class="btn" id="pastePaste">Paste</button><button class="btn" id="pasteClear">Clear</button></div>
-        <div><label class="lbl">Put it in</label><div class="seg" id="pasteTo"><button data-v="new">A new post</button><button data-v="add">This post</button></div></div>
-        <div id="pasteNew"><label class="lbl">Type</label><div class="seg" id="pasteType"><button data-v="trade">Trade</button><button data-v="vente">Selling</button><button data-v="achat">Buying</button></div></div>
-        <div id="pasteAdd" hidden><label class="lbl" id="pasteAddL">“This post”</label><div class="seg" id="pasteHow"><button data-v="add">Add to the list</button><button data-v="replace">Replace the list</button></div></div>
-      </div>
-      <div id="pasteOut" class="stack"></div>
-    </section>
-
     <!-- ===== HISTORY ===== -->
     <section class="panel" id="p-hist">
       <div id="histOut" class="stack"></div>
@@ -1175,15 +1160,6 @@ const ALIASES = {
   "bem":"bem-set","sem":"sem-set","lem":"lem-set","tem":"tem-set",
   "jams":"strawberry-jam","mayo":"mayonnaise","malet":"mallet"
 };
-
-// Production machines as the game shows them: products in unlock order, a few per page.
-// Posts say "1st page jams", "fp juices", "Mixed Juices (2nd page)", "sauces".
-const MACHINES = [
-  { id: "jam", name: "Jam Maker", word: "jams?", items: ["Apple Jam", "Raspberry Jam", "Blackberry Jam", "Cherry Jam", "Strawberry Jam", "Blueberry Chutney", "Marmalade", "Peach Jam", "Grape Jam", "Plum Jam", "Passion Fruit Jam"] },
-  { id: "juice", name: "Juice Press", word: "juices?", items: ["Carrot Juice", "Apple Juice", "Cherry Juice", "Tomato Juice", "Berry Juice", "Pineapple Juice", "Orange Juice"] },
-  { id: "sauce", name: "Sauce Maker", word: "sauces?", items: ["Soy Sauce", "Mayonnaise", "Olive Oil", "Tomato Sauce"] }
-];
-const PAGE_N = 5;   // products per page in the game's machine menu (changeable in Import → Machine pages)
 
 const POPULAR = ["bem-set","sem-set","lem-set","tem-set","bolt","plank","duct-tape","nail","screw","wood-panel","land-deed","mallet","marker-stake","axe","saw","shovel","dynamite","tnt-barrel","pickaxe","map-piece","diamond-ring","lobster-tail","duck-feather","blanket","lemon-curd","mayonnaise","soy-sauce","tomato-sauce","olive-oil","strawberry-jam","honey","beeswax"];
 
@@ -2308,11 +2284,11 @@ $("#scrim").onclick = closeSheet; $("#sheetX").onclick = closeSheet;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 
 function tab(t) {
+  if (t === "paste") { tab("items"); $("#sdrop").hidden = false; setSrc("text"); return; }   // "From a text" is in the Items search panel
   document.body.dataset.tab = t;
-  $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === (t === "paste" ? "items" : t)));  // "From a text" belongs to Items
+  $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   if (t === "prev") draw();
   if (t === "order") renderOrder();
-  if (t === "paste") renderPaste();
   if (t === "hist") renderHist();
   if (t === "stats") renderStats();
   if (t === "me") renderMe();
@@ -2333,7 +2309,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
-    h("li", null, h("b", null, "Add items (Items → search bar):"), " 📖 Almanac = every game item · 📦 Inventory = your farms, with your quantities · 📝 From a text = paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
+    h("li", null, h("b", null, "Add items (Items → search bar):"), " Add from 📚 Base = every game item · 📦 Inventory = your farms, with your quantities · 📝 Text = paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
@@ -2442,14 +2418,14 @@ function renderResults() {
 }
 $("#moreRes").onclick = () => { resLimit += 48; renderResults(); };
 /* drop-down results: open while searching, close with Done / Esc / tap outside */
-function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else { renderCats(); renderResults(); } }
+function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
 function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
 $("#q").addEventListener("focus", openDrop);
 $("#sdone").onclick = closeDrop;
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
-function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste", "stats", "inv", "search", "me", "deals", "imp"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
+function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "stats", "inv", "search", "me", "deals", "imp"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 let jumpT = 0;
@@ -2462,18 +2438,16 @@ function applyListFilter() {
   $$("#wantList .grp").forEach(g => g.classList.toggle("fhide", !!f && !g.querySelector(".gi:not(.fhide)")));
 }
 $("#lf").addEventListener("input", debounce(applyListFilter, 120));
-$("#q").addEventListener("input", debounce(() => { openDrop(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else renderResults(); }, 90));
-/* ---------- where new items come from: the Almanac (every game item), your inventory, or a text ---------- */
+$("#q").addEventListener("input", debounce(() => { openDrop(); if (SRC.v === "text" && $("#q").value.trim()) setSrc("cat"); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); }, 90));
+/* ---------- where new items come from: the Base (every game item), your inventory, or a text ---------- */
 const SRC = { v: "cat", scope: "all" };
 function setSrc(v) {
-  if (v === "text") { closeDrop(); tab("paste"); setTimeout(() => $("#pasteIn") && $("#pasteIn").focus(), 80); return; }
   SRC.v = v; $$("#srcSeg button").forEach(b => b.classList.toggle("on", b.dataset.src === v));
-  $("#catPick").hidden = v !== "cat"; $("#invPick").hidden = v !== "inv";
-  $("#q").placeholder = v === "inv" ? "Search my inventory" : "Search a product to add";
-  if (v === "inv") renderInvPick(); else renderResults();
+  $("#catPick").hidden = v !== "cat"; $("#invPick").hidden = v !== "inv"; $("#textPick").hidden = v !== "text";
+  $("#q").placeholder = v === "inv" ? "Search my inventory" : v === "text" ? "Search a product (or write below)" : "Search a product to add";
+  if (v === "inv") renderInvPick(); else if (v === "text") { renderPaste(); setTimeout(() => { const t = $("#pasteIn"); if (t) t.focus({ preventScroll: true }); }, 60); } else renderResults();
 }
 $$("#srcSeg button").forEach(b => b.onclick = () => setSrc(b.dataset.src));
-$("#pasteBack").onclick = () => tab("items");
 /** Add from your inventory: its quantity comes with it (selling posts and “I have”). */
 function addFromInv(i, quiet) {
   const p = CAT.byId[i.ref], list = targetList(), withQ = st.type !== "achat" && !(st.type === "trade" && list === st.wants);
@@ -3680,7 +3654,7 @@ function renderStats() {
 /* =====================================================================
    10. PASTE A LIST — build a post from a pasted text list
    ===================================================================== */
-const PASTE = { text: "", to: "new", type: null, how: "add", picks: {} };
+const PASTE = { text: "", picks: {} };
 const NUM = "(\\d+(?:[.,]\\d+)?\\s*k?)";
 /** One line → { name, q, p, pu, ra, rb, have } — prices: 1500 · @1500 · 1.5k · 1r / 1 ring / 💍 · 2b / 2 blankets · 5xmp; qty: x20 · 20x · 20 pcs; ratio: 50:89. */
 function parseListLine(raw, sec) {
@@ -3735,39 +3709,43 @@ function matchProduct(name, pick) {
 function pasteLines() {
   return parseList(PASTE.text).map((L, i) => Object.assign(L, { i, m: matchProduct(L.name, PASTE.picks[i + "|" + L.raw]) }));
 }
+/* "From a text" lives in the Items search panel: type or paste a list, check it, add it to this post — you stay here. */
 function renderPaste() {
-  const L = pasteLines(), anyRatio = L.some(x => x.ra || x.have);
-  const type = PASTE.type || (anyRatio ? "trade" : "vente");
-  $$("#pasteTo button").forEach(b => { b.classList.toggle("on", b.dataset.v === PASTE.to); b.onclick = () => { PASTE.to = b.dataset.v; renderPaste(); }; });
-  $$("#pasteType button").forEach(b => { b.classList.toggle("on", b.dataset.v === type); b.onclick = () => { PASTE.type = b.dataset.v; renderPaste(); }; });
-  $$("#pasteHow button").forEach(b => { b.classList.toggle("on", b.dataset.v === PASTE.how); b.onclick = () => { PASTE.how = b.dataset.v; renderPaste(); }; });
-  $("#pasteNew").hidden = PASTE.to !== "new"; $("#pasteAdd").hidden = PASTE.to !== "add";
-  $("#pasteAddL").textContent = "“" + (st.name || TYPES[st.type].name) + "”";
-  const out = $("#pasteOut"); out.textContent = "";
-  if (!L.length) { out.append(h("div", { class: "empty card" }, "Your items will show here, ready to check.")); return; }
-  const target = PASTE.to === "new" ? type : st.type, trade = target === "trade";
-  const list = h("div", { class: "card olist" });
+  const box = $("#textPick"); if (!box || box.hidden) return;
+  let ta = $("#pasteIn"), out = $("#pasteOut");
+  if (!ta) {
+    box.textContent = "";
+    ta = h("textarea", { class: "ta", id: "pasteIn", rows: 4, placeholder: "One item per line: name, quantity, price — or a ratio for trades", value: PASTE.text, autocapitalize: "off" });
+    ta.addEventListener("input", debounce(() => { PASTE.text = ta.value; PASTE.picks = {}; renderPaste(); }, 200));
+    out = h("div", { id: "pasteOut", class: "stack" });
+    box.append(h("div", { class: "fmt" }, ["lobster tail x20 1500", "blanket x10 1r", "corn 300 5xmp", "lemon curd 50:89", "have: bem x10"].map(t => h("code", null, t))), ta,
+      h("div", { class: "two" },
+        h("button", { class: "btn sm", onclick: async () => { try { const t = await navigator.clipboard.readText(); ta.value = t; PASTE.text = t; PASTE.picks = {}; renderPaste(); } catch (e) { toast("Long-press in the box and choose Paste"); ta.focus(); } } }, "Paste"),
+        h("button", { class: "btn sm", onclick: () => { ta.value = ""; PASTE.text = ""; PASTE.picks = {}; renderPaste(); ta.focus(); } }, "Clear")), out);
+  }
+  out.textContent = "";
+  const L = pasteLines(); if (!L.length) return;
+  const trade = st.type === "trade", toHaveDef = trade && targetList() === st.have;
+  const list = h("div", { class: "olist" });
   let sec = null;
   L.forEach(x => {
-    const s2 = trade && x.have ? "have" : "want";
+    const s2 = trade && (x.have || (toHaveDef && !x.ra)) ? "have" : "want";
     if (trade && s2 !== sec) { sec = s2; list.append(h("div", { class: "psec" }, s2 === "have" ? "I have" : "I want")); }
     const m = x.m, p = m.p;
     const nameBtn = h("button", { class: "oname", onclick: () => pastePick(x) }, m.custom ? x.name : p ? p.en : x.name, !m.ignored && !m.custom && (!p || !m.sure) ? h("span", { class: "flag" }, p ? "?" : "!") : null);
     const sub = m.ignored ? "Ignored — tap to pick" : m.custom ? "Custom item" : !p ? "Not found — tap to pick" : x.name.toLowerCase() !== p.en.toLowerCase() ? "from “" + x.name + "”" : "";
     let val;
-    if (trade) val = x.have ? (x.q ? "×" + fmt(num(x.q)) : "") : x.ra ? fmtR(num(x.ra)) + " : " + fmtR(num(x.rb)) : h("small", null, "no ratio");
+    if (trade) val = s2 === "have" ? (x.q ? "×" + fmt(num(x.q)) : "") : x.ra ? fmtR(num(x.ra)) + " : " + fmtR(num(x.rb)) : h("small", null, "no ratio");
     else val = [x.q ? "×" + fmt(num(x.q)) : h("small", null, "no qty"), x.p ? h("small", null, x.pu === "xmp" ? fmtR(num(x.p)) + "×MP" : x.pu === "ring" ? curTxt("ring", num(x.p)) : x.pu === "blanket" ? curTxt("blanket", num(x.p)) : fmt(num(x.p)) + " ea") : h("small", null, "no price")];
     list.append(h("div", { class: "pline" + (m.ignored ? " ign" : !p && !m.custom ? " bad" : "") },
       thumb(p ? prodState(p.id) : null, p ? p.e : m.custom ? "📦" : "❔", "oth"),
       h("div", { class: "omid" }, nameBtn, sub ? h("small", null, sub) : null),
       h("div", { class: "pv" }, ...[].concat(val))));
   });
-  out.append(list);
   const ok = L.filter(x => !x.m.ignored && (x.m.p || x.m.custom)).length, bad = L.filter(x => !x.m.ignored && !x.m.p && !x.m.custom).length;
-  const label = PASTE.to === "new" ? "Create the " + TYPES[type].name + " post (" + ok + ")" : PASTE.how === "replace" ? "Replace the list (" + ok + ")" : "Add " + ok + " item" + (ok > 1 ? "s" : "");
-  out.append(h("div", { class: "card fieldset" },
+  out.append(list,
     bad ? h("p", { class: "owarn", style: "margin:0" }, bad + " line" + (bad > 1 ? "s" : "") + " not found — tap the name to pick the item, or they’ll be skipped.") : null,
-    h("button", { class: "btn gold full", disabled: !ok, onclick: () => applyPaste(L, type) }, label)));
+    h("button", { class: "btn gold full", disabled: !ok, onclick: () => applyPaste(L) }, "Add " + plural(ok, "item")));
 }
 function pastePick(x) {
   const key = x.i + "|" + x.raw, r = search(x.name, "all").slice(0, 6);
@@ -3777,17 +3755,13 @@ function pastePick(x) {
     h("button", { onclick: () => set("+") }, h("i", null, "＋"), "A custom item “" + x.name + "”"),
     h("button", { class: "danger", onclick: () => set("-") }, h("i", null, "×"), "Ignore this line")));
 }
-function applyPaste(L, type) {
-  let P = st;
-  if (PASTE.to === "new") {
-    P = mkProfile(type); P.wants = []; if (type === "trade") P.have = [];
-    STATE.list.push(P); normProfile(P);
-  } else if (PASTE.how === "replace") { P.wants = []; if (P.type === "trade" && L.some(x => x.have)) P.have = []; }
-  const trade = P.type === "trade";
+/** Add the lines to this post (an item already there gets the new quantity / price). */
+function applyPaste(L) {
+  const P = st, trade = P.type === "trade", toHaveDef = trade && targetList() === P.have;
   let n = 0;
   L.forEach(x => {
     const m = x.m; if (m.ignored || (!m.p && !m.custom)) return;
-    const toHave = trade && x.have, list = toHave ? P.have : P.wants;
+    const toHave = trade && (x.have || (toHaveDef && !x.ra)), list = toHave ? P.have : P.wants;
     if (list.length >= 150) return;
     const f = toHave ? { q: x.q } : trade ? { ra: x.ra, rb: x.rb } : { q: x.q, p: x.p, pu: x.pu };
     if (x.oos) f.oos = 1;
@@ -3796,16 +3770,14 @@ function applyPaste(L, type) {
     const ex = m.p ? list.find(w => w.ref === m.p.id) : null;
     if (ex) Object.assign(ex, f);
     else list.push(m.p ? mkItem(m.p.id, f) : mkItem(null, Object.assign({ name: x.name, e: "📦" }, f)));
+    if (m.p) pushRecent(m.p.id);
     n++;
   });
   if (trade) { const hv = P.have.filter(x => (x.name || "").trim() || x.ref); P.wants.forEach(w => { if (!w.give && hv[0]) w.give = hv[0].uid; }); }
-  PASTE.text = ""; PASTE.picks = {}; PASTE.type = null; $("#pasteIn").value = "";
-  selectProfile(P.id); tab("items");
-  toast(PASTE.to === "new" ? "“" + P.name + "” created with " + n + " items ✔" : n + " item" + (n > 1 ? "s" : "") + " added ✔");
+  PASTE.text = ""; PASTE.picks = {}; const ta = $("#pasteIn"); if (ta) ta.value = "";
+  renderPaste(); renderLists(); changed(); closeDrop();
+  toast(plural(n, "item") + " added ✔");
 }
-$("#pasteIn").addEventListener("input", debounce(() => { PASTE.text = $("#pasteIn").value; PASTE.picks = {}; renderPaste(); }, 200));
-$("#pasteClear").onclick = () => { $("#pasteIn").value = ""; PASTE.text = ""; PASTE.picks = {}; PASTE.type = null; renderPaste(); $("#pasteIn").focus(); };
-$("#pastePaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); $("#pasteIn").value = t; PASTE.text = t; PASTE.picks = {}; renderPaste(); } catch (e) { toast("Long-press in the box and choose Paste"); $("#pasteIn").focus(); } };
 
 /* =====================================================================
    12. PROFILE & INVENTORY — your pseudo, your barn & silo, kept up to date
@@ -3892,7 +3864,8 @@ const agoTxt = t => { if (!t) return "never"; const m = Math.round((Date.now() -
 const backTo = (t, label) => h("button", { class: "back", onclick: () => tab(t) }, "‹ " + label);
 
 /* ---------- profile ---------- */
-function meInitial() { const p = (SETTINGS.pseudo || "").trim(); const b = $("#meBtn"); if (b) b.textContent = p ? p[0].toUpperCase() : "👤"; }
+const ME_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg>';
+function meInitial() { const p = (SETTINGS.pseudo || "").trim(); const b = $("#meBtn"); if (!b) return; if (p) b.textContent = [...p][0].toUpperCase(); else b.innerHTML = ME_SVG; }
 function setPseudo(v) {
   const old = SETTINGS.pseudo || "";
   STATE.list.forEach(p => { if (!(p.user || "").trim() || p.user === old) p.user = v; });
@@ -5145,30 +5118,11 @@ function emojiItem(n) {
 }
 const HAVE_RE = /^(?:i\s*have|have|offering|giving|got)\b/i, NEED_RE = /^(?:need|needs|wtb|looking\s*for|lf|want|wanted)\b/i, SELL_RE = /\b(?:selling|wts|for\s*sale)\b/i, BUY_RE = /^(?:buying)\b/i;
 const NOISE = /^(?:[•*\-–—·>|]+|dm|ping|&|and|or|the|a|my|for|of|at|set|sets|each|ea|pls|please)$/i;
-/* ---------- machine pages: "1st page jams" = every jam on the first page of the Jam Maker ---------- */
-const pageSize = M => Math.max(1, Math.min(12, +((SETTINGS.pages || {})[M.id]) || PAGE_N));
-const machineItems = M => M.items.map(n => CAT.byId[slug(n)]).filter(Boolean);
-function machinePage(M, page) { const all = machineItems(M), n = pageSize(M); return page ? all.slice((page - 1) * n, page * n) : all; }
-const ORDW = { "1st": 1, ist: 1, lst: 1, first: 1, fp: 1, "2nd": 2, second: 2, sp: 2, "3rd": 3, third: 3, tp: 3 };
-const ORD_RE = /^(?:1st|ist|lst|first|2nd|second|3rd|third|[123])$/i;
-/** "1st page jams", "fp juices", "Mixed Juices (2nd page)", "jams p2", "sauces" → the products, or null. */
-function machineRefs(s) {
-  let t = " " + String(s || "").toLowerCase().replace(/[\u{1F4C4}\u{1F4C3}\u{1F5D2}]\uFE0F?/gu, " page ").replace(/[()[\]{}.,:;!*_~|-]+/g, " ").replace(/\s+/g, " ") + " ";
-  const M = MACHINES.find(m => new RegExp(" (?:" + m.word + ") ").test(t)); if (!M) return null;
-  t = t.replace(new RegExp(" (?:" + M.word + ") "), " ");
-  let page = 0;
-  t = t.replace(/ (?:(1st|ist|lst|first|2nd|second|3rd|third|[123]) ?(?:page|pg|p)|page ?([123])|p([123])|(fp|sp|tp)|(1st|ist|lst|first|2nd|second|3rd|third))(?= )/, (a, o1, n2, n3, fs, o5) => { const k = o1 || n2 || n3 || fs || o5; page = ORDW[k] || +k || 0; return " "; });
-  // nothing else may be left: "strawberry jam" is one product, not the machine
-  if (t.replace(/ (?:mixed|mix|any|all|assorted|different|random|other|the|of|from|my|page|pages|\d+)(?= )/g, " ").trim()) return null;
-  const items = machinePage(M, page);
-  return items.length ? { M, page, items, label: (page ? "page " + page : "all") + " · " + M.name } : null;
-}
 /** Words → items named in the text ("BEM Sets", "rings", "olive oil"…), the rest kept as text. */
 function namedItems(words) {
   const s = words.join(" ").replace(/[!?;]+/g, " ").replace(/\s+/g, " ").trim(); if (!s) return [];
   const out = [];
   s.split(/\s*(?:,|\/|\s&\s|\band\b|\bor\b|\+)\s*/i).map(x => x.trim()).filter(x => x && /[a-z]{3}/i.test(x.replace(/\([^)]*\)/g, "")) && !NOISE.test(x)).forEach(x => {
-    const mr = machineRefs(x); if (mr) { mr.items.forEach(p => out.push({ ref: p.id, via: mr.label })); return; }
     const bare = x.replace(/\([^)]*\)/g, " ").replace(/[.]+/g, " ").replace(/\s+/g, " ").trim();
     const m = matchProduct(bare.replace(/\bsets?\b/i, "Set").replace(/\b(rings|blankets|bars?)\b/i, t => t.replace(/s$/i, "")));
     out.push(m.p && m.sure ? { ref: m.p.id } : { name: x.replace(/[.,]+$/, "").replace(/\s+/g, " ") });
@@ -5189,13 +5143,6 @@ function impParse(lines, tiles, picNotes, text) {
   if (lines.filter(L => L.bullet).length >= 3) lines = lines.reduce((acc, L) => { const pv = acc[acc.length - 1];
     if (pv && pv.bullet && !L.bullet && L.toks.length && !L.toks.some(t => t.emo !== undefined) && !/(\d\s*k|each|ea|\d{3,})\s*\.?$/i.test(txt(pv)) && !/^(buying|selling|have|need|i have)\b/i.test(txt(L))) { pv.toks.push(...L.toks.map(t => Object.assign({}, t, { x: t.x + 1e5 }))); return acc; }
     acc.push(L); return acc; }, []);
-  // "1st 📄 JAMS": the picture between "1st" and the machine is the word "page"
-  const mword = new RegExp("^(?:" + MACHINES.map(m => m.word).join("|") + ")$", "i");
-  lines.forEach(L => L.toks.forEach((t, i) => {
-    if (t.w) return; if (t.ename && !/page|memo|doc/i.test(t.ename)) return;
-    const a = L.toks.slice(0, i).reverse().find(x => x.w), b = L.toks.slice(i + 1).find(x => x.w);
-    if (a && b && ORD_RE.test(a.w) && mword.test(b.w.replace(/[^a-z]/gi, ""))) { L.toks[i] = { x: t.x, w: "page", strike: t.strike }; }
-  }));
   const cand = [];
   lines.forEach((L, li) => {
     let s = txt(L);
@@ -5229,7 +5176,7 @@ function impParse(lines, tiles, picNotes, text) {
       let items = [...pend, ...emos.filter(t => !ratioTok || t.x < ratioTok.x || (t.emo && (t.ename || (t.m && t.m[0] && t.m[0].c < .25)))).map(eItem), ...namedItems(before.split(/\s+/))];
       pend = [];
       // a ratio alone on its line → the text line just above is what it's for ("Mixed Juices (2nd page)" / "90:89")
-      if (!items.length && lastNote && lastNote.li === li - 1) { R.notes.splice(R.notes.indexOf(lastNote.s), 1); const mr = machineRefs(lastNote.s); items = mr ? mr.items.map(p => ({ ref: p.id, via: mr.label })) : [{ name: lastNote.s }]; }
+      if (!items.length && lastNote && lastNote.li === li - 1) { R.notes.splice(R.notes.indexOf(lastNote.s), 1); items = [{ name: lastNote.s }]; }
       lastNote = null;
       const rest = s.slice(rm.index + rm[0].length).replace(/[~\-–—]+/g, " ").trim();
       R.groups.push({ give: giveIdx, need: +rm[1].replace(",", "."), have: +rm[2].replace(",", "."), items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "" });
@@ -5260,7 +5207,7 @@ function impPosts(R) {
     const seen = new Set(); have = have.filter(x => { const k = x.ref || x.name || "u" + x._i; if (seen.has(k)) return false; seen.add(k); return true; });
     const giveOf = g => { const c = have.filter(x => x._i >= g.give); return c.length ? have.indexOf(c[0]) : 0; };
     posts.push({ type: "trade", on: true, name: nm("trade"), have: have.map(x => ({ ...x, q: "" })),
-      wants: R.groups.flatMap(g => g.items.filter(x => x.ref || x.name || x.unknown).map(x => ({ ref: x.ref || null, name: x.name || "", unknown: x.unknown || null, src: x.src || null, via: x.via || "", ra: String(g.have), rb: String(g.need), oos: g.oos, note: g.note, gi: giveOf(g) }))), notes });
+      wants: R.groups.flatMap(g => g.items.filter(x => x.ref || x.name || x.unknown).map(x => ({ ref: x.ref || null, name: x.name || "", unknown: x.unknown || null, src: x.src || null, ra: String(g.have), rb: String(g.need), oos: g.oos, note: g.note, gi: giveOf(g) }))), notes });
   }
   const sell = R.kind === "achat" ? "achat" : "vente", items = [];
   R.tiles.forEach(t => items.push({ ref: t.ref, unknown: t.ref ? null : t, src: t, view: t.view, m: t.m, q: t.q, p: t.px, pu: t.px ? "xmp" : "coin" }));
@@ -5296,7 +5243,7 @@ function impRow(x, P, list) {
   const p = x.ref && CAT.byId[x.ref], trade = P.type === "trade", isHave = list === P.have;
   const row = h("div", { class: "irw" + (x.oos ? " oos" : "") + (!x.ref && !x.name ? " chk" : "") },
     impView(x) ? h("img", { class: "icrop", src: impView(x), alt: "" }) : p ? thumb(prodState(p.id), p.e, "mini") : h("span", { class: "th mini" }, "📦"),
-    h("button", { class: "spick", onclick: () => impPick(x) }, h("span", { class: "inm" }, impLabel(x), x.via ? h("small", null, x.via) : null), p && impView(x) ? thumb(prodState(p.id), p.e, "mini") : null, !x.ref ? h("span", { class: "flag" }, x.name ? "✎" : "?") : null));
+    h("button", { class: "spick", onclick: () => impPick(x) }, h("span", { class: "inm" }, impLabel(x)), p && impView(x) ? thumb(prodState(p.id), p.e, "mini") : null, !x.ref ? h("span", { class: "flag" }, x.name ? "✎" : "?") : null));
   if (trade && !isHave) row.append(h("span", { class: "irat" }, h("input", { value: x.ra, inputMode: "decimal", "aria-label": "You give", oninput: e => { x.ra = e.target.value; } }), ":", h("input", { value: x.rb, inputMode: "decimal", "aria-label": "You get", oninput: e => { x.rb = e.target.value; } })));
   else if (!trade) row.append(h("span", { class: "irat" }, h("input", { value: x.q, inputMode: "numeric", placeholder: "qty", "aria-label": "Quantity", oninput: e => { x.q = e.target.value; } }), h("input", { value: x.p, inputMode: "decimal", placeholder: "price", "aria-label": "Price", oninput: e => { x.p = e.target.value; } }), h("small", null, x.pu === "xmp" ? "×MP" : "")));
   if (!isHave) row.append(h("button", { class: "ioos" + (x.oos ? " on" : ""), title: "Out of stock (struck through)", onclick: () => { x.oos = !x.oos; renderImport(); } }, "⊘"));
@@ -5306,7 +5253,7 @@ function impRow(x, P, list) {
 const impView = x => x.view || (x.src && x.src.view) || (x.unknown && x.unknown.view) || null;
 function impPick(x) {
   const res = h("div", { class: "menu pick" });
-  const btn = p => h("button", { onclick: () => { x.ref = p.id; x.name = ""; x.fixed = true; x.via = ""; closeSheet(); renderImport(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
+  const btn = p => h("button", { onclick: () => { x.ref = p.id; x.name = ""; x.fixed = true; closeSheet(); renderImport(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
   const fill = q => { res.textContent = ""; search(q, "all").slice(0, 12).forEach(p => res.append(btn(p))); };
   const best = ((x.m || (x.src && x.src.m) || (x.unknown && x.unknown.m)) || []).map(a => CAT.byId[a.ref]).filter(Boolean).slice(0, 6);
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", value: x.name || "", autocapitalize: "off", oninput: e => fill(e.target.value) });
@@ -5325,8 +5272,7 @@ function renderImport() {
     h("div", { class: "ch" }, h("h2", null, "Import a post")),
     h("p", { class: "hint" }, "Bring an old post here: a screenshot of your Discord message, a picture made by another post maker, or the text. You check everything before it's created."),
     h("button", { class: "btn pri full", onclick: () => fileIn.click() }, "📷 Screenshots of the post"), fileIn, ta,
-    h("button", { class: "btn full", onclick: () => { if (!IMP.text.trim()) return toast("Paste the text first"); impRun(null, IMP.text); } }, "Read the text"),
-    h("button", { class: "linkb", onclick: machineSheet }, "📄 Machine pages — what “1st page jams” means")));
+    h("button", { class: "btn full", onclick: () => { if (!IMP.text.trim()) return toast("Paste the text first"); impRun(null, IMP.text); } }, "Read the text")));
   if (IMP.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "impMsg" }, IMP.busy))); return; }
   const S = IMP.res; if (!S) return;
   if (S.err) { out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, S.err))); return; }
@@ -5347,21 +5293,6 @@ function renderImport() {
   });
   const n = S.posts.filter(p => p.on).length;
   out.append(h("button", { class: "btn pri full", disabled: !n, onclick: impCreate }, n > 1 ? "Create the " + n + " posts" : "Create the post"));
-}
-/** Which products are on each page of a machine (as in the game) — "1st page jams", "Mixed Juices (2nd page)". */
-function machineSheet() {
-  const body = h("div", { class: "mpg" }), draw = () => {
-    body.textContent = "";
-    body.append(h("p", { class: "hint" }, "In posts, “1st page jams” or “fp juices” means every product on that page of the machine in the game. Set how many products your game shows per page."));
-    MACHINES.forEach(M => {
-      const n = pageSize(M), all = machineItems(M), pages = Math.ceil(all.length / n);
-      const set = v => { SETTINGS.pages = Object.assign({}, SETTINGS.pages, { [M.id]: Math.max(1, Math.min(12, v)) }); saveSettings(); draw(); };
-      body.append(h("div", { class: "mpm" }, h("div", { class: "mph" }, h("b", null, M.name),
-        h("span", { class: "mpn" }, h("button", { class: "btn sm", "aria-label": "Fewer per page", onclick: () => set(n - 1) }, "−"), h("span", null, n + " per page"), h("button", { class: "btn sm", "aria-label": "More per page", onclick: () => set(n + 1) }, "+"))),
-        ...Array.from({ length: pages }, (_, k) => h("div", { class: "mpr" }, h("small", null, "Page " + (k + 1)), h("div", { class: "mpi" }, all.slice(k * n, k * n + n).map(p => h("span", { title: p.en }, thumb(prodState(p.id), p.e, "mini"))))))));
-    });
-  };
-  draw(); openSheet("Machine pages", [body]);
 }
 /** Create the posts (items not recognised and not named are left out). */
 function impCreate() {
