@@ -257,6 +257,7 @@ body[data-tab=prev] #editor{display:none}
 .helpb{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;font:700 17px var(--slab);color:var(--ink);padding:0;align-self:center}
 .help ol{margin:0;padding-left:20px;display:grid;gap:10px;line-height:1.45}
 .help .hint{margin-top:12px}
+.help .guide{margin-top:14px;text-decoration:none;color:var(--ink)}
 .target{flex-direction:column;align-items:stretch!important;gap:6px!important}
 .tchips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
 .tchips::-webkit-scrollbar{display:none}
@@ -1799,6 +1800,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
+  h("a", { class: "btn full guide", href: "guide.pdf", target: "_blank", rel: "noopener" }, "📄 Full guide (PDF)"),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
 
 /* ---------- ring icon (DOM) ---------- */
