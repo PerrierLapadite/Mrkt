@@ -362,6 +362,10 @@ body[data-tab=prev] #editor{display:none}
 .sec-h .sum .tag.bulk{color:var(--ok)}
 .oline .bulkt{color:var(--ok);font-style:normal;font-weight:700}
 .ototal .bulkl{font:600 15px var(--slab);color:var(--ok);display:flex;align-items:center;gap:6px}
+.ototal .brk{display:flex;justify-content:space-between;gap:10px;font:600 15px var(--slab);color:var(--mut)}
+.ototal .brk.bulkl{color:var(--ok)}
+.ototal .brk span:last-child{font-weight:700;white-space:nowrap}
+.ototal .bnext{margin:0;font:italic 600 14px var(--slab);color:var(--acc)}
 .sbar .tchips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent)}
 
 /* ---------- preview ---------- */
@@ -452,7 +456,7 @@ body[data-tab=prev] #mini{display:none}
         <button type="button" class="more" id="dealsTog"><span id="dealsT">Discount &amp; total</span><small id="dealsSum"></small><i>›</i></button>
         <div class="fieldset" id="dealsBody" hidden>
         <div class="bulk" id="bulkBox" hidden>
-          <p class="hint">When someone sells you this much in one go, you pay this much more. Tap the unit to count in <b>% of an item</b>, units <b>per item</b> or units <b>per order</b>.</p>
+          <p class="hint">When someone sells you this much in one go, you pay this much more. Tap the unit: <b>% of item</b> (share of that item’s quantity) or <b>items</b> (number of items sold at once, all together).</p>
           <div class="tier th"><span>Sold in one go</span><span></span><span>You pay</span><span></span></div>
           <div class="bulk-rows" id="bulkRows"></div>
           <button type="button" class="btn sm dashed" id="bulkAdd">＋ Add a tier</button>
@@ -1153,23 +1157,21 @@ const convs = () => ["ring", "blanket"].filter(k => k === "ring" ? st.showR !== 
 function bulkTiers(p) {
   p = p || st;
   if (!p || p.type !== "achat" || !Array.isArray(p.bulk)) return [];
-  return p.bulk.map(t => { const mode = t.mode === "qty" || t.mode === "order" ? t.mode : "pct"; return { mode, at: mode === "pct" ? Math.min(100, num(t.at)) : num(t.at), pct: num(t.pct) }; })
+  return p.bulk.map(t => { const mode = t.mode === "qty" || t.mode === "order" ? "order" : "pct"; return { mode, at: mode === "pct" ? Math.min(100, num(t.at)) : num(t.at), pct: num(t.pct) }; })
     .filter(t => t.at > 0 && t.pct > 0).sort((a, b) => a.pct - b.pct || a.at - b.at);
 }
-/** Tier modes — what "sold in one go" counts: % of an item's quantity · units of one item · units in the whole order. */
-const BULK_MODES = { pct: "% of item", qty: "per item", order: "per order" };
+/** Tier modes — what "sold in one go" counts: % of an item's quantity, or a number of items (all items of the order together). */
+const BULK_MODES = { pct: "% of item", order: "items" };
 /** Does one sale of `q` units (item wanted: `wq`, whole order: `oq` units) reach tier `t`? */
 function bulkHit(t, q, wq, oq) {
-  if (t.mode === "qty") return q >= t.at;
   if (t.mode === "order") return oq >= t.at;
   return wq > 0 && q / wq >= t.at / 100 - 1e-9;
 }
 /** Bonus (%) for one line of an order. */
 const bulkForLine = (q, wq, oq) => bulkTiers().reduce((b, t) => bulkHit(t, q, wq, oq) ? Math.max(b, t.pct) : b, 0);
-/** "the full quantity at once" · "≥ 50% of the quantity at once" · "≥ 200 of an item at once" · "≥ 500 items in one order" */
+/** "the full quantity at once" · "≥ 50% of the quantity at once" · "≥ 100 items at once" */
 function bulkTxt(t) {
-  if (t.mode === "qty") return "≥ " + fmt(t.at) + " of an item at once";
-  if (t.mode === "order") return "≥ " + fmt(t.at) + " items in one order";
+  if (t.mode === "order") return "≥ " + fmt(t.at) + " items at once";
   return t.at >= 100 ? "the full quantity at once" : "≥ " + fmtR(t.at) + "% of the quantity at once";
 }
 const curTxt = (k, n) => fmtR(n) + " " + (Math.abs(n - 1) < 1e-9 ? CUR[k].one : CUR[k].many);
@@ -1830,7 +1832,7 @@ function draw() {
       if (showTot) {
         // the whole list sold this way: the bonus goes to every item that can reach this tier
         const units = wants.reduce((a, w) => a + Math.max(0, num(w.q)), 0), open = wants.some(w => !(num(w.q) > 0));
-        const v = wants.reduce((a, w) => { const q = num(w.q), okT = t.mode === "qty" ? !(q > 0) || q >= t.at : t.mode === "order" ? open || units >= t.at : q > 0; return a + itemValue(w) * (okT ? 1 + t.pct / 100 : 1); }, 0), big = { t: [fmt(v), "coin"], r: [fmtR(v / RING_RATE), "ring"], b: [fmtR(v / BLANKET_RATE), "blanket"] }[mainK];
+        const v = wants.reduce((a, w) => { const q = num(w.q), okT = t.mode === "order" ? open || units >= t.at : q > 0; return a + itemValue(w) * (okT ? 1 + t.pct / 100 : 1); }, 0), big = { t: [fmt(v), "coin"], r: [fmtR(v / RING_RATE), "ring"], b: [fmtR(v / BLANKET_RATE), "blanket"] }[mainK];
         const tw = txt(big[0], x1 - 26 * z, cy, { f: "D", s: 36 * z, c: T.ink, al: "right" });
         if (big[1] === "coin") coin(x1 - 26 * z - tw - 22 * z, cy, 14 * z); else curIcon(big[1], x1 - 26 * z - tw - 22 * z, cy, 15 * z);
         if (convK.length) txt(convK.map(k => "≈ " + fmtR(v / (k === "r" ? RING_RATE : k === "b" ? BLANKET_RATE : 1)) + " " + { r: "rings", b: "blankets", t: "coins" }[k]).join(" · "), x1 - 26 * z, cy + 32 * z, { f: "600i", s: 21 * z, c: T.mut, al: "right" });
@@ -2254,9 +2256,9 @@ function renderBulk() {
   const rows = $("#bulkRows"), list = st.bulk || (st.bulk = []); rows.textContent = "";
   const upd = () => { changed(); renderSummary(); const bt = bulkTiers(); $("#dealsSum").textContent = bt.length ? "bulk up to +" + fmtR(Math.max(...bt.map(t => t.pct))) + "%" : ""; };
   list.forEach((t, i) => {
-    const mode = t.mode === "qty" || t.mode === "order" ? t.mode : "pct";
+    const mode = t.mode === "qty" || t.mode === "order" ? "order" : "pct";
     const a = h("input", { value: t.at || "", inputMode: "decimal", placeholder: "100", "aria-label": "Sold in one go (" + BULK_MODES[mode] + ")", oninput: () => { t.at = a.value; upd(); } });
-    const mb = h("button", { type: "button", class: "u mode", title: "Tap to change: % of an item’s quantity · units of one item · units in the whole order", onclick: () => { t.mode = { pct: "qty", qty: "order", order: "pct" }[mode]; upd(); renderBulk(); } }, BULK_MODES[mode]);
+    const mb = h("button", { type: "button", class: "u mode", title: "Tap to change: % of an item’s quantity · number of items sold at once", onclick: () => { t.mode = mode === "pct" ? "order" : "pct"; upd(); renderBulk(); } }, BULK_MODES[mode]);
     const b = h("input", { value: t.pct || "", inputMode: "decimal", placeholder: "10", "aria-label": "Bonus (%)", oninput: () => { t.pct = b.value; upd(); } });
     rows.append(h("div", { class: "tier" },
       h("div", { class: "box" }, a, mb),
@@ -2503,12 +2505,23 @@ function renderOrder() {
     const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
     const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
     const useD = d > 0 && ORDER.applyDisc, total = useD ? sub * (1 - d / 100) : sub;
+    // buying: bulk breakdown — subtotal, bonus with the tiers reached, and what's missing for the next "items" tier
+    const reached = [], next = [];
+    if (hasTiers && ORDER.applyBulk !== false) bulkTiers().forEach(t => {
+      const hit = rows.some(L => L.r.w && L.r.bulk >= t.pct && bulkHit(t, L.q || 0, num(L.r.w.q), ORDER.oq || 0));
+      if (hit) reached.push(t); else if (t.mode === "order") next.push(t);
+    });
+    if (hasTiers && ORDER.applyBulk !== false) {
+      const base = sub - bonus;
+      tot.append(h("div", { class: "brk" }, h("span", null, "Subtotal"), h("span", null, fmt(base))),
+        h("div", { class: "brk bulkl" }, h("span", null, "Bulk bonus" + (reached.length ? " (" + reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : "")), h("span", null, bonus > 0 ? "+" + fmt(bonus) : "—")));
+      next.slice(0, 1).forEach(t => { const miss = Math.max(0, t.at - (ORDER.oq || 0)); if (miss > 0) tot.append(h("p", { class: "bnext" }, miss + " more item" + (miss > 1 ? "s" : "") + " → +" + fmtR(t.pct) + "% on the whole order")); });
+    }
     tot.append(h("div", { class: "k" }, st.type === "achat" ? "Total to pay" : "Total to receive"),
       h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(total)),
       ...convs().map(k => h("div", { class: "rings" }, "≈ " + curTxt(k, total / CUR[k].rate) + " ", curEl(k))));
-    if (bonus > 0) tot.append(h("div", { class: "bulkl" }, "incl. bulk bonus +" + fmt(bonus) + " coins"));
     if (hasTiers) tot.append(h("label", { class: "switch sm" }, "Apply the bulk bonus", h("input", { type: "checkbox", checked: ORDER.applyBulk !== false, onchange: e => { ORDER.applyBulk = e.target.checked; renderOrder(); } })));
-    ORDER.bonus = bonus;
+    ORDER.bonus = bonus; ORDER.reached = reached;
     if (d > 0) tot.append(h("label", { class: "switch sm" }, "Apply your discount (−" + fmtR(d) + "%" + (useD ? ", was " + fmt(sub) : "") + ")", h("input", { type: "checkbox", checked: ORDER.applyDisc, onchange: e => { ORDER.applyDisc = e.target.checked; renderOrder(); } })));
     ORDER.total = total; ORDER.sub = sub; ORDER.useD = useD; ORDER.d = d;
   }
@@ -2587,7 +2600,7 @@ function replyText() {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; by.set(k, (by.get(k) || 0) + R.give); });
     foot = "**You get: " + [...by].map(([k, n]) => fmtR(Math.ceil(n * 100) / 100) + " " + k).join(" + ") + "**";
   } else {
-    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Bulk bonus: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   return lines.join("\n") + "\n" + foot;
 }
