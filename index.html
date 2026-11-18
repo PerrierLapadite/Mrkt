@@ -441,7 +441,9 @@ body[data-tab=prev] #mini{display:none}
           <div><label class="lbl">Discount name</label><input class="inp" data-k="discLabel" placeholder="Bundle deal"></div>
         </div>
         <label class="switch">Show the total<input type="checkbox" id="showTot"></label>
-        <div><label class="lbl">Total in</label><div class="seg" id="totSeg"><button data-u="coins">Coins</button><button data-u="both">Coins + rings</button><button data-u="rings">Rings</button></div></div>
+        <div><label class="lbl">Total in</label><div class="seg" id="totSeg"><button data-u="coins">Coins</button><button data-u="rings">Rings</button><button data-u="blankets">Blankets</button></div></div>
+        <label class="switch">Show ≈ rings<input type="checkbox" id="showR"></label>
+        <label class="switch">Show ≈ blankets<input type="checkbox" id="showB"></label>
         </div>
         </div>
       </div>
@@ -1115,8 +1117,18 @@ const TYPES = {
   achat: { icon: "🛒", name: "Buying", en: "BUYING", list: "Buying", li: "🛒" }
 };
 const RATIO_CATS = new Set(["packs", "ext"]); // expansion materials are usually traded by ratio
-const RING_RATE = 824.4; // fixed server rate: 10 diamond rings = 8,244 coins
+const RING_RATE = 824.4;   // fixed server rate: 10 diamond rings = 8,244 coins
+const BLANKET_RATE = 1098; // fixed rate: 10 blankets = 10,980 coins (the game's max price for 10 blankets)
 const ringRate = () => RING_RATE;
+/** The two "money" items of the server: price units and ≈ conversions. */
+const CUR = {
+  ring: { rate: RING_RATE, one: "ring", many: "rings", e: "💍", id: "diamond-ring" },
+  blanket: { rate: BLANKET_RATE, one: "blanket", many: "blankets", e: "🛏️", id: "blanket" }
+};
+const isCur = u => u === "ring" || u === "blanket";
+/** Conversions shown for the current post (≈ rings, ≈ blankets). */
+const convs = () => ["ring", "blanket"].filter(k => k === "ring" ? st.showR !== false : st.showB !== false);
+const curTxt = (k, n) => fmtR(n) + " " + (Math.abs(n - 1) < 1e-9 ? CUR[k].one : CUR[k].many);
 /** Value of an item in coins (sell / buy posts only — trade posts use ratios, no prices). */
 function itemValue(w) {
   if (st && st.type === "trade") return 0;
@@ -1125,7 +1137,7 @@ function itemValue(w) {
 /** Price of one unit in coins — from coins, rings (fixed rate) or xMP (× the game's max price). */
 function unitPrice(w) {
   const p = num(w.p); if (!p) return 0;
-  if (w.pu === "ring") return p * ringRate();
+  if (isCur(w.pu)) return p * CUR[w.pu].rate;
   if (w.pu === "xmp") { const m = itemMax(w); return m ? p * m : 0; }
   return p;
 }
@@ -1198,7 +1210,7 @@ function mkItem(ref, extra) {
 }
 const frName = p => { const f = (p.fr || "").split("~")[0].trim(); return f ? f.charAt(0).toUpperCase() + f.slice(1) : p.en; };
 function defaults(type) {
-  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "both", disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
+  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "coins", showR: true, showB: true, v15: 1, disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
   if (type === "vente") return { ...base, title: "Shop open", wantTitle: "Available now", cta: "DM to buy",
     wants: [mkItem("lobster-tail", { q: "20", p: "1500" }), mkItem("blanket", { q: "10", p: "1", pu: "ring", hot: 1 }), mkItem("olive-oil", { q: "50", p: "900" })] };
   if (type === "achat") return { ...base, title: "Wanted", wantTitle: "Looking for", cta: "Sell me yours",
@@ -1213,9 +1225,11 @@ const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name ||
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
+  // v15: "Total in" = main currency (coins / rings / blankets) + ≈ rings / ≈ blankets switches
+  if (!p.v15) { const u = p.totUnit || "both"; p.showR = u !== "coins"; p.showB = u !== "coins"; p.totUnit = u === "rings" ? "rings" : "coins"; p.v15 = 1; }
   if (!p.v13) { [...(p.have || []), ...(p.wants || [])].forEach(w => { if (w && w.note === "1st page · no bb") w.note = ""; }); p.v13 = 1; }
   if (!p.addR && num(p.defRa) > 0 && num(p.defRb) > 0) p.addR = { ra: p.defRa, rb: p.defRb, give: "" };
-  if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
+  if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "showR", "showB", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
 let CUSTOM = store.get("hd5_custom", []);
 let SETTINGS = Object.assign({ recent: [], to: "wants" }, store.get("hd5_settings", {}));
@@ -1330,6 +1344,9 @@ function ringIcon(cx, cy, r) {
   ctx.fillStyle = "#9cc8ff"; ctx.fill(); ctx.lineWidth = r * .08; ctx.strokeStyle = "#3f6fb5"; ctx.stroke();
   ctx.restore();
 }
+function blanketIcon(cx, cy, r) { icon(prodState("blanket"), "🛏️", cx, cy, r * 2.5, 1); }
+/** coin / ring / blanket icon centred at (cx, cy) */
+function curIcon(k, cx, cy, r) { if (k === "ring") ringIcon(cx, cy, r); else if (k === "blanket") blanketIcon(cx, cy, r); else coin(cx, cy, r * .85); }
 function icon(s, emoji, cx, cy, z, flat) {
   if (s && s.ok && s.el) {
     const im = s.el, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height, k = z / Math.max(iw, ih);
@@ -1364,7 +1381,7 @@ function totals() {
   const sub = wants.reduce((a, w) => a + itemValue(w), 0);
   const d = Math.min(100, Math.max(0, num(st.disc)));
   const tot = sub * (1 - d / 100);
-  return { sub, disc: d, tot, rings: tot / ringRate() };
+  return { sub, disc: d, tot, rings: tot / RING_RATE, blankets: tot / BLANKET_RATE };
 }
 /** Ratio "1 [mine] : 40 [theirs]" — width, or draw right-aligned at xr / centred at cx. */
 function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtR(num(w.ra)), "D", z) + (g ? 8 + iz : 0) + 20 + measure(":", "D", z) + 20 + measure(fmtR(num(w.rb)), "D", z) + 8 + iz; }
@@ -1380,7 +1397,7 @@ function drawRatio(w, x, cy, s, T) {
 function amounts(w) {
   const p = num(w.p); if (!p) return null;
   const q = num(w.q), v = itemValue(w);
-  return { main: fmt(v), sub: q > 0 ? fmt(q) + " × " + (w.pu === "ring" ? fmtR(p) : fmt(p)) : "each", ring: w.pu === "ring" };
+  return { main: fmt(v), sub: q > 0 ? fmt(q) + " × " + (isCur(w.pu) ? fmtR(p) : fmt(p)) : "each", ring: isCur(w.pu) ? w.pu : null };
 }
 function amountsW(a, s) { return Math.max(measure(a.main, "D", s * .84) + s * .9 + 8, measure(a.sub, "600", Math.round(s * .64)) + (a.ring ? s * .8 : 0)); }
 function drawAmounts(a, xr, cy, s, T, center) {
@@ -1389,7 +1406,7 @@ function drawAmounts(a, xr, cy, s, T, center) {
   const tw = txt(a.main, x1, cy + 1, { f: "D", s: s * .84, c: T.ink, al: "right" });
   coin(x1 - tw - s * .45 - 6, cy, s * .42);
   const sy = cy + s * .95, ss = Math.round(s * .64);
-  if (a.ring) { ringIcon(x2 - ss * .5, sy, ss * .5); txt(a.sub, x2 - ss * 1.15, sy, { f: "600", s: ss, c: T.mut, al: "right" }); }
+  if (a.ring) { curIcon(a.ring, x2 - ss * .5, sy, ss * .5); txt(a.sub, x2 - ss * 1.15, sy, { f: "600", s: ss, c: T.mut, al: "right" }); }
   else txt(a.sub, x2, sy, { f: "600", s: ss, c: T.mut, al: "right" });
 }
 
@@ -1399,11 +1416,12 @@ function ledgerVal(w, k) {
   if (k === "p") {
     if (!p) return null;
     if (w.pu === "xmp") { const u = unitPrice(w); return { t: fmtR(p) + "×MP", sub: u ? fmt(u) + " ea" : "max price ?" }; }
-    return { t: w.pu === "ring" ? fmtR(p) : fmt(p), ic: w.pu === "ring" ? "ring" : "coin" };
+    return { t: isCur(w.pu) ? fmtR(p) : fmt(p), ic: isCur(w.pu) ? w.pu : "coin" };
   }
   if (k === "q") return { t: q > 0 ? "×" + fmt(q) : "×1" };
   if (k === "t") return v ? { t: fmt(v), ic: "coin", strong: 1 } : null;
-  if (k === "r") return v ? { t: fmtR(v / ringRate()), ic: "ring", acc: 1 } : null;
+  if (k === "r") return v ? { t: fmtR(v / RING_RATE), ic: "ring", acc: 1 } : null;
+  if (k === "b") return v ? { t: fmtR(v / BLANKET_RATE), ic: "blanket", acc: 1 } : null;
 }
 function ledgerRow(w, LC, cy, T, sc) {
   sc = sc || 1;
@@ -1411,18 +1429,18 @@ function ledgerRow(w, LC, cy, T, sc) {
     const v = ledgerVal(w, c.k); if (!v) return;
     const s = (v.strong ? 27 : 24) * sc;
     const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w, min: 14 });
-    if (v.ic === "coin") coin(c.xr - tw - 19 * sc, cy, 10 * sc); else if (v.ic === "ring") ringIcon(c.xr - tw - 21 * sc, cy, 12 * sc);
+    if (v.ic === "coin") coin(c.xr - tw - 19 * sc, cy, 10 * sc); else if (v.ic) curIcon(v.ic, c.xr - tw - 21 * sc, cy, 12 * sc);
     if (v.sub && sc === 1) { const sw = txt(v.sub, c.xr, cy + 27, { f: "600i", s: 17, c: T.mut, al: "right", maxW: c.w }); }
   });
 }
 function ledgerLine(w, c, xl, xr, cy, T, small) {
   const v = ledgerVal(w, c.k); if (!v) return;
-  const lab = { p: "Price / ea", q: "Qty", t: "Total", r: "Rings" }[c.k];
+  const lab = { p: "Price / ea", q: "Qty", t: "Total", r: "Rings", b: "Blankets" }[c.k];
   txt(lab, xl, cy, { f: v.strong ? "700" : "600", s: small ? 18 : 21, c: v.strong ? T.ink : T.mut });
   const s = (v.strong ? 25 : 21) - (small ? 3 : 0);
   if (v.sub) { const sw = txt("(" + v.sub + ")", xr, cy + 1, { f: "600i", s: small ? 14 : 16, c: T.mut, al: "right" }); xr -= sw + 8; }
   const tw = txt(v.t, xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right" });
-  if (v.ic === "coin") coin(xr - tw - 17, cy, 9); else if (v.ic === "ring") ringIcon(xr - tw - 19, cy, 11);
+  if (v.ic === "coin") coin(xr - tw - 17, cy, 9); else if (v.ic) curIcon(v.ic, xr - tw - 19, cy, 11);
 }
 
 /* ---------- paper texture ---------- */
@@ -1453,7 +1471,13 @@ function draw() {
   const gPer = w => Math.max(1, Math.floor((w - 2 * M - 2 * BP + TG) / (TW + TG)));
   const gRows = w => GR.reduce((a, g) => a + Math.ceil(g.items.length / gPer(w)), 0);
   if (grouped) for (const Wc of [1080, 1400, 1720, 2040]) { W = Wc; if (gRows(Wc) * 150 + GR.length * 110 <= Wc * 1.25) break; }
-  const CW = trade ? 470 : 660, CG = 48, RH = 60;
+  // totals: main unit (coins / rings / blankets) + the ≈ conversions switched on for this post
+  const unit = st.totUnit === "rings" || st.totUnit === "blankets" ? st.totUnit : "coins";
+  const mainK = unit === "rings" ? "r" : unit === "blankets" ? "b" : "t";
+  const convK = ["r", "b"].filter(k => k !== mainK && (k === "r" ? st.showR !== false : st.showB !== false));
+  const fiveCols = !trade && mainK === "t" && convK.length > 1 && wants.some(w => num(w.p) > 0);
+  if (lay === "list" && fiveCols) W = 1240;
+  const CW = trade ? 470 : fiveCols ? 770 : 660, CG = 48, RH = 60;
   let cc = 1, colW = 0;
   if (compact) {
     const maxC = trade ? 4 : 3;
@@ -1462,7 +1486,6 @@ function draw() {
   }
   const hair = T.dark ? "rgba(240,229,207,.13)" : "rgba(42,29,20,.13)";
   const details = (st.details || "").trim();
-  const unit = st.totUnit || "both";
   const typeLabel = { trade: "TRADE", vente: "FOR SALE", achat: "BUYING" }[type];
 
   /* ---------- measure ---------- */
@@ -1485,9 +1508,9 @@ function draw() {
   // ledger columns for sell / buy: price per unit → quantity → total → rings
   const LC = []; let ledgerL = W - M;
   if (!trade && wants.some(w => num(w.p) > 0)) {
+    const L1 = { t: { w: 172, l: "TOTAL" }, r: { w: 122, l: "RINGS" }, b: { w: 146, l: "BLANKETS" } };
     LC.push({ k: "p", w: 172, l: "PRICE / EA" }, { k: "q", w: 84, l: "QTY" });
-    if (unit !== "rings") LC.push({ k: "t", w: 172, l: "TOTAL" });
-    if (unit !== "coins") LC.push({ k: "r", w: 122, l: "RINGS" });
+    [mainK, ...convK].forEach(k => LC.push({ k, ...L1[k] }));
     let xr = W - M; for (let i = LC.length - 1; i >= 0; i--) { LC[i].xr = xr; xr -= LC[i].w + 14; }
     ledgerL = xr + 14;
   }
@@ -1512,9 +1535,9 @@ function draw() {
   if (!wants.length) H += 80;
   const LCc = [];
   if (compact && !trade && wants.some(w => num(w.p) > 0)) {
+    const L2 = { t: { w: 124, l: "TOTAL" }, r: { w: 88, l: "RINGS" }, b: { w: 104, l: "BLANKETS" } };
     LCc.push({ k: "p", w: 112, l: "PRICE / EA" }, { k: "q", w: 60, l: "QTY" });
-    if (unit !== "rings") LCc.push({ k: "t", w: 124, l: "TOTAL" });
-    if (unit !== "coins") LCc.push({ k: "r", w: 88, l: "RINGS" });
+    [mainK, ...convK].forEach(k => LCc.push({ k, ...L2[k] }));
   }
   const per = compact ? Math.ceil(wants.length / cc) : 0;
   const tileH = g => 12 + 86 + 10 + 28 + (g.items.some(w => (w.note || "").trim()) ? 22 : 0) + 12;
@@ -1522,7 +1545,7 @@ function draw() {
   if (compact && wants.length) H += (LCc.length ? 34 : 0) + per * RH + 30;
 
   const showTot = !trade && st.showTotal !== false && TT.sub > 0;
-  if (showTot) H += 34 + (TT.disc ? 88 : 0) + (unit === "both" ? 104 : 74) + 26;
+  if (showTot) H += 34 + (TT.disc ? 88 : 0) + 74 + convK.length * 36 + 26;
 
   const notes = [];
   if (details) details.split("\n").forEach(raw => {
@@ -1725,12 +1748,16 @@ function draw() {
     }
     const cy = y + 38;
     txt("Total", M, cy + 2, { f: "D", s: 50, c: T.ink });
-    if (unit === "rings") { const tw = txt(fmtR(TT.rings), W - M, cy + 2, { f: "D", s: 58, c: T.ink, al: "right" }); ringIcon(W - M - tw - 30, cy, 24); }
-    else {
-      const tw = txt(fmt(TT.tot), W - M, cy + 2, { f: "D", s: 58, c: T.ink, al: "right" }); coin(W - M - tw - 30, cy, 21);
-      if (unit === "both") { const t = "≈ " + fmtR(TT.rings) + " rings", rw2 = txt(t, W - M, cy + 54, { f: "600i", s: 26, c: T.mut, al: "right" }); ringIcon(W - M - rw2 - 22, cy + 52, 14); }
-    }
-    y += (unit === "both" ? 104 : 74) + 26;
+    const big = { t: [fmt(TT.tot), "coin"], r: [fmtR(TT.rings), "ring"], b: [fmtR(TT.blankets), "blanket"] }[mainK];
+    const tw = txt(big[0], W - M, cy + 2, { f: "D", s: 58, c: T.ink, al: "right" });
+    if (big[1] === "coin") coin(W - M - tw - 30, cy, 21); else curIcon(big[1], W - M - tw - 32, cy, 24);
+    // ≈ conversions, one per line: "≈ 90.1 rings", "≈ 67.6 blankets"
+    convK.forEach((k, i) => {
+      const n = k === "r" ? TT.rings : k === "b" ? TT.blankets : TT.tot, word = { r: "rings", b: "blankets", t: "coins" }[k];
+      const ly = cy + 54 + i * 36, rw2 = txt("≈ " + fmtR(n) + " " + word, W - M, ly, { f: "600i", s: 26, c: T.mut, al: "right" });
+      curIcon({ r: "ring", b: "blanket", t: "coin" }[k], W - M - rw2 - 22, ly - 2, 14);
+    });
+    y += 74 + convK.length * 36 + 26;
   }
 
   /* ---------- notes: lined paper ---------- */
@@ -1798,7 +1825,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
   h("ol", null,
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
-    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic. “Same price for all” sets every item at once."),
+    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. Then, if you want, “Update my post” removes exactly what left (49 − 30 → 19 left) — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
@@ -1808,7 +1835,10 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
 
 /* ---------- ring icon (DOM) ---------- */
 function ringEl() { const s = h("span", { class: "ringi" }); fillThumb(s, prodState("diamond-ring"), "💍"); return s; }
-const curEl = u => u === "ring" ? ringEl() : h("i", { class: "coin" });
+function blanketEl() { const s = h("span", { class: "ringi" }); fillThumb(s, prodState("blanket"), "🛏️"); return s; }
+const curEl = u => u === "ring" ? ringEl() : u === "blanket" ? blanketEl() : h("i", { class: "coin" });
+/** "≈ 36.4 💍 · 27.3 🛏" — the conversions switched on for this post */
+function convEls(v) { const out = []; convs().forEach((k, i) => out.push(h("small", null, (i ? "· " : "≈ ") + fmtR(v / CUR[k].rate)), curEl(k))); return out; }
 
 /* ---------- profiles ---------- */
 function renderProfiles() {
@@ -1941,7 +1971,7 @@ function renderSummary() {
   const w = st.wants.filter(x => (x.name || "").trim() || x.ref), s = $("#summary"); s.textContent = "";
   if (st.type !== "trade") {
     const T = totals();
-    if (T.tot) s.append(...[T.disc ? h("span", { class: "tag", title: "Discount applied" }, "−" + fmtR(T.disc) + "%") : null, h("i", { class: "coin" }), fmt(T.tot), h("small", null, "≈ " + fmtR(T.rings)), ringEl()].filter(Boolean));
+    if (T.tot) s.append(...[T.disc ? h("span", { class: "tag", title: "Discount applied" }, "−" + fmtR(T.disc) + "%") : null, h("i", { class: "coin" }), fmt(T.tot), ...convEls(T.tot)].filter(Boolean));
   }
   $("#wantN").textContent = w.length ? w.length + (w.length > 1 ? " items" : " item") : "";
   $("#haveN").textContent = st.have.length ? st.have.length + (st.have.length > 1 ? " items" : " item") : "";
@@ -1972,12 +2002,12 @@ function samePriceBar() {
   if (!spOpen) return h("button", { type: "button", class: "spbtn", onclick: () => { spOpen = true; renderLists(); setTimeout(() => { const i = $("#wantList .ratiobar input"); i && i.focus(); }, 30); } }, "＝ Same price for all…");
   const t = { pu: st.allPu || "xmp", p: st.allP || "" };
   const inp = h("input", { value: t.p, inputMode: "text", placeholder: "5", "aria-label": "Price for all", oninput: () => { const m = inp.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i); if (m) { t.pu = "xmp"; inp.value = m[1]; ub.repaint(); } t.p = inp.value; st.allP = t.p; st.allPu = t.pu; saveSoon(); } });
-  const ub = unitBtn(t, "pu", ["xmp", "coin", "ring"], () => { st.allPu = t.pu; saveSoon(); });
+  const ub = unitBtn(t, "pu", ["xmp", "coin", "ring", "blanket"], () => { st.allPu = t.pu; saveSoon(); });
   return h("div", { class: "card ratiobar" }, h("div", { class: "rb-t" }, h("b", null, "Same price for all"), h("button", { type: "button", "aria-label": "Close", onclick: () => { spOpen = false; renderLists(); } }, "✕")),
     h("div", { class: "rb-row" }, h("div", { class: "box" }, inp, ub), h("button", { class: "btn pri sm", onclick: () => {
       if (!num(t.p)) return toast("Enter a price first");
       st.wants.forEach(w => { w.p = t.p; w.pu = t.pu; }); spOpen = false; renderLists(); changed();
-      toast("All items at " + fmtR(num(t.p)) + (t.pu === "xmp" ? "×MP" : t.pu === "ring" ? " ring(s)" : " coins") + " each");
+      toast("All items at " + fmtR(num(t.p)) + (t.pu === "xmp" ? "×MP" : t.pu === "ring" ? " ring(s)" : t.pu === "blanket" ? " blanket(s)" : " coins") + " each");
     } }, "Apply")));
 }
 /* ---------- trade: one card per ratio ---------- */
@@ -2034,7 +2064,7 @@ function stepper(it, after) {
   return h("div", { class: "box step" }, h("button", { type: "button", "aria-label": "Less", onclick: () => bump(-1) }, "−"), inp, h("button", { type: "button", "aria-label": "More", onclick: () => bump(1) }, "+"));
 }
 function unitBtn(it, key, opts, after) {
-  const labels = { coin: () => [h("i", { class: "coin" }), "coins"], ring: () => [ringEl(), "rings"], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
+  const labels = { coin: () => [h("i", { class: "coin" }), "coins"], ring: () => [ringEl(), "rings"], blanket: () => [blanketEl(), "blankets"], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
   const b = h("button", { type: "button", class: "u", title: "Change unit" });
   const paint = () => { b.textContent = ""; b.append(...labels[it[key]]()); };
   b.onclick = () => { it[key] = opts[(opts.indexOf(it[key]) + 1) % opts.length]; paint(); after(); changed(); };
@@ -2082,7 +2112,7 @@ function itemCard(it) {
   const mp = h("div", { class: "mpline" });
   const upd = () => {
     const v = itemValue(it), src = maxSource(it); val.textContent = ""; val.classList.toggle("zero", !v);
-    if (v) val.append(h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), h("small", null, "≈ " + fmtR(v / ringRate())), ringEl());
+    if (v) val.append(h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), ...convEls(v));
     else if (it.pu === "xmp" && num(it.p) && !itemMax(it)) val.append(!it.ref ? "×MP needs a game item" : src === "loading" ? "loading…" : "max price not available");
     mp.hidden = it.pu !== "xmp"; mp.textContent = "";
     if (it.pu === "xmp") {
@@ -2094,7 +2124,7 @@ function itemCard(it) {
     renderSummary();
   };
   VAL_UPD.push(upd);
-  const ub = unitBtn(it, "pu", ["coin", "ring", "xmp"], upd);
+  const ub = unitBtn(it, "pu", ["coin", "ring", "blanket", "xmp"], upd);
   const p = h("input", { value: it.p || "", inputMode: "text", placeholder: "Price each", "aria-label": "Price each", oninput: () => {
     const m = p.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i) || p.value.match(/^\s*(?:x|×)\s*(\d+(?:[.,]\d+)?)\s*$/i);
     if (m) { it.pu = "xmp"; it.p = m[1]; p.value = m[1]; ub.repaint(); } else it.p = p.value;
@@ -2161,7 +2191,7 @@ let dealsOpen = null;
 function renderDeals() {
   const trade = st.type === "trade";
   $("#dealsMore").hidden = trade; $("#dealsH").textContent = "Notes";
-  const sum = [num(st.disc) > 0 ? "−" + fmtR(num(st.disc)) + "%" : "", st.showTotal === false ? "total hidden" : st.totUnit === "coins" ? "coins only" : st.totUnit === "rings" ? "rings only" : ""].filter(Boolean).join(" · ");
+  const sum = [num(st.disc) > 0 ? "−" + fmtR(num(st.disc)) + "%" : "", st.showTotal === false ? "total hidden" : st.totUnit === "rings" ? "in rings" : st.totUnit === "blankets" ? "in blankets" : "", !convs().length ? "no ≈" : ""].filter(Boolean).join(" · ");
   $("#dealsSum").textContent = sum;
   const open = dealsOpen == null ? num(st.disc) > 0 : dealsOpen;
   $("#dealsBody").hidden = !open; $("#dealsTog").classList.toggle("open", open);
@@ -2169,7 +2199,8 @@ function renderDeals() {
   const d = $("#disc"); if (document.activeElement !== d) d.value = st.disc || ""; d.oninput = () => { st.disc = d.value; changed(); renderSummary(); };
   d.onchange = () => { dealsOpen = true; renderDeals(); };
   $("#showTot").checked = st.showTotal !== false; $("#showTot").onchange = e => { st.showTotal = e.target.checked; dealsOpen = true; changed(); renderDeals(); };
-  $$("#totSeg button").forEach(b => { b.classList.toggle("on", b.dataset.u === (st.totUnit || "both")); b.onclick = () => { st.totUnit = b.dataset.u; dealsOpen = true; renderDeals(); changed(); }; });
+  [["#showR", "showR"], ["#showB", "showB"]].forEach(([sel, k]) => { const c = $(sel); c.checked = st[k] !== false; c.onchange = () => { st[k] = c.checked; dealsOpen = true; changed(); renderDeals(); renderLists(); }; });
+  $$("#totSeg button").forEach(b => { b.classList.toggle("on", b.dataset.u === (st.totUnit === "rings" || st.totUnit === "blankets" ? st.totUnit : "coins")); b.onclick = () => { st.totUnit = b.dataset.u; dealsOpen = true; renderDeals(); changed(); }; });
 }
 /* ---------- style ---------- */
 const LAYOUTS = [
@@ -2339,7 +2370,7 @@ const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
 function priceLabel(w) {
   const p = num(w.p); if (!p) return "no price in your post";
   if (w.pu === "xmp") { const u = unitPrice(w); return fmtR(p) + "×MP" + (u ? " · " + fmt(u) + " ea" : " · loading max price…"); }
-  if (w.pu === "ring") return fmtR(p) + " ring" + (p > 1 ? "s" : "") + " ea · " + fmt(unitPrice(w)) + " ea";
+  if (isCur(w.pu)) return curTxt(w.pu, p) + " ea · " + fmt(unitPrice(w)) + " ea";
   return fmt(p) + " ea";
 }
 
@@ -2385,7 +2416,7 @@ function renderOrder() {
     const useD = d > 0 && ORDER.applyDisc, total = useD ? sub * (1 - d / 100) : sub;
     tot.append(h("div", { class: "k" }, st.type === "achat" ? "Total to pay" : "Total to receive"),
       h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(total)),
-      h("div", { class: "rings" }, "≈ " + fmtR(total / ringRate()) + " rings ", ringEl()));
+      ...convs().map(k => h("div", { class: "rings" }, "≈ " + curTxt(k, total / CUR[k].rate) + " ", curEl(k))));
     if (d > 0) tot.append(h("label", { class: "switch sm" }, "Apply your discount (−" + fmtR(d) + "%" + (useD ? ", was " + fmt(sub) : "") + ")", h("input", { type: "checkbox", checked: ORDER.applyDisc, onchange: e => { ORDER.applyDisc = e.target.checked; renderOrder(); } })));
     ORDER.total = total; ORDER.sub = sub; ORDER.useD = useD; ORDER.d = d;
   }
@@ -2455,7 +2486,7 @@ function replyText() {
     const n = pName(x.r.w);
     if (trade) return x.r.ratio ? `${fmt(x.q)}× ${n} → ${fmtR(x.r.ratio.give)} ${x.r.ratio.g ? pName(x.r.ratio.g) : ""}`.trim() : `${fmt(x.q)}× ${n} → no ratio`;
     const w = x.r.w, p = num(w.p);
-    const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : w.pu === "ring" ? `${fmtR(p)} ring ea` : `${fmt(p)} ea`;
+    const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmt(p)} ea`;
     return `${fmt(x.q)}× ${n} — ${how} = ${fmt(x.r.v)}`;
   });
   let foot = "";
@@ -2463,7 +2494,7 @@ function replyText() {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; by.set(k, (by.get(k) || 0) + R.give); });
     foot = "**You get: " + [...by].map(([k, n]) => fmtR(Math.ceil(n * 100) / 100) + " " + k).join(" + ") + "**";
   } else {
-    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + `**Total: ${fmt(ORDER.total)} coins ≈ ${fmtR(ORDER.total / ringRate())} 💍**`;
+    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   return lines.join("\n") + "\n" + foot;
 }

@@ -143,7 +143,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
 <header class="top">
   <div class="in"><a class="brand" href="./">Market Studio</a><span class="tag">Guide</span><span class="sp"></span><a class="btn" href="./">Open the site →</a></div>
   <nav class="toc" id="toc">
-    <a href="#glance">At a glance</a><a href="#screen">The screen</a><a href="#add">Adding items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#money">Rings &amp; ×MP</a><a href="#notes">Notes &amp; menu</a><a href="#style">Style</a><a href="#export">Export</a><a href="#order">Order</a><a href="#deal">After the deal</a><a href="#long">Long lists</a><a href="#cheat">Cheat sheet</a>
+    <a href="#glance">At a glance</a><a href="#screen">The screen</a><a href="#add">Adding items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#money">Rings, blankets &amp; ×MP</a><a href="#notes">Notes &amp; menu</a><a href="#style">Style</a><a href="#export">Export</a><a href="#order">Order</a><a href="#deal">After the deal</a><a href="#long">Long lists</a><a href="#cheat">Cheat sheet</a>
   </nav>
 </header>
 
@@ -201,7 +201,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
   <div class="rule" style="margin-top:28px">
     <div class="t">Fixed rules — the same for everyone, nobody can change them</div>
     <div class="cols2" style="gap:14px">
-      <div><span class="big">10 💍 = 8,244 <span class="coin"></span></span><br><span class="mut">1 diamond ring = 824.4 coins.</span></div>
+      <div><span class="big">10 💍 = 8,244 <span class="coin"></span></span><br><span class="mut">1 diamond ring = 824.4 coins.</span><br><span class="big">10 blankets = 10,980 <span class="coin"></span></span><br><span class="mut">1 blanket = 1,098 coins.</span></div>
       <div><b>Max prices (×MP)</b> come from the game and can’t be typed by hand.<br><b>150 items</b> maximum per post. <b>Saved</b> on your device only.</div>
     </div>
   </div>
@@ -340,14 +340,14 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
     <figure class="live" data-scene="saleList"><figcaption>A Selling post with three items.</figcaption></figure>
     <div>
       <h3>The header</h3>
-      <p>List name, number of items and the <b>post total</b> in coins ≈ rings. A <b class="acc">−10%</b> tag appears when a discount is on.</p>
+      <p>List name, number of items and the <b>post total</b> in coins ≈ rings · blankets. A <b class="acc">−10%</b> tag appears when a discount is on.</p>
       <h3 style="margin-top:18px">Each card</h3>
       <ol class="num">
         <li><b>Picture, name, ★, ⋯.</b> Tap the name to rename the item.</li>
         <li><b>Price each</b> — the price for <u>one</u> item.</li>
-        <li><b>Unit button</b> — tap to switch <span class="pill"><span class="coin"></span> coins</span> → <span class="pill">💍 rings</span> → <span class="pill">×MP</span>.</li>
+        <li><b>Unit button</b> — tap to switch <span class="pill"><span class="coin"></span> coins</span> → <span class="pill">💍 rings</span> → <span class="pill">blankets</span> → <span class="pill">×MP</span>.</li>
         <li><b>Quantity</b> — with − / + or by typing.</li>
-        <li><b>= total</b> in coins, then <b>≈</b> the same in rings.</li>
+        <li><b>= total</b> in coins, then <b>≈</b> the same in rings · blankets.</li>
         <li><b>+ Note</b> — a small line under the item on the picture (“Fresh harvest”).</li>
       </ol>
       <p>×MP items show one more line: <i>Max price <span data-live="cMax">7</span> · 5×MP = <span data-live="cEach">35</span> each</i>.</p>
@@ -371,26 +371,30 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
 
 <!-- ===================== 06 MONEY ===================== -->
 <section id="money">
-  <h2 class="sec"><span class="n">06</span>Money rules: rings &amp; ×MP</h2>
-  <p class="lede">Two values are built into the site and locked, so every post on the server counts the same way.</p>
+  <h2 class="sec"><span class="n">06</span>Money rules: rings, blankets &amp; ×MP</h2>
+  <p class="lede">These values are built into the site and locked, so every post on the server counts the same way.</p>
   <div class="cols2">
     <div>
       <div class="rule"><div class="t">Diamond rings</div>
         <div class="big">10 💍 = 8,244 <span class="coin"></span></div>
         <p style="margin:8px 0 0">So <b>1 ring = 824.4 coins</b>. This rate is fixed: there is no setting to change it.</p>
       </div>
+      <div class="rule" style="margin-top:12px"><div class="t">Blankets</div>
+        <div class="big">10 blankets = 10,980 <span class="coin"></span></div>
+        <p style="margin:8px 0 0">So <b>1 blanket = 1,098 coins</b> — the game’s max price for blankets. Fixed too.</p>
+      </div>
       <div class="tw" style="margin-top:12px"><table>
-        <tr><th colspan="2">Rings → coins</th><th colspan="2" style="border-left:1px solid var(--line2)">Coins → rings</th></tr>
-        <tr><td>1</td><td class="r">824.4</td><td style="border-left:1px solid var(--line2)">1,000</td><td class="r">≈ 1.2</td></tr>
-        <tr><td>5</td><td class="r">4,122</td><td style="border-left:1px solid var(--line2)">10,000</td><td class="r">≈ 12.1</td></tr>
-        <tr><td>10</td><td class="r">8,244</td><td style="border-left:1px solid var(--line2)">50,000</td><td class="r">≈ 60.7</td></tr>
-        <tr><td>50</td><td class="r">41,220</td><td style="border-left:1px solid var(--line2)">100,000</td><td class="r">≈ 121.3</td></tr>
-        <tr><td>100</td><td class="r">82,440</td><td style="border-left:1px solid var(--line2)">500,000</td><td class="r">≈ 606.5</td></tr>
+        <tr><th>Coins</th><th class="r">≈ Rings</th><th class="r">≈ Blankets</th></tr>
+        <tr><td>1,000</td><td class="r">1.2</td><td class="r">0.9</td></tr>
+        <tr><td>10,000</td><td class="r">12.1</td><td class="r">9.1</td></tr>
+        <tr><td>50,000</td><td class="r">60.7</td><td class="r">45.5</td></tr>
+        <tr><td>100,000</td><td class="r">121.3</td><td class="r">91.1</td></tr>
+        <tr><td>500,000</td><td class="r">606.5</td><td class="r">455.4</td></tr>
       </table></div>
       <ul class="dot" style="margin-top:12px">
-        <li>Coins always come first; rings are shown as “≈”.</li>
-        <li>A price in rings is turned into coins for the totals.</li>
-        <li>The grand total can show coins, coins + rings, or rings only (<a href="#notes">Discount &amp; total</a>).</li>
+        <li>Coins come first; rings and blankets are shown as “≈”.</li>
+        <li>A price in rings or blankets is turned into coins for the totals.</li>
+        <li>The big total can be in coins, rings or blankets, and each “≈” can be switched off (<a href="#notes">Discount &amp; total</a>).</li>
       </ul>
     </div>
     <div>
@@ -409,7 +413,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
       </ul>
     </div>
   </div>
-  <div class="mini-h" style="margin-top:28px">On the picture: price each, quantity, total, total in rings</div>
+  <div class="mini-h" style="margin-top:28px">On the picture: price each, quantity, total, total in rings and blankets</div>
   <figure class="pic full" data-pic="saleRows" style="--ar:1020/635;max-width:760px"></figure>
 </section>
 
@@ -427,7 +431,8 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
       <ul class="dot">
         <li><b>Discount</b> in % and its <b>name</b> (“Bundle deal”). The picture then shows the subtotal crossed out, the discount line and the new total.</li>
         <li><b>Show the total</b> — on or off.</li>
-        <li><b>Total in</b> — Coins, Coins + rings, or Rings.</li>
+        <li><b>Total in</b> — Coins, Rings or Blankets: the unit of the big total.</li>
+        <li><b>Show ≈ rings</b> / <b>Show ≈ blankets</b> — the conversions under the total, in the list and in the Order reply.</li>
       </ul>
       <figure class="pic full" data-pic="saleTotal" style="--ar:1020/430;margin-top:14px"><figcaption>The result on the picture.</figcaption></figure>
     </div>
@@ -538,7 +543,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
 <!-- ===================== 10 ORDER ===================== -->
 <section id="order">
   <h2 class="sec"><span class="n">10</span>Order calculator</h2>
-  <p class="lede">A buyer sends you a list? Paste it: the site finds each item in your post, uses your prices and gives the total — with a reply ready for Discord.</p>
+  <p class="lede">A buyer sends you a list? Paste it: the site finds each item in your post, uses your prices and gives the total in coins ≈ rings · blankets — with a reply ready for Discord.</p>
   <div class="split">
     <figure class="live" data-scene="orderMain"><figcaption>The buyer’s message, priced from the “Selling” post.</figcaption></figure>
     <div>
@@ -550,7 +555,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
           <span class="flag r">!</span> not in your post → <b>not counted</b>. Tap the name to pick the right item, or ignore the line.<br>
           <span class="flag y">?</span> several items could match → the best guess is counted; tap to check.<br>
           You can correct any quantity.</li>
-        <li><b>Read the total</b> in coins ≈ rings. If your post has a discount, a switch applies it.</li>
+        <li><b>Read the total</b> in coins ≈ rings ≈ blankets. If your post has a discount, a switch applies it.</li>
         <li><b>Copy the reply for Discord</b> and paste it to the buyer:</li>
       </ol>
       <pre class="reply" id="reply">26× Carrot Pie — 450 ea = 11,700
@@ -558,7 +563,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
 21× Cotton Shirt — 1 ring ea = 17,312
 30× Lobster Tail — 1,500 ea = 45,000
 200× Corn — 5×MP (35 ea) = 7,000
-<b>**Total: 118,812 coins ≈ 144 💍**</b></pre>
+<b>**Total: 118,812 coins ≈ 144 💍 · ≈ 108 blankets**</b></pre>
     </div>
   </div>
   <div class="split rev">
@@ -651,7 +656,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:3px soli
       <tr><td>Trade: change a ratio</td><td>Edit the big numbers of the group.</td></tr>
       <tr><td>Sell at 5 × the max price</td><td>Type <span class="k">5x</span> in the price.</td></tr>
       <tr><td>Give every item the same price</td><td><b>Same price for all…</b> → price → Apply.</td></tr>
-      <tr><td>Price in diamond rings</td><td>Tap the unit button until it shows <b>rings</b>.</td></tr>
+      <tr><td>Price in rings or blankets</td><td>Tap the unit button until it shows <b>rings</b> or <b>blankets</b>.</td></tr>
       <tr><td>Highlight an item</td><td>Tap <b>★</b>.</td></tr>
     </table></div>
     <div class="tw"><table>
