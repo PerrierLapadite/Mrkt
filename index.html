@@ -400,6 +400,22 @@ body[data-tab=prev] #editor{display:none}
 .ototal .brk{display:flex;justify-content:space-between;gap:10px;font:600 15px var(--slab);color:var(--mut)}
 .ototal .brk.bulkl{color:var(--ok)}
 .ototal .brk span:last-child{font-weight:700;white-space:nowrap}
+.oline.short{background:rgba(230,169,58,.13)}
+.opb{border:0;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer}
+.opb i{font-style:normal;color:var(--acc);text-decoration:none}
+.oline.deal .opb{color:var(--acc);font-weight:700}
+.oline s{color:var(--mut)}
+.oedit{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding-top:6px}
+.oedit .ol{font:italic 600 13px var(--slab);color:var(--acc)}
+.oedit .box{height:40px}
+.oline .shortt{display:block;color:#b26b00;font-style:normal;font-weight:700;white-space:normal}
+.oline.short .omid small{white-space:normal}
+.oshort{display:grid;gap:7px;border-left:4px solid #e6a93a}
+.oshort h3{margin:0;font:700 16px var(--slab)}
+.oshort .sl{display:grid;grid-template-columns:22px auto minmax(0,1fr);gap:8px;align-items:center;font-size:14.5px}
+.oshort .sl b{font:700 15px var(--slab)}
+.oshort .sl span{color:var(--mut);text-align:right}
+.oshort .sl em{font-style:normal;font-weight:700;color:#b26b00}
 .ototal .bnext{margin:0;font:italic 600 14px var(--slab);color:var(--acc)}
 .sbar .tchips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent)}
 
@@ -2514,11 +2530,15 @@ function priceLine(L) {
     const a = num(R.w.ra), b = num(R.w.rb), g = giveItem(R.w);
     return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b } : null, v: 0 });
   }
-  const u = unitPrice(R.w);
+  const pw = dealItem(R.w, L), u = unitPrice(pw);
+  // stock: selling → what's left in your post, buying → what you still want (the rest isn't counted)
+  const qq = ORDER.capStock !== false && L._cap != null ? L._cap : q;
   // buying: bulk bonus when the seller sells a big part of the item's quantity in one go
-  const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(q, wq, ORDER.oq || 0) : 0;
-  return Object.assign(R, { u, bulk, base: u * q, v: u * q * (1 + bulk / 100) });
+  const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(qq, wq, ORDER.oq || 0) : 0;
+  return Object.assign(R, { u, bulk, qq, short: L._short || 0, base: u * qq, v: u * qq * (1 + bulk / 100) });
 }
+/** The post item, or a copy priced with the price set for this order only (the post doesn't change). */
+const dealItem = (w, L) => L && L.pp && num(L.pp.p) > 0 ? Object.assign({}, w, { p: L.pp.p, pu: L.pp.pu || "coin" }) : w;
 const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
 function priceLabel(w) {
   const p = num(w.p); if (!p) return "no price in your post";
@@ -2529,16 +2549,25 @@ function priceLabel(w) {
 
 function renderOrder() {
   if (document.body.dataset.tab !== "order") return;
+  { const ae = document.activeElement; if (ae && ae.dataset && ae.dataset.edit != null) ORDER.editFocus = ae.dataset.edit; } // keep typing after a refresh
   const trade = st.type === "trade";
   if (ORDER.done && ORDER.done.text === ORDER.text) return renderDone();
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
-  ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit } : {}));
+  ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit } : {}));
   ORDER.prev = ORDER.lines;
   const out = $("#orderOut"); out.textContent = "";
   if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line, with its quantity.")); return; }
-  // units in the whole order (for "per order" bulk tiers)
-  ORDER.oq = ORDER.lines.reduce((a, L) => { const R = resolveLine(L); return a + (R.w ? Math.max(0, L.q || 0) : 0); }, 0);
-  const rows = ORDER.lines.map(L => Object.assign(L, { r: priceLine(L) }));
+  // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
+  const capOn = ORDER.capStock !== false, avail = new Map(); ORDER.oq = 0;
+  ORDER.lines.forEach(L => {
+    const R = resolveLine(L), q = Math.max(0, L.q || 0); L._cap = null; L._short = 0;
+    if (!R.w) return;
+    if (trade) { ORDER.oq += q; return; }
+    const wq = num(R.w.q), left = avail.has(R.w) ? avail.get(R.w) : wq > 0 ? wq : Infinity, c = Math.min(q, left);
+    avail.set(R.w, left - c); L._cap = c; L._short = q - c;
+    ORDER.oq += capOn ? c : q; // units in the whole order (for "items" bulk tiers)
+  });
+  const rows = ORDER.lines.map((L, i) => Object.assign(L, { i, r: priceLine(L) }));
   const list = h("div", { class: "card olist" });
   rows.forEach(L => {
     const r = L.r, w = r.w;
@@ -2550,13 +2579,43 @@ function renderOrder() {
     else if (trade) {
       right = r.ratio ? h("span", { class: "ov" }, fmtR(r.ratio.give), r.ratio.g ? thumb(itemState(r.ratio.g), r.ratio.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
       sub = r.ratio ? "Ratio " + fmtR(r.ratio.a) + " : " + fmtR(r.ratio.b) + (r.ratio.g ? " " + pName(r.ratio.g) : "") : "No ratio in your post";
-    } else { right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—"); sub = [priceLabel(w), r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null]; }
-    list.append(h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : "") },
+    } else {
+      right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—");
+      const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : "none left — " + fmt(r.short) + " missing") : null;
+      const deal = L.pp && num(L.pp.p) > 0;
+      const pb = h("button", { class: "opb" + (deal ? " on" : ""), title: "Another price for this order only", onclick: () => { L._edit = !L._edit; if (L._edit && !L.pp) L.pp = { p: "", pu: w.pu || "coin" }; renderOrder(); if (L._edit) setTimeout(() => { const e = $(`[data-edit="${L.i}"]`); e && e.focus(); }, 30); } }, deal ? priceLabel(dealItem(w, L)) : priceLabel(w), h("i", null, " ✎"));
+      sub = [deal ? h("s", null, priceLabel(w).split(" · ")[0]) : null, deal ? " " : null, pb, r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null, sh];
+    }
+    const row = h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : r.short ? " short" : "") + (L.pp && num(L.pp.p) > 0 ? " deal" : "") },
       thumb(w ? itemState(w) : r.prod ? prodState(r.prod.id) : null, w ? w.e : r.prod ? r.prod.e : "❔", "oth"),
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
-      h("div", { class: "oq" }, h("span", null, "×"), q), right));
+      h("div", { class: "oq" }, h("span", null, "×"), q), right);
+    // another price, for this order only
+    if (w && !trade && L._edit) {
+      const pp = L.pp || (L.pp = { p: "", pu: w.pu || "coin" });
+      const ub = unitBtn(pp, "pu", ["coin", "ring", "blanket", "xmp"], () => renderOrderSoon());
+      const pi = h("input", { value: pp.p, inputMode: "text", placeholder: "e.g. 5x", "data-edit": L.i, "aria-label": "Price for this order", oninput: () => {
+        const m = pi.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i);
+        if (m) { pp.pu = "xmp"; pp.p = m[1]; pi.value = m[1]; ub.repaint(); } else pp.p = pi.value;
+        ORDER.editFocus = L.i; renderOrderSoon();
+      } });
+      row.append(h("div", { class: "oedit" }, h("span", { class: "ol" }, "Price for this order"),
+        h("div", { class: "box" }, pi, ub),
+        h("button", { class: "btn sm", onclick: () => { L.pp = null; L._edit = false; renderOrder(); } }, "Post price")));
+    }
+    list.append(row);
   });
   out.append(list);
+  // what you can't sell (not enough left) / don't need (more than you want)
+  const shorts = trade ? [] : rows.filter(L => L.r.w && L.r.short > 0);
+  if (shorts.length) {
+    const buy = st.type === "achat";
+    out.append(h("div", { class: "card oshort" },
+      h("h3", null, buy ? "⚠ More than you want" : "⚠ Not enough in your post"),
+      ...shorts.map(L => h("div", { class: "sl" }, thumb(itemState(L.r.w), L.r.w.e, "mini"), h("b", null, pName(L.r.w)),
+        h("span", null, fmt(L.q) + " asked · " + (buy ? "you want " + fmt(L._cap) : L._cap ? fmt(L._cap) + " left" : "none left") + " → ", h("em", null, fmt(L.r.short) + (buy ? " extra" : " missing"))))),
+      h("label", { class: "switch sm" }, buy ? "Count only what I want" : "Count only what I have", h("input", { type: "checkbox", checked: ORDER.capStock !== false, onchange: e => { ORDER.capStock = e.target.checked; renderOrder(); } }))));
+  }
   // totals
   const missing = rows.filter(L => !L.r.ignored && (!L.r.w || (!trade && !L.r.v) || (trade && !L.r.ratio))).length;
   const tot = h("div", { class: "card ototal" });
@@ -2566,6 +2625,7 @@ function renderOrder() {
     tot.append(h("div", { class: "k" }, "You give"));
     if (!by.size) tot.append(h("div", { class: "v" }, "—"));
     by.forEach(o => tot.append(h("div", { class: "v" }, fmtR(Math.ceil(o.n * 100) / 100) + " ", o.g ? pName(o.g) : "of your items", o.g ? thumb(itemState(o.g), o.g.e, "mini") : null)));
+    by.forEach(o => { const s = o.g ? num(o.g.q) : 0; if (s > 0 && Math.ceil(o.n - 1e-9) > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + pName(o.g) + " — " + fmt(Math.ceil(o.n - 1e-9) - s) + " missing")); });
   } else {
     const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
     const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
@@ -2594,13 +2654,15 @@ function renderOrder() {
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
   out.append(tot);
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
+  // keep typing in the deal-price box after the refresh
+  if (ORDER.editFocus != null) { const e = out.querySelector(`[data-edit="${ORDER.editFocus}"]`); ORDER.editFocus = null; if (e) { e.focus(); const n = e.value.length; try { e.setSelectionRange(n, n); } catch (er) {} } }
 }
 /* ---------- optional: update the post after the deal (exact quantities) ---------- */
 function proposal(rows) {
   const trade = st.type === "trade", agg = new Map();
   rows.forEach(L => {
     if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + Math.ceil(R.give - 1e-9)); }
-    else { const w = L.r && L.r.w; if (w && L.q > 0) agg.set(w, (agg.get(w) || 0) + L.q); }
+    else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
   });
   return [...agg].map(([w, n]) => { const have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
@@ -2634,7 +2696,7 @@ function histEntry(who) {
   if (trade) L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; const o = gives.get(k) || { name: k, ref: R.g ? R.g.ref : null, e: R.g ? R.g.e : "", n: 0 }; o.n += R.give; gives.set(k, o); });
   return {
     id: uid(), t: Date.now(), type: st.type, post: st.name || TYPES[st.type].name, who: who || "",
-    lines: L.map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: x.q || 0, v: Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
+    lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0, v: Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
     gives: [...gives.values()].map(o => ({ ...o, n: Math.round(o.n * 100) / 100 })),
     total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
     reply: replyText()
@@ -2683,9 +2745,13 @@ function replyText() {
   const lines = L.map(x => {
     const n = pName(x.r.w);
     if (trade) return x.r.ratio ? `${fmt(x.q)}× ${n} → ${fmtR(x.r.ratio.give)} ${x.r.ratio.g ? pName(x.r.ratio.g) : ""}`.trim() : `${fmt(x.q)}× ${n} → no ratio`;
-    const w = x.r.w, p = num(w.p);
+    const w = dealItem(x.r.w, x), p = num(w.p);
     const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmt(p)} ea`;
     const bk = x.r.bulk ? ` +${fmtR(x.r.bulk)}% bulk` : "";
+    if (x.r.short && ORDER.capStock !== false) {
+      if (!x._cap) return `${fmt(x.q)}× ${n} — ${st.type === "achat" ? "not needed" : "sold out"}`;
+      return `${fmt(x.q)}× ${n} — ${how}${bk} → ${st.type === "achat" ? "I take " + fmt(x._cap) : fmt(x._cap) + " available"} = ${fmt(x.r.v)}`;
+    }
     return `${fmt(x.q)}× ${n} — ${how}${bk} = ${fmt(x.r.v)}`;
   });
   let foot = "";
@@ -2693,7 +2759,9 @@ function replyText() {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; by.set(k, (by.get(k) || 0) + R.give); });
     foot = "**You get: " + [...by].map(([k, n]) => fmtR(Math.ceil(n * 100) / 100) + " " + k).join(" + ") + "**";
   } else {
-    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    const sh = ORDER.capStock !== false ? L.filter(x => x.r.short > 0) : [];
+    if (sh.length) foot += (st.type === "achat" ? "Not needed: " : "Not available: ") + sh.map(x => fmt(x.r.short) + " " + pName(x.r.w)).join(", ") + "\n";
+    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   return lines.join("\n") + "\n" + foot;
 }
