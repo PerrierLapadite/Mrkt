@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Market Studio · Hay Day</title>
-<meta name="description" content="Hay Day trade, sell and buy posts for Discord.">
+<meta name="description" content="Make clean Hay Day trade, selling and buying posts for Discord — real game images, ratio groups, totals in coins and diamond rings.">
+<meta property="og:title" content="Market Studio · Hay Day">
+<meta property="og:description" content="Make clean Hay Day trade, selling and buying posts for Discord — real game images, ratio groups, totals in coins and diamond rings.">
+<meta property="og:type" content="website">
 <meta name="theme-color" content="#f3ecdf" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +36,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 /* ---------- masthead ---------- */
 .top{padding:calc(var(--safe-t) + 14px) 16px 0;background:var(--bg);border-bottom:3px solid var(--ink);box-shadow:0 4px 0 -2px var(--bg),0 5px 0 -2px var(--ink)}
-.brand{max-width:1280px;margin:0 auto;display:flex;align-items:baseline;gap:10px}
+.brand{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:10px}
 .brand h1{margin:0;font:400 26px/1 var(--disp);letter-spacing:.005em}
 .brand small{font:italic 600 14px var(--slab);color:var(--mut)}
 .profiles{max-width:1280px;margin:10px auto 0;display:flex;gap:18px;overflow-x:auto;scrollbar-width:none}
@@ -191,6 +194,10 @@ body[data-tab=prev] #editor{display:none}
 .lay{padding:8px 2px 6px!important;font-size:12.5px!important}
 .addnote{justify-self:start;border:0;background:none;padding:2px 2px;color:var(--mut);font:italic 600 14px var(--slab)}
 .notebox{display:grid}
+.inp,.ta,.sel,.note,.box input,.rin input{font-size:16px}
+.helpb{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;font:700 17px var(--slab);color:var(--ink);padding:0;align-self:center}
+.help ol{margin:0;padding-left:20px;display:grid;gap:10px;line-height:1.45}
+.help .hint{margin-top:12px}
 .target{flex-direction:column;align-items:stretch!important;gap:6px!important}
 .tchips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
 .tchips::-webkit-scrollbar{display:none}
@@ -266,7 +273,7 @@ body[data-tab=prev] #mini{display:none}
 </head>
 <body data-tab="items">
 <header class="top">
-  <div class="brand"><h1>Market Studio</h1></div>
+  <div class="brand"><h1>Market Studio</h1><span style="flex:1"></span><button class="helpb" id="helpBtn" aria-label="How it works">?</button></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -313,7 +320,6 @@ body[data-tab=prev] #mini{display:none}
         </div>
         <label class="switch">Show the total<input type="checkbox" id="showTot"></label>
         <div><label class="lbl">Total in</label><div class="seg" id="totSeg"><button data-u="coins">Coins</button><button data-u="both">Coins + rings</button><button data-u="rings">Rings</button></div></div>
-        <div><label class="lbl">Ring rate</label><div class="box"><span class="u" style="border:0;border-right:1px solid var(--line2)">10 <span id="rateRing"></span> =</span><input id="rate10" inputmode="numeric"><span class="u"><i class="coin"></i>coins</span></div></div>
         </div>
       </div>
     </section>
@@ -339,7 +345,7 @@ body[data-tab=prev] #mini{display:none}
         <div class="ch"><h2>Texts</h2></div>
         <div><label class="lbl">Title</label><input class="inp" data-k="title"></div>
         <div class="two">
-          <div><label class="lbl">Username</label><input class="inp" data-k="user"></div>
+          <div><label class="lbl">Username</label><input class="inp" data-k="user" placeholder="Your Discord name"></div>
           <div><label class="lbl">Subtitle</label><input class="inp" data-k="kicker" placeholder="optional"></div>
         </div>
         <div class="two" id="titlesBox">
@@ -347,7 +353,7 @@ body[data-tab=prev] #mini{display:none}
           <div><label class="lbl">List heading</label><input class="inp" data-k="wantTitle"></div>
         </div>
         <div><label class="lbl">Stamp</label>
-          <div class="emo"><button class="thumbbtn" id="ctaIcon" aria-label="Stamp image (optional)"></button><input class="inp" data-k="cta" placeholder="e.g. Mix accepted"></div></div>
+          <input class="inp" data-k="cta" placeholder="e.g. Mix accepted"></div>
         <div><label class="lbl">Footer</label><input class="inp" data-k="sub" placeholder="optional"></div>
       </div>
       <div class="card fieldset">
@@ -371,7 +377,6 @@ body[data-tab=prev] #mini{display:none}
   </aside>
 </main>
 
-<button id="mini" aria-label="Open preview"><canvas id="miniCv" width="120" height="200"></canvas></button>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-h"><h3 id="sheetT"></h3><button class="ib" id="sheetX" aria-label="Close">✕</button></div><div class="sheet-b" id="sheetB"></div></div>
 <div id="toast" role="status"></div>
@@ -654,7 +659,8 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const clone = o => JSON.parse(JSON.stringify(o));
 /** Typed number: accepts "1500", "1,500", "1.5k", "12k", "2m". */
 function num(v) {
-  const s = String(v ?? "").toLowerCase().replace(/[\s,\u00a0\u202f]/g, "");
+  let s = String(v ?? "").toLowerCase().replace(/[\s\u00a0\u202f]/g, "");
+  s = /^\d*,\d{1,2}[km]?$/.test(s) ? s.replace(",", ".") : s.replace(/,/g, ""); // "2,5" = 2.5 · "1,500" = 1500
   if (!s) return 0;
   const m = s.match(/^(\d*\.?\d+)(k|m)?$/);
   if (m) return parseFloat(m[1]) * (m[2] === "k" ? 1e3 : m[2] === "m" ? 1e6 : 1);
@@ -967,7 +973,8 @@ const TYPES = {
   achat: { icon: "🛒", name: "Buying", en: "BUYING", list: "Buying", li: "🛒" }
 };
 const RATIO_CATS = new Set(["packs", "ext"]); // expansion materials are usually traded by ratio
-const ringRate = () => num(SETTINGS.ring) || 1;
+const RING_RATE = 824.4; // fixed server rate: 10 diamond rings = 8,244 coins
+const ringRate = () => RING_RATE;
 /** Value of an item in coins (sell / buy posts only — trade posts use ratios, no prices). */
 function itemValue(w) {
   if (st && st.type === "trade") return 0;
@@ -993,7 +1000,7 @@ function mkItem(ref, extra) {
 }
 const frName = p => { const f = (p.fr || "").split("~")[0].trim(); return f ? f.charAt(0).toUpperCase() + f.slice(1) : p.en; };
 function defaults(type) {
-  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "both", disc: "", discLabel: "", details: "", user: "Perrier Lapadite", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
+  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "both", disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
   if (type === "vente") return { ...base, title: "Shop open", wantTitle: "Available now", cta: "DM to buy",
     wants: [mkItem("lobster-tail", { q: "20", p: "1500" }), mkItem("blanket", { q: "10", p: "1", pu: "ring", hot: 1 }), mkItem("olive-oil", { q: "50", p: "900" })] };
   if (type === "achat") return { ...base, title: "Wanted", wantTitle: "Looking for", cta: "Sell me yours",
@@ -1004,7 +1011,7 @@ function defaults(type) {
     wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["duck-feather", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60", 0, "1st page · no bb"]]
       .map(([id, a, hot, note]) => mkItem(id, { ra: a, rb: "89", hot: hot || 0, note: note || "" })) };
 }
-const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name || TYPES[type].name });
+const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name || TYPES[type].name, user: (typeof st !== "undefined" && st && st.user) || "" });
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
@@ -1012,8 +1019,8 @@ function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
 let CUSTOM = store.get("hd5_custom", []);
-let SETTINGS = Object.assign({ recent: [], to: "wants", ring: "824.4" }, store.get("hd5_settings", {}));
-if (SETTINGS.ring === "1500") SETTINGS.ring = "824.4"; // server rate: 10 rings = 8,244 coins
+let SETTINGS = Object.assign({ recent: [], to: "wants" }, store.get("hd5_settings", {}));
+delete SETTINGS.ring;
 let STATE = null, st = null;
 
 /** Reprend les profils de l’ancienne version (même site GitHub Pages → même stockage). */
@@ -1040,7 +1047,7 @@ function migrateOld() {
   const list = old.l.map(o => {
     const type = o.type || "trade", d = defaults(type);
     const pr = { ...d, id: o.id || uid(), name: o.name || TYPES[type].name, theme: themeMap[o.theme] || d.theme, layout: +o.cols === 1 ? "list" : "grid2",
-      kicker: o.kicker ?? d.kicker, title: o.title ?? d.title, user: (o.user && !/Himanshu/.test(o.user)) ? o.user : "Perrier Lapadite",
+      kicker: o.kicker ?? d.kicker, title: o.title ?? d.title, user: (o.user && !/Himanshu/.test(o.user)) ? o.user : "",
       haveTitle: o.haveLabel ?? d.haveTitle, wantTitle: o.wantTitle ?? d.wantTitle, cta: o.footer ?? d.cta, ctaE: o.footEmoji || d.ctaE, sub: o.sub ?? d.sub,
       have: (o.have || []).filter(x => x.n || x.e).map(x => conv(x, true)), wants: (o.wants || []).filter(x => x.n).map(x => conv(x)) };
     if (o.footImg && o.footImg.startsWith("data:")) { const k = "u:cta-" + pr.id; USERIMG.set(k, o.footImg); IDB.put(k, o.footImg); pr.ctaImg = "idb:" + k; }
@@ -1233,6 +1240,8 @@ function draw() {
   // Auto: past 12 items, switch to compact rows spread over several columns (the image grows wider, not longer)
   let lay = st.layout || "auto";
   if (lay === "auto") lay = trade ? "groups" : wants.length > 12 ? "compact" : "list";
+  // safety: very long lists in List / Grid would make an image too tall to export on iPhone
+  if ((lay === "list" && wants.length > 45) || (lay === "grid2" && wants.length > 24) || (lay === "grid3" && wants.length > 36)) lay = trade ? "groups" : "compact";
   const grid = lay === "grid2" || lay === "grid3", C = lay === "grid3" ? 3 : 2, compact = lay === "compact", grouped = lay === "groups";
   // ratio boxes: widen the image when there are many items so it doesn't get too tall
   const GR = grouped ? ratioGroups(wants) : [], TW = 158, TG = 10, BP = 22;
@@ -1298,7 +1307,7 @@ function draw() {
   if (!wants.length) H += 80;
   const LCc = [];
   if (compact && !trade && wants.some(w => num(w.p) > 0)) {
-    LCc.push({ k: "p", w: 112, l: "PRICE/EA" }, { k: "q", w: 60, l: "QTY" });
+    LCc.push({ k: "p", w: 112, l: "PRICE / EA" }, { k: "q", w: 60, l: "QTY" });
     if (unit !== "rings") LCc.push({ k: "t", w: 124, l: "TOTAL" });
     if (unit !== "coins") LCc.push({ k: "r", w: 88, l: "RINGS" });
   }
@@ -1316,7 +1325,7 @@ function draw() {
     if (!t) return;
     wrap(t, W - 2 * M - 40, "500", 28).forEach((l, i) => notes.push({ t: l, b: b && i === 0, ind: b }));
   });
-  if (notes.length > 14) notes.length = 14;
+  if (notes.length > 20) notes.length = 20;
   if (notes.length) H += 30 + 44 + notes.length * 42 + 20;
   const cta = (st.cta || "").trim();
   if (cta) H += 40 + 120 + 40;
@@ -1537,14 +1546,12 @@ function draw() {
   /* ---------- rubber stamp ---------- */
   if (cta) {
     y += 40;
-    const ctaS = st.ctaImg && st.ctaImg !== "none" ? srcState(st.ctaImg.startsWith("idb:") ? (USERIMG.get(st.ctaImg.slice(4)) || "") : st.ctaImg) : (st.ctaRef && st.ctaImg !== "none" ? prodState(st.ctaRef) : null);
-    const hasI = ctaS && ctaS.ok;
+    const hasI = false;
     let s = 62; font("D", s); while (ctx.measureText(cta).width > 700 - (hasI ? 80 : 0) && s > 30) { s--; font("D", s); }
     const tw = ctx.measureText(cta).width, bw = tw + 80 + (hasI ? 80 : 0), bh = 120, cx = W / 2, cy = y + bh / 2;
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(-.035);
     rr(-bw / 2, -bh / 2, bw, bh, 12); ctx.lineWidth = 6; ctx.strokeStyle = T.acc; ctx.stroke();
     rr(-bw / 2 + 11, -bh / 2 + 11, bw - 22, bh - 22, 6); ctx.lineWidth = 2; ctx.stroke();
-    if (hasI) icon(ctaS, "", -bw / 2 + 40 + 36, 0, 66, 1);
     txt(cta, hasI ? 40 : 0, 4, { f: "D", s, c: T.acc, al: "center" });
     // worn ink
     rr(-bw / 2 - 6, -bh / 2 - 6, bw + 12, bh + 12, 14); ctx.clip();
@@ -1579,7 +1586,14 @@ function tab(t) {
   scrollTo({ top: 0 });
 }
 $$("#tabbar [data-t]").forEach(b => b.onclick = () => tab(b.dataset.t));
-$("#mini").onclick = () => tab("prev");
+$("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help" },
+  h("ol", null,
+    h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
+    h("li", null, h("b", null, "Search products"), " and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
+    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each (coins or rings) and the quantity. Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic."),
+    h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
+    h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
+  h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
 
 /* ---------- ring icon (DOM) ---------- */
 function ringEl() { const s = h("span", { class: "ringi" }); fillThumb(s, prodState("diamond-ring"), "💍"); return s; }
@@ -1682,7 +1696,7 @@ function addFromCatalog(p) {
   toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : ""));
 }
 $("#freeAdd").onclick = () => {
-  const it = mkItem(null, { name: $("#q").value.trim(), e: "📦" });
+  const it = mkItem(null, Object.assign({ name: $("#q").value.trim(), e: "📦" }, st.type === "trade" && targetList() === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : {}));
   targetList().push(it); renderLists(); changed();
   setTimeout(() => { const el = document.querySelector(`[data-uid="${it.uid}"] .name`); if (el) { el.focus(); el.scrollIntoView({ block: "center", behavior: "smooth" }); } }, 50);
 };
@@ -1892,8 +1906,6 @@ function renderDeals() {
   const d = $("#disc"); d.value = st.disc || ""; d.oninput = () => { st.disc = d.value; changed(); renderSummary(); };
   $("#showTot").checked = st.showTotal !== false; $("#showTot").onchange = e => { st.showTotal = e.target.checked; changed(); };
   $$("#totSeg button").forEach(b => { b.classList.toggle("on", b.dataset.u === (st.totUnit || "both")); b.onclick = () => { st.totUnit = b.dataset.u; renderDeals(); changed(); }; });
-  const r = $("#rate10"); r.value = String(Math.round(ringRate() * 10)); r.onchange = () => { if (!num(r.value)) return toast("Enter a number of coins"); SETTINGS.ring = String(num(r.value) / 10); saveSettings(); renderLists(); changed(); toast("Rate updated ✔"); };
-  const rr2 = $("#rateRing"); rr2.textContent = ""; rr2.append(ringEl());
 }
 /* ---------- style ---------- */
 const LAYOUTS = [
@@ -1912,11 +1924,6 @@ function renderStyle() {
   LAYOUTS.forEach(l => { const b = h("button", { class: "lay" + (st.layout === l.id ? " on" : ""), onclick: () => { st.layout = l.id; renderStyle(); changed(); } }); b.innerHTML = l.svg; b.append(l.fr); ly.append(b); });
   $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === (st.sort || "manual")); b.onclick = () => { st.sort = b.dataset.s; renderStyle(); changed(); }; });
   $("#haveTitleF").hidden = st.type !== "trade";
-  const ci = $("#ctaIcon"); ci.textContent = "";
-  const ctaTarget = { get e() { return st.ctaE; }, set e(v) { st.ctaE = v; }, get img() { return st.ctaImg || ""; }, set img(v) { st.ctaImg = v; }, get ref() { return st.ctaRef; }, set ref(v) { st.ctaRef = v; }, name: "" };
-  const ctaState = () => st.ctaImg && st.ctaImg !== "none" ? srcState(st.ctaImg.startsWith("idb:") ? (USERIMG.get(st.ctaImg.slice(4)) || "") : st.ctaImg) : (st.ctaRef && st.ctaImg !== "none" ? prodState(st.ctaRef) : null);
-  ci.append(thumb(ctaState(), st.ctaE || "🔥"));
-  ci.onclick = () => imageSheet(null, { target: ctaTarget, title: "Banner icon", noName: true, noOverride: true, state: ctaState });
 }
 $("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Profile duplicated"); };
 let delArm = 0;
@@ -1930,7 +1937,7 @@ let rstArm = 0;
 $("#resetP").onclick = function () {
   if (!rstArm) { rstArm = 1; this.textContent = "Tap again to confirm"; setTimeout(() => { rstArm = 0; this.textContent = "Reset this profile"; }, 3000); return; }
   rstArm = 0; this.textContent = "Reset this profile";
-  Object.assign(st, defaults(st.type), { id: st.id, name: st.name }); renderAll(); changed(); toast("Profile reset");
+  Object.assign(st, defaults(st.type), { id: st.id, name: st.name, user: st.user }); renderAll(); changed(); toast("Post reset");
 };
 
 /* ---------- export ---------- */
@@ -1967,7 +1974,7 @@ $("#bkIn").onchange = async e => {
     const o = JSON.parse(await f.text());
     if (o.app === "hd-studio" && o.state && Array.isArray(o.state.list)) {
       STATE = o.state; CUSTOM = o.custom || []; store.set("hd5_custom", CUSTOM);
-      if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); saveSettings(); }
+      if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; saveSettings(); }
       Object.entries(o.images || {}).forEach(([k, v]) => { USERIMG.set(k, v); IDB.put(k, v); });
     } else if (Array.isArray(o.l)) { store.set("tp4", o); localStorage.removeItem("hd5_state"); loadState(); }
     else throw 0;
