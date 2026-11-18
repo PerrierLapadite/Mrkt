@@ -18,7 +18,7 @@
 :root{
   --bg:#f3ecdf;--surface:#fffcf5;--surface2:#f7f1e4;--ink:#241a12;--mut:#7a6a58;--line:#e3d8c4;--line2:#cdbfa6;
   --acc:#b5321e;--acc-ink:#fff;--acc-soft:rgba(181,50,30,.07);--ok:#3b7531;
-  --slab:'Zilla Slab',Georgia,serif;--disp:'Alfa Slab One','Zilla Slab',Georgia,serif;
+  --slab:'Zilla Slab',Georgia,serif;--disp:'Alfa Slab One','Zilla Slab',Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
   --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
   --cin:#2f6fb0;--cout:#c4562a; /* chart: money in / out (CVD-checked) */
   color-scheme:light;
@@ -49,7 +49,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* ---------- layout ---------- */
 .app{max-width:1280px;margin:0 auto;padding:18px 14px}
 .panel{display:none;gap:14px;grid-template-columns:minmax(0,1fr)}
-body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist,body[data-tab=stats] #p-stats,body[data-tab=me] #p-me,body[data-tab=inv] #p-inv,body[data-tab=search] #p-search{display:grid}
+body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist,body[data-tab=stats] #p-stats,body[data-tab=me] #p-me,body[data-tab=inv] #p-inv,body[data-tab=search] #p-search,body[data-tab=deals] #p-deals{display:grid}
 #preview{display:none}
 body[data-tab=prev] #preview{display:block}
 body[data-tab=prev] #editor{display:none}
@@ -421,6 +421,50 @@ body[data-tab=prev] #editor{display:none}
 .osplit span{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:3px 9px 3px 4px;font-size:14px;background:var(--surface)}
 .osplit b{font-size:15px}
 .osh{margin:2px 0 0;font-size:12.5px}
+/* deals */
+.tabbar button{position:relative}
+.tbdg{position:absolute;top:4px;right:calc(50% - 30px);min-width:17px;height:17px;border-radius:9px;background:var(--acc);color:#fff;font:700 11px/17px var(--sans);padding:0 4px;letter-spacing:0}
+.dh{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dh h2{margin:0}
+.dsec{font:700 13px var(--slab);letter-spacing:.07em;text-transform:uppercase;color:var(--mut);margin:6px 2px -4px}
+.dcard{display:grid;gap:10px}
+.dcard.daily{border-left:4px solid var(--cin)}
+.dcard.short{border-left:4px solid #c8361f}
+.dtop{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.dtype{font:700 11.5px var(--slab);letter-spacing:.05em;text-transform:uppercase;color:var(--mut);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap}
+.dwho{font:700 17px var(--slab);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dtop small{color:var(--mut);font-size:12px;white-space:nowrap}
+.dprog{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;font-weight:600;font-size:13.5px}
+.dbar{height:8px;border-radius:4px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.dbar i{display:block;height:100%;background:var(--cin)}
+.dprog .ok{color:var(--ok)}
+.dprog .todo{color:#b26b00}
+.dleft{margin:-4px 0 0}
+.dleft.red{color:#c8361f;font-weight:600}
+.drow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:start}
+.drow .dl{font:700 11.5px var(--slab);letter-spacing:.05em;text-transform:uppercase;color:var(--mut);padding-top:7px}
+.dchips{display:flex;flex-wrap:wrap;gap:6px}
+.dchip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:3px 9px 3px 4px;font-size:13.5px;background:var(--surface);flex-wrap:wrap}
+.dchip.coins{padding-left:8px}
+.dchip.short{border-color:#c8361f;background:rgba(200,54,31,.08)}
+.dw{font-style:normal;font-weight:700;font-size:12px}
+.dw.red{color:#c8361f}
+.dw.amber{color:#b26b00}
+.dnote{margin:0;font-size:13.5px;color:var(--mut);font-style:italic}
+.dund{flex-direction:row}
+.dclosed summary{cursor:pointer;font:700 15px var(--slab)}
+.dcl{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.dcl small{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dform{display:grid;gap:12px}
+.dside{display:grid;gap:6px}
+.dfrow{display:grid;grid-template-columns:24px minmax(0,1fr) 76px 22px;gap:8px;align-items:center}
+.dfrow span:not(.th){font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dfrow input{height:38px;border:1px solid var(--line2);border-radius:8px;text-align:center;font-weight:700;background:var(--surface);min-width:0}
+.dres{display:flex;flex-wrap:wrap;gap:6px}
+.btn.later{border-style:dashed}
+/* red mark: the inventory doesn't have what the post offers */
+.thumbbtn .sbad,.sbad{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:10px;background:#c8361f;color:#fff;font:700 11px/20px var(--sans);padding:0 5px;text-align:center;box-shadow:0 0 0 2px var(--bg);z-index:1}
+.pdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c8361f;margin-left:5px;vertical-align:4px}
 /* profile · inventory · search */
 .meb{width:34px;height:34px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);font:400 17px/1 var(--disp);padding:0;align-self:center;display:grid;place-items:center}
 .meb.on{box-shadow:0 0 0 3px var(--acc)}
@@ -510,8 +554,8 @@ body[data-tab=prev] #editor{display:none}
 .stab td.nm{padding-left:0;width:100%;max-width:0}
 .nmi{display:flex;align-items:center;gap:6px;font-weight:600;min-width:0}
 .nmi span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sbar{display:block;height:4px;border-radius:0 2px 2px 0;margin-top:4px;background:var(--cin)}
-.sbar.out{background:var(--cout)}
+.stbar{display:block;height:4px;border-radius:0 2px 2px 0;margin-top:4px;background:var(--cin)}
+.stbar.out{background:var(--cout)}
 .smore{margin-top:8px}
 .recs{display:grid;gap:2px}
 .rec{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
@@ -550,7 +594,7 @@ body[data-tab=prev] #editor{display:none}
 .achip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 3px;border:1px solid var(--line2);border-radius:8px;font-size:13px;font-weight:600;max-width:100%}
 .achip small{color:var(--mut);font-weight:700}
 .achip.in{opacity:.4}
-.achip.more{padding:3px 8px;color:var(--mut)}
+.achip.amore{padding:3px 8px;color:var(--mut)}
 .oedit{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding-top:6px}
 .oedit .ol{font:italic 600 13px var(--slab);color:var(--acc)}
 .oedit .box{height:40px}
@@ -615,7 +659,7 @@ body[data-tab=prev] #mini{display:none}
     <button data-t="style">Style</button>
     <button data-t="order">Order</button>
     <button data-t="search">Search</button>
-    <button data-t="hist">History</button>
+    <button data-t="deals">Deals</button>
     <button data-t="prev">Preview</button>
   </nav>
   <div id="editor">
@@ -632,10 +676,12 @@ body[data-tab=prev] #mini{display:none}
           <div class="chips" id="cats"></div>
           <div class="grid" id="results"></div>
           <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
+          <label class="btn sm dashed full filebtn" style="margin-top:8px">📷 Add from screenshots (barn / silo)<input type="file" id="itemsShot" accept="image/*" multiple></label>
           <button class="btn pri full" id="sdone" style="margin-top:10px">Done</button>
         </div>
       </div>
 
+      <div id="itemsScan"></div>
       <div id="haveBox" class="stack">
         <div class="sec-h"><div class="ic"></div><h3 id="haveH">I have</h3><span id="haveN"></span></div>
         <div class="list" id="haveList"></div>
@@ -704,6 +750,11 @@ body[data-tab=prev] #mini{display:none}
     <!-- ===== INVENTORY (profile menu) ===== -->
     <section class="panel" id="p-inv">
       <div id="invOut" class="stack"></div>
+    </section>
+
+    <!-- ===== DEALS ===== -->
+    <section class="panel" id="p-deals">
+      <div id="dealOut" class="stack"></div>
     </section>
 
     <!-- ===== SEARCH ===== -->
@@ -2157,6 +2208,7 @@ function tab(t) {
   if (t === "me") renderMe();
   if (t === "inv") renderInv();
   if (t === "search") renderSearch();
+  if (t === "deals") renderOngoing();
   $("#meBtn").classList.toggle("on", ["me", "inv", "stats"].includes(t));
   if (t !== "items") closeDrop();
   requestAnimationFrame(updJump);
@@ -2174,6 +2226,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Search:"), " paste a buyer’s “buying” message — it checks your inventory and makes the order with their prices and quantities."),
+    h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
     h("li", null, h("b", null, "Profile (top right):"), " your pseudo, your Inventory (read from barn / silo screenshots, or by hand — it follows your deals) and your Stats."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Preview:"), " Download, Share or Copy the picture and post it on Discord.")),
@@ -2190,7 +2243,7 @@ function convEls(v) { const out = []; convs().forEach((k, i) => out.push(h("smal
 /* ---------- profiles ---------- */
 function renderProfiles() {
   const f = $("#profiles"); f.textContent = "";
-  STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), onclick: () => selectProfile(p.id) }, p.name || "Profile")));
+  STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), onclick: () => selectProfile(p.id) }, p.name || "Profile", typeof postShort === "function" && postShort(p) ? h("i", { class: "pdot", title: "Some items are short in your inventory" }) : null)));
   f.append(h("button", { class: "pchip add", title: "New profile", "aria-label": "New profile", onclick: newProfileSheet }, "＋"));
 }
 function newProfileSheet() {
@@ -2282,7 +2335,7 @@ $("#sdone").onclick = closeDrop;
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
-function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste", "stats", "inv", "search", "me"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
+function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste", "stats", "inv", "search", "me", "deals"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 let jumpT = 0;
@@ -2394,7 +2447,7 @@ function nameEl(it) {
   const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
   return name;
 }
-const thumbEl = it => h("span", { class: "thumbbtn" }, thumb(itemState(it), it.e));
+const thumbEl = it => h("span", { class: "thumbbtn" }, thumb(itemState(it), it.e), typeof stockBadge === "function" ? stockBadge(it) : null);
 function groupRow(it) {
   const row = h("div", { class: "gi" + (it.hot ? " hot" : ""), "data-uid": it.uid });
   const name = nameEl(it);
@@ -2475,7 +2528,7 @@ function itemCard(it) {
       const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
       mp.title = { wiki: "Game max price (wiki)", table: "Game max price", "sum of the 3 materials": "Sum of the 3 materials" }[src] || "";
       mp.append("Max price", h("i", { class: "coin" }), auto ? fmt(auto) : src === "loading" ? "…" : "—");
-      if (m && num(it.p)) mp.append("·", h("b", null, fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each"));
+      if (m && num(it.p)) mp.append(" · ", h("b", null, fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each"));
     }
     renderSummary();
   };
@@ -2600,7 +2653,7 @@ $("#copy").onclick = async () => {
 /* ---------- backup ---------- */
 $("#bkOut").onclick = () => {
   const imgs = {}; USERIMG.forEach((v, k) => imgs[k] = v);
-  saveBlob(new Blob([JSON.stringify({ app: "hd-studio", v: 8, state: STATE, settings: SETTINGS, custom: CUSTOM, images: imgs, history: HIST, inventory: INV, scanLearn: LEARN })], { type: "application/json" }), "hayday-studio-backup.json");
+  saveBlob(new Blob([JSON.stringify({ app: "hd-studio", v: 9, state: STATE, settings: SETTINGS, custom: CUSTOM, images: imgs, history: HIST, inventory: INV, scanLearn: LEARN, deals: DEALS })], { type: "application/json" }), "hayday-studio-backup.json");
   toast("Backup exported ✔");
 };
 $("#bkIn").onchange = async e => {
@@ -2612,6 +2665,7 @@ $("#bkIn").onchange = async e => {
       if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; saveSettings(); }
       Object.entries(o.images || {}).forEach(([k, v]) => { USERIMG.set(k, v); IDB.put(k, v); });
       if (o.inventory && Array.isArray(o.inventory.items)) { INV = o.inventory; saveInv(); }
+      if (Array.isArray(o.deals)) { const have = new Set(DEALS.map(d => d.id)); DEALS = DEALS.concat(o.deals.filter(d => d && !have.has(d.id))); saveDeals(); }
       if (Array.isArray(o.scanLearn)) { LEARN = o.scanLearn; store.set("hd5_scanlearn", LEARN); }
       if (Array.isArray(o.history)) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(o.history.filter(e => e && !have.has(e.id))).sort((a, b) => b.t - a.t); saveHist(); }
     } else if (Array.isArray(o.l)) { store.set("tp4", o); localStorage.removeItem("hd5_state"); loadState(); }
@@ -2900,14 +2954,22 @@ function updCard(P, trade) {
       card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, (trade ? giveName(p.w) : pName(p.w)) + "  −" + fmt(p.n)), h("span", null, ...w)));
     });
   }
-  const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); who.hidden = !save.checked; } });
+  const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); } });
   const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; } });
-  who.hidden = !save.checked;
   card.append(h("label", { class: "switch sm" }, "Save it in my History", save), who,
     h("div", { class: "two" },
       h("button", { class: "btn pri", onclick: () => applyDeal(P, trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
-      h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")));
+      h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")),
+    h("button", { class: "btn full later", onclick: () => orderLater(P, trade, who.value.trim()) }, "⏳ Save for later — handle another one"));
   return card;
+}
+/** Keep this order in Deals (nothing changes yet) and free the box for the next one. */
+function orderLater(P, trade, who) {
+  const e = histEntry(who);
+  if (!e.lines.length && !(e.gives || []).length) return toast("Nothing to save yet");
+  addDeal(e, { who, post: { pid: st.id, items: P.filter(p => p.on && p.have).map(p => ({ uid: p.w.uid, n: p.n, list: trade ? "have" : "wants" })) } });
+  ORDER.text = ""; ORDER.prev = []; ORDER.who = ""; ORDER.dismissed = null; $("#orderIn").value = ""; renderOrder();
+  toast("⏳ Saved in Deals — paste the next order");
 }
 /** One History entry from the order on screen. */
 function histEntry(who) {
@@ -3133,7 +3195,7 @@ function advPreview() {
     const val = w => f === "q" ? fmt(num(w.q)) : f === "x" ? fmtR(advMetric(w, "x")) + "×" : f === "p" ? fmt(unitPrice(w)) : num(w.q) ? fmt(num(w.q)) : "";
     const chips = h("div", { class: "achips" });
     hits.slice(0, 24).forEach(w => chips.append(h("span", { class: "achip" + (fresh.includes(w) ? "" : " in") }, thumb(itemState(w), w.e, "mini"), pName(w), val(w) ? h("small", null, val(w)) : null)));
-    if (hits.length > 24) chips.append(h("span", { class: "achip more" }, "+" + (hits.length - 24)));
+    if (hits.length > 24) chips.append(h("span", { class: "achip amore" }, "+" + (hits.length - 24)));
     P.append(chips);
   }
   const n = fresh.length, hasText = !!(ORDER.text || "").trim();
@@ -3175,7 +3237,7 @@ function dayLabel(t) {
   if (t >= d0 - 864e5) return "Yesterday";
   return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined });
 }
-const short = v => v >= 1e6 ? (Math.round(v / 1e5) / 10) + "M" : v >= 1e5 ? Math.round(v / 1e3) + "k" : fmt(v);
+const short = v => v >= 1e6 ? (Math.round(v / 1e5) / 10) + "M" : v >= 1e5 ? Math.round(v / 1e3) + "k" : v >= 1e4 ? (Math.round(v / 100) / 10) + "k" : fmt(v);
 const hm = t => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 function renderHist() {
   const out = $("#histOut"); out.textContent = "";
@@ -3324,7 +3386,7 @@ function sTable(key, rows, cols, barOf, barCls) {
   const t = h("table", { class: "stab" },
     h("thead", null, h("tr", null, h("th", null, cols[0].t), ...cols.slice(1).map(c => h("th", null, c.t)))),
     h("tbody", null, shown.map(r => h("tr", null,
-      h("td", { class: "nm" }, h("div", { class: "nmi" }, sThumb(r), h("span", null, r.name || "Item")), barOf ? h("i", { class: "sbar " + (barCls || ""), style: "width:" + Math.max(2, barOf(r) / max * 100).toFixed(1) + "%" }) : null),
+      h("td", { class: "nm" }, h("div", { class: "nmi" }, sThumb(r), h("span", null, r.name || "Item")), barOf ? h("i", { class: "stbar " + (barCls || ""), style: "width:" + Math.max(2, barOf(r) / max * 100).toFixed(1) + "%" }) : null),
       ...cols.slice(1).map(c => h("td", { class: "n" }, c.f(r)))))));
   return h("div", null, t, rows.length > 8 ? h("button", { class: "btn sm smore", onclick: () => { SV.more[key] = !all; renderStats(); } }, all ? "Show less" : "Show all " + rows.length) : null);
 }
@@ -3591,7 +3653,19 @@ $("#pastePaste").onclick = async () => { try { const t = await navigator.clipboa
 let INV = store.get("hd5_inv", { items: [], t: 0 });
 if (!Array.isArray(INV.items)) INV = { items: [], t: 0 };
 const IV = { f: "all", q: "", sort: "az", scan: null };
-const saveInv = () => { INV.t = Date.now(); store.set("hd5_inv", INV); };
+const saveInv = () => { INV.t = Date.now(); store.set("hd5_inv", INV); invChanged(); };
+/** Posts show a red mark when the inventory is short → refresh them when it changes. */
+const invChanged = debounce(() => { if (typeof renderProfiles !== "function" || !st) return; renderProfiles(); if (document.body.dataset.tab === "items") renderLists(); }, 60);
+/** What your post offers but your inventory doesn't have (selling posts, and "I have" in trades). */
+function stockNeed(it, p) {
+  p = p || st; if (!INV.items.length || !it.ref || !CAT.byId[it.ref]) return null;
+  const gives = p.type === "vente" ? p.wants.includes(it) : p.type === "trade" ? p.have.includes(it) : false; if (!gives) return null;
+  const need = Math.max(1, Math.round(num(it.q)) || 1), have = invQty(it);
+  return have < need ? { need, have } : null;
+}
+function stockBadge(it) { const s = stockNeed(it); return s ? h("b", { class: "sbad", title: "Your inventory: " + fmt(s.have) + (num(it.q) ? " — this post says " + fmt(s.need) : "") }, s.have ? short(s.have) : "0") : null; }
+const postShort = p => p.type === "vente" ? p.wants.some(it => stockNeed(it, p)) : p.type === "trade" ? p.have.some(it => stockNeed(it, p)) : false;
+function renderItemsScan() { const box = $("#itemsScan"); if (!box) return; box.textContent = ""; if (PS.scan) { box.append(scanCard("post")); if (!PS.scan.busy) box.scrollIntoView({ behavior: "smooth", block: "start" }); } }
 /** Silo = crops of the fields; everything else goes to the barn. */
 const invStore = ref => { const p = ref && CAT.byId[ref]; return p && p.cat === "crops" ? "silo" : "barn"; };
 const invKey = x => x.ref || "n:" + norm(x.name || "");
@@ -3718,6 +3792,7 @@ function addInvSheet() {
 }
 $("#meBtn").onclick = () => tab("me");
 meInitial();
+$("#itemsShot").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f, "post"); };
 
 /* =====================================================================
    11. SCAN — read Hay Day barn / silo screenshots, on this device only
@@ -3982,9 +4057,17 @@ async function scanPool(onProg) {
   }
   return pool;
 }
-function updScan(msg) { if (IV.scan) IV.scan.msg = msg; const e = $("#scanMsg"); if (e) e.textContent = msg; }
-async function scanFiles(files) {
-  IV.scan = { busy: true, msg: "Reading your screenshots…" }; if (document.body.dataset.tab !== "inv") tab("inv"); else renderInv();
+/* where the reading goes: "inv" = Inventory page · "post" = Items tab (adds to the post) */
+const PS = { scan: null };
+const scanGet = w => w === "post" ? PS.scan : IV.scan;
+const scanPut = (w, v) => { if (w === "post") PS.scan = v; else IV.scan = v; };
+const scanDraw = w => w === "post" ? renderItemsScan() : renderInv();
+let scanWhere = "inv";
+function updScan(msg) { const S = scanGet(scanWhere); if (S) S.msg = msg; const e = $("#scanMsg"); if (e) e.textContent = msg; }
+async function scanFiles(files, where) {
+  where = scanWhere = where || "inv";
+  scanPut(where, { busy: true, msg: "Reading your screenshots…" });
+  if (where === "inv") { if (document.body.dataset.tab !== "inv") tab("inv"); else renderInv(); } else { closeDrop(); renderItemsScan(); }
   try {
     const found = [];
     for (const [k, f] of files.entries()) {
@@ -3992,7 +4075,7 @@ async function scanFiles(files) {
       const P = scanPixels(await loadFileImg(f), 2600), N = scanNumbers(P);
       scanIcons(P, N).filter(o => o.box && o.bg > .2).forEach(o => found.push({ o, shot: k }));
     }
-    if (!found.length) { IV.scan = { err: "No item found. Use full screenshots of the Barn or Silo window, as they come from your phone (not cropped or resized)." }; renderInv(); return; }
+    if (!found.length) { scanPut(where, { err: "No item found. Use full screenshots of the Barn or Silo window, as they come from your phone (not cropped or resized)." }); scanDraw(where); return; }
     updScan("Loading the game pictures…"); await sleep(30);
     const pool = await scanPool((d, t) => updScan("Loading the game pictures… " + d + " / " + t));
     updScan("Comparing " + found.length + " items…"); await sleep(30);
@@ -4003,14 +4086,16 @@ async function scanFiles(files) {
     // the same item on two screenshots (they overlap when you scroll) → once
     const seen = new Map();
     rows = rows.filter(r => { if (!r.ref || !r.sure) return true; const o = seen.get(r.ref); if (!o) { seen.set(r.ref, r); return true; } if (r.q > o.q) o.q = r.q; return false; });
-    IV.scan = { rows, shots: files.length, mode: "upd", noPics: !pool.length };
-  } catch (e) { IV.scan = { err: "Couldn't read it (" + (e && e.message || e) + "). Try again with the original screenshot." }; }
-  renderInv();
+    scanPut(where, { rows, shots: files.length, mode: "upd", noPics: !pool.length, alsoInv: true });
+  } catch (e) { scanPut(where, { err: "Couldn't read it (" + (e && e.message || e) + "). Try again with the original screenshot." }); }
+  scanDraw(where);
 }
-function scanCard() {
-  const S = IV.scan, c = h("div", { class: "card fieldset scan" }, h("div", { class: "ch" }, h("h2", null, "Check what was read")));
+function scanCard(where) {
+  where = where || "inv";
+  const S = scanGet(where), redraw = () => scanDraw(where), post = where === "post";
+  const c = h("div", { class: "card fieldset scan" }, h("div", { class: "ch" }, h("h2", null, post ? "Add from screenshots" : "Check what was read")));
   if (S.busy) { c.append(h("div", { class: "scanbusy" }, h("span", { class: "spin" }), h("span", { id: "scanMsg" }, S.msg))); return c; }
-  if (S.err) { c.append(h("p", { class: "owarn" }, S.err), h("button", { class: "btn", onclick: () => { IV.scan = null; renderInv(); } }, "OK")); return c; }
+  if (S.err) { c.append(h("p", { class: "owarn" }, S.err), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "OK")); return c; }
   const R = S.rows, todo = R.filter(r => r.on && (!r.sure || !r.ref)).length;
   c.append(h("p", { class: "hint" }, plural(R.length, "item") + " found in " + plural(S.shots, "screenshot") + ". Tap an item to fix it, untick what you don't want." + (todo ? " " + plural(todo, "line") + " to check (orange)." : "")));
   if (S.noPics) c.append(h("p", { class: "owarn" }, "The game pictures couldn't be loaded (no internet?): pick each item by hand."));
@@ -4020,39 +4105,53 @@ function scanCard() {
     const qi = h("input", { value: r.q, inputMode: "numeric", "aria-label": "Quantity", oninput: () => { r.q = Math.round(num(qi.value)); } });
     list.append(h("div", { class: "srow" + (r.on ? "" : " off") + (!r.ref || !r.sure ? " chk" : "") },
       h("img", { src: r.view, alt: "", class: "scrop" }),
-      h("button", { class: "spick", onclick: () => scanPick(r) }, p ? thumb(prodState(p.id), p.e, "mini") : null, h("span", null, p ? p.en : "Pick the item"), !r.ref || !r.sure ? h("span", { class: "flag" }, "?") : null),
+      h("button", { class: "spick", onclick: () => scanPick(r, where) }, p ? thumb(prodState(p.id), p.e, "mini") : null, h("span", null, p ? p.en : "Pick the item"), !r.ref || !r.sure ? h("span", { class: "flag" }, "?") : null),
       h("div", { class: "oq" }, h("span", null, "×"), qi),
-      h("input", { type: "checkbox", class: "scb", checked: r.on, "aria-label": "Keep this line", onchange: e => { r.on = e.target.checked; renderInv(); } })));
+      h("input", { type: "checkbox", class: "scb", checked: r.on, "aria-label": "Keep this line", onchange: e => { r.on = e.target.checked; redraw(); } })));
   });
   const stores = [...new Set(R.filter(r => r.on && r.ref).map(r => invStore(r.ref)))];
   const n = R.filter(r => r.on && r.ref && r.q > 0).length;
-  c.append(list,
-    h("div", { class: "seg" }, h("button", { class: S.mode !== "rep" ? "on" : "", onclick: () => { S.mode = "upd"; renderInv(); } }, "Update these items"),
-      h("button", { class: S.mode === "rep" ? "on" : "", onclick: () => { S.mode = "rep"; renderInv(); } }, "Replace my " + (stores.length === 1 ? stores[0] : "barn & silo"))),
-    h("p", { class: "hint" }, S.mode === "rep" ? "Everything else in your " + (stores.join(" & ") || "barn") + " is removed — use it when your screenshots show the whole " + (stores[0] || "barn") + "." : "Only these items change; the rest of your inventory stays."),
-    h("div", { class: "two" }, h("button", { class: "btn pri", disabled: !n, onclick: scanSave }, "Save " + plural(n, "item")), h("button", { class: "btn", onclick: () => { IV.scan = null; renderInv(); } }, "Cancel")));
+  c.append(list);
+  if (post) c.append(h("p", { class: "hint" }, "Added to " + (targetList() === st.have ? "“" + (st.haveTitle || "I have") + "”" : "your list") + " of “" + (st.name || "this post") + "”, with these quantities. Items already in the list get the new quantity."),
+    h("label", { class: "switch sm" }, "Also update my inventory", h("input", { type: "checkbox", checked: S.alsoInv !== false, onchange: e => { S.alsoInv = e.target.checked; } })));
+  else c.append(h("div", { class: "seg" }, h("button", { class: S.mode !== "rep" ? "on" : "", onclick: () => { S.mode = "upd"; redraw(); } }, "Update these items"),
+      h("button", { class: S.mode === "rep" ? "on" : "", onclick: () => { S.mode = "rep"; redraw(); } }, "Replace my " + (stores.length === 1 ? stores[0] : "barn & silo"))),
+    h("p", { class: "hint" }, S.mode === "rep" ? "Everything else in your " + (stores.join(" & ") || "barn") + " is removed — use it when your screenshots show the whole " + (stores[0] || "barn") + "." : "Only these items change; the rest of your inventory stays."));
+  c.append(h("div", { class: "two" }, h("button", { class: "btn pri", disabled: !n, onclick: () => scanSave(where) }, (post ? "Add " : "Save ") + plural(n, "item")), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "Cancel")));
   return c;
 }
-function scanPick(r) {
+function scanPick(r, where) {
+  const redraw = () => scanDraw(where || "inv");
   const res = h("div", { class: "menu pick" });
-  const btn = p => h("button", { onclick: () => { if (r.ref !== p.id) r.fixed = true; r.ref = p.id; r.sure = true; r.on = true; closeSheet(); renderInv(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
+  const btn = p => h("button", { onclick: () => { if (r.ref !== p.id) r.fixed = true; r.ref = p.id; r.sure = true; r.on = true; closeSheet(); redraw(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
   const fill = q => { res.textContent = ""; search(q, "all").filter(p => !p.parts).slice(0, 12).forEach(p => res.append(btn(p))); };
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", autocapitalize: "off", oninput: e => fill(e.target.value) });
   const best = r.m.map(x => CAT.byId[x.ref]).filter(Boolean);
   openSheet("Which item is it?", [h("img", { src: r.view, alt: "", class: "scrop big" }),
     best.length ? h("div", null, h("label", { class: "lbl" }, "Closest pictures"), h("div", { class: "menu pick" }, best.map(btn))) : null,
     h("label", { class: "lbl", style: "margin-top:10px" }, "Another item"), sq, res,
-    h("button", { class: "btn dashed", style: "margin-top:10px", onclick: () => { r.on = false; closeSheet(); renderInv(); } }, "Skip this one")]);
+    h("button", { class: "btn dashed", style: "margin-top:10px", onclick: () => { r.on = false; closeSheet(); redraw(); } }, "Skip this one")]);
 }
-function scanSave() {
-  const S = IV.scan, R = S.rows.filter(r => r.on && r.ref && r.q > 0);
-  if (S.mode === "rep") { const st2 = new Set(R.map(r => invStore(r.ref))); INV.items = INV.items.filter(i => !st2.has(i.s)); }
-  R.forEach(r => invSet({ ref: r.ref }, r.q, true));
+function scanSave(where) {
+  const S = scanGet(where), R = S.rows.filter(r => r.on && r.ref && r.q > 0), post = where === "post";
+  if (post) {
+    const list = targetList(); let added = 0;
+    R.forEach(r => {
+      const ex = list.find(it => it.ref === r.ref);
+      if (ex) { ex.q = String(r.q); return; }
+      if (list.length >= 150) return;
+      list.push(mkItem(r.ref, Object.assign({ q: String(r.q) }, st.type === "trade" && list === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : {}))); added++;
+    });
+    renderLists(); renderResults(); changed();
+  }
+  if (S.mode === "rep" && !post) { const st2 = new Set(R.map(r => invStore(r.ref))); INV.items = INV.items.filter(i => !st2.has(i.s)); }
+  if (!post || S.alsoInv !== false) R.forEach(r => invSet({ ref: r.ref }, r.q, true));
   // learn from what you fixed or confirmed when unsure → better next time
   R.filter(r => r.fixed || r.unsure0).forEach(r => LEARN.push({ ref: r.ref, url: r.learn }));
   if (LEARN.length > 80) LEARN = LEARN.slice(-80);
   store.set("hd5_scanlearn", LEARN);
-  saveInv(); IV.scan = null; renderInv(); toast(plural(R.length, "item") + " saved in your inventory ✔");
+  saveInv(); scanPut(where, null); scanDraw(where);
+  toast(post ? plural(R.length, "item") + " added to your post ✔" : plural(R.length, "item") + " saved in your inventory ✔");
 }
 
 /* =====================================================================
@@ -4166,16 +4265,21 @@ function renderSearch() {
     convs().length && total ? h("div", { class: "conv" }, sConv(total)) : null,
     noPrice ? h("p", { class: "owarn" }, plural(noPrice, "line") + " without a price — tap “no price” to set one.") : null,
     h("button", { class: "btn gold full", disabled: !live.length, onclick: async () => { const t = srReply(live, total); try { await navigator.clipboard.writeText(t); toast("Reply copied ✔"); } catch (e) { openSheet("Reply", h("textarea", { class: "ta", rows: 10, value: t, readOnly: true })); } } }, "Copy the reply for Discord"),
-    who, h("button", { class: "btn pri full", disabled: !live.some(r => r.q > 0), onclick: () => srDeal(live, total) }, "✓ Deal done")));
+    who, h("div", { class: "two" }, h("button", { class: "btn pri", disabled: !live.some(r => r.q > 0), onclick: () => srDeal(live, total) }, "✓ Deal done"),
+      h("button", { class: "btn", disabled: !live.some(r => r.q > 0), onclick: () => srLater(live, total) }, "⏳ Save for later"))));
 }
 function srReply(live, total) {
   const L = live.filter(r => r.q > 0).map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmt(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`);
   return "I can sell you:\n" + L.join("\n") + `\n**Total: ${fmt(total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, total / CUR[k].rate)}`).join(" ·") + "**";
 }
 /** Deal done: a sale in your History (and Stats), and your inventory goes down. */
+const srEntry = (live, total) => ({ id: uid(), t: Date.now(), type: "vente", post: "Search", who: SR.who.trim(), lines: live.filter(r => r.q > 0).map(r => ({ ref: r.p.id, e: r.p.e || "", name: r.p.en, q: r.q, v: Math.round(r.q * r.price), bulk: 0, give: 0 })), gives: [], total: Math.round(total), bonus: 0, disc: 0, reply: srReply(live, total) });
+function srLater(live, total) {
+  addDeal(srEntry(live, total), { who: SR.who.trim() });
+  SR.text = ""; SR.ed = {}; SR.picks = {}; SR.who = ""; $("#srIn").value = ""; renderSearch(); toast("⏳ Saved in Deals — paste the next list");
+}
 function srDeal(live, total) {
-  const L = live.filter(r => r.q > 0);
-  const e = { id: uid(), t: Date.now(), type: "vente", post: "Search", who: SR.who.trim(), lines: L.map(r => ({ ref: r.p.id, e: r.p.e || "", name: r.p.en, q: r.q, v: Math.round(r.q * r.price), bulk: 0, give: 0 })), gives: [], total: Math.round(total), bonus: 0, disc: 0, reply: srReply(live, total) };
+  const e = srEntry(live, total);
   const before = clone(INV.items), upd = invLive();
   HIST.unshift(e); saveHist(); if (upd) invApply(e);
   SR.done = { e, before, upd }; SR.who = ""; renderSearch(); toast(upd ? "Saved in History — inventory updated ✔" : "Saved in History ✔");
@@ -4201,6 +4305,185 @@ function srPick(r) {
 $("#srIn").addEventListener("input", debounce(e => { SR.text = e.target.value; SR.ed = {}; renderSearch(); }, 250));
 $("#srPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#srIn").value = t; SR.text = t; SR.ed = {}; SR.picks = {}; SR.done = null; renderSearch(); } catch (e) { toast("Long-press the box and choose Paste"); $("#srIn").focus(); } };
 $("#srClear").onclick = () => { $("#srIn").value = ""; SR.text = ""; SR.ed = {}; SR.picks = {}; SR.done = null; renderSearch(); };
+
+/* =====================================================================
+   14. DEALS — several deals at once: saved for later, every-day trades,
+   confirmed (→ History, Stats, inventory, post) or cancelled
+   ===================================================================== */
+let DEALS = store.get("hd5_deals", []);
+if (!Array.isArray(DEALS)) DEALS = [];
+const DL = { undo: null, showDone: false };
+const saveDeals = () => { store.set("hd5_deals", DEALS); dealBadge(); };
+const DTYPE = { trade: { t: "Trade", i: "🔁" }, vente: { t: "Sale", i: "💰" }, achat: { t: "Purchase", i: "🛒" } };
+const openDeals = () => DEALS.filter(d => d.status === "open");
+const dayKey = t => { const d = new Date(t); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
+const doneToday = d => !!(d.daily && d.daily.log.some(x => dayKey(x.t) === dayKey(Date.now())));
+function dealBadge() { const b = $("#tabbar [data-t=deals]"); if (!b) return; let i = b.querySelector(".tbdg"); const n = openDeals().length; if (!i) { i = h("b", { class: "tbdg" }); b.append(i); } i.textContent = n || ""; i.hidden = !n; }
+/** What you hand over in one delivery (or one day): sold items, items given in a trade. */
+function dealOut(e) { return e.type === "vente" ? (e.lines || []).map(l => ({ ref: l.ref, e: l.e, name: l.name, n: l.q || 0 })) : e.type === "trade" ? (e.gives || []).map(g => ({ ref: g.ref, e: g.e, name: g.name, n: g.n || 0 })) : []; }
+function dealIn(e) { return e.type === "achat" || e.type === "trade" ? (e.lines || []).map(l => ({ ref: l.ref, e: l.e, name: l.name, n: l.q || 0 })) : []; }
+/** Everything the open deals still need from your inventory (today's part for daily ones). */
+function reserved(except) {
+  const m = new Map();
+  openDeals().forEach(d => { if (d === except || (d.daily && doneToday(d))) return; dealOut(d.e).forEach(x => { const k = x.ref || x.name; m.set(k, (m.get(k) || 0) + x.n); }); });
+  return m;
+}
+/** Save a deal for later (from Order, Search or the form). */
+function addDeal(e, o) {
+  const d = Object.assign({ id: uid(), created: Date.now(), who: (e.who || "").trim(), note: "", e: Object.assign({}, e), status: "open", daily: null, post: null }, o || {});
+  delete d.e.id; delete d.e.t;
+  DEALS.unshift(d); DL.undo = null; saveDeals(); return d;
+}
+/** Confirm a deal (or today's part): a History entry, the inventory, and the post it came from. */
+function confirmDeal(d) {
+  const snap = { deal: JSON.stringify(d), inv: clone(INV.items), post: null };
+  const e = Object.assign({}, clone(d.e), { id: uid(), t: Date.now(), who: d.who, post: d.e.post || DTYPE[d.e.type].t, reply: d.e.reply || dealText(d) });
+  HIST.unshift(e); saveHist();
+  const upd = invLive(); if (upd) invApply(e);
+  // the post it came from: lower what was sold / given (like “✓ Mark as done” in Order)
+  let pu = 0;
+  if (d.post && !d.daily) {
+    const p = STATE.list.find(x => x.id === d.post.pid);
+    if (p) {
+      snap.post = { pid: p.id, wants: clone(p.wants), have: clone(p.have) };
+      d.post.items.forEach(u => { const list = u.list === "have" ? p.have : p.wants, it = list.find(x => x.uid === u.uid); if (!it || !num(it.q)) return; const left = Math.max(0, Math.round(num(it.q)) - u.n); if (left) it.q = String(left); else list.splice(list.indexOf(it), 1); pu++; });
+      if (pu) { if (p.id === st.id) { renderLists(); renderTarget(); renderResults(); } changed(); }
+    }
+  }
+  if (d.daily) { d.daily.log.push({ t: e.t, hid: e.id }); if (d.daily.days && d.daily.log.length >= d.daily.days) { d.status = "done"; d.closed = Date.now(); } }
+  else { d.status = "done"; d.closed = Date.now(); d.hid = e.id; }
+  saveDeals();
+  DL.undo = { id: d.id, hid: e.id, snap, what: (d.daily ? "Day " + d.daily.log.length + " done" : "Deal done") + (d.who ? " with " + d.who : "") + (upd ? " · inventory updated" : "") + (pu ? " · post updated" : "") };
+  renderOngoing(); renderProfiles();
+}
+function cancelDeal(d) {
+  DL.undo = { id: d.id, snap: { deal: JSON.stringify(d) }, what: "Deal cancelled" + (d.who ? " (" + d.who + ")" : "") };
+  d.status = "cancelled"; d.closed = Date.now(); saveDeals(); renderOngoing();
+}
+function undoDeal() {
+  const U = DL.undo; if (!U) return;
+  const i = DEALS.findIndex(x => x.id === U.id); if (i >= 0) DEALS[i] = JSON.parse(U.snap.deal);
+  if (U.hid) { HIST = HIST.filter(e => e.id !== U.hid); saveHist(); }
+  if (U.snap.inv) { INV.items = U.snap.inv; saveInv(); }
+  if (U.snap.post) { const p = STATE.list.find(x => x.id === U.snap.post.pid); if (p) { p.wants = U.snap.post.wants; p.have = U.snap.post.have; if (p.id === st.id) { renderLists(); renderTarget(); renderResults(); } changed(); } }
+  DL.undo = null; saveDeals(); renderOngoing(); toast("Undone");
+}
+function dealText(d) {
+  const e = d.e, li = a => a.map(x => fmt(x.n) + "× " + x.name).join(", ") || "—";
+  if (e.type === "trade") return `Trade${d.who ? " with " + d.who : ""}${d.daily ? " (every day)" : ""}: I give ${li(dealOut(e))} · I get ${li(dealIn(e))}`;
+  if (e.type === "vente") return `${li(dealOut(e))} — ${fmt(e.total || 0)} coins`;
+  return `${li(dealIn(e))} — ${fmt(e.total || 0)} coins`;
+}
+
+/* ---------- the page ---------- */
+function renderOngoing() {
+  const out = $("#dealOut"); if (!out) return; out.textContent = "";
+  const O = openDeals(), daily = O.filter(d => d.daily), once = O.filter(d => !d.daily);
+  out.append(h("div", { class: "card fieldset" },
+    h("div", { class: "ch dh" }, h("h2", null, "Ongoing deals"), h("button", { class: "btn sm pri", onclick: () => dealForm() }, "＋ New deal")),
+    h("p", { class: "hint" }, O.length ? plural(once.length, "deal") + " to finish · " + plural(daily.length, "every-day trade") : "Keep several deals going at once: save one from Order or Search (⏳ Save for later) or add one here. Confirm it when it's done — your History, Stats and inventory follow.")));
+  if (DL.undo) out.append(h("div", { class: "card oundo dund" }, h("span", null, DL.undo.what), h("button", { class: "btn sm", onclick: undoDeal }, "Undo")));
+  const res = reserved();
+  if (daily.length) { out.append(h("h3", { class: "dsec" }, "Every day")); daily.forEach(d => out.append(dealCard(d, res))); }
+  if (once.length) { out.append(h("h3", { class: "dsec" }, "To finish")); once.forEach(d => out.append(dealCard(d, res))); }
+  if (!O.length) out.append(h("div", { class: "empty card" }, "No deal in progress.", h("div", { class: "two", style: "margin-top:12px" }, h("button", { class: "btn", onclick: () => tab("order") }, "Order"), h("button", { class: "btn", onclick: () => tab("search") }, "Search"))));
+  const closed = DEALS.filter(d => d.status !== "open").sort((a, b) => (b.closed || 0) - (a.closed || 0)).slice(0, 15);
+  if (closed.length) out.append(h("details", { class: "card dclosed", open: DL.showDone, ontoggle: e => { DL.showDone = e.target.open; } }, h("summary", null, "Finished & cancelled (" + closed.length + ")"),
+    closed.map(d => h("div", { class: "dcl" }, h("span", null, DTYPE[d.e.type].i), h("div", null, h("b", null, d.who || DTYPE[d.e.type].t), h("small", null, (d.status === "done" ? "Done " : "Cancelled ") + dayLabel(d.closed) + (d.daily ? " · " + plural(d.daily.log.length, "day") : "") + " · " + dealText(d))),
+      h("button", { class: "btn sm", onclick: () => { d.status = "open"; delete d.closed; saveDeals(); renderOngoing(); } }, "Reopen"))),
+    h("button", { class: "btn sm", style: "margin-top:8px", onclick: () => { if (!confirm("Remove the finished and cancelled deals from this list? (Your History keeps the done ones.)")) return; DEALS = DEALS.filter(d => d.status === "open"); saveDeals(); renderOngoing(); } }, "Clear this list")));
+  out.append(h("button", { class: "btn full", onclick: () => tab("hist") }, "🕘 My History"));
+}
+function dealChip(x, res, out) {
+  const p = x.ref && CAT.byId[x.ref];
+  let warn = null;
+  if (out && INV.items.length && x.ref) {
+    const have = invQty(x), all = res.get(x.ref) || 0;
+    if (have < x.n) warn = h("em", { class: "dw red", title: "Your inventory has " + fmt(have) }, have ? "only " + fmt(have) : "none left");
+    else if (all > have) warn = h("em", { class: "dw amber", title: "Your open deals need " + fmt(all) + " in all" }, fmt(have) + " for " + fmt(all) + " in deals");
+  }
+  return h("span", { class: "dchip" + (warn && warn.classList.contains("red") ? " short" : "") }, p ? thumb(prodState(p.id), p.e, "mini") : h("span", { class: "th mini" }, x.e || "📦"), h("b", null, fmt(x.n)), " " + (p && p.parts ? giveName({ ref: p.id }) : x.name), warn);
+}
+function dealCard(d, res) {
+  const e = d.e, T = DTYPE[e.type], outL = dealOut(e), inL = dealIn(e), today = doneToday(d);
+  const short = outL.some(x => x.ref && INV.items.length && invQty(x) < x.n);
+  const coins = e.type !== "trade" ? h("span", { class: "dchip coins" }, h("i", { class: "coin" }), h("b", null, fmt(e.total || 0)), " coins") : null;
+  const card = h("div", { class: "card dcard" + (d.daily ? " daily" : "") + (short ? " short" : "") });
+  card.append(h("div", { class: "dtop" }, h("span", { class: "dtype" }, T.i + " " + T.t), h("b", { class: "dwho" }, d.who || "No name"),
+    h("small", null, /^(Today|Yesterday)$/.test(dayLabel(d.created)) ? dayLabel(d.created).toLowerCase() : "since " + dayLabel(d.created)), h("button", { class: "ib", "aria-label": "More", onclick: () => dealMenu(d) }, "⋯")));
+  if (d.daily) {
+    const n = d.daily.log.length, N = d.daily.days;
+    card.append(h("div", { class: "dprog" }, h("div", { class: "dbar" }, h("i", { style: "width:" + (N ? Math.min(100, n / N * 100) : Math.min(100, n * 10)) + "%" })),
+      h("span", null, N ? "Day " + fmt(n) + " / " + fmt(N) : fmt(n) + " " + (n === 1 ? "day" : "days") + " done"), h("b", { class: today ? "ok" : "todo" }, today ? "Today ✓" : "Today: to do")));
+    if (outL.length && INV.items.length) { const left = Math.min(...outL.filter(x => x.ref && x.n).map(x => Math.floor(invQty(x) / x.n))); if (isFinite(left)) card.append(h("p", { class: "hint dleft" + (N && left < N - n ? " red" : "") }, "Your inventory covers " + plural(left, "more day") + (N ? " (" + fmt(Math.max(0, N - n)) + " to go)" : "") + ".")); }
+  }
+  const row = (label, kids) => h("div", { class: "drow" }, h("span", { class: "dl" }, label), h("div", { class: "dchips" }, kids));
+  card.append(row(d.daily ? "You give / day" : "You give", e.type === "achat" ? [coins] : outL.map(x => dealChip(x, res, true))),
+    row(d.daily ? "You get / day" : "You get", e.type === "vente" ? [coins] : inL.map(x => dealChip(x, res, false))));
+  if (d.note) card.append(h("p", { class: "dnote" }, d.note));
+  card.append(h("div", { class: "two" },
+    d.daily ? h("button", { class: "btn pri", onclick: () => { if (today && !confirm("Today is already done. Count one more day?")) return; confirmDeal(d); } }, today ? "＋ One more day" : "✓ Today done")
+      : h("button", { class: "btn pri", onclick: () => confirmDeal(d) }, "✓ Done"),
+    h("button", { class: "btn", onclick: () => dealCopy(d) }, "Copy")));
+  return card;
+}
+async function dealCopy(d) { const t = d.e.reply || dealText(d); try { await navigator.clipboard.writeText(t); toast("Copied ✔"); } catch (e) { openSheet("Deal", h("textarea", { class: "ta", rows: 8, value: t, readOnly: true })); } }
+function dealMenu(d) {
+  openSheet((d.who || DTYPE[d.e.type].t) + " — " + DTYPE[d.e.type].t, h("div", { class: "menu" },
+    h("button", { onclick: () => { closeSheet(); dealForm(d); } }, h("i", null, "✎"), "Edit"),
+    h("button", { onclick: () => { closeSheet(); dealCopy(d); } }, h("i", null, "⧉"), "Copy the details"),
+    h("button", { class: "danger", onclick: () => { closeSheet(); cancelDeal(d); } }, h("i", null, "✕"), "Cancel this deal")));
+}
+
+/* ---------- new / edit (by hand) ---------- */
+function dealForm(d) {
+  const e0 = d ? d.e : { type: "trade" };
+  const F = { type: e0.type, who: d ? d.who : "", note: d ? d.note : "", coins: e0.total ? String(e0.total) : "",
+    give: (d ? dealOut(e0) : []).map(x => Object.assign({}, x)), get: (d ? dealIn(e0) : []).map(x => Object.assign({}, x)),
+    daily: d ? !!d.daily : false, days: d && d.daily && d.daily.days ? String(d.daily.days) : "" };
+  const body = h("div", { class: "dform" });
+  const draw = () => {
+    body.textContent = "";
+    const seg = h("div", { class: "seg" }, Object.keys(DTYPE).map(k => h("button", { class: F.type === k ? "on" : "", onclick: () => { F.type = k; draw(); } }, DTYPE[k].i + " " + DTYPE[k].t)));
+    const who = h("input", { class: "inp", value: F.who, placeholder: "Partner's name (e.g. pkfaire)", autocapitalize: "off", oninput: e => { F.who = e.target.value; } });
+    const coinsIn = h("div", { class: "box" }, h("input", { value: F.coins, inputMode: "decimal", placeholder: "e.g. 50k", oninput: e => { F.coins = e.target.value; } }), h("span", { class: "u" }, h("i", { class: "coin" }), "coins"));
+    const side = (key, label) => {
+      const L = F[key], wrap = h("div", { class: "dside" }, h("label", { class: "lbl" }, label + (F.daily ? " (each day)" : "")));
+      L.forEach((x, i) => { const p = x.ref && CAT.byId[x.ref];
+        wrap.append(h("div", { class: "dfrow" }, p ? thumb(prodState(p.id), p.e, "mini") : null, h("span", null, p && p.parts ? giveName({ ref: p.id }) + " (materials)" : x.name),
+          h("input", { value: x.n || "", inputMode: "numeric", "aria-label": "How many", oninput: e => { x.n = Math.round(num(e.target.value)); } }),
+          h("button", { class: "odel", "aria-label": "Remove", onclick: () => { L.splice(i, 1); draw(); } }, "×"))); });
+      const res = h("div", { class: "dres" });
+      const q = h("input", { class: "inp", type: "search", placeholder: "＋ Add an item", autocapitalize: "off", oninput: e => { res.textContent = ""; if (!e.target.value.trim()) return; search(e.target.value, "all").slice(0, 6).forEach(p => res.append(h("button", { class: "mchip", onclick: () => { L.push({ ref: p.id, e: p.e, name: p.en, n: key === "give" && p.parts ? 89 : 1 }); draw(); setTimeout(() => { const ins = body.querySelectorAll(".dside")[key === "give" ? 0 : 1].querySelectorAll(".dfrow input"); ins.length && ins[ins.length - 1].select(); }, 30); } }, thumb(prodState(p.id), p.e, "mini"), p.en))); } });
+      wrap.append(q, res);
+      return wrap;
+    };
+    const days = h("div", { class: "box", style: "max-width:200px" }, h("input", { value: F.days, inputMode: "numeric", placeholder: "until I stop", oninput: e => { F.days = e.target.value; } }), h("span", { class: "u" }, "days"));
+    body.append(seg, h("div", null, h("label", { class: "lbl" }, "With"), who),
+      F.type === "achat" ? h("div", null, h("label", { class: "lbl" }, "You pay" + (F.daily ? " (each day)" : "")), coinsIn) : side("give", "You give"),
+      F.type === "vente" ? h("div", null, h("label", { class: "lbl" }, "You get" + (F.daily ? " (each day)" : "")), coinsIn) : side("get", "You get"),
+      h("div", null, h("label", { class: "lbl" }, "How often"), h("div", { class: "seg" }, h("button", { class: F.daily ? "" : "on", onclick: () => { F.daily = false; draw(); } }, "Once"), h("button", { class: F.daily ? "on" : "", onclick: () => { F.daily = true; draw(); } }, "Every day"))),
+      F.daily ? h("div", null, h("label", { class: "lbl" }, "For"), days, h("p", { class: "hint", style: "margin-top:6px" }, "e.g. a daily trade: 89 BEM every day for 7 days. Each day you tap “✓ Today done”.")) : null,
+      h("div", null, h("label", { class: "lbl" }, "Note"), h("input", { class: "inp", value: F.note, placeholder: "optional — e.g. pays at 8 pm", oninput: e => { F.note = e.target.value; } })),
+      h("button", { class: "btn pri full", onclick: save }, d ? "Save the changes" : "Add to my deals"));
+  };
+  const save = () => {
+    const give = F.give.filter(x => x.n > 0), get = F.get.filter(x => x.n > 0), coins = Math.round(num(F.coins));
+    if (F.type === "trade" && !give.length && !get.length) return toast("Add what you give and what you get");
+    if (F.type === "vente" && !give.length) return toast("Add what you sell");
+    if (F.type === "achat" && !get.length) return toast("Add what you buy");
+    const share = (L, tot) => { const n = L.reduce((a, x) => a + x.n, 0) || 1; return L.map(x => ({ ref: x.ref || null, e: x.e || "", name: x.name, q: x.n, v: Math.round(tot * x.n / n), bulk: 0, give: 0 })); };
+    const e = F.type === "trade" ? { type: "trade", lines: get.map(x => ({ ref: x.ref, e: x.e, name: x.name, q: x.n, v: 0, bulk: 0, give: 0 })), gives: give.map(x => ({ ref: x.ref, e: x.e, name: x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts ? giveName(x) : x.name, n: x.n, split: splitTxt({ ref: x.ref }, x.n) || undefined })), total: 0 }
+      : F.type === "vente" ? { type: "vente", lines: share(give, coins), gives: [], total: coins } : { type: "achat", lines: share(get, coins), gives: [], total: coins };
+    Object.assign(e, { bonus: 0, disc: 0, post: "Deal" });
+    const daily = F.daily ? { days: Math.round(num(F.days)) || 0, log: d && d.daily ? d.daily.log : [] } : null;
+    if (d) { Object.assign(d, { who: F.who.trim(), note: F.note.trim(), e: Object.assign(e, { reply: "" }), daily }); d.e.reply = ""; saveDeals(); }
+    else addDeal(e, { who: F.who.trim(), note: F.note.trim(), daily });
+    closeSheet(); if (document.body.dataset.tab !== "deals") tab("deals"); else renderOngoing(); toast(d ? "Deal updated ✔" : "Deal added ✔");
+  };
+  draw(); openSheet(d ? "Edit the deal" : "New deal", body);
+}
+dealBadge();
 
 </script>
 <!-- Images des produits : wiki communautaire Hay Day (hayday.fandom.com). Hay Day et ses visuels appartiennent à Supercell. -->
