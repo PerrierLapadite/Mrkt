@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Market Studio · Guide</title>
+<title>Market Manager · Guide</title>
 <meta name="description" content="Hay Day trade post maker — guide">
-<meta property="og:title" content="Market Studio · Guide">
+<meta property="og:title" content="Market Manager · Guide">
 <meta property="og:description" content="Hay Day trade post maker — guide">
 <meta property="og:type" content="article">
 <meta name="theme-color" content="#f3ecdf">
@@ -233,9 +233,9 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <body>
 
 <header class="top">
-  <div class="in"><a class="brand" href="./">Market Studio</a><span class="sp"></span><a class="btn" href="./">Open the site</a></div>
+  <div class="in"><a class="brand" href="./">Market Manager</a><span class="sp"></span><a class="btn" href="./">Open the site</a></div>
   <nav class="toc" id="toc">
-    <a href="#basics">Basics</a><a href="#add">Add items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#total">Discount &amp; bulk</a><a href="#paste">Paste</a><a href="#order">Order</a><a href="#search">Search</a><a href="#deals">Deals</a><a href="#history">History</a><a href="#profile">Profile &amp; Inventory</a><a href="#stats">Stats</a><a href="#style">Style</a><a href="#export">Post it</a><a href="#know">Good to know</a><a href="#faq">Questions</a>
+    <a href="#basics">Basics</a><a href="#add">Add items</a><a href="#trade">Trade</a><a href="#sell">Selling &amp; Buying</a><a href="#total">Discount &amp; bulk</a><a href="#paste">Paste</a><a href="#order">Order</a><a href="#search">Search</a><a href="#deals">Deals</a><a href="#history">History</a><a href="#profile">Profile &amp; Inventory</a><a href="#import">Import</a><a href="#stats">Stats</a><a href="#style">Style</a><a href="#export">Post it</a><a href="#know">Good to know</a><a href="#faq">Questions</a>
   </nav>
 </header>
 
@@ -263,14 +263,14 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li><b>Trade</b> = swap with ratios. <b>Selling</b> / <b>Buying</b> = with prices.</li>
     <li><b>＋</b> makes another post. Each post keeps its own items and style.</li>
   </ul>
-  <div class="mock"><div class="m-bar"><span class="on">Items</span><span>Paste</span><span>Style</span><span>Order</span><span>Deals</span><span>Preview</span><span class="ex">🔍 Search</span></div></div>
+  <div class="mock"><div class="m-bar"><span class="on">Items</span><span>Style</span><span>Order</span><span>Deals</span><span>Preview</span><span class="ex">🔍 Search</span></div></div>
   <table>
     <tr><td><b>Items</b></td><td>Your list: add items, ratios or prices.</td></tr>
-    <tr><td><b>Paste</b></td><td>Build a post from a text list.</td></tr>
     <tr><td><b>Style</b></td><td>Title, your name, colours, layout, backup.</td></tr>
     <tr><td><b>Order</b></td><td>Price a buyer’s or seller’s message.</td></tr>
     <tr><td><b class="acc">🔍 Search</b></td><td>The button apart, at the right: paste a buyer’s “buying” list → what you have in your inventory, at their prices.</td></tr>
     <tr><td><b>Deals</b></td><td>Several deals at once, every-day trades: confirm or cancel them.</td></tr>
+    <tr><td><b>Import</b> <span class="k">⤓</span></td><td>Top right: turn an old post (screenshot or text) into a post here.</td></tr>
     <tr><td><b>Profile</b> <span class="k">M</span></td><td>Top right: your pseudo, your <b>Inventory</b> (barn &amp; silo), your <b>Stats</b> and your <b>History</b>.</td></tr>
     <tr><td><b class="acc">Preview</b></td><td>See the picture, then Download, Share or Copy it for Discord.</td></tr>
   </table>
@@ -294,8 +294,10 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>The results stay open: add several, then tap <b>Done</b>.</li>
     <li>Empty search? Browse by category: Popular, Expansion sets, Crops… <b>Show more</b> for more.</li>
     <li><b>Enter</b> adds the first result. An item already in your list isn’t added twice.</li>
+    <li>Above the results, choose where items come from: <b>📖 Almanac</b> (every game item) · <b>📦 Inventory</b> (your farms — all of them or some; items come with the quantity you have, <b>Add all</b> adds them at once) · <b>📝 From a text</b> (a pasted list).</li>
     <li>Not in the game list? <b>＋ Custom item</b> (it keeps the name you type).</li>
     <li><b>📷 Add from screenshots</b> (under the results): pick barn / silo screenshots — the items and their numbers go into your list (and your inventory if you want). See <a href="#profile">Inventory</a>.</li>
+    <li><b>Out of stock</b>: ⋯ on an item → “Out of stock”. It stays in your post, <s>faded and struck through</s> on the picture, isn't in the totals, and Order says “out of stock”. Tap the red “out of stock” tag to put it back.</li>
     <li>A small <b style="color:#c8361f">red number</b> on an item = your inventory has less than your post offers (e.g. 50 left for 132 in the post).</li>
     <li>The search bar stays at the top while you scroll.</li>
   </ul>
@@ -406,8 +408,8 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 6 PASTE -->
 <section class="step" id="paste">
-  <h2><span class="n">6</span>Paste a list</h2>
-  <p class="say">Already have your list as text? Paste it in the <b>Paste</b> tab.</p>
+  <h2><span class="n">6</span>Add from a text</h2>
+  <p class="say">Already have your list as text? <b>Items</b> → tap the search bar → <b>📝 From a text</b>, and paste it (‹ Items brings you back).</p>
   <div class="mock">
     <div class="m-paste">lobster tail x20 1500<br>blanket x10 1r<br>corn 300 5xmp</div>
     <div class="m-arrow">↓</div>
@@ -550,7 +552,14 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   <h3>Add a deal</h3>
   <ul class="tips">
     <li>From <b>Order</b> or <b>Search</b>: <b>⏳ Save for later</b>. The box empties so you can handle the next one right away — nothing changes yet.</li>
-    <li>By hand: <b>＋ New deal</b> → Trade, Sale or Purchase · the partner's name · what you give and what you get (items or coins) · <b>Once</b> or <b>Every day</b> for how many days (e.g. 89 BEM a day for 7 days).</li>
+    <li>By hand: <b>＋ New deal</b> → Trade, Sale or Purchase · the partner's name · what you give and what you get · <b>Once</b> or <b>Every day</b> for how many days (e.g. 89 BEM a day for 7 days).</li>
+  </ul>
+  <h3>Trades work with ratios</h3>
+  <ul class="tips">
+    <li>A trade = the items they give you, each with its <b>ratio</b>: <span class="k">50 BEM : 89</span> = you give 50 BEM for 89 of theirs. <b>You give</b> is calculated.</li>
+    <li>Ratios come from your <b>trade post</b> (pick it under “Ratios from”). An item not in your post takes the ratio of the line before — change it if needed.</li>
+    <li>Right on the card: change a <b>quantity</b> or a <b>ratio</b>, or <b>＋ Add an item they give you</b> — the total updates at once (whole items; sets in materials: 100 BEM = 34 Bolt · 33 Plank · 33 Duct Tape).</li>
+    <li>When it's done, your “I have” in the trade post goes down by what you really gave.</li>
   </ul>
   <h3>Follow them</h3>
   <ul class="tips">
@@ -558,6 +567,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>Every-day trades: <b>Day 3 / 7</b>, <b>Today ✓</b> or <b>Today: to do</b>, and how many more days your inventory covers.</li>
     <li><b>✓ Done</b> (or <b>✓ Today done</b>): saved in History and Stats, your inventory follows, and the post it came from is lowered like in Order. <b>Undo</b> appears right after.</li>
     <li><b>⋯</b> → Edit, Copy or Cancel. Finished and cancelled deals stay at the bottom (you can reopen them). The red number on the <b>Deals</b> tab = open deals.</li>
+    <li><b>✎ In Order</b>: the deal opens in Order — change quantities, prices, lines. A bar on top shows it (<b>Save</b>, <b>Back to Deals</b>, <b>Switch ⇄</b> to another deal). Leaving with changes asks which ones to keep: tick some, all, or drop them. <b>✓ Mark as done</b> there finishes the deal.</li>
   </ul>
 </section>
 
@@ -606,6 +616,12 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li>Wrong item? Tap it and pick the right one: the site <b>learns</b> from your fixes and gets it right next time.</li>
     <li><b>Update these items</b> changes only what was read. <b>Replace my barn</b> (or silo) when your screenshots show all of it.</li>
   </ul>
+  <h3>Several farms</h3>
+  <ul class="tips">
+    <li><b>＋ Farm</b> adds a farm (each has its own barn and silo). Tap a farm to see it, tap it again to rename or delete it.</li>
+    <li><b>All farms</b> = everything added up (each line says how much is in which farm). To change a number, open that farm.</li>
+    <li>Screenshots and new items go to the farm you picked. Choose which farm your deals change (“Deals change …”). Search and Items can look in all farms or only some.</li>
+  </ul>
   <h3>By hand, and live</h3>
   <ul class="tips">
     <li><b>＋ Add items</b>: search an item and tap it (with how many), or type a list: <span class="k">carrot pie 26, bolt 30</span>.</li>
@@ -614,9 +630,29 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   </ul>
 </section>
 
+<!-- IMPORT -->
+<section class="step" id="import">
+  <h2><span class="n">12</span>Import an old post</h2>
+  <p class="say">Your posts from before (on Discord, or made with another post maker) → posts here, in a few taps. The <b>⤓</b> button at the top right, next to your profile.</p>
+  <div class="steps3">
+    <div><span class="no">1</span><b>📷 Screenshots of the post</b> — your Discord message (text, emojis, ~~struck~~ lines) and/or the picture of another post maker (tiles with “5x” and the quantity). Or paste the text: Discord → long-press the message → <b>Copy Text</b>.</div>
+    <div><span class="no">2</span>Check what was read: the type (Trade / Selling / Buying), the items, the ratios, quantities and prices. Orange <b>?</b> = tap to pick the item.</div>
+    <div><span class="no">3</span><b>Create the post</b>. A message with a trade and a picture of items for sale → two posts.</div>
+  </div>
+  <ul class="tips">
+    <li>Trades: <span class="k">Need 💍 50:89</span> under <span class="k">Have BEM</span> = they give 50 rings for 89 BEM → here “you give 89 BEM : you get 50”.</li>
+    <li>Struck lines (<s>70:89</s>) come in as <b>out of stock</b> (⊘ to change it).</li>
+    <li><b>Emojis</b> become the items: each row shows the picture read on your screenshot next to the item found — a saw comes in as <b>Saw</b>. Wrong or <b>?</b>: tap it and pick the right item. Your pick is <b>remembered</b>: the next import recognises that picture by itself.</li>
+    <li><b>“1st page jams”</b>, <span class="k">fp juices</span>, <span class="k">Mixed Juices (2nd page)</span>, <span class="k">1st 📄 JAMS</span> = every product on that page of the machine in the game → they all come in, with the same ratio. <span class="k">Mixed Jams</span> or <span class="k">sauces</span> alone = all of them. <b>📄 Machine pages</b> (under Read the text) shows each page; set how many products your game shows per page.</li>
+    <li>Faces and stickers after a ratio (<span class="k">50:89 😶</span>) are left out.</li>
+    <li>Other lines (“Dm &amp; ping”, “Partial 50+”) become the notes of the post.</li>
+    <li>Everything is read on your phone; the text reader loads the first time (internet needed). Use the original screenshots. If a word is misread, fix it in the list — or paste the text instead.</li>
+  </ul>
+</section>
+
 <!-- 9 STATS -->
 <section class="step" id="stats">
-  <h2><span class="n">12</span>Stats</h2>
+  <h2><span class="n">13</span>Stats</h2>
   <p class="say">In your profile (top right) → <b>Stats</b>: your numbers, from your History — what came in, what went out, and your best deals.</p>
   <div class="mock">
     <div class="chips"><span class="chip">7 days</span><span class="chip on">30 days</span><span class="chip">90 days</span><span class="chip">All</span></div>
@@ -644,7 +680,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 </section>
 
 <section class="step" id="style">
-  <h2><span class="n">13</span>Style</h2>
+  <h2><span class="n">14</span>Style</h2>
   <p class="say">How the picture looks. It never changes your items.</p>
   <div class="papers">
     <figure><div class="pic" data-pic="theme_grange"></div>Barn</figure>
@@ -665,7 +701,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 10 EXPORT -->
 <section class="step" id="export">
-  <h2><span class="n">14</span>Post it on Discord</h2>
+  <h2><span class="n">15</span>Post it on Discord</h2>
   <p class="say">Open <b>Preview</b> (on a computer, the picture is always on the right), then:</p>
   <div class="mock"><div class="two"><div class="m-btn">Download</div><div class="m-btn light">Share</div></div><div class="m-btn light" style="margin-top:8px">Copy</div></div>
   <ul class="tips">
@@ -678,7 +714,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 
 <!-- 11 GOOD TO KNOW -->
 <section class="step" id="know">
-  <h2><span class="n">15</span>Good to know</h2>
+  <h2><span class="n">16</span>Good to know</h2>
   <div class="rates">
     <div class="rate"><span class="gi" data-id="diamond-ring" data-e="💍"></span><div>10 rings = <span class="nw">8,244 <i class="coin"></i></span><small>Fixed rate, the same for everyone.</small></div></div>
     <div class="rate"><span class="gi" data-id="blanket" data-e="🛏️"></span><div>10 blankets = <span class="nw">10,980 <i class="coin"></i></span><small>Fixed rate, the same for everyone.</small></div></div>
@@ -707,7 +743,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 </section>
 </main>
 
-<footer><a class="btn red" href="./">Open Market Studio</a><p>Hay Day trade post maker</p></footer>
+<footer><a class="btn red" href="./">Open Market Manager</a><p>Hay Day trade post maker</p></footer>
 
 <script>
 /* Game pictures and post pictures come from the site itself, loaded in one hidden read-only copy

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Market Studio · Hay Day</title>
+<title>Market Manager · Hay Day</title>
 <meta name="description" content="Hay Day trade post maker">
-<meta property="og:title" content="Market Studio · Hay Day">
+<meta property="og:title" content="Market Manager · Hay Day">
 <meta property="og:description" content="Hay Day trade post maker">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#f3ecdf" media="(prefers-color-scheme: light)">
@@ -49,7 +49,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* ---------- layout ---------- */
 .app{max-width:1280px;margin:0 auto;padding:18px 14px}
 .panel{display:none;gap:14px;grid-template-columns:minmax(0,1fr)}
-body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist,body[data-tab=stats] #p-stats,body[data-tab=me] #p-me,body[data-tab=inv] #p-inv,body[data-tab=search] #p-search,body[data-tab=deals] #p-deals{display:grid}
+body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order,body[data-tab=paste] #p-paste,body[data-tab=hist] #p-hist,body[data-tab=stats] #p-stats,body[data-tab=me] #p-me,body[data-tab=inv] #p-inv,body[data-tab=search] #p-search,body[data-tab=deals] #p-deals,body[data-tab=imp] #p-imp{display:grid}
 #preview{display:none}
 body[data-tab=prev] #preview{display:block}
 body[data-tab=prev] #editor{display:none}
@@ -425,6 +425,40 @@ body[data-tab=prev] #editor{display:none}
 .tabbar .srch{flex:1.35!important;display:flex;align-items:center;justify-content:center;gap:4px;margin-left:6px;background:var(--ink)!important;color:var(--bg)!important;border-radius:10px!important;box-shadow:none!important}
 .tabbar .srch svg{width:15px;height:15px;flex:none}
 .tabbar .srch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)!important}
+/* items: where new items come from */
+.srcseg{margin-bottom:10px}
+.srcseg button{font-size:13px;padding:0 4px}
+.ipgrid .tile .iqb{position:absolute;right:4px;bottom:22px;background:var(--ink);color:var(--bg);border-radius:7px;font:700 11px/16px var(--sans);padding:0 5px}
+.ipgrid .tile{position:relative}
+.fchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fchips .lbl{margin:0 4px 0 0}
+.farms .fed{font-style:normal;opacity:.7}
+.irow.ro{grid-template-columns:36px minmax(0,1fr) auto}
+.irow .iq{font:700 16px var(--slab);padding-right:6px}
+.dfarm{gap:8px;align-items:center}
+.dfarm .sel{min-height:36px;padding:0 8px;width:auto}
+/* import */
+.brand h1{white-space:nowrap}
+@media (max-width:389px){.brand h1{font-size:22px}.brand{gap:8px}}
+.impb{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:0;display:grid;place-items:center;align-self:center}
+.impb svg{width:19px;height:19px}
+.impb.on{background:var(--ink);color:var(--bg)}
+.impc.off>*:not(.ihead){opacity:.4}
+.ihead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
+.irw{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto 22px;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.irw.chk{background:rgba(230,169,58,.15);border-color:#e6a93a}
+.irw.oos .spick span:first-child{text-decoration:line-through;text-decoration-color:var(--acc);text-decoration-thickness:2px}
+.irw.oos{opacity:.7}
+.icrop{width:44px;height:32px;object-fit:contain;border-radius:5px;background:#2a2a2e}
+.irat{display:flex;align-items:center;gap:4px;font-weight:700;color:var(--mut)}
+.irat input{width:44px;height:32px;border:1px solid var(--line2);border-radius:8px;text-align:center;font-weight:700;background:var(--bg);color:var(--ink);min-width:0}
+.irat small{font-size:11px}
+.ioos{width:30px;height:30px;border-radius:8px;border:1px solid var(--line2);background:none;color:var(--mut);font-size:15px;padding:0}
+.ioos.on{background:var(--acc);border-color:var(--acc);color:#fff}
+/* out of stock */
+.item.oos>*:not(.i1){opacity:.5}
+.gi.oos .name,.item.oos .name{text-decoration:line-through;text-decoration-color:var(--acc);text-decoration-thickness:2px}
+.oostag{flex:none;border:1px solid var(--acc);color:var(--acc);background:none;border-radius:6px;font:700 11px var(--sans);text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;align-self:center}
 /* deals */
 .tabbar button{position:relative}
 .tbdg{position:absolute;top:4px;right:calc(50% - 30px);min-width:17px;height:17px;border-radius:9px;background:var(--acc);color:#fff;font:700 11px/17px var(--sans);padding:0 4px;letter-spacing:0}
@@ -466,6 +500,33 @@ body[data-tab=prev] #editor{display:none}
 .dfrow input{height:38px;border:1px solid var(--line2);border-radius:8px;text-align:center;font-weight:700;background:var(--surface);min-width:0}
 .dres{display:flex;flex-wrap:wrap;gap:6px}
 .btn.later{border-style:dashed}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.dcard.active{box-shadow:0 0 0 2px var(--acc)}
+.btn.on{border-color:var(--acc);color:var(--acc)}
+.dbarc{display:grid;gap:8px;border-left:4px solid var(--acc)}
+.dbt{display:flex;align-items:center;gap:8px}
+.dbt b{font:700 16px var(--slab)}
+.dbt small{margin-left:auto;color:var(--mut);font-size:12.5px}
+.dbb{display:flex;gap:6px;flex-wrap:wrap}
+.chlist{display:grid;gap:4px}
+.chrow{display:flex;align-items:center;gap:10px;padding:8px 4px;border-top:1px solid var(--line);font-weight:600}
+.chrow input{width:20px;height:20px;accent-color:var(--ink);flex:none}
+/* trade lines (Deals): quantity + ratio → what you give */
+.tlines{display:grid;gap:6px}
+.tlines>.dl,.ttot>.dl{font:700 11.5px var(--slab);letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
+.trow{border:1px solid var(--line);border-radius:10px;padding:7px 8px;background:var(--surface);display:grid;gap:6px}
+.tr1{display:grid;grid-template-columns:24px minmax(0,1fr) 84px 22px;gap:8px;align-items:center}
+.tnm{font:700 15px var(--slab);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr1 .oq{height:34px}
+.tr2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--mut);font-weight:600}
+.tr2 input{height:32px;border:1px solid var(--line2);border-radius:8px;text-align:center;font-weight:700;background:var(--bg);color:var(--ink);min-width:0}
+.tsel{height:32px;border:1px solid var(--line2);border-radius:8px;background:var(--bg);color:var(--ink);font-weight:600;max-width:120px;padding:0 4px}
+.tgv{color:var(--ink);font-size:13.5px;margin-left:auto}
+.tgv.no{color:#b26b00}
+.tnp{flex-basis:100%;color:#b26b00;font-size:12px}
+.tadd{justify-self:start;border-style:dashed}
+.ttot{display:grid;gap:6px;border-top:2px solid var(--ink);padding-top:8px}
+.tsp{color:var(--mut);font-size:12.5px;font-weight:600}
 /* red mark: the inventory doesn't have what the post offers */
 .thumbbtn .sbad,.sbad{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:10px;background:#c8361f;color:#fff;font:700 11px/20px var(--sans);padding:0 5px;text-align:center;box-shadow:0 0 0 2px var(--bg);z-index:1}
 .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c8361f;margin-left:5px;vertical-align:4px}
@@ -507,6 +568,18 @@ body[data-tab=prev] #editor{display:none}
 .scrop.big{width:100%;height:110px;margin-bottom:8px}
 .spick{display:flex;align-items:center;gap:6px;border:0;background:none;font:700 15px var(--slab);color:var(--ink);text-align:left;padding:0;min-width:0}
 .spick span:not(.th):not(.flag){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spick .inm{display:flex;flex-direction:column;min-width:0;line-height:1.15;white-space:normal!important;overflow-wrap:anywhere}
+.spick .inm small{font:600 11.5px var(--sans);color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linkb{border:0;background:none;color:var(--acc);font:700 14px var(--sans);padding:6px 0;text-align:left;min-height:32px}
+.mpg{display:grid;gap:10px}
+.mpm{border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;gap:6px;background:var(--surface)}
+.mph{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mph b{font:700 15px var(--slab)}
+.mpn{display:flex;align-items:center;gap:6px;font:600 13px var(--sans);color:var(--mut);white-space:nowrap}
+.mpn .btn{min-width:32px;padding:0 8px}
+.mpr{display:grid;grid-template-columns:54px minmax(0,1fr);align-items:center;gap:6px}
+.mpr small{font:700 12px var(--sans);color:var(--mut)}
+.mpi{display:flex;flex-wrap:wrap;gap:4px}
 .scb{width:22px;height:22px;accent-color:var(--ink)}
 .obar.sh{grid-template-columns:minmax(0,1fr) auto}
 .obar .dq{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);font-weight:600;white-space:nowrap}
@@ -652,14 +725,13 @@ body[data-tab=prev] #mini{display:none}
 </head>
 <body data-tab="items">
 <header class="top">
-  <div class="brand"><h1>Market Studio</h1><span style="flex:1"></span><button class="helpb" id="helpBtn" aria-label="How it works">?</button><button class="meb" id="meBtn" aria-label="My profile">👤</button></div>
+  <div class="brand"><h1>Market Manager</h1><span style="flex:1"></span><button class="helpb" id="helpBtn" aria-label="How it works">?</button><button class="impb" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="meb" id="meBtn" aria-label="My profile">👤</button></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
 <main class="app">
   <nav class="tabbar" id="tabbar">
     <button data-t="items">Items</button>
-    <button data-t="paste">Paste</button>
     <button data-t="style">Style</button>
     <button data-t="order">Order</button>
     <button data-t="deals">Deals</button>
@@ -677,10 +749,14 @@ body[data-tab=prev] #mini{display:none}
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
         <div class="sdrop card" id="sdrop" hidden>
+          <div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📖 Almanac</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 From a text</button></div>
+          <div id="invPick" hidden></div>
+          <div id="catPick">
           <div class="chips" id="cats"></div>
           <div class="grid" id="results"></div>
           <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
           <label class="btn sm dashed full filebtn" style="margin-top:8px">📷 Add from screenshots (barn / silo)<input type="file" id="itemsShot" accept="image/*" multiple></label>
+          </div>
           <button class="btn pri full" id="sdone" style="margin-top:10px">Done</button>
         </div>
       </div>
@@ -723,8 +799,9 @@ body[data-tab=prev] #mini{display:none}
 
     <!-- ===== PASTE A LIST ===== -->
     <section class="panel" id="p-paste">
+      <button class="back" id="pasteBack">‹ Items</button>
       <div class="card fieldset">
-        <div class="ch"><h2>Paste a list</h2></div>
+        <div class="ch"><h2>Add from a text</h2></div>
         <p class="hint">One item per line, with its quantity and price — or a ratio for trades.</p>
         <div class="fmt"><code>lobster tail x20 1500</code><code>blanket x10 1r</code><code>corn 300 5xmp</code><code>tomato sauce x30 2b</code><code>lemon curd 50:89</code><code>have: bem x10</code></div>
         <textarea class="ta" id="pasteIn" rows="7" placeholder="Paste or type your list here"></textarea>
@@ -754,6 +831,11 @@ body[data-tab=prev] #mini{display:none}
     <!-- ===== INVENTORY (profile menu) ===== -->
     <section class="panel" id="p-inv">
       <div id="invOut" class="stack"></div>
+    </section>
+
+    <!-- ===== IMPORT (header button) ===== -->
+    <section class="panel" id="p-imp">
+      <div id="impOut" class="stack"></div>
     </section>
 
     <!-- ===== DEALS ===== -->
@@ -1015,6 +1097,8 @@ drinks|Apple Juice|Jus de pomme|🧃
 drinks|Cherry Juice|Jus de cerise|🧃
 drinks|Tomato Juice|Jus de tomate|🧃
 drinks|Berry Juice|Jus de baies|🧃
+drinks|Pineapple Juice|Jus d’ananas|🍍
+drinks|Orange Juice|Jus d’orange|🍊
 drinks|Espresso|Expresso ~ café|☕
 drinks|Caffè Latte|Café latte|☕|Caffe_Latte
 drinks|Caffè Mocha|Café moka|☕|Caffe_Mocha
@@ -1030,6 +1114,9 @@ jams|Strawberry Jam|Confiture de fraises ~ jams|🍓
 jams|Peach Jam|Confiture de pêches|🍑
 jams|Grape Jam|Confiture de raisin|🍇
 jams|Marmalade|Marmelade|🍊
+jams|Blueberry Chutney|Chutney de myrtilles|🫐
+jams|Plum Jam|Confiture de prunes|🫙
+jams|Passion Fruit Jam|Confiture de fruit de la passion|🫙
 jams|Lemon Curd|Crème au citron ~ curd|🍋
 jams|Olive Oil|Huile d’olive|🫒
 jams|Soy Sauce|Sauce soja|🍶
@@ -1088,6 +1175,15 @@ const ALIASES = {
   "bem":"bem-set","sem":"sem-set","lem":"lem-set","tem":"tem-set",
   "jams":"strawberry-jam","mayo":"mayonnaise","malet":"mallet"
 };
+
+// Production machines as the game shows them: products in unlock order, a few per page.
+// Posts say "1st page jams", "fp juices", "Mixed Juices (2nd page)", "sauces".
+const MACHINES = [
+  { id: "jam", name: "Jam Maker", word: "jams?", items: ["Apple Jam", "Raspberry Jam", "Blackberry Jam", "Cherry Jam", "Strawberry Jam", "Blueberry Chutney", "Marmalade", "Peach Jam", "Grape Jam", "Plum Jam", "Passion Fruit Jam"] },
+  { id: "juice", name: "Juice Press", word: "juices?", items: ["Carrot Juice", "Apple Juice", "Cherry Juice", "Tomato Juice", "Berry Juice", "Pineapple Juice", "Orange Juice"] },
+  { id: "sauce", name: "Sauce Maker", word: "sauces?", items: ["Soy Sauce", "Mayonnaise", "Olive Oil", "Tomato Sauce"] }
+];
+const PAGE_N = 5;   // products per page in the game's machine menu (changeable in Import → Machine pages)
 
 const POPULAR = ["bem-set","sem-set","lem-set","tem-set","bolt","plank","duct-tape","nail","screw","wood-panel","land-deed","mallet","marker-stake","axe","saw","shovel","dynamite","tnt-barrel","pickaxe","map-piece","diamond-ring","lobster-tail","duck-feather","blanket","lemon-curd","mayonnaise","soy-sauce","tomato-sauce","olive-oil","strawberry-jam","honey","beeswax"];
 
@@ -1729,13 +1825,18 @@ function sortedWants() {
   return by ? a.slice().sort(by) : a;
 }
 function totals() {
-  const wants = st.wants.filter(w => (w.name || "").trim() || w.ref);
+  const wants = st.wants.filter(w => ((w.name || "").trim() || w.ref) && !w.oos); // out of stock: not counted
   const sub = wants.reduce((a, w) => a + itemValue(w), 0);
   const d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc))); // buying posts use the bulk bonus instead
   const tot = sub * (1 - d / 100);
   return { sub, disc: d, tot, rings: tot / RING_RATE, blankets: tot / BLANKET_RATE };
 }
 /** Ratio "1 [mine] : 40 [theirs]" — width, or draw right-aligned at xr / centred at cx. */
+/** Out of stock on the picture: the row is faded and struck through (like ~~this~~ on Discord). */
+function oosMark(x, y, w, h, sx0, sx1, sy, T) {
+  ctx.save(); ctx.globalAlpha = .62; ctx.fillStyle = T.paper; ctx.fillRect(x, y, w, h); ctx.restore();
+  ctx.fillStyle = T.acc; ctx.fillRect(sx0, Math.round(sy) - 2, Math.max(0, sx1 - sx0), 4);
+}
 function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtR(num(w.ra)), "D", z) + (g ? 8 + iz : 0) + 20 + measure(":", "D", z) + 20 + measure(fmtR(num(w.rb)), "D", z) + 8 + iz; }
 function drawRatio(w, x, cy, s, T) {
   const iz = s * 1.3, g = giveItem(w), z = s * .86;
@@ -1992,7 +2093,8 @@ function draw() {
         x += txt(fmtR(num(g.ra)), x, hy + 2, { f: "D", s, c: T.ink });
         if (gi) { icon(itemState(gi), gi.e, x + 12 + 26, hy, 52, 1); x += 12 + 52; }
         x += 18; x += txt(":", x, hy, { f: "D", s, c: T.mut }) + 18;
-        txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.acc });
+        const rbw = txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.acc });
+        if (g.items.length && g.items.every(w => w.oos)) { ctx.fillStyle = T.ink; ctx.fillRect(M + BP, Math.round(hy) - 2, x + rbw + 6 - M - BP, 5); } // whole ratio out of stock
       }
       rule(M + 7, W - M - 7, y + 84, 1, T.ink);
       g.items.forEach((w, i) => {
@@ -2000,8 +2102,9 @@ function draw() {
         if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x, ty + 2, tw, th - 4); starShape(x + tw - 16, ty + 18, 11, T.acc); }
         ctx.beginPath(); ctx.arc(cx, ty + 12 + 43, 43, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
         icon(itemState(w), w.e, cx, ty + 12 + 43, 78);
-        txt(w.name || "", cx, ty + 12 + 86 + 10 + 14, { f: "700", s: 21, c: T.ink, al: "center", maxW: tw - 6, min: 14 });
+        const tnw = txt(w.name || "", cx, ty + 12 + 86 + 10 + 14, { f: "700", s: 21, c: T.ink, al: "center", maxW: tw - 6, min: 14 });
         if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 86 + 10 + 28 + 10, { f: "500i", s: 16, c: T.mut, al: "center", maxW: tw - 6 });
+        if (w.oos) oosMark(x, ty + 2, tw, th - 4, cx - tnw / 2 - 6, cx + tnw / 2 + 6, ty + 12 + 86 + 10 + 14, T);
       });
       y += bh + 26;
     });
@@ -2035,6 +2138,7 @@ function draw() {
         for (let x = nx + nw + 10; x < P0.xr - rw - 10; x += 8) { ctx.beginPath(); ctx.arc(x, cy + 7, 1.4, 0, 7); ctx.fill(); }
         if (trade) drawRatio(w, P0.xr - rw, cy, 22, T); else ledgerRow(w, P0.defs, cy, T, 1, true);
       }
+      if (w.oos) oosMark(P0.x0 - 8, ry + 3, colW + 16, RH - 6, nx, P0.xr, cy, T);
       if (r < per - 1 && i < wants.length - 1) rule(nx0, P0.xr, ry + RH, 1, hair);
     });
     y += per * RH + 30;
@@ -2061,6 +2165,7 @@ function draw() {
         if (trade) drawRatio(w, xr - rw, ny, 32, T);
         else ledgerRow(w, LC, ny, T);
       }
+      if (w.oos) oosMark(M - 18, top + 4, W - 2 * M + 36, rh - 8, nx, xr, ny, T);
       y += rh;
       if (idx < rows.length - 1) rule(nameX, W - M, y, 1, T.dark ? "rgba(240,229,207,.12)" : "rgba(42,29,20,.12)");
     });
@@ -2080,7 +2185,8 @@ function draw() {
       if (w.hot) starShape(x + tagW - 30, ty + 40, 15, T.acc);
       icon(itemState(w), w.e, cx, ty + 50 + imgH / 2, imgH * .86);
       let yy = ty + 50 + imgH + 18 + 18;
-      txt(w.name || "", cx, yy, { f: "700", s: C === 2 ? 33 : 27, c: T.ink, al: "center", maxW: tagW - 30, min: 18 });
+      const gnw = txt(w.name || "", cx, yy, { f: "700", s: C === 2 ? 33 : 27, c: T.ink, al: "center", maxW: tagW - 30, min: 18 });
+      if (w.oos) { ctx.fillStyle = T.acc; ctx.fillRect(cx - gnw / 2 - 6, yy - 2, gnw + 12, 4); }
       yy += 22;
       if (anyNote) { wrap((w.note || "").trim(), tagW - 36, "500i", C === 2 ? 21 : 18, 2).forEach((l, k) => l && txt(l, cx, yy + 12 + k * 23, { f: "500i", s: C === 2 ? 21 : 18, c: T.mut, al: "center" })); yy += 54; }
       if (anyPrice) {
@@ -2203,7 +2309,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet()
 
 function tab(t) {
   document.body.dataset.tab = t;
-  $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === (t === "paste" ? "items" : t)));  // "From a text" belongs to Items
   if (t === "prev") draw();
   if (t === "order") renderOrder();
   if (t === "paste") renderPaste();
@@ -2214,6 +2320,8 @@ function tab(t) {
   if (t === "search") renderSearch();
   if (t === "deals") renderOngoing();
   $("#meBtn").classList.toggle("on", ["me", "inv", "stats"].includes(t));
+  $("#impBtn").classList.toggle("on", t === "imp");
+  if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
   requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
@@ -2225,12 +2333,14 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
-    h("li", null, h("b", null, "Paste:"), " paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
+    h("li", null, h("b", null, "Add items (Items → search bar):"), " 📖 Almanac = every game item · 📦 Inventory = your farms, with your quantities · 📝 From a text = paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Search:"), " paste a buyer’s “buying” message — it checks your inventory and makes the order with their prices and quantities."),
     h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
+    h("li", null, h("b", null, "Import (⤓, top right):"), " an old post → a new post here: a screenshot of your Discord message or of a picture made by another post maker, or the copied text. Struck items come in as “out of stock”."),
+    h("li", null, h("b", null, "Out of stock:"), " ⋯ on an item → “Out of stock”: it stays on the picture, faded and struck through, and isn't counted or sold in Order."),
     h("li", null, h("b", null, "Profile (top right):"), " your pseudo, your Inventory (read from barn / silo screenshots, or by hand — it follows your deals) and your Stats."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Preview:"), " Download, Share or Copy the picture and post it on Discord.")),
@@ -2332,14 +2442,14 @@ function renderResults() {
 }
 $("#moreRes").onclick = () => { resLimit += 48; renderResults(); };
 /* drop-down results: open while searching, close with Done / Esc / tap outside */
-function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; renderCats(); renderResults(); }
+function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else { renderCats(); renderResults(); } }
 function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
 $("#q").addEventListener("focus", openDrop);
 $("#sdone").onclick = closeDrop;
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
-function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste", "stats", "inv", "search", "me", "deals"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
+function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(["items", "order", "style", "hist", "paste", "stats", "inv", "search", "me", "deals", "imp"].includes(t) && document.documentElement.scrollHeight > innerHeight * 1.8); }
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 let jumpT = 0;
@@ -2352,7 +2462,39 @@ function applyListFilter() {
   $$("#wantList .grp").forEach(g => g.classList.toggle("fhide", !!f && !g.querySelector(".gi:not(.fhide)")));
 }
 $("#lf").addEventListener("input", debounce(applyListFilter, 120));
-$("#q").addEventListener("input", debounce(() => { openDrop(); resLimit = baseLimit(); renderResults(); }, 90));
+$("#q").addEventListener("input", debounce(() => { openDrop(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else renderResults(); }, 90));
+/* ---------- where new items come from: the Almanac (every game item), your inventory, or a text ---------- */
+const SRC = { v: "cat", scope: "all" };
+function setSrc(v) {
+  if (v === "text") { closeDrop(); tab("paste"); setTimeout(() => $("#pasteIn") && $("#pasteIn").focus(), 80); return; }
+  SRC.v = v; $$("#srcSeg button").forEach(b => b.classList.toggle("on", b.dataset.src === v));
+  $("#catPick").hidden = v !== "cat"; $("#invPick").hidden = v !== "inv";
+  $("#q").placeholder = v === "inv" ? "Search my inventory" : "Search a product to add";
+  if (v === "inv") renderInvPick(); else renderResults();
+}
+$$("#srcSeg button").forEach(b => b.onclick = () => setSrc(b.dataset.src));
+$("#pasteBack").onclick = () => tab("items");
+/** Add from your inventory: its quantity comes with it (selling posts and “I have”). */
+function addFromInv(i, quiet) {
+  const p = CAT.byId[i.ref], list = targetList(), withQ = st.type !== "achat" && !(st.type === "trade" && list === st.wants);
+  const ex = list.find(it => it.ref === i.ref);
+  if (ex) { if (withQ) ex.q = String(i.q); if (!quiet) { flashItem(ex.uid); toast(p.en + (withQ ? ": " + fmt(i.q) : " is already in the list")); } return 0; }
+  if (list.length >= 150) { if (!quiet) toast("150 items max per post."); return 0; }
+  list.push(mkItem(i.ref, Object.assign(withQ ? { q: String(i.q) } : {}, st.type === "trade" && list === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : {})));
+  pushRecent(i.ref); if (!quiet) { renderLists(); renderInvPick(); changed(); toast("✓ " + p.en + " added" + (withQ ? " ×" + fmt(i.q) : "")); }
+  return 1;
+}
+function renderInvPick() {
+  const box = $("#invPick"); if (!box || box.hidden) return; box.textContent = "";
+  if (!invAny()) { box.append(h("div", { class: "empty" }, "Your inventory is empty.", h("button", { class: "btn sm", style: "margin-top:8px", onclick: () => { closeDrop(); tab("inv"); } }, "Open my inventory"))); return; }
+  const fc = farmChips(() => SRC.scope, v => { SRC.scope = v; renderInvPick(); }, null);
+  const nq = norm($("#q").value), L = invList(SRC.scope).filter(i => i.ref && CAT.byId[i.ref] && (!nq || norm(i.name).includes(nq) || norm(CAT.byId[i.ref].fr || "").includes(nq))).sort((a, b) => a.name.localeCompare(b.name));
+  const inList = new Set(targetList().map(it => it.ref)), grid = h("div", { class: "grid ipgrid" });
+  L.slice(0, 60).forEach(i => grid.append(h("button", { class: "tile", title: i.name, onclick: () => addFromInv(i) }, thumb(prodState(i.ref), i.e), h("b", null, i.name), h("span", { class: "iqb" }, short(i.q)), inList.has(i.ref) ? h("span", { class: "in" }, "✓") : null)));
+  const fresh = L.filter(i => !inList.has(i.ref));
+  box.append(fc || "", h("p", { class: "hint", style: "margin:6px 0" }, plural(L.length, "item") + (st.type !== "achat" ? " · added with the quantity you have" : "")), L.length ? grid : h("div", { class: "empty" }, "Nothing matches."),
+    fresh.length > 1 ? h("button", { class: "btn sm full", style: "margin-top:8px", onclick: () => { const n = fresh.reduce((a, i) => a + addFromInv(i, true), 0); renderLists(); renderInvPick(); changed(); toast(plural(n, "item") + " added ✔"); } }, "Add all " + fresh.length + (nq ? " shown" : "")) : null);
+}
 $("#q").addEventListener("keydown", e => { if (e.key === "Enter") { const r = search($("#q").value, "all")[0]; if (r) addFromCatalog(r); e.preventDefault(); } });
 $("#qclr").onclick = () => { $("#q").value = ""; resLimit = 16; renderResults(); $("#q").focus(); };
 function addFromCatalog(p) {
@@ -2453,10 +2595,10 @@ function nameEl(it) {
 }
 const thumbEl = it => h("span", { class: "thumbbtn" }, thumb(itemState(it), it.e), typeof stockBadge === "function" ? stockBadge(it) : null);
 function groupRow(it) {
-  const row = h("div", { class: "gi" + (it.hot ? " hot" : ""), "data-uid": it.uid });
+  const row = h("div", { class: "gi" + (it.hot ? " hot" : "") + (it.oos ? " oos" : ""), "data-uid": it.uid });
   const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); row.classList.toggle("hot", !!it.hot); changed(); } }, "★");
-  row.append(h("div", { class: "gi1" }, thumbEl(it), name, starB,
+  row.append(h("div", { class: "gi1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, starB,
     h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯")));
   if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); row.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const ta = n.querySelector("textarea") || n.querySelector("button"); ta && (ta.click ? (ta.tagName === "BUTTON" ? ta.click() : ta.focus()) : 0); }); } }
   return row;
@@ -2496,10 +2638,10 @@ function haveCard(it) {
 function cardHead(it, card) {
   const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), title: "Highlight", "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); card.classList.toggle("hot", !!it.hot); changed(); } }, "★");
-  return h("div", { class: "i1" }, thumbEl(it), name, starB, h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"));
+  return h("div", { class: "i1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, starB, h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"));
 }
 function itemCard(it) {
-  const card = h("div", { class: "item" + (it.hot ? " hot" : ""), "data-uid": it.uid });
+  const card = h("div", { class: "item" + (it.hot ? " hot" : "") + (it.oos ? " oos" : ""), "data-uid": it.uid });
   card.append(cardHead(it, card));
   if (st.type === "trade") {
     // I give [my item] A  :  B [their item] I get
@@ -2559,6 +2701,7 @@ function itemMenu(it, list) {
       i < list.length - 1 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i + 1, 0, it); }) }, h("i", null, "↓"), "Move down") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.unshift(it); }) }, h("i", null, "⤒"), "Move to top") : null,
       h("button", { onclick: act(() => list.splice(i + 1, 0, Object.assign(clone(it), { uid: uid() }))) }, h("i", null, "⧉"), "Duplicate"),
+      h("button", { onclick: act(() => { it.oos = it.oos ? 0 : 1; }) }, h("i", null, it.oos ? "✓" : "⊘"), it.oos ? "Back in stock" : "Out of stock (keep it, struck through)"),
       st.type === "trade" ? h("button", { onclick: act(() => { list.splice(i, 1); (list === st.have ? st.wants : st.have).push(normItem(it)); }) }, h("i", null, "⇄"), list === st.have ? "Move to “I want”" : "Move to “I have”") : null,
       h("button", { class: "danger", onclick: act(() => list.splice(i, 1)) }, h("i", null, "×"), "Remove"))
   ]);
@@ -2668,7 +2811,7 @@ $("#bkIn").onchange = async e => {
       STATE = o.state; CUSTOM = o.custom || []; store.set("hd5_custom", CUSTOM);
       if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; saveSettings(); }
       Object.entries(o.images || {}).forEach(([k, v]) => { USERIMG.set(k, v); IDB.put(k, v); });
-      if (o.inventory && Array.isArray(o.inventory.items)) { INV = o.inventory; saveInv(); }
+      if (o.inventory && (Array.isArray(o.inventory.items) || Array.isArray(o.inventory.farms))) { INV = o.inventory; invFix(); saveInv(); }
       if (Array.isArray(o.deals)) { const have = new Set(DEALS.map(d => d.id)); DEALS = DEALS.concat(o.deals.filter(d => d && !have.has(d.id))); saveDeals(); }
       if (Array.isArray(o.scanLearn)) { LEARN = o.scanLearn; store.set("hd5_scanlearn", LEARN); }
       if (Array.isArray(o.history)) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(o.history.filter(e => e && !have.has(e.id))).sort((a, b) => b.t - a.t); saveHist(); }
@@ -2777,8 +2920,8 @@ const autoTag = L => L._auto === 2 ? h("b", { class: "autot q" }, "how many? · 
 const packOf = g => { const p = g && g.ref && CAT.byId[g.ref]; return p && p.parts ? p : null; };
 const giveName = g => { const p = packOf(g); return p ? (p.id === "tool-set" ? "Tools" : p.en.replace(/ Set$/, "")) : g ? pName(g) : "of your items"; };
 const giveWhole = n => n > 0 ? Math.max(1, Math.round(n)) : 0;
-/** How many you give: whole materials for a set, else as before (2 decimals, rounded up). */
-const giveAmt = (g, n) => packOf(g) ? giveWhole(n) : Math.ceil(n * 100 - 1e-6) / 100;
+/** How many you give in all: whole items (you can't give 46.3 rings) — sets in whole materials. */
+const giveAmt = (g, n) => giveWhole(n);
 function packSplit(p, n) { const k = p.parts.length, b = Math.floor(n / k), r = n - b * k; return p.parts.map((id, i) => ({ id, n: b + (i < r ? 1 : 0), name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })); }
 const splitTxt = (g, n) => { const p = packOf(g); return p ? packSplit(p, giveWhole(n)).map(x => fmt(x.n) + " " + x.name).join(" · ") : ""; };
 /** The post item, or a copy priced with the price set for this order only (the post doesn't change). */
@@ -2791,8 +2934,8 @@ function priceLabel(w) {
   return fmt(p) + " ea";
 }
 
-function renderOrder() {
-  if (document.body.dataset.tab !== "order") return;
+function renderOrder(force) {
+  if (!force && document.body.dataset.tab !== "order") return;
   { const ae = document.activeElement; if (ae && ae.dataset && ae.dataset.edit != null) ORDER.editFocus = ae.dataset.edit; } // keep typing after a refresh
   const trade = st.type === "trade";
   const adv = () => { if (typeof advSync === "function") advSync(); };
@@ -2802,6 +2945,7 @@ function renderOrder() {
   ORDER.prev = ORDER.lines;
   adv();
   const out = $("#orderOut"); out.textContent = "";
+  if (ORDER.deal) out.append(dealBar());
   if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
   // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
   const capOn = ORDER.capStock !== false, avail = new Map(); ORDER.oq = 0;
@@ -2819,7 +2963,7 @@ function renderOrder() {
     const R = resolveLine(L), q = Math.max(0, L.q || 0); L._cap = null; L._short = 0;
     if (!R.w) return;
     if (trade) { ORDER.oq += q; return; }
-    const wq = num(R.w.q), left = avail.has(R.w) ? avail.get(R.w) : wq > 0 ? wq : Infinity, c = Math.min(q, left);
+    const wq = num(R.w.q), left = R.w.oos ? 0 : avail.has(R.w) ? avail.get(R.w) : wq > 0 ? wq : Infinity, c = Math.min(q, left); // out of stock → nothing left
     avail.set(R.w, left - c); L._cap = c; L._short = q - c;
     ORDER.oq += capOn ? c : q; // units in the whole order (for "items" bulk tiers)
   });
@@ -2851,7 +2995,7 @@ function renderOrder() {
       sub = [autoTag(L), R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) : "No ratio in your post"];
     } else {
       right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—");
-      const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : "none left — " + fmt(r.short) + " missing") : null;
+      const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : w.oos ? "out of stock" : "none left — " + fmt(r.short) + " missing") : null;
       const deal = L.pp && num(L.pp.p) > 0;
       const pb = h("button", { class: "opb" + (deal ? " on" : ""), title: "Another price for this order only", onclick: () => { L._edit = !L._edit; if (L._edit && !L.pp) L.pp = { p: "", pu: w.pu || "coin" }; renderOrder(); if (L._edit) setTimeout(() => { const e = $(`[data-edit="${L.i}"]`); e && e.focus(); }, 30); } }, deal ? priceLabel(dealItem(w, L)) : priceLabel(w), h("i", null, " ✎"));
       sub = [autoTag(L), deal ? h("s", null, priceLabel(w).split(" · ")[0]) : null, deal ? " " : null, pb, r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null, sh];
@@ -2903,7 +3047,7 @@ function renderOrder() {
       if (p) tot.append(h("div", { class: "osplit" }, packSplit(p, n).map(x => h("span", null, thumb(prodState(x.id), x.e, "mini"), h("b", null, fmt(x.n)), " " + x.name))),
         h("p", { class: "hint osh" }, "= " + fmt(n) + " materials, split evenly between the " + p.parts.length + "."));
     });
-    by.forEach(o => { const s = o.g ? num(o.g.q) : 0, need = packOf(o.g) ? giveWhole(o.n) : Math.ceil(o.n - 1e-9); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + " — " + fmt(need - s) + " missing")); });
+    by.forEach(o => { const s = o.g ? num(o.g.q) : 0, need = giveWhole(o.n); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + " — " + fmt(need - s) + " missing")); });
   } else {
     const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
     const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
@@ -2942,7 +3086,7 @@ function proposal(rows) {
     if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + R.give); }
     else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
   });
-  return [...agg].map(([w, n0]) => { const n = trade ? (packOf(w) ? giveWhole(n0) : Math.ceil(n0 - 1e-9)) : n0, have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
+  return [...agg].map(([w, n0]) => { const n = trade ? giveWhole(n0) : n0, have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
 }
 /* ---------- deal done: update the post (optional) + save it in the History tab ---------- */
@@ -2968,10 +3112,18 @@ function updCard(P, trade) {
   return card;
 }
 /** Keep this order in Deals (nothing changes yet) and free the box for the next one. */
+/** What a deal keeps from the order on screen: the entry, its trade lines, the post to lower, and the order itself (to reopen it here). */
+function dealParts(P, who) {
+  const trade = st.type === "trade", e = histEntry(who);
+  // trades keep their lines and ratios, so the deal can be changed later and recomputed
+  const tr = trade ? { pid: st.id, lines: ORDER.lines.filter(L => L.r && L.r.w && L.r.ratio && L.q > 0).map(L => ({ ref: L.r.w.ref || null, name: pName(L.r.w), e: L.r.w.e || "", q: L.q, ra: L.r.ratio.a, rb: L.r.ratio.b, give: L.r.ratio.g ? { ref: L.r.ratio.g.ref || null, name: pName(L.r.ratio.g), e: L.r.ratio.g.e || "" } : null })) } : null;
+  return { e, tr, post: trade ? null : { pid: st.id, items: (P || proposal(ORDER.lines)).filter(p => p.on && p.have).map(p => ({ uid: p.w.uid, n: p.n, list: "wants" })) }, order: orderState() };
+}
 function orderLater(P, trade, who) {
-  const e = histEntry(who);
+  if (ORDER.deal) return closeActive(true);                       // working on a saved deal → it goes back, with the changes
+  const D = dealParts(P, who), e = D.e;
   if (!e.lines.length && !(e.gives || []).length) return toast("Nothing to save yet");
-  addDeal(e, { who, post: { pid: st.id, items: P.filter(p => p.on && p.have).map(p => ({ uid: p.w.uid, n: p.n, list: trade ? "have" : "wants" })) } });
+  addDeal(e, { who, tr: D.tr, post: D.post, order: D.order });
   ORDER.text = ""; ORDER.prev = []; ORDER.who = ""; ORDER.dismissed = null; $("#orderIn").value = ""; renderOrder();
   toast("⏳ Saved in Deals — paste the next order");
 }
@@ -2983,7 +3135,7 @@ function histEntry(who) {
   return {
     id: uid(), t: Date.now(), type: st.type, post: st.name || TYPES[st.type].name, who: who || "",
     lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0, v: Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
-    gives: [...gives.values()].map(({ g, ...o }) => ({ ...o, n: packOf(g) ? giveWhole(o.n) : Math.round(o.n * 100) / 100, split: splitTxt(g, o.n) || undefined })),
+    gives: [...gives.values()].map(({ g, ...o }) => ({ ...o, n: giveWhole(o.n), split: splitTxt(g, o.n) || undefined })),
     total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
     reply: replyText()
   };
@@ -2992,7 +3144,7 @@ function applyDeal(P, trade, keep, who) {
   const sel = P.filter(p => p.on);
   if (!sel.length && !keep && !invLive()) return toast("Tick a line or “Save it in my History”");
   const reply = replyText(), notes = [];
-  ORDER.undo = { pid: st.id, wants: clone(st.wants), have: clone(st.have), inv: clone(INV.items) };
+  ORDER.undo = { pid: st.id, wants: clone(st.wants), have: clone(st.have), inv: invSnap() };
   let hid = null;
   const e = histEntry(who);
   if (keep) { HIST.unshift(e); saveHist(); hid = e.id; notes.push("Saved in History"); }
@@ -3004,6 +3156,7 @@ function applyDeal(P, trade, keep, who) {
     else { list.splice(i, 1); notes.push(pName(p.w) + ": removed"); }
   });
   ORDER.done = { text: ORDER.text, pid: st.id, reply, notes, hid, upd: sel.length > 0, invU };
+  if (ORDER.deal) { const d = DEALS.find(x => x.id === ORDER.deal.id); if (d) { ORDER.done.dealSnap = JSON.stringify(d); d.status = "done"; d.closed = Date.now(); d.hid = hid; saveDeals(); ORDER.done.dealId = d.id; } ORDER.deal = null; }
   ORDER.who = "";
   if (sel.length) { renderLists(); renderTarget(); renderResults(); changed(); }
   renderOrder();
@@ -3020,7 +3173,8 @@ function renderDone() {
       h("button", { class: "btn", onclick: () => {
         const U = ORDER.undo, p = STATE.list.find(x => x.id === U.pid);
         if (D.hid) { HIST = HIST.filter(e => e.id !== D.hid); saveHist(); }
-        if (D.invU && U.inv) { INV.items = U.inv; saveInv(); }
+        if (D.dealId) { const i = DEALS.findIndex(x => x.id === D.dealId); if (i >= 0) { DEALS[i] = JSON.parse(D.dealSnap); saveDeals(); } }
+        if (D.invU && U.inv) invRestore(U.inv);
         if (p && D.upd) { p.wants = U.wants; p.have = U.have; }
         ORDER.done = null; ORDER.undo = null;
         if (p && D.upd) { if (st.id !== p.id) selectProfile(p.id); else { renderLists(); renderTarget(); renderResults(); changed(); } }
@@ -3531,7 +3685,8 @@ const NUM = "(\\d+(?:[.,]\\d+)?\\s*k?)";
 /** One line → { name, q, p, pu, ra, rb, have } — prices: 1500 · @1500 · 1.5k · 1r / 1 ring / 💍 · 2b / 2 blankets · 5xmp; qty: x20 · 20x · 20 pcs; ratio: 50:89. */
 function parseListLine(raw, sec) {
   let s = " " + raw.replace(/💍/g, " r ").replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+•·]|\d+[.)])\s+/, " ").replace(/\s+/g, " ") + " ";
-  const o = { raw: raw.trim(), q: "", p: "", pu: "coin", ra: "", rb: "", have: sec === "have" };
+  const o = { raw: raw.trim(), q: "", p: "", pu: "coin", ra: "", rb: "", have: sec === "have", oos: /~~[^~]+~~/.test(raw) };
+  s = s.replace(/~~/g, " ");
   const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], " "); return true; } return false; };
   take(/^\s*(?:i\s*have|have|offer(?:ing)?|giving)\s*[:\-–]\s*/i, () => { o.have = true; });
   take(/\s(?:i\s*want|want|wtb|looking\s*for)\s*[:\-–]\s*/i, () => { o.have = false; });
@@ -3635,6 +3790,7 @@ function applyPaste(L, type) {
     const toHave = trade && x.have, list = toHave ? P.have : P.wants;
     if (list.length >= 150) return;
     const f = toHave ? { q: x.q } : trade ? { ra: x.ra, rb: x.rb } : { q: x.q, p: x.p, pu: x.pu };
+    if (x.oos) f.oos = 1;
     Object.keys(f).forEach(k => { if (f[k] === "" && k !== "pu") delete f[k]; });
     if (!x.p) delete f.pu;
     const ex = m.p ? list.find(w => w.ref === m.p.id) : null;
@@ -3654,15 +3810,38 @@ $("#pastePaste").onclick = async () => { try { const t = await navigator.clipboa
 /* =====================================================================
    12. PROFILE & INVENTORY — your pseudo, your barn & silo, kept up to date
    ===================================================================== */
-let INV = store.get("hd5_inv", { items: [], t: 0 });
-if (!Array.isArray(INV.items)) INV = { items: [], t: 0 };
-const IV = { f: "all", q: "", sort: "az", scan: null };
+// several farms, each with its own barn & silo; "all farms" = everything added up
+let INV = store.get("hd5_inv", null);
+function invFix() {
+  if (!INV || typeof INV !== "object") INV = {};
+  if (!Array.isArray(INV.farms)) INV.farms = [{ id: "f1", name: "My farm", items: Array.isArray(INV.items) ? INV.items : [] }];
+  delete INV.items;
+  if (!INV.farms.length) INV.farms.push({ id: "f1", name: "My farm", items: [] });
+  INV.farms.forEach(f => { if (!Array.isArray(f.items)) f.items = []; });
+  if (!INV.farms.some(f => f.id === INV.cur)) INV.cur = INV.farms[0].id;
+  if (!INV.farms.some(f => f.id === INV.deal)) INV.deal = INV.cur;
+}
+invFix();
+const IV = { f: "all", q: "", sort: "az", scan: null, view: "all" };
+const farmOf = id => INV.farms.find(f => f.id === id) || INV.farms[0];
+const curFarm = () => farmOf(INV.cur);
+const invAny = () => INV.farms.some(f => f.items.length);
+const invSnap = () => clone(INV.farms);
+const invRestore = s => { INV.farms = s; invFix(); saveInv(); };
+const farmIds = scope => !scope || scope === "all" ? INV.farms.map(f => f.id) : [].concat(scope).filter(id => INV.farms.some(f => f.id === id));
+/** The items of some farms ("all" = every farm), quantities added up. */
+function invList(scope) {
+  const fs = farmIds(scope).map(farmOf);
+  if (fs.length === 1) return fs[0].items;
+  const m = new Map(); fs.forEach(f => f.items.forEach(i => { const o = m.get(i.k); if (o) { o.q += i.q; o.by.push([f.name, i.q]); } else m.set(i.k, Object.assign({}, i, { by: [[f.name, i.q]] })); }));
+  return [...m.values()];
+}
 const saveInv = () => { INV.t = Date.now(); store.set("hd5_inv", INV); invChanged(); };
 /** Posts show a red mark when the inventory is short → refresh them when it changes. */
 const invChanged = debounce(() => { if (typeof renderProfiles !== "function" || !st) return; renderProfiles(); if (document.body.dataset.tab === "items") renderLists(); }, 60);
 /** What your post offers but your inventory doesn't have (selling posts, and "I have" in trades). */
 function stockNeed(it, p) {
-  p = p || st; if (!INV.items.length || !it.ref || !CAT.byId[it.ref]) return null;
+  p = p || st; if (!invAny() || !it.ref || !CAT.byId[it.ref]) return null;
   const gives = p.type === "vente" ? p.wants.includes(it) : p.type === "trade" ? p.have.includes(it) : false; if (!gives) return null;
   const need = Math.max(1, Math.round(num(it.q)) || 1), have = invQty(it);
   return have < need ? { need, have } : null;
@@ -3673,39 +3852,42 @@ function renderItemsScan() { const box = $("#itemsScan"); if (!box) return; box.
 /** Silo = crops of the fields; everything else goes to the barn. */
 const invStore = ref => { const p = ref && CAT.byId[ref]; return p && p.cat === "crops" ? "silo" : "barn"; };
 const invKey = x => x.ref || "n:" + norm(x.name || "");
-const invFind = x => INV.items.find(i => i.k === invKey(x));
-/** How many you have (a set = what its materials allow, split evenly). */
-function invQty(x) {
+const invFind = (x, scope) => invList(scope).find(i => i.k === invKey(x));
+/** How many you have — in all your farms unless said (a set = what its materials allow, split evenly). */
+function invQty(x, scope) {
   const p = x && x.ref && CAT.byId[x.ref];
-  if (p && p.parts) return p.parts.length * Math.min(...p.parts.map(id => invQty({ ref: id })));
-  const i = invFind(x); return i ? i.q : 0;
+  if (p && p.parts) return p.parts.length * Math.min(...p.parts.map(id => invQty({ ref: id }, scope)));
+  const k = invKey(x); return farmIds(scope).reduce((a, id) => { const i = farmOf(id).items.find(o => o.k === k); return a + (i ? i.q : 0); }, 0);
 }
-function invSet(x, q, quiet) {
+/** Set a quantity in one farm (the current one unless said). */
+function invSet(x, q, quiet, fid) {
+  const F = farmOf(fid || INV.cur);
   const p = x.ref && CAT.byId[x.ref], k = invKey(x); q = Math.max(0, Math.round(q || 0));
   if (p && p.parts) return;                                // sets live as their materials
-  let i = INV.items.find(o => o.k === k);
+  let i = F.items.find(o => o.k === k);
   if (!i && q <= 0) return;
-  if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name, e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; INV.items.push(i); }
-  if (q <= 0) INV.items.splice(INV.items.indexOf(i), 1); else { i.q = q; i.t = Date.now(); }
+  if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name, e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; F.items.push(i); }
+  if (q <= 0) F.items.splice(F.items.indexOf(i), 1); else { i.q = q; i.t = Date.now(); }
   if (!quiet) saveInv();
 }
 /** + / − on the inventory; a set (BEM…) changes its materials (89 → 30 · 30 · 29). */
-function invAdd(x, d, quiet) {
-  const p = x && x.ref && CAT.byId[x.ref];
-  if (p && p.parts) { packSplit(p, Math.round(Math.abs(d))).forEach(s => invAdd({ ref: s.id }, Math.sign(d) * s.n, true)); if (!quiet) saveInv(); return; }
-  invSet(x, invQty(x) + d, quiet);
+function invAdd(x, d, quiet, fid) {
+  const p = x && x.ref && CAT.byId[x.ref]; fid = fid || INV.cur;
+  if (p && p.parts) { packSplit(p, Math.round(Math.abs(d))).forEach(s => invAdd({ ref: s.id }, Math.sign(d) * s.n, true, fid)); if (!quiet) saveInv(); return; }
+  invSet(x, invQty(x, fid) + d, quiet, fid);
 }
 /** A deal (History entry) applied to the inventory: sold / given → out, bought / received → in. */
+/** Deals change the farm chosen for them (Inventory → "Deals update …"). */
 function invApply(e, sign) {
-  const sg = sign || 1, L = e.lines || [];
-  if (e.type === "vente") L.forEach(l => invAdd(l, -sg * (l.q || 0), true));
-  if (e.type === "achat") L.forEach(l => invAdd(l, sg * (l.q || 0), true));
-  if (e.type === "trade") { L.forEach(l => invAdd(l, sg * (l.q || 0), true)); (e.gives || []).forEach(g => invAdd(g, -sg * (g.n || 0), true)); }
+  const sg = sign || 1, L = e.lines || [], f = INV.deal;
+  if (e.type === "vente") L.forEach(l => invAdd(l, -sg * (l.q || 0), true, f));
+  if (e.type === "achat") L.forEach(l => invAdd(l, sg * (l.q || 0), true, f));
+  if (e.type === "trade") { L.forEach(l => invAdd(l, sg * (l.q || 0), true, f)); (e.gives || []).forEach(g => invAdd(g, -sg * (g.n || 0), true, f)); }
   saveInv();
 }
-const invLive = () => SETTINGS.invLive !== false && INV.items.length > 0;
-const invUnits = s => INV.items.filter(i => !s || i.s === s).reduce((a, i) => a + i.q, 0);
-const invCount = s => INV.items.filter(i => !s || i.s === s).length;
+const invLive = () => SETTINGS.invLive !== false && invAny();
+const invUnits = (s, scope) => invList(scope || "all").filter(i => !s || i.s === s).reduce((a, i) => a + i.q, 0);
+const invCount = (s, scope) => invList(scope || "all").filter(i => !s || i.s === s).length;
 const agoTxt = t => { if (!t) return "never"; const m = Math.round((Date.now() - t) / 6e4); return m < 1 ? "just now" : m < 60 ? m + " min ago" : dayLabel(t) + " " + hm(t); };
 const backTo = (t, label) => h("button", { class: "back", onclick: () => tab(t) }, "‹ " + label);
 
@@ -3725,7 +3907,7 @@ function renderMe() {
   const go = (icon, title, sub, fn) => h("button", { class: "meit", onclick: fn }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
   const S = HIST.length ? computeStatsAll() : null;
   out.append(h("div", { class: "card memenu" },
-    go("📦", "Inventory", INV.items.length ? fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
+    go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
     go("📊", "Stats", S ? fmt(HIST.length) + " deals · " + short(Math.round(S.in)) + " coins in" : "Your sales, purchases and trades in numbers", () => tab("stats")),
     go("🕘", "History", HIST.length ? fmt(HIST.length) + " deals" : "Deals marked as done", () => tab("hist")),
     go("💾", "Backup", "Save or restore everything (posts, history, inventory)", () => { tab("style"); setTimeout(() => { const b = $("#bkOut"); b && b.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); }),
@@ -3735,45 +3917,75 @@ function renderMe() {
 function computeStatsAll() { const p = SV.per; SV.per = "all"; const S = computeStats(); SV.per = p; return S; }
 
 /* ---------- inventory ---------- */
+/** A farm: new, renamed, removed. */
+function farmMenu(f) {
+  const nm = h("input", { class: "inp", value: f ? f.name : "", placeholder: "Farm name (e.g. Main farm, Farm 2)", maxLength: 30 });
+  openSheet(f ? "Farm “" + f.name + "”" : "New farm", [h("label", { class: "lbl" }, "Name"), nm,
+    h("button", { class: "btn pri full", style: "margin-top:10px", onclick: () => {
+      const v = nm.value.trim() || "Farm " + (INV.farms.length + (f ? 0 : 1));
+      if (f) f.name = v; else { const nf = { id: "f" + uid(), name: v, items: [] }; INV.farms.push(nf); INV.cur = nf.id; IV.view = nf.id; }
+      saveInv(); closeSheet(); renderInv();
+    } }, f ? "Rename" : "Create the farm"),
+    f && INV.farms.length > 1 ? h("button", { class: "btn danger full", style: "margin-top:8px", onclick: () => {
+      if (!confirm("Delete the farm “" + f.name + "” and its inventory?")) return;
+      INV.farms = INV.farms.filter(x => x !== f); invFix(); IV.view = "all"; saveInv(); closeSheet(); renderInv();
+    } }, "Delete this farm") : null]);
+  setTimeout(() => nm.focus(), 60);
+}
 function renderInv() {
   const out = $("#invOut"); out.textContent = "";
   out.append(backTo("me", "Profile"));
+  if (IV.view !== "all" && !INV.farms.some(f => f.id === IV.view)) IV.view = "all";
+  const all = IV.view === "all", F = all ? curFarm() : farmOf(IV.view), many = INV.farms.length > 1;
+  if (!all) INV.cur = F.id;
   const fileIn = h("input", { type: "file", accept: "image/*", multiple: true, hidden: true, onchange: e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f); } });
+  // farms: all of them together, or one
+  const chips = h("div", { class: "chips farms", style: "margin:0" },
+    many ? h("button", { class: "chip" + (all ? " on" : ""), onclick: () => { IV.view = "all"; renderInv(); } }, "All farms") : null,
+    INV.farms.map(f => h("button", { class: "chip" + (IV.view === f.id || (!many && all) ? " on" : ""), onclick: () => { if (IV.view === f.id) return farmMenu(f); IV.view = f.id; renderInv(); } }, f.name, IV.view === f.id ? h("i", { class: "fed" }, " ✎") : null)),
+    h("button", { class: "chip plus", onclick: () => farmMenu(null) }, "＋ Farm"));
+  const scope = all ? "all" : F.id;
   out.append(h("div", { class: "card fieldset" },
-    h("div", { class: "ch" }, h("h2", null, "Inventory")),
+    h("div", { class: "ch" }, h("h2", null, "Inventory")), chips,
     h("div", { class: "kpis" },
-      kpi("Barn", fmt(invUnits("barn")), plural(invCount("barn"), "item")),
-      kpi("Silo", fmt(invUnits("silo")), plural(invCount("silo"), "item"))),
-    h("p", { class: "hint" }, "Updated " + agoTxt(INV.t) + ". Saved on this device only."),
+      kpi("Barn", fmt(invUnits("barn", scope)), plural(invCount("barn", scope), "item")),
+      kpi("Silo", fmt(invUnits("silo", scope)), plural(invCount("silo", scope), "item"))),
+    h("p", { class: "hint" }, (all && many ? "All your farms added up. " : "") + "Updated " + agoTxt(INV.t) + ". Saved on this device only."),
     h("div", { class: "two" }, h("button", { class: "btn pri", onclick: () => fileIn.click() }, "📷 Screenshots"), h("button", { class: "btn", onclick: addInvSheet }, "＋ Add items")), fileIn,
-    h("label", { class: "switch sm" }, "Update it with my deals (Order & Search)", h("input", { type: "checkbox", checked: SETTINGS.invLive !== false, onchange: e => { SETTINGS.invLive = e.target.checked; saveSettings(); } }))));
+    many ? h("p", { class: "hint", style: "margin-top:-4px" }, "Screenshots and new items go to: ", h("b", null, curFarm().name), all ? " (tap a farm to change)" : "") : null,
+    h("label", { class: "switch sm" }, "Update it with my deals (Order, Search, Deals)", h("input", { type: "checkbox", checked: SETTINGS.invLive !== false, onchange: e => { SETTINGS.invLive = e.target.checked; saveSettings(); renderInv(); } })),
+    many && SETTINGS.invLive !== false ? h("div", { class: "row dfarm" }, h("span", { class: "hint" }, "Deals change"), h("select", { class: "sel", onchange: e => { INV.deal = e.target.value; saveInv(); } }, INV.farms.map(f => h("option", { value: f.id, selected: f.id === INV.deal }, f.name)))) : null));
   if (IV.scan) out.append(scanCard());
-  if (!INV.items.length) { if (!IV.scan) out.append(h("div", { class: "empty card" }, "Your inventory is empty. Take screenshots of your barn and silo in the game (scroll to see everything), then tap “📷 Read screenshots”. You can also add items by hand.")); return; }
+  const items = invList(scope);
+  if (!items.length) { if (!IV.scan) out.append(h("div", { class: "empty card" }, (many ? "“" + F.name + "” is empty. " : "Your inventory is empty. ") + "Take screenshots of your barn and silo in the game (scroll to see everything), then tap “📷 Screenshots”. You can also add items by hand.")); return; }
   // list
   const fl = h("div", { class: "seg" }, [["all", "All"], ["barn", "Barn"], ["silo", "Silo"]].map(([v, l]) => h("button", { class: IV.f === v ? "on" : "", onclick: () => { IV.f = v; renderInv(); } }, l)));
   const so = h("div", { class: "seg" }, [["az", "A–Z"], ["most", "Most"], ["least", "Least"]].map(([v, l]) => h("button", { class: IV.sort === v ? "on" : "", onclick: () => { IV.sort = v; renderInv(); } }, l)));
   const list = h("div", { class: "ilist" });
+  const ro = all && many;                                   // all farms: read only (change a farm's numbers in that farm)
   const fillList = () => {
     list.textContent = "";
     const nq = norm(IV.q);
-    let L = INV.items.filter(i => (IV.f === "all" || i.s === IV.f) && (!nq || norm(i.name).includes(nq) || (i.ref && CAT.byId[i.ref] && norm(CAT.byId[i.ref].fr || "").includes(nq))));
+    let L = invList(scope).filter(i => (IV.f === "all" || i.s === IV.f) && (!nq || norm(i.name).includes(nq) || (i.ref && CAT.byId[i.ref] && norm(CAT.byId[i.ref].fr || "").includes(nq))));
     L.sort(IV.sort === "most" ? (a, b) => b.q - a.q : IV.sort === "least" ? (a, b) => a.q - b.q : (a, b) => a.name.localeCompare(b.name));
     if (!L.length) list.append(h("p", { class: "hint", style: "padding:12px" }, "Nothing matches."));
     L.forEach(i => {
-      const qi = h("input", { value: i.q, inputMode: "numeric", "aria-label": "Quantity", onchange: () => { invSet(i, num(qi.value)); renderInv(); } });
+      const tag = ro ? (i.by || []).map(([n, q]) => n + " " + fmt(q)).join(" · ") : IV.f === "all" ? (i.s === "silo" ? "Silo" : "Barn") : "";
+      if (ro) { list.append(h("div", { class: "irow ro" }, thumb(i.ref && CAT.byId[i.ref] ? prodState(i.ref) : null, i.e || "📦", "oth"), h("div", { class: "in" }, h("b", null, i.name), tag ? h("small", null, tag) : null), h("b", { class: "iq" }, fmt(i.q)))); return; }
+      const qi = h("input", { value: i.q, inputMode: "numeric", "aria-label": "Quantity", onchange: () => { invSet(i, num(qi.value), false, F.id); renderInv(); } });
       list.append(h("div", { class: "irow" },
         thumb(i.ref && CAT.byId[i.ref] ? prodState(i.ref) : null, i.e || "📦", "oth"),
-        h("div", { class: "in" }, h("b", null, i.name), IV.f === "all" ? h("small", null, i.s === "silo" ? "Silo" : "Barn") : null),
-        h("div", { class: "istep" }, h("button", { "aria-label": "One less", onclick: () => { invSet(i, i.q - 1); fillList(); qi.value = i.q; } }, "−"), qi, h("button", { "aria-label": "One more", onclick: () => { invSet(i, i.q + 1); fillList(); } }, "+")),
-        h("button", { class: "odel", "aria-label": "Remove", onclick: () => { invSet(i, 0); renderInv(); } }, "×")));
+        h("div", { class: "in" }, h("b", null, i.name), tag ? h("small", null, tag) : null),
+        h("div", { class: "istep" }, h("button", { "aria-label": "One less", onclick: () => { invSet(i, i.q - 1, false, F.id); fillList(); } }, "−"), qi, h("button", { "aria-label": "One more", onclick: () => { invSet(i, i.q + 1, false, F.id); fillList(); } }, "+")),
+        h("button", { class: "odel", "aria-label": "Remove", onclick: () => { invSet(i, 0, false, F.id); renderInv(); } }, "×")));
     });
   };
-  const sq = h("input", { class: "inp", type: "search", placeholder: "Search my inventory", value: IV.q, autocapitalize: "off", oninput: e => { IV.q = e.target.value; fillList(); } });
+  const sq = h("input", { class: "inp", type: "search", placeholder: "Search " + (ro ? "all my farms" : "my inventory"), value: IV.q, autocapitalize: "off", oninput: e => { IV.q = e.target.value; fillList(); } });
   fillList();
   out.append(h("div", { class: "card fieldset" }, fl, h("div", { class: "row" }, sq), so, list,
     h("div", { class: "two" },
-      h("button", { class: "btn", onclick: async () => { const t = INV.items.slice().sort((a, b) => a.name.localeCompare(b.name)).map(i => i.name + " x" + i.q).join("\n"); try { await navigator.clipboard.writeText(t); toast("List copied ✔"); } catch (e) { openSheet("My inventory", h("textarea", { class: "ta", rows: 12, value: t, readOnly: true })); } } }, "Copy the list"),
-      h("button", { class: "btn danger", onclick: () => { if (!confirm("Empty your whole inventory?")) return; INV.items = []; saveInv(); renderInv(); } }, "Empty it"))));
+      h("button", { class: "btn", onclick: async () => { const t = invList(scope).slice().sort((a, b) => a.name.localeCompare(b.name)).map(i => i.name + " x" + i.q).join("\n"); try { await navigator.clipboard.writeText(t); toast("List copied ✔"); } catch (e) { openSheet("My inventory", h("textarea", { class: "ta", rows: 12, value: t, readOnly: true })); } } }, "Copy the list"),
+      ro ? h("span") : h("button", { class: "btn danger", onclick: () => { if (!confirm("Empty “" + F.name + "”?")) return; F.items = []; saveInv(); renderInv(); } }, "Empty it"))));
 }
 /** Add by hand: search + quantity, or a typed list ("carrot pie 26, bolt 30"). */
 function addInvSheet() {
@@ -3835,7 +4047,7 @@ function scanLabel(mask, W, H, minN) {
   for (let p = 0; p < W * H; p++) {
     if (!mask[p] || lab[p]) continue;
     id++; let sp = 0; st[sp++] = p; lab[p] = id;
-    const c = { id, n: 0, x0: W, y0: H, x1: 0, y1: 0 };
+    const c = { id, p, n: 0, x0: W, y0: H, x1: 0, y1: 0 };
     while (sp) {
       const q = st[--sp], x = q % W, y = (q - x) / W; c.n++;
       if (x < c.x0) c.x0 = x; if (x > c.x1) c.x1 = x; if (y < c.y0) c.y0 = y; if (y > c.y1) c.y1 = y;
@@ -4148,11 +4360,11 @@ function scanSave(where) {
     });
     renderLists(); renderResults(); changed();
   }
-  if (S.mode === "rep" && !post) { const st2 = new Set(R.map(r => invStore(r.ref))); INV.items = INV.items.filter(i => !st2.has(i.s)); }
+  if (S.mode === "rep" && !post) { const st2 = new Set(R.map(r => invStore(r.ref))), F = curFarm(); F.items = F.items.filter(i => !st2.has(i.s)); }
   if (!post || S.alsoInv !== false) R.forEach(r => invSet({ ref: r.ref }, r.q, true));
   // learn from what you fixed or confirmed when unsure → better next time
   R.filter(r => r.fixed || r.unsure0).forEach(r => LEARN.push({ ref: r.ref, url: r.learn }));
-  if (LEARN.length > 80) LEARN = LEARN.slice(-80);
+  if (LEARN.length > 150) LEARN = LEARN.slice(-150);
   store.set("hd5_scanlearn", LEARN);
   saveInv(); scanPut(where, null); scanDraw(where);
   toast(post ? plural(R.length, "item") + " added to your post ✔" : plural(R.length, "item") + " saved in your inventory ✔");
@@ -4162,7 +4374,15 @@ function scanSave(where) {
    13. SEARCH — a buyer's "buying …" message checked against your inventory
    → what you can sell them, at their prices, with a reply ready
    ===================================================================== */
-const SR = { text: "", defQ: "", picks: {}, ed: {}, who: "", done: null };
+const SR = { text: "", defQ: "", picks: {}, ed: {}, who: "", done: null, scope: "all" };
+/** Farm chips: all farms, or some of them (tap several). */
+function farmChips(get, set, label) {
+  if (INV.farms.length < 2) return null;
+  const sc = get(), all = sc === "all", ids = all ? [] : [].concat(sc);
+  return h("div", { class: "fchips" }, label ? h("span", { class: "lbl" }, label) : null,
+    h("button", { class: "chip" + (all ? " on" : ""), onclick: () => set("all") }, "All farms"),
+    INV.farms.map(f => h("button", { class: "chip" + (!all && ids.includes(f.id) ? " on" : ""), onclick: () => { let n = all ? [f.id] : ids.includes(f.id) ? ids.filter(x => x !== f.id) : ids.concat(f.id); set(!n.length || n.length === INV.farms.length ? "all" : n); } }, f.name)));
+}
 const EMO = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu;
 const words = s => s.trim().split(/\s+/).filter(Boolean);
 /** Read a free-form buying post: "(10) nachos, bacon fries 3k", "15 marmalade, 10 peach jam 5k each", "egg / lobster / big roll sushi 4k each"… */
@@ -4221,7 +4441,7 @@ function srRows() {
   const { items, defQ } = parseBuyList(SR.text), dq = SR.defQ !== "" ? Math.round(num(SR.defQ)) : defQ;
   return { defQ, dq, rows: items.map(it => {
     const m = srMatch(it), p = m.p, E = SR.ed[it.key] || {};
-    const have = p ? invQty({ ref: p.id }) : 0, ask = it.q != null ? it.q : dq || null;
+    const have = p ? invQty({ ref: p.id }, SR.scope) : 0, ask = it.q != null ? it.q : dq || null;
     const price = E.p != null ? E.p : it.p || 0, q = E.q != null ? E.q : Math.min(ask == null ? have : ask, have);
     return { it, m, p, have, ask, price, q, off: !!E.off, v: q * price };
   }) };
@@ -4231,15 +4451,15 @@ function renderSearch() {
   if (SR.done) return srDone(out);
   const { rows, defQ, dq } = srRows();
   if (!rows.length) { out.append(h("div", { class: "empty card" }, "Paste a buyer's message above, e.g. “(10) nachos, bacon fries 3k”. You'll see right away what you have in your inventory, at their prices.")); return; }
-  if (INV.items.length) out.append(h("p", { class: "hint srinv" }, "Your inventory: " + plural(invCount(), "item") + " · updated " + agoTxt(INV.t) + " · ", h("a", { href: "#", onclick: e => { e.preventDefault(); tab("inv"); } }, "open")));
-  if (!INV.items.length) out.append(h("div", { class: "card owarnc" }, h("b", null, "Your inventory is empty"), h("p", { class: "hint" }, "Add your barn and silo first (screenshots or by hand) — then the search knows what you have."), h("button", { class: "btn pri", onclick: () => tab("inv") }, "Open my inventory")));
+  if (invAny()) out.append(h("p", { class: "hint srinv" }, "Your inventory: " + plural(invCount(null, SR.scope), "item") + " · updated " + agoTxt(INV.t) + " · ", h("a", { href: "#", onclick: e => { e.preventDefault(); tab("inv"); } }, "open")), farmChips(() => SR.scope, v => { SR.scope = v; SR.ed = {}; renderSearch(); }, "Look in") || "");
+  if (!invAny()) out.append(h("div", { class: "card owarnc" }, h("b", null, "Your inventory is empty"), h("p", { class: "hint" }, "Add your barn and silo first (screenshots or by hand) — then the search knows what you have."), h("button", { class: "btn pri", onclick: () => tab("inv") }, "Open my inventory")));
   const live = rows.filter(r => r.p && !r.off && r.have > 0), miss = rows.filter(r => !r.off && (!r.p || r.have <= 0)), offs = rows.filter(r => r.off);
   const total = live.reduce((a, r) => a + r.q * r.price, 0), noPrice = live.filter(r => !r.price).length;
   // what you can sell
   const list = h("div", { class: "card olist" });
   list.append(h("div", { class: "obar sh" }, h("span", { class: "ol" }, "You have " + fmt(live.length) + " of " + plural(rows.length - offs.length, "item")),
     h("span", { class: "dq" }, "No quantity →", h("input", { value: SR.defQ !== "" ? SR.defQ : defQ || "", placeholder: "all", inputMode: "numeric", "aria-label": "Quantity when none is given", onchange: e => { SR.defQ = e.target.value.trim(); SR.ed = {}; renderSearch(); } }))));
-  if (!live.length) list.append(h("p", { class: "hint", style: "padding:12px" }, INV.items.length ? "None of these items is in your inventory." : "Nothing yet — your inventory is empty."));
+  if (!live.length) list.append(h("p", { class: "hint", style: "padding:12px" }, invAny() ? "None of these items is in your inventory." : "Nothing yet — your inventory is empty."));
   live.forEach(r => {
     const E = SR.ed[r.it.key] || (SR.ed[r.it.key] = {});
     const qi = h("input", { value: r.q, inputMode: "numeric", "aria-label": "Quantity", onchange: () => { E.q = Math.max(0, Math.round(num(qi.value))); renderSearch(); } });
@@ -4284,7 +4504,7 @@ function srLater(live, total) {
 }
 function srDeal(live, total) {
   const e = srEntry(live, total);
-  const before = clone(INV.items), upd = invLive();
+  const before = invSnap(), upd = invLive();
   HIST.unshift(e); saveHist(); if (upd) invApply(e);
   SR.done = { e, before, upd }; SR.who = ""; renderSearch(); toast(upd ? "Saved in History — inventory updated ✔" : "Saved in History ✔");
 }
@@ -4294,7 +4514,7 @@ function srDone(out) {
     h("div", { class: "done-note" }, plural(D.e.lines.length, "item") + " · " + fmt(D.e.total) + " coins · saved in History" + (D.upd ? " · inventory updated" : "")),
     h("button", { class: "btn gold full", onclick: async () => { try { await navigator.clipboard.writeText(D.e.reply); toast("Reply copied ✔"); } catch (e) { openSheet("Reply", h("textarea", { class: "ta", rows: 10, value: D.e.reply, readOnly: true })); } } }, "Copy the reply for Discord"),
     h("div", { class: "two" },
-      h("button", { class: "btn", onclick: () => { HIST = HIST.filter(x => x.id !== D.e.id); saveHist(); if (D.upd) { INV.items = D.before; saveInv(); } SR.done = null; renderSearch(); toast("Undone"); } }, "Undo"),
+      h("button", { class: "btn", onclick: () => { HIST = HIST.filter(x => x.id !== D.e.id); saveHist(); if (D.upd) invRestore(D.before); SR.done = null; renderSearch(); toast("Undone"); } }, "Undo"),
       h("button", { class: "btn", onclick: () => { SR.done = null; SR.text = ""; SR.ed = {}; SR.picks = {}; $("#srIn").value = ""; renderSearch(); $("#srIn").focus(); } }, "New search"))));
 }
 function srPick(r) {
@@ -4340,12 +4560,21 @@ function addDeal(e, o) {
 }
 /** Confirm a deal (or today's part): a History entry, the inventory, and the post it came from. */
 function confirmDeal(d) {
-  const snap = { deal: JSON.stringify(d), inv: clone(INV.items), post: null };
+  const snap = { deal: JSON.stringify(d), inv: invSnap(), post: null };
   const e = Object.assign({}, clone(d.e), { id: uid(), t: Date.now(), who: d.who, post: d.e.post || DTYPE[d.e.type].t, reply: d.e.reply || dealText(d) });
   HIST.unshift(e); saveHist();
   const upd = invLive(); if (upd) invApply(e);
   // the post it came from: lower what was sold / given (like “✓ Mark as done” in Order)
   let pu = 0;
+  // trades: lower your “I have” items by what this trade really gives (after any change)
+  if (d.tr && d.tr.pid && !d.daily) {
+    const p = STATE.list.find(x => x.id === d.tr.pid);
+    if (p) {
+      snap.post = { pid: p.id, wants: clone(p.wants), have: clone(p.have) };
+      (e.gives || []).forEach(g => { const it = p.have.find(x => x.ref && x.ref === g.ref); if (!it || !num(it.q)) return; const left = Math.max(0, Math.round(num(it.q)) - Math.round(g.n)); if (left) it.q = String(left); else p.have.splice(p.have.indexOf(it), 1); pu++; });
+      if (pu) { if (p.id === st.id) { renderLists(); renderTarget(); renderResults(); } changed(); }
+    }
+  }
   if (d.post && !d.daily) {
     const p = STATE.list.find(x => x.id === d.post.pid);
     if (p) {
@@ -4361,6 +4590,7 @@ function confirmDeal(d) {
   renderOngoing(); renderProfiles();
 }
 function cancelDeal(d) {
+  if (ORDER.deal && ORDER.deal.id === d.id) { ORDER.deal = null; }
   DL.undo = { id: d.id, snap: { deal: JSON.stringify(d) }, what: "Deal cancelled" + (d.who ? " (" + d.who + ")" : "") };
   d.status = "cancelled"; d.closed = Date.now(); saveDeals(); renderOngoing();
 }
@@ -4368,7 +4598,7 @@ function undoDeal() {
   const U = DL.undo; if (!U) return;
   const i = DEALS.findIndex(x => x.id === U.id); if (i >= 0) DEALS[i] = JSON.parse(U.snap.deal);
   if (U.hid) { HIST = HIST.filter(e => e.id !== U.hid); saveHist(); }
-  if (U.snap.inv) { INV.items = U.snap.inv; saveInv(); }
+  if (U.snap.inv) invRestore(U.snap.inv);
   if (U.snap.post) { const p = STATE.list.find(x => x.id === U.snap.post.pid); if (p) { p.wants = U.snap.post.wants; p.have = U.snap.post.have; if (p.id === st.id) { renderLists(); renderTarget(); renderResults(); } changed(); } }
   DL.undo = null; saveDeals(); renderOngoing(); toast("Undone");
 }
@@ -4400,16 +4630,81 @@ function renderOngoing() {
 function dealChip(x, res, out) {
   const p = x.ref && CAT.byId[x.ref];
   let warn = null;
-  if (out && INV.items.length && x.ref) {
+  if (out && invAny() && x.ref) {
     const have = invQty(x), all = res.get(x.ref) || 0;
     if (have < x.n) warn = h("em", { class: "dw red", title: "Your inventory has " + fmt(have) }, have ? "only " + fmt(have) : "none left");
     else if (all > have) warn = h("em", { class: "dw amber", title: "Your open deals need " + fmt(all) + " in all" }, fmt(have) + " for " + fmt(all) + " in deals");
   }
   return h("span", { class: "dchip" + (warn && warn.classList.contains("red") ? " short" : "") }, p ? thumb(prodState(p.id), p.e, "mini") : h("span", { class: "th mini" }, x.e || "📦"), h("b", null, fmt(x.n)), " " + (p && p.parts ? giveName({ ref: p.id }) : x.name), warn);
 }
+/* ---------- trades: lines with ratios, recomputed every time something changes ---------- */
+const tradePosts = () => STATE.list.filter(p => p.type === "trade");
+/** The ratio your trade post gives for an item: you give `ra` of your item for `rb` of theirs. */
+function postRatio(p, ref) {
+  if (!p || !ref) return null;
+  const w = p.wants.find(x => x.ref === ref && hasRatio(x)); if (!w) return null;
+  const hv = p.have.filter(x => (x.name || "").trim() || x.ref), g = hv.find(x => x.uid === w.give) || hv[0];
+  return { ra: num(w.ra), rb: num(w.rb), give: g ? { ref: g.ref || null, name: pName(g), e: g.e || "" } : null };
+}
+const lineGive = l => num(l.ra) > 0 && num(l.rb) > 0 && l.give ? (l.q || 0) / num(l.rb) * num(l.ra) : 0;
+/** A trade's lines → what you get, and what you give in all (whole items, sets in materials). */
+function trCalc(tr) {
+  const by = new Map();
+  tr.lines.forEach(l => { const v = lineGive(l); if (!v) return; const k = l.give.ref || "n:" + l.give.name, o = by.get(k) || Object.assign({}, l.give, { n: 0 }); o.n += v; by.set(k, o); });
+  const gives = [...by.values()].map(o => { const n = giveWhole(o.n); return { ref: o.ref, e: o.e, name: packOf(o) ? giveName(o) : o.name, n, split: splitTxt(o, n) || undefined }; });
+  return { type: "trade", post: "Trade", lines: tr.lines.filter(l => l.q > 0).map(l => ({ ref: l.ref, e: l.e, name: l.name, q: l.q, v: 0, bulk: 0, give: Math.round(lineGive(l) * 100) / 100 })), gives, total: 0, bonus: 0, disc: 0, reply: "" };
+}
+/** Older trade deals (no lines) → lines, with the ratio that gives the same result. */
+function trOf(d) {
+  if (d.tr) return d.tr;
+  const L = d.e.lines || [], G = (d.e.gives || [])[0], tq = L.reduce((a, l) => a + (l.q || 0), 0) || 1;
+  d.tr = { pid: null, lines: L.map(l => ({ ref: l.ref, name: l.name, e: l.e, q: l.q, ra: G ? Math.round(G.n * l.q / tq * 100) / 100 : "", rb: l.q, give: G ? { ref: G.ref, name: G.name, e: G.e } : null })) };
+  return d.tr;
+}
+/** What you can give in a trade: your post's “I have”, the sets and rings — and what's already used. */
+function giveChoices(tr) {
+  const p = STATE.list.find(x => x.id === tr.pid), out = [], seen = new Set(), add = g => { const k = g.ref || "n:" + g.name; if (seen.has(k)) return; seen.add(k); out.push(g); };
+  if (p) p.have.filter(x => (x.name || "").trim() || x.ref).forEach(g => add({ ref: g.ref || null, name: pName(g), e: g.e || "" }));
+  tr.lines.forEach(l => l.give && add(l.give));
+  ["bem-set", "sem-set", "lem-set", "tem-set", "tool-set", "diamond-ring", "blanket"].forEach(id => CAT.byId[id] && add({ ref: id, name: CAT.byId[id].en, e: CAT.byId[id].e }));
+  return out;
+}
+const gLabel = g => g ? (packOf(g) ? giveName(g) : g.name) : "?";
+/** Add an item they give you: already there → more of it; else a new line with the ratio of your trade post (or the line before). */
+function trPush(tr, p) {
+  const ex = tr.lines.find(l => l.ref === p.id), nl = trLine(tr, p);
+  if (ex) { ex.q = (ex.q || 0) + (num(ex.rb) || nl.q || 1); toast(p.en + " → " + fmt(ex.q)); } else tr.lines.push(nl);
+}
+function trLine(tr, p, q) {
+  const r = postRatio(STATE.list.find(x => x.id === tr.pid), p.id), last = tr.lines[tr.lines.length - 1];
+  return { ref: p.id, name: p.en, e: p.e, q: q || (r ? r.rb : last ? num(last.rb) : 1), ra: r ? r.ra : last ? last.ra : "", rb: r ? r.rb : last ? last.rb : "", give: r ? r.give : last ? last.give : giveChoices(tr)[0] || null, fromPost: !!r };
+}
+/** One trade line, editable: quantity · ratio (you give a of yours for b of theirs) → what it costs you. */
+function trRow(tr, l, onChange) {
+  const p = l.ref && CAT.byId[l.ref], out = h("b", { class: "tgv" });
+  const paint = () => { const v = lineGive(l); out.textContent = v ? "→ " + fmtR(v) + " " + gLabel(l.give) : "→ set a ratio"; out.classList.toggle("no", !v); };
+  const inp = (key, ph, w) => h("input", { value: l[key] || "", inputMode: "decimal", placeholder: ph, "aria-label": key, style: w ? "width:" + w : null, oninput: e => { l[key] = key === "q" ? Math.round(num(e.target.value)) : e.target.value; paint(); onChange(false); } });
+  const G = giveChoices(tr), sel = h("select", { class: "tsel", "aria-label": "Your item", onchange: e => { l.give = G[+e.target.value] || null; paint(); onChange(false); } },
+    G.map((g, i) => h("option", { value: i, selected: !!l.give && (g.ref || g.name) === (l.give.ref || l.give.name) }, gLabel(g))));
+  paint();
+  return h("div", { class: "trow" },
+    h("div", { class: "tr1" }, p ? thumb(prodState(p.id), p.e, "mini") : h("span", { class: "th mini" }, l.e || "📦"), h("span", { class: "tnm" }, l.name), h("div", { class: "oq" }, h("span", null, "×"), inp("q", "0")),
+      h("button", { class: "odel", "aria-label": "Remove", onclick: () => { tr.lines.splice(tr.lines.indexOf(l), 1); onChange(true); } }, "×")),
+    h("div", { class: "tr2" }, h("span", null, "ratio"), inp("ra", "50", "48px"), sel, h("span", null, ":"), inp("rb", "89", "48px"), out,
+      l.ref && !l.fromPost && tr.pid && !postRatio(STATE.list.find(x => x.id === tr.pid), l.ref) ? h("small", { class: "tnp" }, "not in your post") : null));
+}
+/** The “you give” total of a trade, with the split of sets and the inventory check. */
+function trTotal(tr, res, d) {
+  const e = trCalc(tr), box = h("div", { class: "ttot" });
+  if (!e.gives.length) { box.append(h("span", { class: "hint" }, "Set the ratios to see what you give.")); return box; }
+  box.append(h("span", { class: "dl" }, d && d.daily ? "You give / day" : "You give"), h("div", { class: "dchips" }, e.gives.map(g => dealChip(g, res || reserved(), true))));
+  e.gives.filter(g => g.split).forEach(g => box.append(h("small", { class: "tsp" }, gLabel(g) + " = " + g.split)));
+  return box;
+}
 function dealCard(d, res) {
-  const e = d.e, T = DTYPE[e.type], outL = dealOut(e), inL = dealIn(e), today = doneToday(d);
-  const short = outL.some(x => x.ref && INV.items.length && invQty(x) < x.n);
+  const e = d.e, T = DTYPE[e.type], today = doneToday(d);
+  const outL = dealOut(e), inL = dealIn(e);
+  const short = outL.some(x => x.ref && invAny() && invQty(x) < x.n);
   const coins = e.type !== "trade" ? h("span", { class: "dchip coins" }, h("i", { class: "coin" }), h("b", null, fmt(e.total || 0)), " coins") : null;
   const card = h("div", { class: "card dcard" + (d.daily ? " daily" : "") + (short ? " short" : "") });
   card.append(h("div", { class: "dtop" }, h("span", { class: "dtype" }, T.i + " " + T.t), h("b", { class: "dwho" }, d.who || "No name"),
@@ -4418,17 +4713,41 @@ function dealCard(d, res) {
     const n = d.daily.log.length, N = d.daily.days;
     card.append(h("div", { class: "dprog" }, h("div", { class: "dbar" }, h("i", { style: "width:" + (N ? Math.min(100, n / N * 100) : Math.min(100, n * 10)) + "%" })),
       h("span", null, N ? "Day " + fmt(n) + " / " + fmt(N) : fmt(n) + " " + (n === 1 ? "day" : "days") + " done"), h("b", { class: today ? "ok" : "todo" }, today ? "Today ✓" : "Today: to do")));
-    if (outL.length && INV.items.length) { const left = Math.min(...outL.filter(x => x.ref && x.n).map(x => Math.floor(invQty(x) / x.n))); if (isFinite(left)) card.append(h("p", { class: "hint dleft" + (N && left < N - n ? " red" : "") }, "Your inventory covers " + plural(left, "more day") + (N ? " (" + fmt(Math.max(0, N - n)) + " to go)" : "") + ".")); }
+    if (outL.length && invAny()) { const left = Math.min(...outL.filter(x => x.ref && x.n).map(x => Math.floor(invQty(x) / x.n))); if (isFinite(left)) card.append(h("p", { class: "hint dleft" + (N && left < N - n ? " red" : "") }, "Your inventory covers " + plural(left, "more day") + (N ? " (" + fmt(Math.max(0, N - n)) + " to go)" : "") + ".")); }
   }
-  const row = (label, kids) => h("div", { class: "drow" }, h("span", { class: "dl" }, label), h("div", { class: "dchips" }, kids));
-  card.append(row(d.daily ? "You give / day" : "You give", e.type === "achat" ? [coins] : outL.map(x => dealChip(x, res, true))),
-    row(d.daily ? "You get / day" : "You get", e.type === "vente" ? [coins] : inL.map(x => dealChip(x, res, false))));
+  if (e.type === "trade") {
+    // the lines stay editable right here: quantities and ratios → the total follows
+    const tr = trOf(d), lines = h("div", { class: "tlines" }), tot = h("div");
+    const sync = full => { d.e = Object.assign(trCalc(tr), { reply: "" }); saveDeals(); if (full) renderOngoing(); else { tot.textContent = ""; tot.append(trTotal(tr, null, d)); } };
+    lines.append(h("span", { class: "dl" }, d.daily ? "You get / day" : "You get"));
+    tr.lines.forEach(l => lines.append(trRow(tr, l, sync)));
+    lines.append(h("button", { class: "btn sm tadd", onclick: () => trAddSheet(tr, () => sync(true)) }, "＋ Add an item they give you"));
+    tot.append(trTotal(tr, res, d));
+    card.append(lines, tot);
+  } else {
+    const row = (label, kids) => h("div", { class: "drow" }, h("span", { class: "dl" }, label), h("div", { class: "dchips" }, kids));
+    card.append(row(d.daily ? "You give / day" : "You give", e.type === "achat" ? [coins] : outL.map(x => dealChip(x, res, true))),
+      row(d.daily ? "You get / day" : "You get", e.type === "vente" ? [coins] : inL.map(x => dealChip(x, res, false))));
+  }
   if (d.note) card.append(h("p", { class: "dnote" }, d.note));
-  card.append(h("div", { class: "two" },
+  const active = ORDER.deal && ORDER.deal.id === d.id;
+  if (active) card.classList.add("active");
+  card.append(h("div", { class: d.daily ? "two" : "three" },
     d.daily ? h("button", { class: "btn pri", onclick: () => { if (today && !confirm("Today is already done. Count one more day?")) return; confirmDeal(d); } }, today ? "＋ One more day" : "✓ Today done")
-      : h("button", { class: "btn pri", onclick: () => confirmDeal(d) }, "✓ Done"),
+      : h("button", { class: "btn pri", disabled: active, onclick: () => confirmDeal(d) }, "✓ Done"),
+    d.daily ? null : h("button", { class: "btn" + (active ? " on" : ""), onclick: () => openInOrder(d) }, active ? "● In Order" : "✎ In Order"),
     h("button", { class: "btn", onclick: () => dealCopy(d) }, "Copy")));
   return card;
+}
+/** Add an item to a trade (search), with the ratio of your trade post. */
+function trAddSheet(tr, done) {
+  const res = h("div", { class: "menu pick" });
+  const fill = q => { res.textContent = ""; (q ? search(q, "all") : (STATE.list.find(x => x.id === tr.pid) || { wants: [] }).wants.map(w => w.ref && CAT.byId[w.ref]).filter(Boolean)).filter(p => !p.parts).slice(0, 14)
+    .forEach(p => { const r = postRatio(STATE.list.find(x => x.id === tr.pid), p.id); res.append(h("button", { onclick: () => { trPush(tr, p); closeSheet(); done(); } }, thumb(prodState(p.id), p.e, "mini"), p.en, r ? h("small", null, " · " + fmtR(r.ra) + " : " + fmtR(r.rb)) : null)); }); };
+  const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", autocapitalize: "off", oninput: e => fill(e.target.value) });
+  fill("");
+  openSheet("Add an item", [sq, h("p", { class: "hint" }, tr.pid ? "Items of your trade post first, with their ratio." : "Pick the item; set its ratio after."), res]);
+  setTimeout(() => sq.focus(), 50);
 }
 async function dealCopy(d) { const t = d.e.reply || dealText(d); try { await navigator.clipboard.writeText(t); toast("Copied ✔"); } catch (e) { openSheet("Deal", h("textarea", { class: "ta", rows: 8, value: t, readOnly: true })); } }
 function dealMenu(d) {
@@ -4441,8 +4760,9 @@ function dealMenu(d) {
 /* ---------- new / edit (by hand) ---------- */
 function dealForm(d) {
   const e0 = d ? d.e : { type: "trade" };
-  const F = { type: e0.type, who: d ? d.who : "", note: d ? d.note : "", coins: e0.total ? String(e0.total) : "",
-    give: (d ? dealOut(e0) : []).map(x => Object.assign({}, x)), get: (d ? dealIn(e0) : []).map(x => Object.assign({}, x)),
+  const tp = tradePosts(), tr0 = d && e0.type === "trade" ? JSON.parse(JSON.stringify(trOf(d))) : { pid: st.type === "trade" ? st.id : tp[0] ? tp[0].id : null, lines: [] };
+  const F = { type: e0.type, who: d ? d.who : "", note: d ? d.note : "", coins: e0.total ? String(e0.total) : "", tr: tr0,
+    give: (d && e0.type !== "trade" ? dealOut(e0) : []).map(x => Object.assign({}, x)), get: (d && e0.type !== "trade" ? dealIn(e0) : []).map(x => Object.assign({}, x)),
     daily: d ? !!d.daily : false, days: d && d.daily && d.daily.days ? String(d.daily.days) : "" };
   const body = h("div", { class: "dform" });
   const draw = () => {
@@ -4457,36 +4777,616 @@ function dealForm(d) {
           h("input", { value: x.n || "", inputMode: "numeric", "aria-label": "How many", oninput: e => { x.n = Math.round(num(e.target.value)); } }),
           h("button", { class: "odel", "aria-label": "Remove", onclick: () => { L.splice(i, 1); draw(); } }, "×"))); });
       const res = h("div", { class: "dres" });
-      const q = h("input", { class: "inp", type: "search", placeholder: "＋ Add an item", autocapitalize: "off", oninput: e => { res.textContent = ""; if (!e.target.value.trim()) return; search(e.target.value, "all").slice(0, 6).forEach(p => res.append(h("button", { class: "mchip", onclick: () => { L.push({ ref: p.id, e: p.e, name: p.en, n: key === "give" && p.parts ? 89 : 1 }); draw(); setTimeout(() => { const ins = body.querySelectorAll(".dside")[key === "give" ? 0 : 1].querySelectorAll(".dfrow input"); ins.length && ins[ins.length - 1].select(); }, 30); } }, thumb(prodState(p.id), p.e, "mini"), p.en))); } });
+      const q = h("input", { class: "inp", type: "search", placeholder: "＋ Add an item", autocapitalize: "off", oninput: e => { res.textContent = ""; if (!e.target.value.trim()) return; search(e.target.value, "all").slice(0, 6).forEach(p => res.append(h("button", { class: "mchip", onclick: () => { L.push({ ref: p.id, e: p.e, name: p.en, n: 1 }); draw(); } }, thumb(prodState(p.id), p.e, "mini"), p.en))); } });
       wrap.append(q, res);
+      return wrap;
+    };
+    // trades: they give you items (each with its ratio) → what you give is calculated
+    const trade = () => {
+      const T = F.tr, wrap = h("div", { class: "dside" });
+      if (tp.length) wrap.append(h("label", { class: "lbl" }, "Ratios from"), h("div", { class: "chips", style: "margin:0" }, tp.map(p => h("button", { class: "chip" + (T.pid === p.id ? " on" : ""), onclick: () => { T.pid = p.id; T.lines.forEach(l => { const r = postRatio(p, l.ref); if (r) Object.assign(l, r, { fromPost: true }); }); draw(); } }, p.name || "Trade")),
+        h("button", { class: "chip" + (!T.pid ? " on" : ""), onclick: () => { T.pid = null; draw(); } }, "None")));
+      wrap.append(h("label", { class: "lbl", style: "margin-top:6px" }, "They give you" + (F.daily ? " (each day)" : "")));
+      const tot = h("div");
+      const ch = full => { if (full) draw(); else { tot.textContent = ""; tot.append(trTotal(T, null, null)); } };
+      T.lines.forEach(l => wrap.append(trRow(T, l, ch)));
+      const res = h("div", { class: "dres" });
+      const q = h("input", { class: "inp", type: "search", placeholder: "＋ Add an item they give you", autocapitalize: "off", oninput: e => { res.textContent = ""; const v = e.target.value.trim(); const pool = v ? search(v, "all") : []; pool.filter(p => !p.parts).slice(0, 6).forEach(p => { const r = postRatio(STATE.list.find(x => x.id === T.pid), p.id); res.append(h("button", { class: "mchip", onclick: () => { trPush(T, p); draw(); } }, thumb(prodState(p.id), p.e, "mini"), p.en, r ? h("small", null, " " + fmtR(r.ra) + ":" + fmtR(r.rb)) : null)); }); } });
+      tot.append(trTotal(T, null, null));
+      wrap.append(q, res, tot, h("p", { class: "hint" }, "What you give is calculated from each ratio: change a quantity or a ratio, the total follows."));
       return wrap;
     };
     const days = h("div", { class: "box", style: "max-width:200px" }, h("input", { value: F.days, inputMode: "numeric", placeholder: "until I stop", oninput: e => { F.days = e.target.value; } }), h("span", { class: "u" }, "days"));
     body.append(seg, h("div", null, h("label", { class: "lbl" }, "With"), who),
-      F.type === "achat" ? h("div", null, h("label", { class: "lbl" }, "You pay" + (F.daily ? " (each day)" : "")), coinsIn) : side("give", "You give"),
-      F.type === "vente" ? h("div", null, h("label", { class: "lbl" }, "You get" + (F.daily ? " (each day)" : "")), coinsIn) : side("get", "You get"),
+      F.type === "trade" ? trade() : F.type === "achat" ? h("div", null, h("label", { class: "lbl" }, "You pay" + (F.daily ? " (each day)" : "")), coinsIn) : side("give", "You give"),
+      F.type === "vente" ? h("div", null, h("label", { class: "lbl" }, "You get" + (F.daily ? " (each day)" : "")), coinsIn) : F.type === "achat" ? side("get", "You get") : null,
       h("div", null, h("label", { class: "lbl" }, "How often"), h("div", { class: "seg" }, h("button", { class: F.daily ? "" : "on", onclick: () => { F.daily = false; draw(); } }, "Once"), h("button", { class: F.daily ? "on" : "", onclick: () => { F.daily = true; draw(); } }, "Every day"))),
       F.daily ? h("div", null, h("label", { class: "lbl" }, "For"), days, h("p", { class: "hint", style: "margin-top:6px" }, "e.g. a daily trade: 89 BEM every day for 7 days. Each day you tap “✓ Today done”.")) : null,
       h("div", null, h("label", { class: "lbl" }, "Note"), h("input", { class: "inp", value: F.note, placeholder: "optional — e.g. pays at 8 pm", oninput: e => { F.note = e.target.value; } })),
       h("button", { class: "btn pri full", onclick: save }, d ? "Save the changes" : "Add to my deals"));
   };
   const save = () => {
-    const give = F.give.filter(x => x.n > 0), get = F.get.filter(x => x.n > 0), coins = Math.round(num(F.coins));
-    if (F.type === "trade" && !give.length && !get.length) return toast("Add what you give and what you get");
-    if (F.type === "vente" && !give.length) return toast("Add what you sell");
-    if (F.type === "achat" && !get.length) return toast("Add what you buy");
-    const share = (L, tot) => { const n = L.reduce((a, x) => a + x.n, 0) || 1; return L.map(x => ({ ref: x.ref || null, e: x.e || "", name: x.name, q: x.n, v: Math.round(tot * x.n / n), bulk: 0, give: 0 })); };
-    const e = F.type === "trade" ? { type: "trade", lines: get.map(x => ({ ref: x.ref, e: x.e, name: x.name, q: x.n, v: 0, bulk: 0, give: 0 })), gives: give.map(x => ({ ref: x.ref, e: x.e, name: x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts ? giveName(x) : x.name, n: x.n, split: splitTxt({ ref: x.ref }, x.n) || undefined })), total: 0 }
-      : F.type === "vente" ? { type: "vente", lines: share(give, coins), gives: [], total: coins } : { type: "achat", lines: share(get, coins), gives: [], total: coins };
-    Object.assign(e, { bonus: 0, disc: 0, post: "Deal" });
     const daily = F.daily ? { days: Math.round(num(F.days)) || 0, log: d && d.daily ? d.daily.log : [] } : null;
-    if (d) { Object.assign(d, { who: F.who.trim(), note: F.note.trim(), e: Object.assign(e, { reply: "" }), daily }); d.e.reply = ""; saveDeals(); }
-    else addDeal(e, { who: F.who.trim(), note: F.note.trim(), daily });
+    let e, tr = null;
+    if (F.type === "trade") {
+      tr = F.tr; tr.lines = tr.lines.filter(l => l.q > 0);
+      if (!tr.lines.length) return toast("Add what they give you");
+      if (!tr.lines.some(lineGive)) return toast("Set a ratio (you give … for …)");
+      e = trCalc(tr);
+    } else {
+      const give = F.give.filter(x => x.n > 0), get = F.get.filter(x => x.n > 0), coins = Math.round(num(F.coins));
+      if (F.type === "vente" && !give.length) return toast("Add what you sell");
+      if (F.type === "achat" && !get.length) return toast("Add what you buy");
+      const share = (L, tot) => { const n = L.reduce((a, x) => a + x.n, 0) || 1; return L.map(x => ({ ref: x.ref || null, e: x.e || "", name: x.name, q: x.n, v: Math.round(tot * x.n / n), bulk: 0, give: 0 })); };
+      e = F.type === "vente" ? { type: "vente", lines: share(give, coins), gives: [], total: coins } : { type: "achat", lines: share(get, coins), gives: [], total: coins };
+      Object.assign(e, { bonus: 0, disc: 0, post: "Deal", reply: "" });
+    }
+    if (d) { Object.assign(d, { who: F.who.trim(), note: F.note.trim(), e, daily, tr }); saveDeals(); }
+    else addDeal(e, { who: F.who.trim(), note: F.note.trim(), daily, tr });
     closeSheet(); if (document.body.dataset.tab !== "deals") tab("deals"); else renderOngoing(); toast(d ? "Deal updated ✔" : "Deal added ✔");
   };
   draw(); openSheet(d ? "Edit the deal" : "New deal", body);
 }
 dealBadge();
+
+/* ---------- a deal open in Order: work on it there, switch to another one, send it back (with all, some or none of the changes) ---------- */
+/** The order on screen, as a deal keeps it. */
+function orderState() {
+  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? { p: L.pp.p, pu: L.pp.pu } : null, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
+}
+/** A deal → an order (deals saved from Order come back exactly; the others are rebuilt from their items). */
+function dealOrder(d) {
+  if (d.order) return clone(d.order);
+  const tr = d.e.type === "trade" ? trOf(d) : null, L = tr ? tr.lines.map(l => ({ name: l.name, q: l.q, ref: l.ref })) : (d.e.lines || []).map(l => ({ name: l.name, q: l.q, ref: l.ref, v: l.v }));
+  const pid = (tr && tr.pid) || (d.post && d.post.pid) || null, p = STATE.list.find(x => x.id === pid) || st;
+  return { pid: p.id, who: d.who, text: L.map(l => cleanLine(l.name) + " x" + l.q).join("\n"), lines: L.map(l => {
+    const w = p.wants.find(x => x.ref && x.ref === l.ref), ea = l.v && l.q ? l.v / l.q : 0;
+    return { raw: cleanLine(l.name) + " x" + l.q, pick: w ? w.uid : null, q: l.q, qEdit: 1, name: l.name, pp: w && ea && Math.abs(ea - unitPrice(w)) > .5 ? { p: String(Math.round(ea)), pu: "coin" } : null };
+  }) };
+}
+function orderLoad(S) {
+  if (S.pid && S.pid !== st.id && STATE.list.some(p => p.id === S.pid)) selectProfile(S.pid);
+  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp })); ORDER.who = S.who || "";
+  ORDER.done = null; ORDER.dismissed = null; ORDER.undoEdit = null; $("#orderIn").value = S.text; renderOrder(true);
+}
+const coreOf = S => JSON.stringify({ text: S.text, lines: S.lines.map(l => [l.raw, l.pick, l.q, l.pp && l.pp.p, l.pp && l.pp.pu]), who: S.who || "" });
+/** Work on this deal in Order (the one already open there goes back first). */
+function openInOrder(d) {
+  const go = () => { const S = dealOrder(d); ORDER.deal = { id: d.id, base: S }; orderLoad(S); tab("order"); toast("Working on the deal" + (d.who ? " with " + d.who : "") + " — your changes stay here until you save"); };
+  if (ORDER.deal && ORDER.deal.id !== d.id) return closeActive(false, go);
+  go();
+}
+/** The changes made in Order since the deal was opened. */
+function dealChanges(base, cur) {
+  const key = l => l.pick || "r:" + norm(l.name || l.raw), B = new Map(base.lines.map(l => [key(l), l])), C = new Map(cur.lines.map(l => [key(l), l])), out = [];
+  const lab = l => l.name || l.raw, pr = l => l.pp ? (l.pp.pu === "xmp" ? fmtR(num(l.pp.p)) + "×MP" : fmt(num(l.pp.p))) : "post price";
+  B.forEach((b, k) => { if (!C.has(k)) out.push({ k, t: "del", txt: "Removed: " + lab(b) + " ×" + fmt(b.q) }); });
+  C.forEach((c, k) => { const b = B.get(k);
+    if (!b) return out.push({ k, t: "add", txt: "Added: " + lab(c) + " ×" + fmt(c.q), l: c });
+    if (b.q !== c.q) out.push({ k, t: "q", txt: lab(c) + ": ×" + fmt(b.q) + " → ×" + fmt(c.q), l: c });
+    if (JSON.stringify(b.pp) !== JSON.stringify(c.pp)) out.push({ k, t: "pp", txt: lab(c) + ": " + pr(b) + " → " + pr(c), l: c });
+  });
+  if ((base.who || "") !== (cur.who || "")) out.push({ k: "who", t: "who", txt: "Name: " + (base.who || "—") + " → " + (cur.who || "—") });
+  return out;
+}
+/** The original deal + only the ticked changes. */
+function mergeChanges(base, cur, picked) {
+  const key = l => l.pick || "r:" + norm(l.name || l.raw);
+  let lines = base.lines.map(l => Object.assign({}, l)), who = base.who;
+  picked.forEach(c => {
+    if (c.t === "del") lines = lines.filter(l => key(l) !== c.k);
+    if (c.t === "add") lines.push(Object.assign({}, c.l));
+    if (c.t === "q") lines.forEach(l => { if (key(l) === c.k) Object.assign(l, { q: c.l.q, qEdit: 1, raw: c.l.raw }); });
+    if (c.t === "pp") lines.forEach(l => { if (key(l) === c.k) l.pp = c.l.pp; });
+    if (c.t === "who") who = cur.who;
+  });
+  return { pid: base.pid, who, text: lines.map(l => l.raw).join("\n"), lines };
+}
+/** Write an order state into its deal (the totals are worked out again by Order). */
+function saveActive(S) {
+  const A = ORDER.deal, d = A && DEALS.find(x => x.id === A.id); if (!d) return;
+  if (S) orderLoad(S);
+  const who = (ORDER.who || d.who || "").trim(), D = dealParts(null, who);
+  Object.assign(d, { who, e: Object.assign(D.e, { id: undefined, t: undefined }), order: D.order });
+  delete d.e.id; delete d.e.t;
+  if (D.tr) d.tr = D.tr; if (D.post) d.post = D.post;
+  A.base = clone(D.order); saveDeals();
+}
+/** Send the deal back to Deals. With changes: keep all, choose, or drop them. */
+function closeActive(fromLater, then) {
+  const A = ORDER.deal; if (!A) return then && then();
+  const cur = orderState(), ch = dealChanges(A.base, cur), d = DEALS.find(x => x.id === A.id);
+  const finish = msg => { ORDER.deal = null; ORDER.text = ""; ORDER.prev = []; ORDER.who = ""; $("#orderIn").value = ""; renderOrder(true); renderOngoing(); toast(msg); if (then) then(); else if (fromLater) tab("deals"); };
+  if (!d) return finish("Deal closed");
+  if (!ch.length) return finish("Back in Deals");
+  const boxes = ch.map(c => ({ c, cb: h("input", { type: "checkbox", checked: true }) }));
+  openSheet("Changes to the deal" + (d.who ? " with " + d.who : ""), [
+    h("p", { class: "hint" }, "Keep which changes? Untick what you don't want — the deal keeps the rest."),
+    h("div", { class: "chlist" }, boxes.map(b => h("label", { class: "chrow" }, b.cb, h("span", null, b.c.txt)))),
+    h("button", { class: "btn pri full", style: "margin-top:12px", onclick: () => { closeSheet(); const picked = boxes.filter(b => b.cb.checked).map(b => b.c); saveActive(picked.length === ch.length ? null : mergeChanges(A.base, cur, picked)); finish(picked.length ? "Deal updated ✔ — back in Deals" : "Back in Deals (no change kept)"); } }, "Save the ticked changes"),
+    h("button", { class: "btn full", style: "margin-top:8px", onclick: () => { closeSheet(); finish("Changes dropped — the deal is as before"); } }, "Drop all the changes"),
+    h("button", { class: "btn dashed full", style: "margin-top:8px", onclick: closeSheet }, "Keep working on it")]);
+}
+/** The bar on top of Order while a saved deal is open there. */
+function dealBar() {
+  const A = ORDER.deal, d = DEALS.find(x => x.id === A.id); if (!d) { ORDER.deal = null; return ""; }
+  const n = dealChanges(A.base, orderState()).length, others = openDeals().filter(x => x.id !== d.id && !x.daily);
+  return h("div", { class: "card dbarc" },
+    h("div", { class: "dbt" }, h("span", { class: "dtype" }, DTYPE[d.e.type].i + " Deal"), h("b", null, d.who || "No name"), h("small", null, n ? plural(n, "change") + " not saved" : "saved")),
+    h("div", { class: "dbb" },
+      h("button", { class: "btn sm pri", disabled: !n, onclick: () => { saveActive(null); renderOrder(); toast("Deal updated ✔"); } }, "Save"),
+      h("button", { class: "btn sm", onclick: () => closeActive(false, () => tab("deals")) }, "Back to Deals"),
+      others.length ? h("button", { class: "btn sm", onclick: () => openSheet("Switch to another deal", h("div", { class: "menu" }, others.map(o => h("button", { onclick: () => { closeSheet(); openInOrder(o); } }, h("i", null, DTYPE[o.e.type].i), (o.who || DTYPE[o.e.type].t) + " — " + dealText(o).slice(0, 60))))) }, "Switch ⇄") : null));
+}
+
+/* =====================================================================
+   15. IMPORT — an old post (Discord screenshot, a post-generator picture,
+   or the copied text) → a new post here. Read on this device; text with
+   Tesseract (loaded the first time), items from their pictures.
+   ===================================================================== */
+const IMP = { busy: null, res: null, text: "", worker: null };
+const TESS_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+function loadScript(u) { return new Promise((res, rej) => { const s = document.createElement("script"); s.src = u; s.onload = res; s.onerror = () => rej(new Error("no internet")); document.head.append(s); }); }
+async function ocrWorker() {
+  if (!window.Tesseract) await loadScript(TESS_URL);
+  if (!IMP.worker) IMP.worker = await Tesseract.createWorker("eng");
+  return IMP.worker;
+}
+/** Text of a canvas: lines → words with boxes (from Tesseract's TSV). */
+async function ocrRead(canvas, psm, wl) {
+  const w = await ocrWorker();
+  await w.setParameters({ tessedit_pageseg_mode: String(psm || 4), tessedit_char_whitelist: wl || "", preserve_interword_spaces: "1" });
+  const { data } = await w.recognize(canvas, {}, { tsv: true, text: true });
+  const lines = new Map();
+  String(data.tsv || "").split("\n").forEach(r => {
+    const c = r.split("\t"); if (c.length < 12 || c[0] !== "5") return;
+    const t = c.slice(11).join(" ").trim(); if (!t) return;
+    const k = c[2] + "." + c[3] + "." + c[4], x = +c[6], y = +c[7], wd = { t, x0: x, y0: y, x1: x + +c[8], y1: y + +c[9], conf: +c[10] };
+    const L = lines.get(k) || { words: [] }; L.words.push(wd); lines.set(k, L);
+  });
+  return [...lines.values()].map(L => Object.assign(L, { conf: L.words.reduce((a, w) => a + w.conf, 0) / L.words.length, x0: Math.min(...L.words.map(w => w.x0)), y0: Math.min(...L.words.map(w => w.y0)), x1: Math.max(...L.words.map(w => w.x1)), y1: Math.max(...L.words.map(w => w.y1)) })).sort((a, b) => a.y0 - b.y0);
+}
+const mkCanvas = (w, h) => { const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+/** A black-on-white picture of the pixels that pass `keep` (for the text reader), `k` times bigger. */
+function maskCanvas(P, x0, y0, w, h, keep, k) {
+  const c = mkCanvas(w, h), g = c.getContext("2d"), D = g.createImageData(c.width, c.height);
+  for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) { const i = ((y + y0) * P.W + x + x0) * 4, j = (y * c.width + x) * 4, on = keep(i, x + x0, y + y0); D.data[j] = D.data[j + 1] = D.data[j + 2] = on ? 0 : 255; D.data[j + 3] = 255; }
+  g.putImageData(D, 0, 0);
+  if (!k || k === 1) return c;
+  const b = mkCanvas(c.width * k, c.height * k), bg = b.getContext("2d"); bg.imageSmoothingEnabled = true; bg.drawImage(c, 0, 0, b.width, b.height); return b;
+}
+const sat = (d, i) => Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
+const cdist = (d, i, c) => Math.abs(d[i] - c[0]) + Math.abs(d[i + 1] - c[1]) + Math.abs(d[i + 2] - c[2]);
+
+/* ---------- 1. reading a screenshot ---------- */
+async function impReadImage(img, pool, say) {
+  const P = scanPixels(img, 1500), { W, H, d } = P;
+  const corners = [[2, 2], [W - 3, 2], [2, H - 3], [W - 3, H - 3]].map(([x, y]) => (y * W + x) * 4);
+  const bg = [0, 1, 2].map(k => corners.reduce((a, i) => a + d[i + k], 0) / 4), dark = (bg[0] + bg[1] + bg[2]) / 3 < 128;
+  const textLike = i => sat(d, i) < 48 && (dark ? lum(d, i) > 150 : lum(d, i) < 105);
+  // a) pictures inside the message (post generators): big blocks unlike the background
+  const CS = 8, GW = Math.ceil(W / CS), GH = Math.ceil(H / CS), busy = new Uint8Array(GW * GH);
+  for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) {
+    let n = 0, t = 0;
+    for (let y = gy * CS; y < Math.min(H, gy * CS + CS); y += 2) for (let x = gx * CS; x < Math.min(W, gx * CS + CS); x += 2) { t++; if (cdist(d, (y * W + x) * 4, bg) > 24) n++; }
+    busy[gy * GW + gx] = n / t > .35 ? 1 : 0;
+  }
+  const regs = scanLabel(busy, GW, GH, 1).comps.filter(c => (c.x1 - c.x0 + 1) * CS > W * .3 && (c.y1 - c.y0 + 1) * CS > W * .12 && c.n / ((c.x1 - c.x0 + 1) * (c.y1 - c.y0 + 1)) > .55)
+    .map(c => ({ x0: c.x0 * CS, y0: c.y0 * CS, x1: Math.min(W - 1, c.x1 * CS + CS - 1), y1: Math.min(H - 1, c.y1 * CS + CS - 1) }));
+  const inReg = (x, y) => regs.some(r => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
+  // b) emojis in the text. First a quick read of the text: what it reads confidently is text;
+  //    any other line-sized picture on the lines is an emoji — even a thin grey one (a saw, a bar, a bolt)
+  say("Finding the emojis…");
+  const pre = (await ocrRead(maskCanvas(P, 0, 0, W, H, (i, x, y) => textLike(i) && !inReg(x, y), 2), 4)).map(L => { const f = v => Math.round(v / 2); ["x0", "y0", "x1", "y1"].forEach(k => L[k] = f(L[k])); L.words.forEach(w => ["x0", "y0", "x1", "y1"].forEach(k => w[k] = f(w[k]))); return L; });
+  const med = a => { a = a.sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; };
+  const lh = med(pre.filter(L => L.conf >= 60).map(L => L.y1 - L.y0)) || W * .03;
+  const wh = med(pre.flatMap(L => L.words).filter(w => w.conf >= 70 && /[a-z]{3}/i.test(w.t)).map(w => w.y1 - w.y0)) || lh * .8;
+  // (a "word" as tall as a picture is a picture the reader tried to read: 🥈 → "an")
+  const sure = pre.flatMap(L => L.words).filter(w => w.y1 - w.y0 <= Math.max(lh, wh * 1.25) && ((w.conf >= 60 && /[a-z]{2}|\d/i.test(w.t)) || (w.conf >= 50 && /\d+[:.]\d+/.test(w.t)) || (w.conf >= 85 && /\w/.test(w.t))));
+  const inSure = c => sure.some(w => { const ox = Math.min(c.x1, w.x1) - Math.max(c.x0, w.x0), oy = Math.min(c.y1, w.y1) - Math.max(c.y0, w.y0); return ox > 0 && oy > 0 && ox * oy > (c.x1 - c.x0 + 1) * (c.y1 - c.y0 + 1) * .5; });
+  const em = new Uint8Array(W * H);
+  for (let y = 0, p = 0; y < H; y++) for (let x = 0; x < W; x++, p++) em[p] = cdist(d, p * 4, bg) > 40 && !inReg(x, y) ? 1 : 0;
+  // join the parts of one picture (a saw = blade + handle) with a small closing; when that glues two
+  // emojis together (🍗-🧀), take the parts one by one
+  const fits = c => { const w = c.x1 - c.x0 + 1, h = c.y1 - c.y0 + 1; return h >= Math.max(lh * .75, W * .018) && h <= Math.max(lh * 2.4, W * .05) && w >= lh * .6 && w <= Math.max(lh * 2.6, W * .06) && w / h < 2.6 && h / w < 2.6; };
+  const dl = scanLabel(dilate(em, W, H, 2), W, H, 30), raw = scanLabel(em, W, H, 12), parts = new Map();
+  raw.comps.forEach(r => { const k = dl.lab[r.p]; if (!parts.has(k)) parts.set(k, []); parts.get(k).push(r); });
+  const ecomps = [];
+  dl.comps.forEach(c => { c.n = 0; for (let y = c.y0; y <= c.y1; y++) for (let x = c.x0; x <= c.x1; x++) c.n += em[y * W + x]; if (fits(c)) ecomps.push(c); else (parts.get(c.id) || []).forEach(r => { if (fits(r)) ecomps.push(r); }); });
+  const emo = ecomps.filter(c => c.n > (c.x1 - c.x0 + 1) * (c.y1 - c.y0 + 1) * .14)
+    .map(c => { let s = 0, s2 = 0, n = 0, hs = new Set(), col = 0;
+      for (let y = c.y0; y <= c.y1; y += 2) for (let x = c.x0; x <= c.x1; x += 2) { const i = (y * W + x) * 4; if (!em[y * W + x]) continue; const l = lum(d, i); s += l; s2 += l * l; n++; const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); if (mx - mn > 50) col++; if (mx - mn > 40) { const hu = mx === d[i] ? ((d[i + 1] - d[i + 2]) / (mx - mn) + 6) % 6 : mx === d[i + 1] ? (d[i + 2] - d[i]) / (mx - mn) + 2 : (d[i] - d[i + 1]) / (mx - mn) + 4; hs.add(Math.floor(hu * 2)); } }
+      const sd = n ? Math.sqrt(Math.max(0, s2 / n - (s / n) ** 2)) : 0; return Object.assign(c, { sd, hues: hs.size, col: n ? col / n : 0 }); })
+    // text is white/grey: a colourful blob is a picture even when the reader took it for a letter (💍 → "O")
+    // grey ones must also stand taller than the letters (a saw, 📄, a silver bar — not "st")
+    .filter(c => c.col > .12 || (!inSure(c) && c.y1 - c.y0 + 1 > wh * 1.18 && (c.sd > 9 || c.hues >= 1)));
+  const inEmo = (x, y) => emo.some(c => x >= c.x0 - 2 && x <= c.x1 + 2 && y >= c.y0 - 2 && y <= c.y1 + 2);
+  // c) ~~strike~~ lines: long thin horizontal runs of text colour → noted, then erased so the reader sees the words
+  const inkish = i => sat(d, i) < 70 && Math.abs(lum(d, i) - (bg[0] + bg[1] + bg[2]) / 3) > 55;
+  const strikes = [], minRun = Math.max(36, W * .03);
+  for (let y = 3; y < H - 3; y++) { let x0 = -1, gap = 0;
+    for (let x = 0; x <= W; x++) {
+      const on = x < W && inkish((y * W + x) * 4) && !inReg(x, y) && !inEmo(x, y);
+      if (on) { if (x0 < 0) x0 = x; gap = 0; } else if (x0 >= 0 && ++gap > 2) {
+        const x1 = x - gap; if (x1 - x0 >= minRun) { let thin = 0, n = 0; for (let xx = x0; xx <= x1; xx += 3) { n++; if (!inkish(((y - 4) * W + xx) * 4) || !inkish(((y + 4) * W + xx) * 4)) thin++; } if (thin / n > .7) strikes.push({ x0, x1, y }); }
+        x0 = -1; gap = 0; }
+    } }
+  const onStrike = (x, y) => strikes.some(s => x >= s.x0 && x <= s.x1 && Math.abs(y - s.y) <= 2);
+  // on a strike line, keep only the strokes that cross it (ink above and below) — the letters stay whole
+  const keepTxt = (i, x, y) => { if (!textLike(i) || inReg(x, y) || inEmo(x, y)) return false; if (!onStrike(x, y)) return true; const a = ((y - 4) * W + x) * 4, b = ((y + 4) * W + x) * 4; return a >= 0 && b < d.length && textLike(a) && textLike(b); };
+  // d) the text (not the pictures, not the emojis, not the strike lines), 2× bigger for the reader
+  say("Reading the text…");
+  const tc = maskCanvas(P, 0, 0, W, H, keepTxt, 2);
+  const lines = (await ocrRead(tc, 4)).map(L => { const f = v => Math.round(v / 2); ["x0", "y0", "x1", "y1"].forEach(k => L[k] = f(L[k])); L.words.forEach(w => ["x0", "y0", "x1", "y1"].forEach(k => w[k] = f(w[k]))); return L; });
+  // e) ~~struck~~ words: a strike line across the middle of the word
+  const struck = w => { if (strikes.some(s => s.y > w.y0 + (w.y1 - w.y0) * .2 && s.y < w.y1 - (w.y1 - w.y0) * .15 && Math.min(s.x1, w.x1) - Math.max(s.x0, w.x0) > (w.x1 - w.x0) * .5)) return true;
+    const wd = w.x1 - w.x0; if (wd < 8) return false; let best = 0;
+    for (let y = Math.round(w.y0 + (w.y1 - w.y0) * .25); y <= w.y0 + (w.y1 - w.y0) * .75; y++) { let run = 0, gap = 0; for (let x = w.x0; x <= w.x1; x++) { if (inkish((y * W + x) * 4) || inkish(((y + 1) * W + x) * 4)) { run += 1 + gap; gap = 0; if (run > best) best = run; } else if (++gap > 2) { run = 0; gap = 0; } } }
+    return best >= wd * .8; };
+  lines.forEach(L => L.words.forEach(w => { w.strike = struck(w); }));
+  // ratios matter most: read each one again alone, bigger, digits only (50:39 → 50:89)
+  for (const L of lines) for (const w of L.words) {
+    if (!/\d/.test(w.t) || !/[:.;]/.test(w.t) || w.x1 - w.x0 < 10) continue;
+    const x0 = Math.max(0, w.x0 - 4), y0 = Math.max(0, w.y0 - 4), r = await ocrRead(maskCanvas(P, x0, y0, Math.min(W - 1, w.x1 + 4) - x0, Math.min(H - 1, w.y1 + 4) - y0, keepTxt, 3), 7, "0123456789:");
+    const t = r.map(l => l.words.map(x => x.t).join("")).join(""); if (RAT.test(t)) w.t = t.match(RAT)[0];
+  }
+  // f) post-generator pictures: tiles with "5x" (price × max price) at the top left and the quantity at the bottom right
+  say("Reading the picture…");
+  const tiles = await impGrid(P, lines, regs);
+  const inTile = (x, y) => tiles.some(t => x >= t.box.x0 && x <= t.box.x1 && y >= t.box.y0 && y <= t.box.y1);
+  // g) which item each emoji is (emojis inside the tiles belong to the tiles)
+  say("Finding the items…");
+  const toks = lines.filter(L => !inTile((L.x0 + L.x1) / 2, (L.y0 + L.y1) / 2)).map(L => ({ y0: L.y0, y1: L.y1, conf: L.conf, toks: L.words.map(w => ({ x: w.x0, w: w.t, strike: w.strike, conf: w.conf })) }));
+  emo.filter(c => !inTile((c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2)).forEach(c => {
+    const o = emoObj(P, c, bg), m = pool.length && o.box ? iconMatch(o, pool) : [];
+    const cy = (c.y0 + c.y1) / 2; let L = null, bd = 1e9;
+    toks.forEach(l => { const dd = Math.abs((l.y0 + l.y1) / 2 - cy); if (dd < bd && dd <= Math.max(l.y1 - l.y0, c.y1 - c.y0) * .75) { bd = dd; L = l; } });
+    if (!L) { L = { y0: c.y0, y1: c.y1, toks: [], conf: 99 }; toks.push(L); }
+    L.toks.push({ x: c.x0, emo: m[0] && m[0].c < .34 ? m[0].ref : null, m, view: cropView(P, c), learn: o.box ? scanCrops(o).learn : null });
+  });
+  toks.sort((a, b) => a.y0 - b.y0).forEach(L => L.toks.sort((a, b) => a.x - b.x));
+  for (const t of tiles) { const o = emoObj(P, t.box, t.bg, t.occ), mm = pool.length && o.box ? iconMatch(o, pool) : []; Object.assign(t, { ref: mm[0] && mm[0].c < .34 ? mm[0].ref : null, m: mm, view: cropView(P, t.box), learn: o.box ? scanCrops(o).learn : null }); }
+  // text written on the pictures ("Partial 50+", "I can provide blankets")
+  const noteLines = [];
+  for (const r of regs) { const rb = regBg(P, r), light = lum(rb, 0) > 128; const rl = await ocrRead(maskCanvas(P, r.x0, r.y0, r.x1 - r.x0 + 1, r.y1 - r.y0 + 1, (i, x, y) => (light ? lum(d, i) < 90 : lum(d, i) > 200) && sat(d, i) < 60 && !inTile(x, y), 2), 4); rl.filter(L => L.conf >= 60).forEach(L => noteLines.push(L.words.map(w => w.t).join(" "))); }
+  IMP.dbg = { lh, wh, emo: emo.map(c => [c.x1 - c.x0 + 1, c.y1 - c.y0 + 1, c.y0]), regs, tiles: tiles.map(t => [t.px, t.q, t.box.x0, t.box.y0]), lines: toks.map(L => L.toks.map(t => t.w ? (t.strike ? "~" + t.w + "~" : t.w) : "[" + (t.emo || "?") + "]").join(" ")) };
+  return { lines: toks, tiles, picNotes: noteLines };
+}
+/** Dilation (a pixel is on if anything is on in its (2r+1)² square). */
+function dilate(m, W, H, r) {
+  const a = new Uint8Array(W * H), b = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) { let last = -1e9; for (let x = 0; x < W; x++) { if (m[y * W + x]) last = x; if (x - last <= r) a[y * W + x] = 1; } last = 1e9; for (let x = W - 1; x >= 0; x--) { if (m[y * W + x]) last = x; if (last - x <= r) a[y * W + x] = 1; } }
+  for (let x = 0; x < W; x++) { let last = -1e9; for (let y = 0; y < H; y++) { if (a[y * W + x]) last = y; if (y - last <= r) b[y * W + x] = 1; } last = 1e9; for (let y = H - 1; y >= 0; y--) { if (a[y * W + x]) last = y; if (last - y <= r) b[y * W + x] = 1; } }
+  return b;
+}
+/** Erosion (a pixel stays if its whole (2r+1)² square is on) — fast, in two passes. */
+function erode(m, W, H, r) {
+  const a = new Uint8Array(W * H), b = new Uint8Array(W * H), k = 2 * r + 1;
+  for (let y = 0; y < H; y++) { let run = 0; for (let x = 0; x < W; x++) { run = m[y * W + x] ? run + 1 : 0; if (run >= k) a[y * W + x - r] = 1; } }
+  for (let x = 0; x < W; x++) { let run = 0; for (let y = 0; y < H; y++) { run = a[y * W + x] ? run + 1 : 0; if (run >= k) b[(y - r) * W + x] = 1; } }
+  return b;
+}
+function regBg(P, r) {
+  const m = new Map(); for (let y = r.y0; y <= r.y1; y += 4) for (let x = r.x0; x <= r.x1; x += 4) { const i = (y * P.W + x) * 4, k = (P.d[i] >> 4) << 8 | (P.d[i + 1] >> 4) << 4 | P.d[i + 2] >> 4; m.set(k, (m.get(k) || 0) + 1); }
+  let bk = 0, bn = 0; m.forEach((n, k) => { if (n > bn) { bn = n; bk = k; } }); return [(bk >> 8) * 16 + 8, ((bk >> 4) & 15) * 16 + 8, (bk & 15) * 16 + 8];
+}
+/** A picture region shaped like scanIcons' output, so iconMatch can compare it. */
+function emoObj(P, c, bg, occBoxes) {
+  const pad = 2, x0 = Math.max(0, c.x0 - pad), y0 = Math.max(0, c.y0 - pad), w = Math.min(P.W - 1, c.x1 + pad) - x0 + 1, h = Math.min(P.H - 1, c.y1 + pad) - y0 + 1;
+  const m = new Uint8Array(w * h), occ = new Uint8Array(w * h); let bx0 = w, by0 = h, bx1 = -1, by1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const X = x + x0, Y = y + y0, p = y * w + x, i = (Y * P.W + X) * 4;
+    if (occBoxes && occBoxes.some(b => X >= b.x0 && X <= b.x1 && Y >= b.y0 && Y <= b.y1)) { occ[p] = 1; continue; }
+    if (cdist(P.d, i, bg) > 40) { m[p] = 1; if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; }
+  }
+  return { P, x0, y0, w, h, m, occ, box: bx1 >= 0 ? { x0: bx0, y0: by0, x1: bx1, y1: by1 } : null };
+}
+function cropView(P, c) {
+  const w = c.x1 - c.x0 + 1, h = c.y1 - c.y0 + 1, s = mkCanvas(w, h), g = s.getContext("2d"), D = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = ((y + c.y0) * P.W + x + c.x0) * 4, j = (y * w + x) * 4; D.data[j] = P.d[i]; D.data[j + 1] = P.d[i + 1]; D.data[j + 2] = P.d[i + 2]; D.data[j + 3] = 255; }
+  g.putImageData(D, 0, 0); const k = 56 / h, o = mkCanvas(w * k, 56); o.getContext("2d").drawImage(s, 0, 0, o.width, o.height); return o.toDataURL("image/jpeg", .85);
+}
+/** Tiles of a post-generator picture, found from their labels: "5x" top left, the quantity bottom right (white, outlined). */
+async function impGrid(P, lines, regs) {
+  const { W, H, d } = P;
+  const white = i => d[i] > 210 && d[i + 1] > 210 && d[i + 2] > 210 && sat(d, i) < 35;
+  // real text lines (words with letters) are not labels
+  const txtBoxes = lines.filter(L => L.words.filter(w => /[a-z]{2}/i.test(w.t)).length >= 2).map(L => L);
+  const inTxt = (x, y) => txtBoxes.some(L => x >= L.x0 - 4 && x <= L.x1 + 4 && y >= L.y0 - 3 && y <= L.y1 + 3);
+  const L = await ocrRead(maskCanvas(P, 0, 0, W, H, (i, x, y) => white(i) && !inTxt(x, y), 2), 11, "0123456789x.,");
+  const words = L.flatMap(l => l.words).map(w => ({ t: w.t.replace(/,/g, "."), x0: w.x0 / 2, y0: w.y0 / 2, x1: w.x1 / 2, y1: w.y1 / 2 }));
+  const A = words.filter(w => /^\d+(\.\d+)?x$/i.test(w.t)), N = words.filter(w => /^\d{1,4}$/.test(w.t));
+  if (A.length + N.length < 2 || !A.length) return [];
+  const hh = A.reduce((a, w) => a + (w.y1 - w.y0), 0) / A.length;
+  const gaps = []; A.forEach(a => A.forEach(b => { const g = b.x0 - a.x0; if (g > hh * 2.2 && Math.abs(a.y0 - b.y0) < hh * .6) gaps.push(g); }));
+  A.forEach(a => A.forEach(b => { const g = b.y0 - a.y0; if (g > hh * 2.2 && Math.abs(a.x0 - b.x0) < hh * .6) gaps.push(g); }));
+  gaps.sort((a, b) => a - b); const p = gaps.length ? gaps[0] : hh * 3.6;
+  const tiles = [], used = new Set();
+  const mk = (x0, y0, a) => {
+    const box = { x0: Math.max(0, Math.round(x0)), y0: Math.max(0, Math.round(y0)), x1: Math.min(W - 1, Math.round(x0 + p * .97)), y1: Math.min(H - 1, Math.round(y0 + p * .97)) };
+    const q = N.filter(n => !used.has(n) && n.x0 > box.x0 + p * .25 && n.x1 <= box.x1 + p * .15 && n.y0 > box.y0 + p * .45 && n.y1 <= box.y1 + p * .15).sort((m, n) => n.y1 - m.y1)[0];
+    if (q) used.add(q);
+    const occ = [a, q].filter(Boolean).map(w => ({ x0: w.x0 - 3, y0: w.y0 - 3, x1: w.x1 + 3, y1: w.y1 + 3 }));
+    tiles.push({ box, px: a ? (a.t.match(/[\d.]+/) || [""])[0] : "", q: q ? String(+q.t) : "", occ, bg: regBg(P, { x0: box.x0 + 3, y0: box.y0 + 3, x1: box.x1 - 3, y1: box.y1 - 3 }) });
+  };
+  A.forEach(a => mk(a.x0 - p * .06, a.y0 - p * .06, a));
+  // quantities without their "Nx" (missed by the reader) → a tile ending there
+  N.filter(n => !used.has(n) && n.y0 > Math.min(...A.map(a => a.y0))).forEach(n => { if (tiles.some(t => n.x0 >= t.box.x0 && n.x0 <= t.box.x1 && n.y0 >= t.box.y0 && n.y0 <= t.box.y1)) return; mk(n.x1 - p * .94, n.y1 - p * .94, null); });
+  for (const t of tiles) {
+    const rd = async (x0, y0, x1, y1, wl) => { x0 = Math.max(0, Math.round(x0)); y0 = Math.max(0, Math.round(y0)); const r = await ocrRead(maskCanvas(P, x0, y0, Math.min(W - 1, Math.round(x1)) - x0, Math.min(H - 1, Math.round(y1)) - y0, white, 3), 7, wl); return r.map(l => l.words.map(w => w.t).join("")).join(""); };
+    const b = t.box;
+    if (!t.q) { const v = (await rd(b.x0 + p * .3, b.y0 + p * .52, b.x1, b.y1, "0123456789")).replace(/\D/g, ""); if (v) t.q = String(+v); }
+    if (!t.px || !+t.px) { const v = (await rd(b.x0, b.y0, b.x0 + p * .6, b.y0 + p * .34, "0123456789x.")).match(/(\d+(?:\.\d+)?)x/i); if (v && +v[1]) t.px = v[1]; }
+  }
+  return tiles.sort((a, b) => Math.round(a.box.y0 / p) - Math.round(b.box.y0 / p) || a.box.x0 - b.box.x0);
+}
+/* ---------- 2. understanding the post ---------- */
+const RAT = /(\d+(?:[.,]\d+)?)\s*[:：]\s*(\d+(?:[.,]\d+)?)/;
+/** Lines of copied Discord text → the same tokens as a screenshot (:emoji: names, ~~struck~~). */
+function textLines(text) {
+  return String(text || "").split(/\r?\n/).map(raw => {
+    raw = raw.replace(/\*+|`+|(^|\s)__|__(\s|$)/g, "$1$2").replace(/^\s*>+\s?/, "");   // **bold**, `code`, __underline__, > quotes
+    const toks = []; let strike = false, x = 0;
+    raw.replace(/<a?:(\w+):\d+>|:(\w+):|~~|([^\s~:<]+|:)/g, (m, e1, e2, w) => {
+      if (m === "~~") { strike = !strike; return m; }
+      const en = e1 || e2;
+      if (en) { const p = emojiItem(en); toks.push({ x: x++, emo: p ? p.id : null, ename: en, strike }); }
+      else if (w) toks.push({ x: x++, w, strike });
+      return m;
+    });
+    return { toks };
+  }).filter(L => L.toks.length);
+}
+/** A Discord emoji name (hd_mayo, DiamondRing, bem…) → the game item. */
+function emojiItem(n) {
+  const s = n.replace(/^(hd|hayday|hay_day)_?/i, "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").trim();
+  const al = ALIASES[slug(s)]; if (al && CAT.byId[al]) return CAT.byId[al];
+  const r = findMatches(s, CAT.list, p => p.en); return r.length && r[0].sc >= 3 ? r[0].x : null;
+}
+const HAVE_RE = /^(?:i\s*have|have|offering|giving|got)\b/i, NEED_RE = /^(?:need|needs|wtb|looking\s*for|lf|want|wanted)\b/i, SELL_RE = /\b(?:selling|wts|for\s*sale)\b/i, BUY_RE = /^(?:buying)\b/i;
+const NOISE = /^(?:[•*\-–—·>|]+|dm|ping|&|and|or|the|a|my|for|of|at|set|sets|each|ea|pls|please)$/i;
+/* ---------- machine pages: "1st page jams" = every jam on the first page of the Jam Maker ---------- */
+const pageSize = M => Math.max(1, Math.min(12, +((SETTINGS.pages || {})[M.id]) || PAGE_N));
+const machineItems = M => M.items.map(n => CAT.byId[slug(n)]).filter(Boolean);
+function machinePage(M, page) { const all = machineItems(M), n = pageSize(M); return page ? all.slice((page - 1) * n, page * n) : all; }
+const ORDW = { "1st": 1, ist: 1, lst: 1, first: 1, fp: 1, "2nd": 2, second: 2, sp: 2, "3rd": 3, third: 3, tp: 3 };
+const ORD_RE = /^(?:1st|ist|lst|first|2nd|second|3rd|third|[123])$/i;
+/** "1st page jams", "fp juices", "Mixed Juices (2nd page)", "jams p2", "sauces" → the products, or null. */
+function machineRefs(s) {
+  let t = " " + String(s || "").toLowerCase().replace(/[\u{1F4C4}\u{1F4C3}\u{1F5D2}]\uFE0F?/gu, " page ").replace(/[()[\]{}.,:;!*_~|-]+/g, " ").replace(/\s+/g, " ") + " ";
+  const M = MACHINES.find(m => new RegExp(" (?:" + m.word + ") ").test(t)); if (!M) return null;
+  t = t.replace(new RegExp(" (?:" + M.word + ") "), " ");
+  let page = 0;
+  t = t.replace(/ (?:(1st|ist|lst|first|2nd|second|3rd|third|[123]) ?(?:page|pg|p)|page ?([123])|p([123])|(fp|sp|tp)|(1st|ist|lst|first|2nd|second|3rd|third))(?= )/, (a, o1, n2, n3, fs, o5) => { const k = o1 || n2 || n3 || fs || o5; page = ORDW[k] || +k || 0; return " "; });
+  // nothing else may be left: "strawberry jam" is one product, not the machine
+  if (t.replace(/ (?:mixed|mix|any|all|assorted|different|random|other|the|of|from|my|page|pages|\d+)(?= )/g, " ").trim()) return null;
+  const items = machinePage(M, page);
+  return items.length ? { M, page, items, label: (page ? "page " + page : "all") + " · " + M.name } : null;
+}
+/** Words → items named in the text ("BEM Sets", "rings", "olive oil"…), the rest kept as text. */
+function namedItems(words) {
+  const s = words.join(" ").replace(/[!?;]+/g, " ").replace(/\s+/g, " ").trim(); if (!s) return [];
+  const out = [];
+  s.split(/\s*(?:,|\/|\s&\s|\band\b|\bor\b|\+)\s*/i).map(x => x.trim()).filter(x => x && /[a-z]{3}/i.test(x.replace(/\([^)]*\)/g, "")) && !NOISE.test(x)).forEach(x => {
+    const mr = machineRefs(x); if (mr) { mr.items.forEach(p => out.push({ ref: p.id, via: mr.label })); return; }
+    const bare = x.replace(/\([^)]*\)/g, " ").replace(/[.]+/g, " ").replace(/\s+/g, " ").trim();
+    const m = matchProduct(bare.replace(/\bsets?\b/i, "Set").replace(/\b(rings|blankets|bars?)\b/i, t => t.replace(/s$/i, "")));
+    out.push(m.p && m.sure ? { ref: m.p.id } : { name: x.replace(/[.,]+$/, "").replace(/\s+/g, " ") });
+  });
+  return out;
+}
+/** An emoji read on the screenshot → the item (keeps the picture, to check it and to learn from a correction). */
+const eItem = t => t.emo ? { ref: t.emo, src: t } : { unknown: t, src: t };
+/** The post: trade groups (ratio + items, struck = out of stock), priced lists, picture tiles, notes. */
+function impParse(lines, tiles, picNotes, text) {
+  lines = lines.slice();
+  const R = { have: [], groups: [], priced: [], tiles: tiles || [], notes: [], kind: null, author: "" };
+  let sec = null, pend = [], buying = false, selling = false, giveIdx = 0, lastNote = null;
+  const txt = L => L.toks.filter(t => t.w).map(t => t.w).join(" ").trim();
+  // a line starting with a bullet (read as • ¢ e * ©) starts an item; others continue the line above
+  const BUL = /^(?:[•¢©®*·-]|e|o)$/i;
+  lines.forEach(L => { const f = L.toks.find(t => t.w); L.bullet = !!(f && BUL.test(f.w)); });
+  if (lines.filter(L => L.bullet).length >= 3) lines = lines.reduce((acc, L) => { const pv = acc[acc.length - 1];
+    if (pv && pv.bullet && !L.bullet && L.toks.length && !L.toks.some(t => t.emo !== undefined) && !/(\d\s*k|each|ea|\d{3,})\s*\.?$/i.test(txt(pv)) && !/^(buying|selling|have|need|i have)\b/i.test(txt(L))) { pv.toks.push(...L.toks.map(t => Object.assign({}, t, { x: t.x + 1e5 }))); return acc; }
+    acc.push(L); return acc; }, []);
+  // "1st 📄 JAMS": the picture between "1st" and the machine is the word "page"
+  const mword = new RegExp("^(?:" + MACHINES.map(m => m.word).join("|") + ")$", "i");
+  lines.forEach(L => L.toks.forEach((t, i) => {
+    if (t.w) return; if (t.ename && !/page|memo|doc/i.test(t.ename)) return;
+    const a = L.toks.slice(0, i).reverse().find(x => x.w), b = L.toks.slice(i + 1).find(x => x.w);
+    if (a && b && ORD_RE.test(a.w) && mword.test(b.w.replace(/[^a-z]/gi, ""))) { L.toks[i] = { x: t.x, w: "page", strike: t.strike }; }
+  }));
+  const cand = [];
+  lines.forEach((L, li) => {
+    let s = txt(L);
+    const emos = L.toks.filter(t => t.emo !== undefined);
+    // the header "name / level  22:07" (a time, not a ratio)
+    const tm = s.match(/(\d{1,2})\s?[:.]\s?(\d{2})\s*$/);
+    if (li < 3 && !R.author && tm && +tm[1] < 24 && +tm[2] < 60 && (/[a-z]{2}/i.test(s.slice(0, tm.index)) || li <= 1) && !RAT.test(s.slice(0, tm.index))) { R.author = s.slice(0, tm.index).replace(/\s*\/\s*\d+.*$/, "").replace(/[^\w .'-]/g, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" "); return; }
+    s = s.replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "");
+    if (BUY_RE.test(s)) buying = true; if (SELL_RE.test(s)) selling = true;
+    if (HAVE_RE.test(s)) {
+      sec = "have"; const rest = s.replace(HAVE_RE, "");
+      let items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
+      // "Have BEM Sets 🩹🪵🔩" → the set (its material pictures are just decoration)
+      const pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
+      if (pk) items = items.filter(x => x === pk || (x.ref && !CAT.byId[pk.ref].parts.includes(x.ref) && !(CAT.byId[x.ref] || {}).parts) || (x.ref && CAT.byId[x.ref].parts));
+      if (!items.length) items = [{ unknown: { view: null }, name: "" }];          // "Have [picture not recognised]" → to pick
+      giveIdx = R.have.length; R.have.push(...items); lastNote = null; return;
+    }
+    if (NEED_RE.test(s) && !RAT.test(s)) {
+      const rest = s.replace(NEED_RE, "").trim(), items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
+      // "Need 10 or 20 of each item, partials 50+" (no item, a sentence) → a note
+      if (!emos.length && !items.some(x => x.ref) && /\d/.test(rest)) { R.notes.push(s); lastNote = { s, li }; return; }
+      sec = "need"; pend.push(...items); lastNote = { s: "", li, need: true }; return;
+    }
+    // "chocolate" on the line after "Need fp jams, sauces, …," → more items
+    if (sec === "need" && lastNote && lastNote.need && lastNote.li === li - 1 && !RAT.test(s) && !/\d/.test(s)) { pend.push(...namedItems(s.split(/\s+/))); lastNote = { s: "", li, need: true }; return; }
+    const rm = s.match(RAT);
+    if (rm && (sec || R.have.length || emos.length)) {
+      const before = s.slice(0, rm.index).replace(NEED_RE, ""), ratioTok = L.toks.find(t => t.w && RAT.test(t.w)) || L.toks.find(t => t.w && /\d/.test(t.w));
+      // a picture after the ratio that isn't an item is decoration (a face, a sticker)
+      let items = [...pend, ...emos.filter(t => !ratioTok || t.x < ratioTok.x || (t.emo && (t.ename || (t.m && t.m[0] && t.m[0].c < .25)))).map(eItem), ...namedItems(before.split(/\s+/))];
+      pend = [];
+      // a ratio alone on its line → the text line just above is what it's for ("Mixed Juices (2nd page)" / "90:89")
+      if (!items.length && lastNote && lastNote.li === li - 1) { R.notes.splice(R.notes.indexOf(lastNote.s), 1); const mr = machineRefs(lastNote.s); items = mr ? mr.items.map(p => ({ ref: p.id, via: mr.label })) : [{ name: lastNote.s }]; }
+      lastNote = null;
+      const rest = s.slice(rm.index + rm[0].length).replace(/[~\-–—]+/g, " ").trim();
+      R.groups.push({ give: giveIdx, need: +rm[1].replace(",", "."), have: +rm[2].replace(",", "."), items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "" });
+      return;
+    }
+    if (!rm && emos.length && !/\d+\s*k\b|\d{3,}/i.test(s)) { pend.push(...emos.map(eItem), ...namedItems(s.split(/\s+/))); return; }
+    if (/\d\s*k\b|\d{3,}|\(\d+\)|\bx\s*\d+|\d+\s*x\b/i.test(s) && !RAT.test(s) && !/\.(com|io|net)\b|items?\)/i.test(s) && parseBuyList(s).items.length) { cand.push(s); return; }
+    if (s && /[a-z]{2}/i.test(s) && (L.conf == null || L.conf >= 70)) { const n = s.replace(/[~]+/g, ""); R.notes.push(n); lastNote = { s: n, li }; }
+  });
+  if (pend.length && R.groups.length) R.groups[R.groups.length - 1].items.push(...pend);
+  // priced lines: all of them in a selling / buying post; in a trade post only those naming real items ("Or selling at 180k" stays a note)
+  cand.forEach(s => { if (!R.groups.length || parseBuyList(s).items.some(it => { const m = matchProduct(it.name); return m.p && m.sure; })) R.priced.push(s); else R.notes.push(s); });
+  R.notes = R.notes.filter(n => !/\.(com|io|net)\b|github|\(\d+\s*items?\)/i.test(n) && !/^(buying|selling|have|need|i have)\s*$/i.test(n));
+  (picNotes || []).forEach(n => { const t = n.replace(/[^\w ,.+%:/'-]/g, " ").replace(/\s+/g, " ").trim(); if (/[a-z]{4}/i.test(t) && !/\.(com|io|net)\b|github|items?\)?$/i.test(t)) R.notes.push(t); });
+  R.kind = R.groups.length ? "trade" : (buying || BUY_RE.test(text || "")) ? "achat" : "vente";
+  return R;
+}
+/** Parsed post → the posts to create (a trade post, and/or a selling / buying post). */
+function impPosts(R) {
+  const posts = [], notes = R.notes.filter(n => n.length < 140).slice(0, 8);
+  const nm = t => TYPES[t].name + (R.author ? " · " + R.author : " · imported");
+  if (R.groups.length) {
+    let have = R.have.map((x, i) => Object.assign(x, { _i: i })).filter(x => x.ref || x.name || x.unknown);
+    // a set (BEM…) and its own materials → just the set
+    const sets = have.filter(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
+    have = have.filter(x => !(x.ref && sets.some(s => CAT.byId[s.ref].parts.includes(x.ref))));
+    if (!have.length) have = [{ name: "My items" }];
+    const seen = new Set(); have = have.filter(x => { const k = x.ref || x.name || "u" + x._i; if (seen.has(k)) return false; seen.add(k); return true; });
+    const giveOf = g => { const c = have.filter(x => x._i >= g.give); return c.length ? have.indexOf(c[0]) : 0; };
+    posts.push({ type: "trade", on: true, name: nm("trade"), have: have.map(x => ({ ...x, q: "" })),
+      wants: R.groups.flatMap(g => g.items.filter(x => x.ref || x.name || x.unknown).map(x => ({ ref: x.ref || null, name: x.name || "", unknown: x.unknown || null, src: x.src || null, via: x.via || "", ra: String(g.have), rb: String(g.need), oos: g.oos, note: g.note, gi: giveOf(g) }))), notes });
+  }
+  const sell = R.kind === "achat" ? "achat" : "vente", items = [];
+  R.tiles.forEach(t => items.push({ ref: t.ref, unknown: t.ref ? null : t, src: t, view: t.view, m: t.m, q: t.q, p: t.px, pu: t.px ? "xmp" : "coin" }));
+  if (R.priced.length) parseBuyList(R.priced.join("\n")).items.forEach(it => { const m = matchProduct(it.name); items.push({ ref: m.p && m.sure ? m.p.id : null, name: m.p && m.sure ? "" : it.name, q: it.q != null ? String(it.q) : "", p: it.p ? String(it.p) : "", pu: "coin" }); });
+  if (items.length || !posts.length) posts.push({ type: R.groups.length && !items.length ? sell : R.kind === "trade" ? "vente" : sell, on: true, name: nm(R.kind === "trade" ? "vente" : sell), wants: items, notes: posts.length ? [] : notes });
+  return posts;
+}
+
+/* ---------- 3. the page ---------- */
+async function impRun(files, text) {
+  IMP.busy = "Starting…"; IMP.res = null; renderImport();
+  const say = m => { IMP.busy = m; const e = $("#impMsg"); if (e) e.textContent = m; };
+  try {
+    let lines = [], tiles = [], picNotes = [];
+    if (files && files.length) {
+      say("Loading the game pictures…");
+      const pool = await scanPool((n, t) => say("Loading the game pictures… " + n + " / " + t));
+      for (const [k, f] of files.entries()) {
+        say("Screenshot " + (k + 1) + " / " + files.length + "…");
+        const r = await impReadImage(await loadFileImg(f), pool, m => say("Screenshot " + (k + 1) + ": " + m));
+        lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes);
+      }
+    }
+    if (text && text.trim()) lines.push(...textLines(text));
+    const R = impParse(lines, tiles, picNotes, text);
+    IMP.res = { R, posts: impPosts(R) };
+    if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
+  } catch (e) { IMP.res = { err: /internet/.test(e && e.message) ? "The text reader couldn't be loaded (no internet?). Paste the text of the post instead." : "Couldn't read it (" + (e && e.message || e) + ")." }; }
+  IMP.busy = null; renderImport();
+}
+const impLabel = x => x.ref && CAT.byId[x.ref] ? CAT.byId[x.ref].en : x.name || "Pick the item";
+function impRow(x, P, list) {
+  const p = x.ref && CAT.byId[x.ref], trade = P.type === "trade", isHave = list === P.have;
+  const row = h("div", { class: "irw" + (x.oos ? " oos" : "") + (!x.ref && !x.name ? " chk" : "") },
+    impView(x) ? h("img", { class: "icrop", src: impView(x), alt: "" }) : p ? thumb(prodState(p.id), p.e, "mini") : h("span", { class: "th mini" }, "📦"),
+    h("button", { class: "spick", onclick: () => impPick(x) }, h("span", { class: "inm" }, impLabel(x), x.via ? h("small", null, x.via) : null), p && impView(x) ? thumb(prodState(p.id), p.e, "mini") : null, !x.ref ? h("span", { class: "flag" }, x.name ? "✎" : "?") : null));
+  if (trade && !isHave) row.append(h("span", { class: "irat" }, h("input", { value: x.ra, inputMode: "decimal", "aria-label": "You give", oninput: e => { x.ra = e.target.value; } }), ":", h("input", { value: x.rb, inputMode: "decimal", "aria-label": "You get", oninput: e => { x.rb = e.target.value; } })));
+  else if (!trade) row.append(h("span", { class: "irat" }, h("input", { value: x.q, inputMode: "numeric", placeholder: "qty", "aria-label": "Quantity", oninput: e => { x.q = e.target.value; } }), h("input", { value: x.p, inputMode: "decimal", placeholder: "price", "aria-label": "Price", oninput: e => { x.p = e.target.value; } }), h("small", null, x.pu === "xmp" ? "×MP" : "")));
+  if (!isHave) row.append(h("button", { class: "ioos" + (x.oos ? " on" : ""), title: "Out of stock (struck through)", onclick: () => { x.oos = !x.oos; renderImport(); } }, "⊘"));
+  row.append(h("button", { class: "odel", "aria-label": "Remove", onclick: () => { list.splice(list.indexOf(x), 1); renderImport(); } }, "×"));
+  return row;
+}
+const impView = x => x.view || (x.src && x.src.view) || (x.unknown && x.unknown.view) || null;
+function impPick(x) {
+  const res = h("div", { class: "menu pick" });
+  const btn = p => h("button", { onclick: () => { x.ref = p.id; x.name = ""; x.fixed = true; x.via = ""; closeSheet(); renderImport(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
+  const fill = q => { res.textContent = ""; search(q, "all").slice(0, 12).forEach(p => res.append(btn(p))); };
+  const best = ((x.m || (x.src && x.src.m) || (x.unknown && x.unknown.m)) || []).map(a => CAT.byId[a.ref]).filter(Boolean).slice(0, 6);
+  const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", value: x.name || "", autocapitalize: "off", oninput: e => fill(e.target.value) });
+  if (x.name) fill(x.name);
+  openSheet("Which item is it?", [impView(x) ? h("img", { src: impView(x), class: "scrop big", alt: "" }) : null,
+    impView(x) ? h("p", { class: "hint" }, "Your pick is remembered: next time this picture is recognised.") : null,
+    best.length ? h("div", null, h("label", { class: "lbl" }, "Closest pictures"), h("div", { class: "menu pick" }, best.map(btn))) : null,
+    h("label", { class: "lbl", style: "margin-top:10px" }, "Search"), sq, res,
+    h("button", { class: "btn dashed", style: "margin-top:10px", onclick: () => { const v = sq.value.trim(); if (!v) return; x.ref = null; x.name = v; closeSheet(); renderImport(); } }, "Keep it as a custom item (the text above)")]);
+}
+function renderImport() {
+  const out = $("#impOut"); if (!out) return; out.textContent = "";
+  const fileIn = h("input", { type: "file", accept: "image/*", multiple: true, hidden: true, onchange: e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) impRun(f, ""); } });
+  const ta = h("textarea", { class: "ta", rows: 5, value: IMP.text, placeholder: "Or paste the text of your post (Discord: long-press the message → Copy Text). ~~struck~~ lines become “out of stock”.", oninput: e => { IMP.text = e.target.value; } });
+  out.append(h("div", { class: "card fieldset" },
+    h("div", { class: "ch" }, h("h2", null, "Import a post")),
+    h("p", { class: "hint" }, "Bring an old post here: a screenshot of your Discord message, a picture made by another post maker, or the text. You check everything before it's created."),
+    h("button", { class: "btn pri full", onclick: () => fileIn.click() }, "📷 Screenshots of the post"), fileIn, ta,
+    h("button", { class: "btn full", onclick: () => { if (!IMP.text.trim()) return toast("Paste the text first"); impRun(null, IMP.text); } }, "Read the text"),
+    h("button", { class: "linkb", onclick: machineSheet }, "📄 Machine pages — what “1st page jams” means")));
+  if (IMP.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "impMsg" }, IMP.busy))); return; }
+  const S = IMP.res; if (!S) return;
+  if (S.err) { out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, S.err))); return; }
+  S.posts.forEach(P => {
+    const card = h("div", { class: "card fieldset impc" + (P.on ? "" : " off") });
+    card.append(h("div", { class: "ihead" }, h("input", { type: "checkbox", class: "scb", checked: P.on, "aria-label": "Create this post", onchange: e => { P.on = e.target.checked; renderImport(); } }),
+      h("div", { class: "seg" }, Object.keys(TYPES).map(t => h("button", { class: P.type === t ? "on" : "", onclick: () => { P.type = t; if (t === "trade" && !P.have) P.have = [{ name: "My items", q: "" }]; renderImport(); } }, TYPES[t].name)))));
+    card.append(h("input", { class: "inp", value: P.name, "aria-label": "Post name", oninput: e => { P.name = e.target.value; } }));
+    if (P.type === "trade") { card.append(h("label", { class: "lbl" }, "I have")); (P.have = P.have || []).forEach(x => card.append(impRow(x, P, P.have))); }
+    const W = P.wants || (P.wants = []);
+    card.append(h("label", { class: "lbl" }, P.type === "trade" ? "I want · ratio = you give : you get" : P.type === "achat" ? "I buy · quantity · price" : "For sale · quantity · price"));
+    W.forEach(x => card.append(impRow(x, P, W)));
+    card.append(h("button", { class: "btn sm dashed", onclick: () => { const x = { ref: null, name: "", q: "", p: "", pu: "coin", ra: W.length ? W[W.length - 1].ra : "", rb: W.length ? W[W.length - 1].rb : "" }; W.push(x); impPick(x); } }, "＋ Add an item"));
+    if (P.notes && P.notes.length) card.append(h("label", { class: "lbl" }, "Notes (shown on the picture)"), h("textarea", { class: "ta", rows: Math.min(5, P.notes.length + 1), value: P.notes.join("\n"), oninput: e => { P.notes = e.target.value.split("\n").filter(Boolean); } }));
+    const todo = [...(P.have || []), ...W].filter(x => !x.ref && !x.name).length;
+    if (todo) card.append(h("p", { class: "hint" }, plural(todo, "item") + " to check (“?”): tap to pick it, or remove it."));
+    out.append(card);
+  });
+  const n = S.posts.filter(p => p.on).length;
+  out.append(h("button", { class: "btn pri full", disabled: !n, onclick: impCreate }, n > 1 ? "Create the " + n + " posts" : "Create the post"));
+}
+/** Which products are on each page of a machine (as in the game) — "1st page jams", "Mixed Juices (2nd page)". */
+function machineSheet() {
+  const body = h("div", { class: "mpg" }), draw = () => {
+    body.textContent = "";
+    body.append(h("p", { class: "hint" }, "In posts, “1st page jams” or “fp juices” means every product on that page of the machine in the game. Set how many products your game shows per page."));
+    MACHINES.forEach(M => {
+      const n = pageSize(M), all = machineItems(M), pages = Math.ceil(all.length / n);
+      const set = v => { SETTINGS.pages = Object.assign({}, SETTINGS.pages, { [M.id]: Math.max(1, Math.min(12, v)) }); saveSettings(); draw(); };
+      body.append(h("div", { class: "mpm" }, h("div", { class: "mph" }, h("b", null, M.name),
+        h("span", { class: "mpn" }, h("button", { class: "btn sm", "aria-label": "Fewer per page", onclick: () => set(n - 1) }, "−"), h("span", null, n + " per page"), h("button", { class: "btn sm", "aria-label": "More per page", onclick: () => set(n + 1) }, "+"))),
+        ...Array.from({ length: pages }, (_, k) => h("div", { class: "mpr" }, h("small", null, "Page " + (k + 1)), h("div", { class: "mpi" }, all.slice(k * n, k * n + n).map(p => h("span", { title: p.en }, thumb(prodState(p.id), p.e, "mini"))))))));
+    });
+  };
+  draw(); openSheet("Machine pages", [body]);
+}
+/** Create the posts (items not recognised and not named are left out). */
+function impCreate() {
+  let last = null, made = 0;
+  // learn the pictures you picked by hand (and the ones it wasn't sure about) → recognised next time
+  const auto = s => s.emo !== undefined ? s.emo : s.ref;
+  const learn = IMP.res.posts.filter(P => P.on).flatMap(P => [...(P.have || []), ...(P.wants || [])]).filter(x => x.ref && x.src && x.src.learn && (x.fixed || !auto(x.src)));
+  if (learn.length) { const seen = new Set(); learn.forEach(x => { if (seen.has(x.src)) return; seen.add(x.src); LEARN.push({ ref: x.ref, url: x.src.learn }); }); if (LEARN.length > 150) LEARN = LEARN.slice(-150); store.set("hd5_scanlearn", LEARN); }
+  IMP.res.posts.filter(P => P.on).forEach(P => {
+    const p = mkProfile(P.type, P.name.trim() || TYPES[P.type].name);
+    const mk = (x, f) => x.ref ? mkItem(x.ref, f) : x.name ? mkItem(null, Object.assign({ name: x.name, e: "📦" }, f)) : null;
+    if (P.type === "trade") {
+      p.have = (P.have || []).map(x => mk(x, x.q ? { q: x.q } : {})).filter(Boolean);
+      const hv = (P.have || []).map((x, i) => [x, p.have[(P.have || []).filter((y, j) => j < i && (y.ref || y.name)).length]]);
+      const giveFor = x => { const src = (P.have || [])[x.gi || 0]; const pair = hv.find(([a]) => a === src); return (pair && (src.ref || src.name) && pair[1]) || p.have[0]; };
+      p.wants = (P.wants || []).map(x => { const g = giveFor(x); return mk(x, Object.assign({ ra: x.ra, rb: x.rb }, g ? { give: g.uid } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {})); }).filter(Boolean);
+    } else p.wants = (P.wants || []).map(x => mk(x, Object.assign({}, x.q ? { q: x.q } : {}, x.p ? { p: x.p, pu: x.pu || "coin" } : {}, x.oos ? { oos: 1 } : {}))).filter(Boolean);
+    if (P.notes && P.notes.length) p.details = P.notes.map(n => "- " + n).join("\n");
+    if (!p.user && SETTINGS.pseudo) p.user = SETTINGS.pseudo;
+    STATE.list.push(p); last = p; made++;
+  });
+  if (!last) return;
+  IMP.res = null; IMP.text = ""; selectProfile(last.id); tab("items"); toast(made > 1 ? made + " posts created ✔ — check them" : "Post created ✔ — check it");
+}
+$("#impBtn").onclick = () => tab("imp");
 
 </script>
 <!-- Images des produits : wiki communautaire Hay Day (hayday.fandom.com). Hay Day et ses visuels appartiennent à Supercell. -->
