@@ -1305,6 +1305,7 @@ function scheduleDraw() { if (drawRq) return; drawRq = requestAnimationFrame(() 
 
 /* ---------- text ---------- */
 /** f: "D" = display slab, otherwise Zilla weight, add "i" for italic (e.g. "600i"). */
+const SITE_URL = "tigamaga.github.io/Mrkt"; // printed small at the bottom of every picture
 function font(f, s) { ctx.font = f === "D" ? `${s}px ${SLAB}` : `${f.endsWith("i") ? "italic " : ""}${parseInt(f) || 600} ${s}px ${SERIF}`; }
 function ls(v) { if ("letterSpacing" in ctx) ctx.letterSpacing = (v || 0) + "px"; }
 function ellipsis(t, maxW) { if (ctx.measureText(t).width <= maxW) return t; while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1); return t.trimEnd() + "…"; }
@@ -1563,7 +1564,8 @@ function draw() {
   const cta = (st.cta || "").trim();
   if (cta) H += 40 + 120 + 40;
   if ((st.sub || "").trim()) H += 46;
-  H = Math.round(H + 64);
+  const zL = Math.min(1.8, Math.max(1, W / 1080)); // site link size grows with wide pictures
+  H = Math.round(H + 64 + 34 * zL);
   if (cv.width !== W) cv.width = W;
   if (cv.height !== H) cv.height = H;
 
@@ -1801,6 +1803,12 @@ function draw() {
   }
   if ((st.sub || "").trim()) txt(st.sub.trim(), W / 2, y + 18, { f: "500i", s: 26, c: T.mut, al: "center", maxW: W - 2 * M });
 
+  /* ---------- site link: small, centred at the bottom, inside the frame ---------- */
+  {
+    const s = Math.round(20 * zL), ly = H - 35 - 26 * zL, tw = measure(SITE_URL, "700", s, 1), g = 14 * zL, l = 46 * zL;
+    txt(SITE_URL, W / 2, ly, { f: "700", s, c: T.mut, al: "center", sp: 1 });
+    rule(W / 2 - tw / 2 - g - l, W / 2 - tw / 2 - g, ly + 1, 1, T.mut); rule(W / 2 + tw / 2 + g, W / 2 + tw / 2 + g + l, ly + 1, 1, T.mut);
+  }
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
   $("#pvSize").textContent = W + " × " + H + " px";
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
