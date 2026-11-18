@@ -48,7 +48,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 /* ---------- layout ---------- */
 .app{max-width:1280px;margin:0 auto;padding:18px 14px}
 .panel{display:none;gap:14px;grid-template-columns:minmax(0,1fr)}
-body[data-tab=items] #p-items,body[data-tab=style] #p-style{display:grid}
+body[data-tab=items] #p-items,body[data-tab=style] #p-style,body[data-tab=order] #p-order{display:grid}
 #preview{display:none}
 body[data-tab=prev] #preview{display:block}
 body[data-tab=prev] #editor{display:none}
@@ -194,8 +194,35 @@ body[data-tab=prev] #editor{display:none}
 .lay{padding:8px 2px 6px!important;font-size:12.5px!important}
 .addnote{justify-self:start;border:0;background:none;padding:2px 2px;color:var(--mut);font:italic 600 14px var(--slab)}
 .notebox{display:grid}
+.tabbar button{font-size:14px!important;letter-spacing:.01em!important}
+.olist{padding:4px 0}
+.oline{display:grid;grid-template-columns:40px minmax(0,1fr) 74px auto;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
+.oline:first-child{border-top:0}
+.oline.bad{background:var(--acc-soft)}
+.oline.warn .oname .flag{background:#e6a93a}
+.oline.ign{opacity:.5}
+.oth{width:40px;height:40px;font-size:24px}
+.omid{min-width:0;display:grid}
+.oname{border:0;background:none;padding:0;text-align:left;font:700 16px var(--slab);color:var(--ink);display:flex;align-items:center;gap:6px;min-width:0}
+.oname .flag{flex:none;width:18px;height:18px;border-radius:50%;background:var(--acc);color:#fff;font:700 12px/18px var(--slab);text-align:center}
+.omid small{font:italic 600 12.5px var(--slab);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oq{display:flex;align-items:center;gap:2px;border:1px solid var(--line2);border-radius:8px;padding:0 6px;height:36px;background:var(--surface)}
+.oq span{color:var(--mut);font-weight:700}
+.oq input{width:100%;min-width:0;border:0;background:none;outline:none;font-weight:700;text-align:right}
+.ov{display:inline-flex;align-items:center;gap:5px;font:700 16px var(--slab);white-space:nowrap}
+.miss{color:var(--mut)}
+.th.mini{width:22px;height:22px;font-size:15px;display:inline-grid;vertical-align:middle}
+.ototal{display:grid;gap:6px;border-top:3px solid var(--ink)}
+.ototal .k{font:700 12px var(--slab);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.ototal .v{font:700 20px var(--slab);display:flex;align-items:center;gap:7px}
+.ototal .v.big{font:400 34px var(--disp)}
+.ototal .rings{font:italic 600 15px var(--slab);color:var(--mut);display:flex;align-items:center;gap:5px}
+.ototal .owarn{margin:4px 0 0;font:italic 600 13px var(--slab);color:var(--acc)}
+.switch.sm{font-size:14px;min-height:36px}
+.menu.pick button{min-height:44px}
 .xmp{font:400 15px var(--disp);letter-spacing:.02em}
-.mprow{display:grid;grid-template-columns:auto 110px 1fr;gap:4px 10px;align-items:center}
+.mprow{display:grid;grid-template-columns:auto auto 1fr;gap:4px 10px;align-items:center}
+.mpv{display:inline-flex;align-items:center;gap:5px;font:700 16px var(--slab)}
 .mprow .l{font:700 12px var(--slab);color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
 .mprow small{font:italic 600 13px var(--slab);color:var(--mut)}
 .mprow .eq{grid-column:1/-1;font:700 14px var(--slab);color:var(--acc)}
@@ -288,6 +315,7 @@ body[data-tab=prev] #mini{display:none}
   <nav class="tabbar" id="tabbar">
     <button data-t="items">Items</button>
     <button data-t="style">Style</button>
+    <button data-t="order">Order</button>
     <button data-t="prev">Preview</button>
     <button class="dl" id="dlTab">Export</button>
   </nav>
@@ -329,6 +357,17 @@ body[data-tab=prev] #mini{display:none}
         <div><label class="lbl">Total in</label><div class="seg" id="totSeg"><button data-u="coins">Coins</button><button data-u="both">Coins + rings</button><button data-u="rings">Rings</button></div></div>
         </div>
       </div>
+    </section>
+
+    <!-- ===== ORDER ===== -->
+    <section class="panel" id="p-order">
+      <div class="card fieldset">
+        <div class="ch"><h2>Order calculator</h2></div>
+        <p class="hint" id="orderFor"></p>
+        <textarea class="ta" id="orderIn" rows="7" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt x21"></textarea>
+        <div class="two"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderClear">Clear</button></div>
+      </div>
+      <div id="orderOut" class="stack"></div>
     </section>
 
     <!-- ===== STYLE ===== -->
@@ -1001,7 +1040,7 @@ function unitPrice(w) {
 /* ---------- max prices: manual > wiki (cached) > built-in table; sets = sum of their 3 materials ---------- */
 let MAXP = store.get("hd5_maxp", {});           // id -> max price from the wiki (0 = not found)
 const mpQueue = [], mpPending = new Set(); let mpActive = 0;
-const itemMax = w => num(w.mp) > 0 ? num(w.mp) : maxPrice(w.ref);
+const itemMax = w => maxPrice(w.ref); // fixed game values only — not editable
 function maxPrice(id) {
   const p = id && CAT.byId[id]; if (!p) return 0;
   if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) : 0; }
@@ -1010,7 +1049,6 @@ function maxPrice(id) {
   return MAXP_BASE[id] || 0;
 }
 function maxSource(w) {
-  if (num(w.mp) > 0) return "custom";
   const p = w.ref && CAT.byId[w.ref]; if (!p) return "none";
   if (p.parts) return maxPrice(p.id) ? "sum of the 3 materials" : (p.parts.some(x => mpPending.has(x)) ? "loading" : "none");
   if (MAXP[p.id] > 0) return "wiki";
@@ -1048,7 +1086,7 @@ async function fetchMax(id) {
   return 0;
 }
 let VAL_UPD = [];
-const maxLoaded = debounce(() => { VAL_UPD.forEach(f => { try { f(); } catch (e) {} }); scheduleDraw(); renderSummary(); }, 120);
+const maxLoaded = debounce(() => { VAL_UPD.forEach(f => { try { f(); } catch (e) {} }); scheduleDraw(); renderSummary(); if (typeof renderOrder === "function") renderOrder(); }, 120);
 function normItem(it) {
   if (!it.uid) it.uid = uid();
   ["name", "note", "e", "img", "q", "p", "ra", "rb"].forEach(k => { if (it[k] == null) it[k] = ""; });
@@ -1657,6 +1695,7 @@ function tab(t) {
   document.body.dataset.tab = t;
   $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   if (t === "prev") draw();
+  if (t === "order") renderOrder();
   scrollTo({ top: 0 });
 }
 $$("#tabbar [data-t]").forEach(b => b.onclick = () => tab(b.dataset.t));
@@ -1664,7 +1703,8 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
   h("ol", null,
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
     h("li", null, h("b", null, "Search products"), " and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
-    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, or ×MP — type “5x” or “5xmp” for 5 × the item’s max price. Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic. “Same price for all” sets every item at once."),
+    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the diamond-ring conversion (10 rings = 8,244 coins) are automatic. “Same price for all” sets every item at once."),
+    h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy."),
     h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
     h("li", null, h("b", null, "Export"), " and post the image on Discord.")),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
@@ -1683,7 +1723,7 @@ function newProfileSheet() {
   openSheet("New post", h("div", { class: "menu" }, Object.keys(TYPES).map(t => h("button", { onclick: () => { const p = mkProfile(t); STATE.list.push(p); closeSheet(); selectProfile(p.id); toast("“" + p.name + "” created"); } }, h("i", null, "＋"), TYPES[t].name + " post"))));
 }
 function selectProfile(id) { st = STATE.list.find(p => p.id === id) || STATE.list[0]; STATE.active = st.id; renderAll(); changed(); }
-function renderAll() { renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); }
+function renderAll() { renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); if (typeof renderOrder === "function") renderOrder(); }
 
 /* ---------- search ---------- */
 const CAT_EN = { pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy & sugar", snack: "Grill & meals", pies: "Pies & cakes", sweets: "Sweets & ice cream", drinks: "Drinks", jams: "Jams & sauces", textile: "Textiles", mine: "Mine & jewelry", fish: "Fishing", feed: "Animal feed", other: "More (wiki)", perso: "My items" };
@@ -1920,18 +1960,17 @@ function itemCard(it) {
     return card;
   }
   const val = h("div", { class: "val" });
-  // xMP line: "Max price 36 (wiki) · 5×MP = 180 each" — max price editable
-  const mpIn = h("input", { value: it.mp || "", inputMode: "numeric", "aria-label": "Max price", oninput: () => { it.mp = mpIn.value; upd(); changed(); } });
-  const mpSrc = h("small"), mpEq = h("span", { class: "eq" });
-  const mpRow = h("div", { class: "mprow" }, h("span", { class: "l" }, "Max price"), h("div", { class: "box mpbox" }, mpIn, h("span", { class: "u" }, h("i", { class: "coin" }))), mpSrc, mpEq);
+  // xMP line (read-only): "Max price 138 · from the wiki — 5×MP = 690 each"
+  const mpVal = h("b"), mpSrc = h("small"), mpEq = h("span", { class: "eq" });
+  const mpRow = h("div", { class: "mprow" }, h("span", { class: "l" }, "Max price"), h("span", { class: "mpv" }, h("i", { class: "coin" }), mpVal), mpSrc, mpEq);
   const upd = () => {
     const v = itemValue(it); val.textContent = ""; val.classList.toggle("zero", !v);
-    val.append(h("span", { class: "l" }, "Total"), v ? h("span", { class: "r" }, h("i", { class: "coin" }), fmt(v), h("small", null, "· " + fmtR(v / ringRate())), ringEl()) : h("span", { class: "r" }, it.pu === "xmp" && num(it.p) && !itemMax(it) ? "enter the max price" : "—"));
+    val.append(h("span", { class: "l" }, "Total"), v ? h("span", { class: "r" }, h("i", { class: "coin" }), fmt(v), h("small", null, "· " + fmtR(v / ringRate())), ringEl()) : h("span", { class: "r" }, it.pu === "xmp" && num(it.p) && !itemMax(it) ? (it.ref ? "max price not available" : "×MP needs a game item") : "—"));
     mpRow.hidden = it.pu !== "xmp";
     if (it.pu === "xmp") {
       const auto = it.ref ? maxPrice(it.ref) : 0, src = maxSource(it);
-      mpIn.placeholder = auto ? fmt(auto) : src === "loading" ? "…" : "?";
-      mpSrc.textContent = { custom: "set by you", wiki: "from the wiki", table: "built-in", loading: "loading…", none: "not found — type it", "sum of the 3 materials": "sum of the 3 materials" }[src] || "";
+      mpVal.textContent = auto ? fmt(auto) : src === "loading" ? "…" : "—";
+      mpSrc.textContent = { wiki: "game price (wiki)", table: "game price", loading: "loading…", none: it.ref ? "not found" : "custom item", "sum of the 3 materials": "sum of the 3 materials" }[src] || "";
       const m = itemMax(it); mpEq.textContent = m && num(it.p) ? fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each" : "";
     }
     renderSummary();
@@ -2106,6 +2145,169 @@ async function loadLocalManifest() {
   setTimeout(() => refreshWikiList(false), 1500);
   window.addEventListener("pagehide", () => store.set("hd5_state", STATE));
 })();
+
+/* =====================================================================
+   8. ORDER CALCULATOR — paste a buyer / seller message, priced from the active post
+   ===================================================================== */
+const ORDER = { text: "", lines: [], applyDisc: true };
+
+/** Split a pasted message into { raw, name, q } lines. Handles "carrot pies x26", "pumpkin pie x 42",
+    "26 carrot pies", "26x carrot pie", "carrot pie 26", "carrot pie: 26", bullets, emojis, markdown. */
+function parseOrder(text) {
+  const out = [];
+  String(text || "").split(/\r?\n|;|•|·|\|/).forEach(raw => {
+    let s = raw.replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+]|\d+[.)])\s+/, "").replace(/\s+/g, " ").trim();
+    if (!s || !/[a-z]/i.test(s)) return;
+    let m, name = s, q = "";
+    const Q = "(\\d[\\d.,]*\\s*k?)";
+    if ((m = s.match(new RegExp("^(.*?[a-z)'’])[\\s:=\\-–]*(?:x|×|\\*)\\s*" + Q + "\\s*(?:pcs?|pieces?)?$", "i")))) { name = m[1]; q = m[2]; }
+    else if ((m = s.match(new RegExp("^" + Q + "\\s*(?:x|×|\\*|pcs?|pieces?)?\\s+(.+)$", "i")))) { q = m[1]; name = m[2]; }
+    else if ((m = s.match(new RegExp("^(.*?[a-z)'’])\\s*[:=\\-–]?\\s+" + Q + "\\s*(?:pcs?|pieces?|x)?$", "i")))) { name = m[1]; q = m[2]; }
+    name = name.replace(/\s*[:=\-–]+\s*$/, "").trim();
+    if (!name) return;
+    out.push({ raw: raw.trim(), name, q: q ? Math.round(num(q.replace(/\s/g, ""))) : 1, qGuess: !q });
+  });
+  return out;
+}
+/** Word-by-word fuzzy match: plurals (pies → pie), prefixes (rasp → raspberry), aliases (feathers, dt…). */
+// plural-tolerant word forms: pies→pie, berries→berry, cookies→cookie, tomatoes→tomato, boxes→box
+const forms = t => { const v = new Set([t]); if (t.length > 3 && t.endsWith("s")) { v.add(t.slice(0, -1)); if (t.endsWith("es")) v.add(t.slice(0, -2)); if (t.endsWith("ies")) v.add(t.slice(0, -3) + "y"); } return v; };
+const toks = s => norm(s).replace(/&/g, " and ").split(/[^a-z0-9]+/).filter(t => t && t !== "and" && t !== "of" && t !== "the");
+const same = (a, b) => { const fb = forms(b); for (const x of forms(a)) if (fb.has(x)) return true; return false; };
+function matchScore(qt, name) {
+  const pt = toks(name); if (!pt.length) return 0;
+  let score = 0; const used = new Set();
+  for (const t of qt) {
+    let best = 0, bi = -1;
+    pt.forEach((p, i) => { if (used.has(i)) return; const s = same(t, p) ? 3 : (t.length >= 3 && [...forms(t)].some(f => f.length >= 3 && p.startsWith(f))) ? 2 : (p.length >= 4 && t.startsWith(p)) ? 1.5 : 0; if (s > best) { best = s; bi = i; } });
+    if (!best) return 0;
+    used.add(bi); score += best;
+  }
+  return score + (used.size === pt.length ? 2 : 0) - (pt.length - used.size) * .6;
+}
+function findMatches(name, pool, label) {
+  const al = ALIASES[slug(name)] || ALIASES[slug(name).replace(/s$/, "")];
+  const qt = toks(name);
+  return pool.map(x => { const nm = label(x), id = x.ref || x.id; let sc = matchScore(qt, nm); if (al && id === al) sc = Math.max(sc, 50); if (slug(nm) === slug(name)) sc = 100; return { x, sc }; })
+    .filter(r => r.sc > 0).sort((a, b) => b.sc - a.sc);
+}
+function resolveLine(L) {
+  const post = st.wants.filter(w => (w.name || "").trim() || w.ref);
+  if (L.pick === "-") return { w: null, ignored: true };
+  if (L.pick) { const w = post.find(x => x.uid === L.pick); if (w) return { w, sure: true }; }
+  const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "");
+  if (r.length) return { w: r[0].x, sure: !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
+  const c = findMatches(L.name, CAT.list, p => p.en)[0];
+  return { w: null, prod: c ? c.x : null };
+}
+/** Price one line from the active post: sell / buy → coins; trade → my items given by ratio. */
+function priceLine(L) {
+  const R = resolveLine(L), q = L.q || 0;
+  if (!R.w) return Object.assign(R, { v: 0 });
+  if (st.type === "trade") {
+    const a = num(R.w.ra), b = num(R.w.rb), g = giveItem(R.w);
+    return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b } : null, v: 0 });
+  }
+  const u = unitPrice(R.w);
+  return Object.assign(R, { u, v: u * q });
+}
+const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
+function priceLabel(w) {
+  const p = num(w.p); if (!p) return "no price in your post";
+  if (w.pu === "xmp") { const u = unitPrice(w); return fmtR(p) + "×MP" + (u ? " · " + fmt(u) + " ea" : " · loading max price…"); }
+  if (w.pu === "ring") return fmtR(p) + " ring" + (p > 1 ? "s" : "") + " ea · " + fmt(unitPrice(w)) + " ea";
+  return fmt(p) + " ea";
+}
+
+function renderOrder() {
+  if (document.body.dataset.tab !== "order") return;
+  const trade = st.type === "trade";
+  $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
+  ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit } : {}));
+  ORDER.prev = ORDER.lines;
+  const out = $("#orderOut"); out.textContent = "";
+  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line, with its quantity.")); return; }
+  const rows = ORDER.lines.map(L => Object.assign(L, { r: priceLine(L) }));
+  const list = h("div", { class: "card olist" });
+  rows.forEach(L => {
+    const r = L.r, w = r.w;
+    const q = h("input", { value: L.q, inputMode: "numeric", "aria-label": "Quantity", oninput: () => { L.q = Math.round(num(q.value)); L.qEdit = 1; renderOrderSoon(); } });
+    const nameBtn = h("button", { class: "oname", onclick: () => pickSheet(L) }, w ? pName(w) : L.name, !w || !r.sure ? h("span", { class: "flag" }, w ? "?" : "!") : null);
+    let right, sub;
+    if (r.ignored) { right = h("span", { class: "miss" }, "—"); sub = "Ignored — tap to pick an item"; }
+    else if (!w) { right = h("span", { class: "miss" }, "—"); sub = r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick"; }
+    else if (trade) {
+      right = r.ratio ? h("span", { class: "ov" }, fmtR(r.ratio.give), r.ratio.g ? thumb(itemState(r.ratio.g), r.ratio.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
+      sub = r.ratio ? "Ratio " + fmtR(r.ratio.a) + " : " + fmtR(r.ratio.b) + (r.ratio.g ? " " + pName(r.ratio.g) : "") : "No ratio in your post";
+    } else { right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—"); sub = priceLabel(w); }
+    list.append(h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : "") },
+      thumb(w ? itemState(w) : r.prod ? prodState(r.prod.id) : null, w ? w.e : r.prod ? r.prod.e : "❔", "oth"),
+      h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
+      h("div", { class: "oq" }, h("span", null, "×"), q), right));
+  });
+  out.append(list);
+  // totals
+  const missing = rows.filter(L => !L.r.ignored && (!L.r.w || (!trade && !L.r.v) || (trade && !L.r.ratio))).length;
+  const tot = h("div", { class: "card ototal" });
+  if (trade) {
+    const by = new Map();
+    rows.forEach(L => { const R = L.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
+    tot.append(h("div", { class: "k" }, "You give"));
+    if (!by.size) tot.append(h("div", { class: "v" }, "—"));
+    by.forEach(o => tot.append(h("div", { class: "v" }, fmtR(Math.ceil(o.n * 100) / 100) + " ", o.g ? pName(o.g) : "of your items", o.g ? thumb(itemState(o.g), o.g.e, "mini") : null)));
+  } else {
+    const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = Math.min(100, Math.max(0, num(st.disc)));
+    const useD = d > 0 && ORDER.applyDisc, total = useD ? sub * (1 - d / 100) : sub;
+    tot.append(h("div", { class: "k" }, st.type === "achat" ? "Total to pay" : "Total to receive"),
+      h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(total)),
+      h("div", { class: "rings" }, "≈ " + fmtR(total / ringRate()) + " rings ", ringEl()));
+    if (d > 0) tot.append(h("label", { class: "switch sm" }, "Apply your discount (−" + fmtR(d) + "%" + (useD ? ", was " + fmt(sub) : "") + ")", h("input", { type: "checkbox", checked: ORDER.applyDisc, onchange: e => { ORDER.applyDisc = e.target.checked; renderOrder(); } })));
+    ORDER.total = total; ORDER.sub = sub; ORDER.useD = useD; ORDER.d = d;
+  }
+  if (missing) tot.append(h("p", { class: "owarn" }, missing + " line" + (missing > 1 ? "s" : "") + " not counted — tap the name to pick the right item from your post."));
+  tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
+  out.append(tot);
+}
+const renderOrderSoon = debounce(renderOrder, 250);
+function replyText() {
+  const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w);
+  const lines = L.map(x => {
+    const n = pName(x.r.w);
+    if (trade) return x.r.ratio ? `${fmt(x.q)}× ${n} → ${fmtR(x.r.ratio.give)} ${x.r.ratio.g ? pName(x.r.ratio.g) : ""}`.trim() : `${fmt(x.q)}× ${n} → no ratio`;
+    const w = x.r.w, p = num(w.p);
+    const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : w.pu === "ring" ? `${fmtR(p)} ring ea` : `${fmt(p)} ea`;
+    return `${fmt(x.q)}× ${n} — ${how} = ${fmt(x.r.v)}`;
+  });
+  let foot = "";
+  if (trade) {
+    const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? pName(R.g) : "items"; by.set(k, (by.get(k) || 0) + R.give); });
+    foot = "**You get: " + [...by].map(([k, n]) => fmtR(Math.ceil(n * 100) / 100) + " " + k).join(" + ") + "**";
+  } else {
+    foot = (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + `**Total: ${fmt(ORDER.total)} coins ≈ ${fmtR(ORDER.total / ringRate())} 💍**`;
+  }
+  return lines.join("\n") + "\n" + foot;
+}
+async function copyReply() {
+  const t = replyText();
+  try { await navigator.clipboard.writeText(t); toast("Reply copied — paste it in Discord ✔"); }
+  catch (e) { openSheet("Reply", [h("textarea", { class: "ta", rows: 10, value: t, readOnly: true }), h("p", { class: "hint" }, "Select all and copy.")]); }
+}
+function pickSheet(L) {
+  const post = st.wants.filter(w => (w.name || "").trim() || w.ref);
+  const r = findMatches(L.name, post, w => pName(w)).map(a => a.x);
+  const others = post.filter(w => !r.includes(w));
+  const choose = w => { L.pick = w ? w.uid : "-"; closeSheet(); renderOrder(); };
+  const btn = w => h("button", { onclick: () => choose(w) }, thumb(itemState(w), w.e, "mini"), pName(w));
+  openSheet("“" + L.name + "” is…", [
+    r.length ? h("div", null, h("label", { class: "lbl" }, "Best matches"), h("div", { class: "menu pick" }, r.slice(0, 6).map(btn))) : null,
+    others.length ? h("div", null, h("label", { class: "lbl" }, "Other items of your post"), h("div", { class: "menu pick" }, others.map(btn))) : null,
+    !post.length ? h("p", { class: "hint" }, "Your post has no items yet.") : null,
+    h("button", { class: "btn dashed", onclick: () => choose(null) }, "Ignore this line")
+  ]);
+}
+$("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
+$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
+$("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); };
 
 </script>
 <!-- Images des produits : wiki communautaire Hay Day (hayday.fandom.com). Hay Day et ses visuels appartiennent à Supercell. -->
