@@ -756,212 +756,23 @@ body[data-tab=prev] #mini{display:none}
 #toast{position:fixed;left:50%;bottom:calc(78px + var(--safe-b));transform:translate(-50%,16px);z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;max-width:92vw;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 @media (min-width:1000px){#toast{bottom:28px}}
-
-/* =====================================================================
-   v44 · GLOW-UP — same features, same layout: softer surfaces, clearer
-   navigation, calmer motion. Everything below only restyles.
-   ===================================================================== */
-:root{
-  --r:14px;--r-s:10px;--r-l:20px;
-  --sh1:0 1px 2px rgba(70,45,20,.05),0 4px 14px -8px rgba(70,45,20,.16);
-  --sh2:0 2px 6px rgba(70,45,20,.06),0 14px 34px -12px rgba(70,45,20,.28);
-  --sh3:0 10px 40px -8px rgba(40,25,10,.35);
-  --ring:0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent);
-  --glass:color-mix(in srgb,var(--bg) 92%,transparent);
-  --ease:cubic-bezier(.2,.8,.2,1);
-  --tabh:62px;
-  --t-trade:#c0412a;--t-vente:#3b7d31;--t-achat:#2f6fb0;
-}
-@media (prefers-color-scheme:dark){:root{
-  --bg:#14120f;--surface:#1d1a16;--surface2:#26221c;--line:#2f2a24;--line2:#433c33;
-  --sh1:0 1px 0 rgba(255,255,255,.02) inset,0 4px 14px -8px rgba(0,0,0,.6);
-  --sh2:0 2px 6px rgba(0,0,0,.3),0 14px 34px -12px rgba(0,0,0,.7);
-  --sh3:0 12px 44px -6px rgba(0,0,0,.75);
-  --t-trade:#e0714f;--t-vente:#7fc06f;--t-achat:#6ea4e6}}
-body{padding-bottom:calc(var(--tabh) + 22px + var(--safe-b));-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-::selection{background:color-mix(in srgb,var(--acc) 24%,transparent)}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.inp:focus-visible,.ta:focus-visible,.sel:focus-visible,.box input:focus-visible,.rin input:focus-visible{outline:0}
-@media (hover:hover){::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:10px;border:3px solid var(--bg)}}
-
-/* ---------- masthead ---------- */
-.top{padding:calc(var(--safe-t) + 12px) 16px 0;border-bottom:2px solid var(--ink);box-shadow:0 3px 0 -1px var(--bg),0 4px 0 -1px var(--ink);
-  background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--acc) 7%,transparent),transparent 55%),var(--bg)}
-.brand{gap:10px}
-.logo{flex:none;width:34px;height:34px;border-radius:10px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 3px 8px -3px color-mix(in srgb,var(--acc) 70%,transparent)}
-.logo svg{width:24px;height:24px}
-@media (max-width:360px){.logo{width:30px;height:30px}.logo svg{width:21px;height:21px}}
-.hbtn{width:40px;height:40px;border:1px solid var(--line2);background:var(--surface);box-shadow:var(--sh1);transition:transform .15s var(--ease),background .15s,color .15s,box-shadow .15s}
-.hbtn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.hbtn.me{border-color:var(--ink)}
-.hbtn.me.on,.hbtn.me.open{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)}
-@media (max-width:375px){.hbtn{width:37px;height:37px}}
-/* posts: pills with a dot for the type (red trade · green selling · blue buying) */
-.profiles{position:relative;gap:8px;margin-top:12px;padding:2px 16px 14px;margin-left:-16px;margin-right:-16px;scroll-padding:0 16px;
-  -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
-@media (min-width:1312px){.profiles{margin-left:auto;margin-right:auto;padding-left:0;padding-right:0}}
-.pchip{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px 0 12px;margin:0;border:1px solid var(--line2);border-radius:999px;background:var(--surface);color:var(--mut);font:700 15px var(--slab);box-shadow:var(--sh1);transition:background .18s,color .18s,border-color .18s,transform .12s var(--ease)}
-.pchip:active{transform:scale(.96)}
-.pchip .ptd{width:8px;height:8px;border-radius:50%;flex:none;background:var(--t-trade)}
-.pchip[data-type=vente] .ptd{background:var(--t-vente)}
-.pchip[data-type=achat] .ptd{background:var(--t-achat)}
-.pchip.on{background:var(--ink);border-color:var(--ink);color:var(--bg);border-bottom-color:var(--ink)}
-.pchip.on .ptd{box-shadow:0 0 0 2px color-mix(in srgb,var(--bg) 35%,transparent)}
-.pchip .pdot{margin-left:0;vertical-align:0;box-shadow:0 0 0 2px var(--surface)}
-.pchip.on .pdot{box-shadow:0 0 0 2px var(--ink)}
-.pchip.add{width:36px;padding:0;justify-content:center;border-style:dashed;background:transparent;box-shadow:none;font:500 22px/1 var(--sans);color:var(--mut)}
-.pchip.on.fresh{animation:freshRing 1.1s ease 2}
-@keyframes freshRing{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 45%,transparent)}}
-
-/* ---------- surfaces ---------- */
-.card{border-radius:var(--r-l);border-color:var(--line);box-shadow:var(--sh1);padding:16px 16px 17px}
-.ch h2{font-size:21px;letter-spacing:-.005em}
-.item,.grp{border-radius:var(--r-l);border-color:var(--line);box-shadow:var(--sh1)}
-.grp{border-color:var(--line)}
-.grp-h{background:linear-gradient(var(--surface2),color-mix(in srgb,var(--surface2) 60%,var(--surface)))}
-.grp.target{outline:2px solid var(--acc);outline-offset:-1px;box-shadow:var(--sh1),0 0 0 4px color-mix(in srgb,var(--acc) 12%,transparent)}
-.item.hot{border-left-width:1px;box-shadow:var(--sh1),inset 4px 0 0 var(--acc)}
-.item.flash,.gi.flash{outline:2px solid var(--acc);outline-offset:1px}
-.item.flash{animation:flashIn .9s var(--ease)}
-@keyframes flashIn{0%{transform:scale(1)}20%{transform:scale(1.015)}100%{transform:none}}
-.thumbbtn{border-radius:12px;background:radial-gradient(circle at 50% 35%,var(--surface),var(--surface2))}
-.hent,.kpi,.hstat,.ilist,.slist,.trow{border-radius:var(--r);box-shadow:var(--sh1)}
-.ilist,.slist{border-color:var(--line)}
-.empty.card{border-style:dashed;box-shadow:none;background:transparent}
-.sec-h{border-bottom-color:var(--line);margin-top:14px;padding-bottom:8px}
-.sec-h h3{font-size:21px;letter-spacing:-.005em}
-.hday{margin-top:12px}
-.dsec{margin-top:12px}
-.ototal{border-radius:var(--r-l);background:radial-gradient(130% 90% at 100% 0%,color-mix(in srgb,var(--acc) 8%,transparent),transparent 60%),var(--surface)}
-.dcard.active{box-shadow:var(--sh1),0 0 0 2px var(--acc)}
-
-/* ---------- controls ---------- */
-.inp,.sel,.ta{border-radius:12px;transition:border-color .15s,box-shadow .15s,background .15s}
-.inp:focus,.sel:focus,.ta:focus{border-color:var(--acc);box-shadow:var(--ring)}
-.box,.rin,.oq,.istep{border-radius:12px;transition:border-color .15s,box-shadow .15s}
-.box:focus-within,.rin:focus-within,.oq:focus-within{border-color:var(--acc);box-shadow:var(--ring)}
-.btn{border-radius:12px;transition:transform .12s var(--ease),background .15s,border-color .15s,box-shadow .15s,color .15s;-webkit-user-select:none;user-select:none}
-.btn:active{transform:scale(.97)}
-.btn.pri{box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 4px 12px -6px rgba(0,0,0,.45)}
-.btn.gold{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 88%,#fff),var(--acc));box-shadow:0 1px 0 rgba(255,255,255,.22) inset,0 6px 16px -8px color-mix(in srgb,var(--acc) 85%,transparent)}
-.btn.dashed{border-color:var(--line2);box-shadow:none}
-@media (hover:hover){.btn:hover{border-color:var(--ink)}.btn.pri:hover,.btn.gold:hover{filter:brightness(1.06)}.chip:hover,.pchip:not(.on):hover{color:var(--ink)}.meit:hover,.menu button:hover{background:var(--surface2)}}
-.seg{border:0;border-radius:12px;background:var(--surface2);padding:3px;gap:3px;box-shadow:inset 0 0 0 1px var(--line)}
-.seg button{border:0;border-radius:9px;min-height:38px;transition:background .18s,color .18s,box-shadow .18s}
-.seg button.on{box-shadow:0 2px 6px -2px rgba(0,0,0,.35)}
-.chip{border-radius:999px;transition:background .15s,color .15s,border-color .15s,transform .12s var(--ease)}
-.chip:active{transform:scale(.96)}
-.switch input{transition:background .2s var(--ease)}
-.switch input::after{transition:transform .22s var(--ease)}
-.switch input:checked{background:var(--ok)}
-.ib{border-radius:10px;transition:background .15s,color .15s,transform .12s var(--ease)}
-.ib:active{transform:scale(.92)}
-.tile{border-radius:14px;transition:transform .12s var(--ease),border-color .15s,background .15s}
-.tile:active{transform:scale(.96)}
-@media (hover:hover){.tile:hover{border-color:var(--line2)}}
-.tile .in{background:var(--ok);color:#fff;box-shadow:0 0 0 2px var(--surface)}
-
-/* ---------- items search bar ---------- */
-.sbar{background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);border-bottom:1px solid var(--line)}
-.sbox .inp{border-radius:14px;background:var(--surface);box-shadow:var(--sh1)}
-.sbox .inp:focus{box-shadow:var(--ring)}
-.sdrop{border-radius:var(--r-l);box-shadow:var(--sh3);border-color:var(--line2);animation:dropIn .18s var(--ease)}
-@keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-@media (min-width:1000px){.sbar{border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh1)}}
-
-/* ---------- bottom bar: icon + label ---------- */
-.tabbar{gap:2px;padding:6px 6px calc(6px + var(--safe-b));border-top:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 -8px 24px -16px rgba(40,25,10,.35)}
-.tabbar button{min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 2px;border-radius:14px;color:var(--mut);font:700 11.5px/1 var(--slab)!important;letter-spacing:.02em!important;transition:color .18s}
-.tabbar .tbi{width:24px;height:24px;flex:none;padding:3px 0;box-sizing:content-box;width:46px;border-radius:999px;transition:background .2s var(--ease),transform .2s var(--ease)}
-.tabbar .tbl{white-space:nowrap}
-.tabbar button.on{color:var(--ink);box-shadow:none;border-radius:14px}
-.tabbar button.on .tbi{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc)}
-.tabbar button:active .tbi{transform:scale(.9)}
-.tabbar .srch{flex:1.15!important;margin-left:4px;flex-direction:column!important;gap:3px!important;border-radius:14px!important;background:var(--ink)!important;color:var(--bg)!important;box-shadow:0 6px 16px -8px rgba(0,0,0,.6)!important}
-.tabbar .srch .tbi{width:24px;height:24px;padding:3px 0;background:none!important;color:inherit!important}
-.tabbar .srch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)!important}
-.tbdg{top:3px;right:calc(50% - 22px);box-shadow:0 0 0 2px var(--bg);font-family:var(--sans)}
-@media (max-width:999px){.tabbar button{font-size:11.5px!important;padding:0 1px!important}}
-@media (max-width:360px){.tabbar .tbi{width:38px}.tabbar button{font-size:10.5px!important}}
-@media (min-width:1000px){
-  .tabbar{border-radius:var(--r-l)!important;padding:5px!important;box-shadow:var(--sh1)!important;background:var(--surface)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
-  .tabbar button{flex-direction:row;gap:7px;min-height:44px;font-size:14px!important}
-  .tabbar .tbi{width:20px;height:20px;padding:0;background:none!important}
-  .tabbar button.on{background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc)}
-  .tabbar .srch{flex-direction:row!important}
-  .tabbar .srch .tbi{width:18px;height:18px;padding:0}
-  .tbdg{top:-4px;right:-2px}
-  .sbar{top:80px}
-}
-
-/* ---------- panels appear softly ---------- */
-@keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.panel,#preview{animation:panelIn .24s var(--ease)}
-@media (min-width:1000px){#preview{animation:none}}
-
-/* ---------- sheet (bottom panel) ---------- */
-.scrim{background:rgba(20,14,8,.42);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-.sheet{border-radius:var(--r-l) var(--r-l) 0 0;border-top:0;box-shadow:var(--sh3);transition:transform .3s var(--ease)}
-.sheet-h{position:relative;padding:20px 16px 10px;border-bottom:1px solid var(--line);touch-action:none}
-.sheet-h::before{content:"";position:absolute;top:7px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:5px;background:var(--line2)}
-.sheet-h h3{font-size:21px}
-.sheet-h .ib{background:var(--surface2);border-radius:50%;width:32px;height:32px;font-size:14px;color:var(--ink)}
-.sheet-b{padding:16px 16px 22px}
-@media (min-width:700px){.sheet{border-radius:var(--r-l);border:1px solid var(--line2);border-top:1px solid var(--line2)}.sheet-h{padding-top:14px}.sheet-h::before{display:none}}
-.menu button{border-radius:12px;min-height:50px;transition:background .15s,transform .12s var(--ease)}
-.menu button:active{transform:scale(.98);background:var(--surface2)}
-.menu button i{color:var(--acc)}
-.menu button.danger i{color:var(--acc)}
-.bigprev{border-radius:var(--r)}
-
-/* ---------- profile menu ---------- */
-.mepop{border:1px solid var(--line2);border-radius:var(--r-l);box-shadow:var(--sh3);padding:6px;animation:meIn .2s var(--ease)}
-.mepop::before{border-left:1px solid var(--line2);border-top:1px solid var(--line2);top:-7px}
-.mepop .mehead{padding:12px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
-.mepop .meav{background:var(--acc);color:var(--acc-ink)}
-.mepop .meit{border-top:0;border-radius:12px;padding:10px 10px;transition:background .15s}
-.mepop .meit:active{background:var(--surface2)}
-.mepop .meit .mi{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--surface2);font-size:18px}
-.mepop .x{top:4px;right:4px;width:32px;height:32px;padding:0;border-radius:50%;display:grid;place-items:center}
-
-/* ---------- small things ---------- */
-#toast{border-radius:999px;padding:11px 18px;bottom:calc(var(--tabh) + 18px + var(--safe-b));box-shadow:var(--sh2);font-size:14.5px}
-@media (min-width:1000px){#toast{bottom:28px}}
-.jump{bottom:calc(var(--tabh) + 20px + var(--safe-b))}
-@media (min-width:1000px){.jump{bottom:24px}}
-.jump button{border:1px solid var(--line2);border-right:0;color:var(--ink);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-.impn{border-radius:var(--r-l);box-shadow:var(--sh2)}
-.pv-wrap{border-radius:var(--r-l);box-shadow:var(--sh1);padding:14px}
-#cv{border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.08),0 18px 40px -18px rgba(40,25,10,.45)}
-.pv-actions .btn{min-height:48px}
-.theme,.lay{border-radius:12px;transition:transform .12s var(--ease),outline-color .15s}
-.theme:active,.lay:active{transform:scale(.96)}
-.theme.on,.lay.on{outline:2px solid var(--acc);outline-offset:1px}
-.back{display:inline-flex;align-items:center;gap:2px;padding:4px 12px 4px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh1);font-size:14px}
-.oline,.pline,.irow,.srow{transition:background .15s}
-.dbar,.dbar i{border-radius:6px}
-.dbar i{background:linear-gradient(90deg,var(--cin),color-mix(in srgb,var(--cin) 70%,#fff))}
-.spin{border-top-color:var(--acc)}
-details summary{-webkit-tap-highlight-color:transparent}
-
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body data-tab="items">
 <div id="meMenu" class="mepop" hidden role="menu" aria-label="My profile"></div>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1>Market Manager</h1><span style="flex:1"></span><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
+  <div class="brand"><h1>Market Manager</h1><span style="flex:1"></span><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
 <main class="app">
-  <nav class="tabbar" id="tabbar" aria-label="Sections">
-    <button data-t="items"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5h17l-1.7 9.1a2 2 0 0 1-2 1.6H7.2a2 2 0 0 1-2-1.6z"/><path d="m8 9.5 3-5.5M16 9.5 13 4"/><path d="M9.5 13.5v3M14.5 13.5v3"/></svg><span class="tbl">Items</span></button>
-    <button data-t="style"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.2-2.6 1.6-2.6h1.9a3.9 3.9 0 0 0 3.9-3.9c0-5-4-9.1-8.8-9.1z"/><circle cx="7.6" cy="11.2" r="1.1"/><circle cx="10.4" cy="7.4" r="1.1"/><circle cx="15" cy="7.8" r="1.1"/></svg><span class="tbl">Style</span></button>
-    <button data-t="order"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6L6 20.5z"/><path d="M9.2 8.5h5.6M9.2 12h5.6M9.2 15.5h3"/></svg><span class="tbl">Order</span></button>
-    <button data-t="deals"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13.5"/><path d="m14.5 5 3.5 3.5-3.5 3.5"/><path d="M19.5 15.5H6"/><path d="M9.5 12 6 15.5 9.5 19"/></svg><span class="tbl">Deals</span></button>
-    <button data-t="prev"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="9.5" r="1.6"/><path d="m20.5 15.5-4.6-4.6L6 20"/></svg><span class="tbl">Preview</span></button>
-    <button data-t="search" class="srch" aria-label="Buyer search"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg><span class="tbl">Search</span></button>
+  <nav class="tabbar" id="tabbar">
+    <button data-t="items">Items</button>
+    <button data-t="style">Style</button>
+    <button data-t="order">Order</button>
+    <button data-t="deals">Deals</button>
+    <button data-t="prev">Preview</button>
+    <button data-t="search" class="srch" aria-label="Buyer search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>Search</button>
   </nav>
   <div id="editor">
     <!-- ===== ITEMS ===== -->
@@ -1875,11 +1686,11 @@ function defaults(type) {
   if (type === "vente") return { ...base, title: "Shop open", wantTitle: "Available now", cta: "DM to buy",
     wants: [mkItem("lobster-tail", { q: "20", p: "1500" }), mkItem("blanket", { q: "10", p: "1", pu: "ring", hot: 1 }), mkItem("olive-oil", { q: "50", p: "900" })] };
   if (type === "achat") return { ...base, title: "Wanted", wantTitle: "Looking for", cta: "Sell me yours",
-    wants: [mkItem("mayonnaise", { q: "100", p: "700" }), mkItem("tomato-sauce", { q: "30", p: "1100", hot: 1 })] };
+    wants: [mkItem("duck-feather", { q: "100", p: "700" }), mkItem("tomato-sauce", { q: "30", p: "1100", hot: 1 })] };
   return { ...base, title: "Selling / Swapping", wantTitle: "What I want", cta: "Mix accepted",
     have: [mkItem("bem-set", { q: "10" })],
     addR: { ra: "50", rb: "89", give: "" },
-    wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["goat-cheese", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60"]]
+    wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["duck-feather", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60"]]
       .map(([id, a, hot, note]) => mkItem(id, { ra: a, rb: "89", hot: hot || 0, note: note || "" })) };
 }
 const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name || TYPES[type].name, user: (typeof st !== "undefined" && st && st.user) || "" });
@@ -2534,15 +2345,6 @@ function openSheet(title, body) {
 }
 function closeSheet() { $("#scrim").classList.remove("open"); $("#sheet").classList.remove("open"); }
 $("#scrim").onclick = closeSheet; $("#sheetX").onclick = closeSheet;
-/* swipe the sheet down (from its title bar) to close it */
-(() => {
-  const sh = $("#sheet"), hd = $("#sheet .sheet-h"); let y0 = null, dy = 0;
-  hd.addEventListener("touchstart", e => { if (innerWidth >= 700 || e.target.closest("button")) return; y0 = e.touches[0].clientY; dy = 0; sh.style.transition = "none"; }, { passive: true });
-  hd.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transform = dy ? "translateY(" + dy + "px)" : ""; }, { passive: true });
-  const end = () => { if (y0 == null) return; y0 = null; sh.style.transition = ""; sh.style.transform = ""; if (dy > 70) closeSheet(); dy = 0; };
-  hd.addEventListener("touchend", end); hd.addEventListener("touchcancel", end);
-})();
-document.addEventListener("touchstart", () => {}, { passive: true });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 
 function tab(t) {
@@ -2565,18 +2367,10 @@ function tab(t) {
   requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
 }
-/* bottom bar: each tab remembers where you were; tap the open tab again to go back to the top */
-const TABY = {};
-$$("#tabbar [data-t]").forEach(b => b.onclick = () => {
-  const t = b.dataset.t, cur = document.body.dataset.tab;
-  if (t === cur && t !== "me") { scrollTo({ top: 0, behavior: "smooth" }); if (t === "items" && !$("#sdrop").hidden) closeDrop(); return; }
-  TABY[cur] = scrollY; tab(t);
-  const y = TABY[t] || 0; if (y) requestAnimationFrame(() => scrollTo({ top: Math.min(y, document.documentElement.scrollHeight - innerHeight) }));
-});
+$$("#tabbar [data-t]").forEach(b => b.onclick = () => tab(b.dataset.t));
 $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help" },
   h("ol", null,
-    h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋). The coloured dot tells the type: red = Trade, green = Selling, blue = Buying."),
-    h("li", null, h("b", null, "Moving around:"), " each tab of the bottom bar keeps your place. Tap the tab you are on to go back to the top. Swipe a panel down to close it."),
+    h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋)."),
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
     h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
@@ -2604,7 +2398,7 @@ function convEls(v) { const out = []; convs().forEach((k, i) => out.push(h("smal
 /* ---------- profiles ---------- */
 function renderProfiles() {
   const f = $("#profiles"); f.textContent = "";
-  STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), "data-type": p.type, title: (TYPES[p.type] || {}).name + " post", onclick: () => selectProfile(p.id) }, h("span", { class: "ptd", "aria-hidden": "true" }), p.name || "Profile", typeof postShort === "function" && postShort(p) ? h("i", { class: "pdot", title: "Some items are short in your inventory" }) : null)));
+  STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), onclick: () => selectProfile(p.id) }, p.name || "Profile", typeof postShort === "function" && postShort(p) ? h("i", { class: "pdot", title: "Some items are short in your inventory" }) : null)));
   f.append(h("button", { class: "pchip add", title: "New profile", "aria-label": "New profile", onclick: newProfileSheet }, "＋"));
   // the open post is always in sight (a new or imported post is at the end of the list)
   requestAnimationFrame(() => { const on = f.querySelector(".pchip.on"); if (on && (on.offsetLeft < f.scrollLeft || on.offsetLeft + on.offsetWidth > f.scrollLeft + f.clientWidth)) f.scrollLeft = Math.max(0, on.offsetLeft - (f.clientWidth - on.offsetWidth) / 2); });
