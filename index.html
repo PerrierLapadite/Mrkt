@@ -437,6 +437,17 @@ body[data-tab=prev] #editor{display:none}
 .bulkf{display:grid;grid-template-columns:auto 64px auto auto 64px auto 64px;gap:6px;align-items:center;font:600 14px var(--sans);color:var(--mut)}
 .bulkf .inp{padding:8px 6px;text-align:center;min-height:40px}
 .stab td .smat{display:block;font:600 11px var(--sans);color:var(--mut)}
+#impNote:empty{display:none}
+.impn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 12px 12px 14px;margin:2px 0 4px;animation:impIn .35s ease}
+.impn .ic{font-size:22px;line-height:1}
+.impn b{display:block;font:700 15px var(--slab)}
+.impn span{display:block;font:500 13px/1.35 var(--sans);opacity:.85}
+.impn .x{border:0;background:transparent;color:inherit;font-size:20px;line-height:1;padding:4px 6px;opacity:.75}
+.impn .pv{grid-column:2/4;display:flex;gap:8px;flex-wrap:wrap}
+.impn .pv button{border:1px solid rgba(255,255,255,.35);background:transparent;color:inherit;border-radius:20px;padding:6px 12px;font:600 13px var(--sans)}
+.pchip.on.fresh{animation:pulse 1.2s ease 2}
+@keyframes impIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes pulse{50%{color:var(--acc)}}
 .srcrow{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;margin-bottom:10px}
 .srcrow .lbl{margin:0;white-space:nowrap}
 .srcseg button{font-size:13px;padding:0 4px}
@@ -767,6 +778,7 @@ body[data-tab=prev] #mini{display:none}
         </div>
       </div>
 
+      <div id="impNote"></div>
       <div id="itemsScan"></div>
       <div id="haveBox" class="stack">
         <div class="sec-h"><div class="ic"></div><h3 id="haveH">I have</h3><span id="haveN"></span></div>
@@ -1819,7 +1831,7 @@ function ratioGroups(list) {
   return g.filter(x => !x.none).concat(g.filter(x => x.none));
 }
 /** "10+ sets" / "10+ rings": the size a bulk ratio starts at, in what you give. */
-function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; return p && p.parts ? "sets" : gi ? (gi.name || "items").toLowerCase().replace(/(?<!s)$/, "s") : "items"; }
+function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; if (p && p.parts) return "sets"; const n = gi ? (gi.name || "items").toLowerCase() : "items"; return /s$/.test(n) ? n : n + "s"; }
 const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.ra)) + " : " + fmtR(num(g.bulk.rb));
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
@@ -2362,6 +2374,8 @@ function renderProfiles() {
   const f = $("#profiles"); f.textContent = "";
   STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), onclick: () => selectProfile(p.id) }, p.name || "Profile", typeof postShort === "function" && postShort(p) ? h("i", { class: "pdot", title: "Some items are short in your inventory" }) : null)));
   f.append(h("button", { class: "pchip add", title: "New profile", "aria-label": "New profile", onclick: newProfileSheet }, "＋"));
+  // the open post is always in sight (a new or imported post is at the end of the list)
+  requestAnimationFrame(() => { const on = f.querySelector(".pchip.on"); if (on && (on.offsetLeft < f.scrollLeft || on.offsetLeft + on.offsetWidth > f.scrollLeft + f.clientWidth)) f.scrollLeft = Math.max(0, on.offsetLeft - (f.clientWidth - on.offsetWidth) / 2); });
 }
 function newProfileSheet() {
   openSheet("New post", h("div", { class: "menu" }, Object.keys(TYPES).map(t => h("button", { onclick: () => { const p = mkProfile(t); STATE.list.push(p); closeSheet(); selectProfile(p.id); toast("“" + p.name + "” created"); } }, h("i", null, "＋"), TYPES[t].name + " post"))));
@@ -2529,6 +2543,7 @@ function renderSummary() {
 
 /* ---------- item cards ---------- */
 function renderLists() {
+  if (typeof renderImpNote === "function") renderImpNote();
   const trade = st.type === "trade";
   $("#haveBox").hidden = !trade;
   $("#wantH").textContent = TYPES[st.type].list; $("#wantI").textContent = TYPES[st.type].li;
@@ -5190,7 +5205,8 @@ async function impGrid(P, lines, regs) {
   const { W, H, d } = P;
   const white = i => d[i] > 210 && d[i + 1] > 210 && d[i + 2] > 210 && sat(d, i) < 35;
   // real text lines (words with letters) are not labels
-  const txtBoxes = lines.filter(L => L.words.filter(w => /[a-z]{2}/i.test(w.t)).length >= 2).map(L => L);
+  // (confident words only: the reader's guesses on the tile pictures — "ee", "lu" — are not text)
+  const txtBoxes = lines.filter(L => L.words.filter(w => /[a-z]{3}/i.test(w.t) && (w.conf == null || w.conf >= 70)).length >= 2).map(L => L);
   const inTxt = (x, y) => txtBoxes.some(L => x >= L.x0 - 4 && x <= L.x1 + 4 && y >= L.y0 - 3 && y <= L.y1 + 3);
   const L = await ocrRead(maskCanvas(P, 0, 0, W, H, (i, x, y) => white(i) && !inTxt(x, y), 2), 11, "0123456789x.,");
   const words = L.flatMap(l => l.words).map(w => ({ t: w.t.replace(/,/g, "."), x0: w.x0 / 2, y0: w.y0 / 2, x1: w.x1 / 2, y1: w.y1 / 2 }));
@@ -5294,7 +5310,7 @@ const eItem = t => t.emo ? { ref: t.emo, src: t } : { unknown: t, src: t };
 function impParse(lines, tiles, picNotes, text) {
   lines = lines.slice();
   const R = { have: [], groups: [], priced: [], tiles: tiles || [], notes: [], kind: null, author: "" };
-  let sec = null, pend = [], buying = false, selling = false, giveIdx = 0, lastNote = null;
+  let sec = null, pend = [], buying = false, selling = false, needSeen = false, giveIdx = 0, lastNote = null;
   const txt = L => L.toks.filter(t => t.w).map(t => t.w).join(" ").trim();
   // a line starting with a bullet (read as • ¢ e * ©) starts an item; others continue the line above
   const BUL = /^(?:[•¢©®*·-]|e|o)$/i;
@@ -5327,6 +5343,7 @@ function impParse(lines, tiles, picNotes, text) {
       if (!items.length) items = [{ unknown: { view: null }, name: "" }];          // "Have [picture not recognised]" → to pick
       giveIdx = R.have.length; R.have.push(...items); lastNote = null; return;
     }
+    if (NEED_RE.test(s)) needSeen = true;
     if (NEED_RE.test(s) && !RAT.test(s)) {
       const rest = s.replace(NEED_RE, "").trim(), items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
       // "Need 10 or 20 of each item, partials 50+" (no item, a sentence) → a note
@@ -5367,7 +5384,8 @@ function impParse(lines, tiles, picNotes, text) {
   cand.forEach(s => { if (!R.groups.length || parseBuyList(s).items.some(it => { const m = matchProduct(it.name); return m.p && m.sure; })) R.priced.push(s); else R.notes.push(s); });
   R.notes = R.notes.filter(n => !/\.(com|io|net)\b|github|\(\d+\s*items?\)/i.test(n) && !/^(buying|selling|have|need|i have)\s*$/i.test(n));
   (picNotes || []).forEach(n => { const t = n.replace(/[^\w ,.+%:/'-]/g, " ").replace(/\s+/g, " ").trim(); if (/[a-z]{4}/i.test(t) && !/\.(com|io|net)\b|github|items?\)?$/i.test(t)) R.notes.push(t); });
-  R.kind = R.groups.length ? "trade" : (buying || BUY_RE.test(text || "")) ? "achat" : "vente";
+  // what the post is: ratios → a trade; "buying / need / looking for / wtb" with prices → buying; else selling
+  R.kind = R.groups.length ? "trade" : (buying || BUY_RE.test(text || "") || (needSeen && !selling)) ? "achat" : "vente";
   return R;
 }
 /** Parsed post → the posts to create (a trade post, and/or a selling / buying post). */
@@ -5432,6 +5450,18 @@ function renderImport() {
 /* pictures read at the last import, by item: to show them and to learn from your pick (kept for the last import only) */
 const IMPCROP = new Map(Object.entries(store.get("hd5_impcrop", {})));
 const saveCrops = () => { try { store.set("hd5_impcrop", Object.fromEntries(IMPCROP)); } catch (e) { /* full: kept in memory */ } };
+/* the post(s) just imported: a note at the top of Items, so you see where it went */
+var IMP_FRESH = null;
+function renderImpNote() {
+  const box = $("#impNote"); if (!box) return; box.textContent = "";
+  const F = IMP_FRESH; if (!F || !st || !F.ids.includes(st.id)) return;
+  const others = F.ids.filter(id => id !== st.id).map(id => STATE.list.find(p => p.id === id)).filter(Boolean);
+  const chk = (st.wants || []).concat(st.have || []).filter(x => x.chk).length;
+  box.append(h("div", { class: "impn" }, h("span", { class: "ic" }, "📥"),
+    h("div", null, h("b", null, "New post: " + (st.name || TYPES[st.type].name)), h("span", null, "A " + TYPES[st.type].name + " post made from your import" + (chk ? " — " + plural(chk, "item") + " to pick (orange ?)" : " — check it, then share the picture") + ".")),
+    h("button", { class: "x", "aria-label": "Close", onclick: () => { IMP_FRESH = null; renderImpNote(); } }, "×"),
+    h("div", { class: "pv" }, h("button", { onclick: () => tab("prev") }, "See the picture"), ...others.map(p => h("button", { onclick: () => selectProfile(p.id) }, "Open “" + p.name + "”")))));
+}
 /** Make the post(s) from what was read and open the first one. */
 function impCreate() {
   let first = null, made = 0, chk = 0;
@@ -5466,7 +5496,9 @@ function impCreate() {
   });
   saveCrops();
   if (!first) return;
+  IMP_FRESH = { ids: STATE.list.slice(-made).map(p => p.id) };
   IMP.res = null; IMP.text = ""; selectProfile(first.id); tab("items");
+  requestAnimationFrame(() => { const on = document.querySelector("#profiles .pchip.on"); if (on) on.classList.add("fresh"); });
   toast((made > 1 ? made + " posts imported ✔" : "Post imported ✔") + (chk ? " — " + plural(chk, "item") + " to pick (?)" : ""));
 }
 $("#impBtn").onclick = () => tab("imp");
