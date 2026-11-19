@@ -9,6 +9,8 @@
 <meta property="og:title" content="Market Manager · Hay Day">
 <meta property="og:description" content="Hay Day trade post maker">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://perrierlapadite.github.io/Mrkt/">
+<link rel="canonical" href="https://perrierlapadite.github.io/Mrkt/">
 <meta name="theme-color" content="#f3ecdf" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -210,7 +212,7 @@ body[data-tab=prev] #editor{display:none}
 .jump{position:fixed;right:12px;bottom:calc(78px + var(--safe-b));z-index:35;display:grid;gap:8px}
 .jump button{width:42px;height:42px;border-radius:50%;border:1px solid var(--ink);background:var(--surface);color:var(--ink);font:700 19px var(--slab);box-shadow:0 4px 14px rgba(0,0,0,.18);padding:0}
 @media (min-width:1000px){.sbar{margin:0 0 0;top:72px;border:1px solid var(--line);border-radius:12px}.jump{bottom:24px;right:calc(50% + 20px)}}
-.upd{display:grid;gap:8px;border-top:3px solid var(--ink)}
+.upd{display:grid;gap:8px}
 .upd h3{margin:0;font:700 17px var(--slab)}
 .upd label{display:grid;grid-template-columns:24px 32px minmax(0,1fr) auto;gap:8px;align-items:center;font-weight:600;font-size:14.5px}
 .upd label input{width:20px;height:20px;accent-color:var(--ink);margin:0}
@@ -287,7 +289,7 @@ body[data-tab=prev] #editor{display:none}
 .ov{display:inline-flex;align-items:center;gap:5px;font:700 16px var(--slab);white-space:nowrap}
 .miss{color:var(--mut)}
 .th.mini{width:22px;height:22px;font-size:15px;display:inline-grid;vertical-align:middle}
-.ototal{display:grid;gap:6px;border-top:3px solid var(--ink)}
+.ototal{display:grid;gap:6px;border-color:var(--ink)!important;border-width:1.5px!important}
 .ototal .k{font:700 12px var(--slab);color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
 .ototal .v{font:700 20px var(--slab);display:flex;align-items:center;gap:7px}
 .ototal .v.big{font:400 34px var(--disp)}
@@ -372,15 +374,16 @@ body[data-tab=prev] #editor{display:none}
 .mpline{font:600 13px var(--slab);color:var(--mut);display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:-2px}
 .mpline b{color:var(--acc)}
 .addnote{font-size:13.5px;padding:2px 0;opacity:.85}
-.gi{padding:6px 10px}
-.gi1{grid-template-columns:42px minmax(0,1fr) 32px 32px;gap:4px}
-.gi1 .thumbbtn{width:42px;height:42px;padding:4px;font-size:24px}
-.gi1 .ib{width:32px;height:32px}
-.gi .name{font-size:17px}
-.gi .addnote{padding-left:48px}
-.grp-h{padding:8px 10px}
-.grp-h .rin{height:48px}
-.grp-f{padding:0 4px 4px}
+.gi{padding:10px 12px}
+.gi1{grid-template-columns:46px minmax(0,1fr) 36px 36px;gap:8px}
+.gi1 .thumbbtn{width:46px;height:46px;padding:4px;font-size:26px}
+.gi1 .ib{width:36px;height:36px}
+.gi .name{font-size:17px;line-height:1.2}
+.gi .addnote{padding-left:54px}
+.grp-h{padding:10px 12px}
+.grp-h .rin{height:50px}
+.grp-f{padding:4px 8px 10px}
+.grp + .grp{margin-top:4px}
 .addhere{border:0;background:none;color:var(--mut);font:600 14px/1 -apple-system,system-ui,sans-serif;min-height:38px;padding:0 10px}
 .addhere:active{color:var(--ink)}
 .newgrp{min-height:42px}
@@ -395,7 +398,9 @@ body[data-tab=prev] #editor{display:none}
 #dealsBody{margin-top:10px}
 .jump{opacity:0;pointer-events:none;transition:opacity .25s;gap:6px}
 .jump.show{opacity:1;pointer-events:auto}
-.jump button{width:38px;height:38px;font-size:17px;background:color-mix(in srgb,var(--surface) 92%,transparent)}
+/* docked to the screen edge: a thin tab that never sits on a ⋯ button */
+.jump{right:0;gap:2px}
+.jump button{width:28px;height:40px;font-size:15px;border-radius:10px 0 0 10px;border-right:0;background:color-mix(in srgb,var(--surface) 90%,transparent);box-shadow:-2px 2px 8px rgba(0,0,0,.18)}
 @media (min-width:1000px){.jump{opacity:1;pointer-events:auto}}
 .bulk{display:grid;gap:8px}
 .bulk-rows{display:grid;gap:8px}
@@ -432,7 +437,7 @@ body[data-tab=prev] #editor{display:none}
 .tabbar .srch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)!important}
 /* items: where new items come from */
 .name.pickme{border:1.5px dashed #e6a93a!important;background:rgba(230,169,58,.18)!important;color:var(--ink);border-radius:8px;font:700 14px var(--sans);min-height:36px;padding:0 10px!important;margin-left:0;text-align:left;justify-self:start}
-.bulkr{display:block;width:calc(100% - 20px);margin:-2px 10px 6px;border:1px dashed var(--line2);background:var(--surface2);border-radius:8px;padding:6px 10px;font:600 13px var(--sans);color:var(--ink);text-align:left}
+.bulkr{display:block;width:calc(100% - 24px);margin:10px 12px 2px;border:1px dashed var(--line2);background:var(--surface2);border-radius:8px;padding:6px 10px;font:600 13px var(--sans);color:var(--ink);text-align:left}
 .bulkr b{color:var(--acc);margin-right:4px}
 .bulkf{display:grid;grid-template-columns:auto 64px auto auto 64px auto 64px;gap:6px;align-items:center;font:600 14px var(--sans);color:var(--mut)}
 .bulkf .inp{padding:8px 6px;text-align:center;min-height:40px}
@@ -469,7 +474,7 @@ body[data-tab=prev] #editor{display:none}
 .hbtn:active{transform:scale(.94)}
 .hbtn.on{background:var(--ink);color:var(--bg)}
 .hbtn.me{background:var(--ink);color:var(--bg)}
-.hbtn.me.on{box-shadow:0 0 0 3px var(--acc)}
+.hbtn.me.on,.hbtn.me.open{box-shadow:0 0 0 3px var(--acc)}
 @media (max-width:375px){.tools{gap:6px}.hbtn{width:36px;height:36px}}
 .impc.off>*:not(.ihead){opacity:.4}
 .ihead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
@@ -560,6 +565,19 @@ body[data-tab=prev] #editor{display:none}
 .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c8361f;margin-left:5px;vertical-align:4px}
 /* profile · inventory · search */
 .back{justify-self:start;border:0;background:none;color:var(--mut);font:700 15px var(--slab);padding:2px 0;min-height:32px}
+/* profile: a menu that drops from the button — tap outside or the button again to close it */
+.mepop{position:fixed;right:12px;z-index:60;width:min(340px,calc(100vw - 24px));max-height:calc(100vh - 120px);overflow:auto;background:var(--surface);border:1.5px solid var(--ink);border-radius:16px;box-shadow:0 14px 36px rgba(0,0,0,.28);padding:6px 0;transform-origin:top right;animation:meIn .16s ease}
+.mepop::before{content:"";position:absolute;top:-8px;right:18px;width:14px;height:14px;background:var(--surface);border-left:1.5px solid var(--ink);border-top:1.5px solid var(--ink);transform:rotate(45deg)}
+@keyframes meIn{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:none}}
+.mepop .mehead{padding:10px 14px 8px;gap:10px}
+.mepop .meav{width:40px;height:40px;font-size:19px}
+.mepop .mps{flex:1;min-width:0}
+.mepop .mps label{display:block;font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:3px}
+.mepop .mps .inp{min-height:38px;padding:6px 10px;font-size:15px}
+.mepop .meit{width:100%;padding:10px 14px;grid-template-columns:30px minmax(0,1fr) auto}
+.mepop .meit .mi{font-size:20px}
+.mepop .meit .mt b{font-size:16px}
+.mepop .x{position:absolute;top:6px;right:6px;border:0;background:none;color:var(--mut);font-size:20px;line-height:1;padding:6px 8px}
 .mehead{display:flex;align-items:center;gap:12px}
 .mehead h2{margin:0;font-size:22px}
 .mehead small{color:var(--mut);font-size:13px}
@@ -583,6 +601,7 @@ body[data-tab=prev] #editor{display:none}
 .istep button{width:30px;height:100%;border:0;background:none;font:700 18px var(--sans);color:var(--ink);padding:0}
 .istep input{width:52px;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);height:100%;text-align:center;font-weight:700;background:var(--surface);outline:none;padding:0}
 .scanbusy{display:flex;align-items:center;gap:10px;font-weight:600}
+.scanbusy .btn{margin-left:auto;flex:none}
 .spin{width:20px;height:20px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--ink);animation:spin 1s linear infinite;flex:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .slist{display:grid;border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -740,6 +759,7 @@ body[data-tab=prev] #mini{display:none}
 </style>
 </head>
 <body data-tab="items">
+<div id="meMenu" class="mepop" hidden role="menu" aria-label="My profile"></div>
 <header class="top">
   <div class="brand"><h1>Market Manager</h1><span style="flex:1"></span><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
@@ -1232,6 +1252,8 @@ const asMat = (x, q) => isPackRef(x && x.ref) ? q * SET_N : q;
 const setsTxt = n => fmtP(n) + (Math.abs(n - 1) < 1e-9 ? " set" : " sets");
 /** A post's stock after giving `given` (materials for a set): 120 sets − 890 materials → 110 sets. */
 const stockLeft = (it, given) => { const have = num(it.q); return isPackRef(it.ref) ? Math.max(0, Math.round((have - given / SET_N) * 100) / 100) : Math.max(0, Math.round(have) - Math.round(given)); };
+/** el.append without the empty parts (a native append writes "null" for a missing one). */
+const put = (el, ...kids) => { el.append(...kids.filter(k => k != null && k !== false)); return el; };
 /** A price: whole coins as usual, a fraction when there is one (1.5 → "1.5", not "2"). */
 const fmtP = n => Math.abs(n - Math.round(n)) < 1e-9 ? fmt(n) : (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const fmtR = n => (Math.abs(n) < 100 ? Math.round(n * 10) / 10 : Math.round(n)).toLocaleString("en-US", { maximumFractionDigits: 1 });
@@ -1252,8 +1274,8 @@ const IDB = {
     return new Promise(res => {
       if (DEMO) return res();
       try {
-        const r = indexedDB.open("hd-studio", 1);
-        r.onupgradeneeded = () => r.result.createObjectStore("img");
+        const r = indexedDB.open("hd-studio", 2);
+        r.onupgradeneeded = () => { const db = r.result; if (!db.objectStoreNames.contains("img")) db.createObjectStore("img"); if (!db.objectStoreNames.contains("feat")) db.createObjectStore("feat"); };
         r.onsuccess = () => { this.db = r.result; res(); };
         r.onerror = () => res();
       } catch (e) { res(); }
@@ -1268,6 +1290,9 @@ const IDB = {
       r.onerror = () => res(out);
     });
   },
+  // the game pictures' features for reading screenshots (computed once, kept on the phone)
+  featAll() { return new Promise(res => { const out = new Map(); if (!this.db || !this.db.objectStoreNames.contains("feat")) return res(out); try { const r = this.db.transaction("feat", "readonly").objectStore("feat").openCursor(); r.onsuccess = () => { const c = r.result; if (c) { out.set(c.key, c.value); c.continue(); } else res(out); }; r.onerror = () => res(out); } catch (e) { res(out); } }); },
+  featPut(k, v) { if (DEMO || !this.db || !this.db.objectStoreNames.contains("feat")) return; try { this.db.transaction("feat", "readwrite").objectStore("feat").put(v, k); } catch (e) {} },
   put(k, v) { if (DEMO) return; if (this.db) try { this.tx("readwrite").put(v, k); } catch (e) {} else store.set("hd5_img_" + k, v); },
   del(k) { if (this.db) try { this.tx("readwrite").delete(k); } catch (e) {} }
 };
@@ -1755,7 +1780,7 @@ function scheduleDraw() { if (drawRq) return; drawRq = requestAnimationFrame(() 
 
 /* ---------- text ---------- */
 /** f: "D" = display slab, otherwise Zilla weight, add "i" for italic (e.g. "600i"). */
-const SITE_URL = "tigamaga.github.io/Mrkt"; // printed small at the bottom of every picture
+const SITE_URL = "perrierlapadite.github.io/Mrkt"; // printed small at the bottom of every picture
 function font(f, s) { ctx.font = f === "D" ? `${s}px ${SLAB}` : `${f.endsWith("i") ? "italic " : ""}${parseInt(f) || 600} ${s}px ${SERIF}`; }
 function ls(v) { if ("letterSpacing" in ctx) ctx.letterSpacing = (v || 0) + "px"; }
 function ellipsis(t, maxW) { if (ctx.measureText(t).width <= maxW) return t; while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1); return t.trimEnd() + "…"; }
@@ -2323,6 +2348,7 @@ $("#scrim").onclick = closeSheet; $("#sheetX").onclick = closeSheet;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 
 function tab(t) {
+  if (t === "me") { openMe(); return; }   // the profile is a menu that drops from its button
   if (t === "paste") { tab("items"); $("#sdrop").hidden = false; setSrc("text"); return; }   // "From a text" is in the Items search panel
   document.body.dataset.tab = t;
   $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
@@ -2330,11 +2356,11 @@ function tab(t) {
   if (t === "order") renderOrder();
   if (t === "hist") renderHist();
   if (t === "stats") renderStats();
-  if (t === "me") renderMe();
+  closeMe();
   if (t === "inv") renderInv();
   if (t === "search") renderSearch();
   if (t === "deals") renderOngoing();
-  $("#meBtn").classList.toggle("on", ["me", "inv", "stats"].includes(t));
+  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist"].includes(t));
   $("#impBtn").classList.toggle("on", t === "imp");
   if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
@@ -2472,7 +2498,7 @@ function updJump() { const t = document.body.dataset.tab; $("#jump").hidden = !(
 $("#jTop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 $("#jBot").onclick = () => scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 let jumpT = 0;
-addEventListener("scroll", () => { const j = $("#jump"); if (j.hidden) return; j.classList.add("show"); clearTimeout(jumpT); jumpT = setTimeout(() => j.classList.remove("show"), 2600); }, { passive: true });
+addEventListener("scroll", () => { const j = $("#jump"); if (j.hidden) return; j.classList.add("show"); clearTimeout(jumpT); jumpT = setTimeout(() => j.classList.remove("show"), 1400); }, { passive: true });
 addEventListener("scroll", debounce(updJump, 100), { passive: true }); addEventListener("resize", debounce(updJump, 150));
 /* filter my own list */
 function applyListFilter() {
@@ -2509,7 +2535,7 @@ function renderInvPick() {
   const inList = new Set(targetList().map(it => it.ref)), grid = h("div", { class: "grid ipgrid" });
   L.slice(0, 60).forEach(i => grid.append(h("button", { class: "tile", title: i.name, onclick: () => addFromInv(i) }, thumb(prodState(i.ref), i.e), h("b", null, i.name), h("span", { class: "iqb" }, short(i.q)), inList.has(i.ref) ? h("span", { class: "in" }, "✓") : null)));
   const fresh = L.filter(i => !inList.has(i.ref));
-  box.append(fc || "", h("p", { class: "hint", style: "margin:6px 0" }, plural(L.length, "item") + (st.type !== "achat" ? " · added with the quantity you have" : "")), L.length ? grid : h("div", { class: "empty" }, "Nothing matches."),
+  put(box, fc || "", h("p", { class: "hint", style: "margin:6px 0" }, plural(L.length, "item") + (st.type !== "achat" ? " · added with the quantity you have" : "")), L.length ? grid : h("div", { class: "empty" }, "Nothing matches."),
     fresh.length > 1 ? h("button", { class: "btn sm full", style: "margin-top:8px", onclick: () => { const n = fresh.reduce((a, i) => a + addFromInv(i, true), 0); renderLists(); renderInvPick(); changed(); toast(plural(n, "item") + " added ✔"); } }, "Add all " + fresh.length + (nq ? " shown" : "")) : null);
 }
 $("#q").addEventListener("keydown", e => { if (e.key === "Enter") { const r = search($("#q").value, "all")[0]; if (r) addFromCatalog(r); e.preventDefault(); } });
@@ -2599,7 +2625,7 @@ function groupCard(g) {
     g.none ? null : h("button", { onclick: () => { closeSheet(); setTimeout(() => bulkSheet(g), 220); } }, h("i", null, "⇣"), g.bulk ? "Bulk ratio: " + bulkLabel(g) : "Bulk ratio (for big deals)"),
     h("button", { class: "danger", onclick: () => { if (!confirm("Remove the " + g.items.length + " items of this group?")) return; st.wants = st.wants.filter(w => !g.items.includes(w)); closeSheet(); renderLists(); renderTarget(); renderResults(); changed(); } }, h("i", null, "×"), "Remove this group and its items"))) }, "⋯");
   const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give, bulk: g.bulk }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(() => $("#q").focus({ preventScroll: true }), 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
-  card.append(
+  put(card,
     h("div", { class: "grp-h" }, h("div", { class: "rin" }, giveBtn, a, h("span", { class: "colon" }, ":"), b), menu),
     g.bulk ? h("button", { class: "bulkr", title: "Bulk ratio — tap to change", onclick: () => bulkSheet(g) }, h("b", null, "Bulk"), " " + bulkLabel(g)) : null,
     h("div", null, g.items.map(groupRow)),
@@ -2612,7 +2638,7 @@ function bulkSheet(g) {
   const at = h("input", { class: "inp", value: b0.at || "", inputMode: "numeric", placeholder: "10", "aria-label": "From how many" });
   const ra = h("input", { class: "inp", value: b0.ra || g.ra || "", inputMode: "decimal", placeholder: g.ra || "89", "aria-label": "You give" });
   const rb = h("input", { class: "inp", value: b0.rb || "", inputMode: "decimal", placeholder: g.rb || "40", "aria-label": "You get" });
-  const put = (A, B, C) => { const tgt = SETTINGS.to !== "have" && curAddKey() === g.key;
+  const keep = (A, B, C) => { const tgt = SETTINGS.to !== "have" && curAddKey() === g.key;
     g.items.forEach(w => { if (A) { w.bat = A; w.bra = B; w.brb = C; } else { delete w.bat; delete w.bra; delete w.brb; } });
     if (tgt) setAddR({ ra: g.ra, rb: g.rb, give: g.give, bulk: A ? { at: A, ra: B, rb: C } : null });
     closeSheet(); renderLists(); renderTarget(); changed(); };
@@ -2620,8 +2646,8 @@ function bulkSheet(g) {
     h("p", { class: "hint" }, "For big deals: once someone takes this many, this ratio is used instead of " + ratioLabel(g.ra, g.rb) + ". It shows on the picture and Order uses it."),
     h("div", { class: "bulkf" }, h("span", null, "From"), at, h("span", null, unit), h("span", null, "→"), ra, h("span", { class: "colon" }, ":"), rb),
     h("div", { class: "two", style: "margin-top:12px" },
-      g.bulk ? h("button", { class: "btn", onclick: () => put(null) }, "Remove") : h("button", { class: "btn", onclick: closeSheet }, "Cancel"),
-      h("button", { class: "btn pri", onclick: () => { if (!(num(at.value) > 0 && num(ra.value) > 0 && num(rb.value) > 0)) return toast("Fill the 3 numbers"); put(at.value.trim(), ra.value.trim(), rb.value.trim()); } }, "Save"))]);
+      g.bulk ? h("button", { class: "btn", onclick: () => keep(null) }, "Remove") : h("button", { class: "btn", onclick: closeSheet }, "Cancel"),
+      h("button", { class: "btn pri", onclick: () => { if (!(num(at.value) > 0 && num(ra.value) > 0 && num(rb.value) > 0)) return toast("Fill the 3 numbers"); keep(at.value.trim(), ra.value.trim(), rb.value.trim()); } }, "Save"))]);
   setTimeout(() => at.focus(), 250);
 }
 /** Pick (or change) the game item of a line — its quantity, price, ratio and note stay. A picture read at the import is learned for next time. */
@@ -3875,7 +3901,7 @@ function renderPaste() {
       h("div", { class: "pv" }, ...[].concat(val))));
   });
   const ok = L.filter(x => !x.m.ignored && (x.m.p || x.m.custom)).length, bad = L.filter(x => !x.m.ignored && !x.m.p && !x.m.custom).length;
-  out.append(list,
+  put(out, list,
     bad ? h("p", { class: "owarn", style: "margin:0" }, bad + " line" + (bad > 1 ? "s" : "") + " not found — tap the name to pick the item, or they’ll be skipped.") : null,
     h("button", { class: "btn gold full", disabled: !ok, onclick: () => applyPaste(L) }, "Add " + plural(ok, "item")));
 }
@@ -4001,7 +4027,7 @@ const invLive = () => SETTINGS.invLive !== false && invAny();
 const invUnits = (s, scope) => invList(scope || "all").filter(i => !s || i.s === s).reduce((a, i) => a + i.q, 0);
 const invCount = (s, scope) => invList(scope || "all").filter(i => !s || i.s === s).length;
 const agoTxt = t => { if (!t) return "never"; const m = Math.round((Date.now() - t) / 6e4); return m < 1 ? "just now" : m < 60 ? m + " min ago" : dayLabel(t) + " " + hm(t); };
-const backTo = (t, label) => h("button", { class: "back", onclick: () => tab(t) }, "‹ " + label);
+const backTo = (t, label) => h("button", { class: "back", onclick: () => t === "me" ? openMe() : tab(t) }, "‹ " + label);
 
 /* ---------- profile ---------- */
 const ME_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg>';
@@ -4119,7 +4145,32 @@ function addInvSheet() {
     } }, "Set these quantities")]);
   setTimeout(() => sq.focus(), 50);
 }
-$("#meBtn").onclick = () => tab("me");
+/* the profile menu drops from the button; it closes when you tap outside, tap the button again, press Esc or pick something */
+function openMe() {
+  const m = $("#meMenu"), b = $("#meBtn").getBoundingClientRect();
+  m.style.top = Math.round(b.bottom + 10) + "px"; m.hidden = false; $("#meBtn").classList.add("open"); $("#meBtn").setAttribute("aria-expanded", "true");
+  renderMeMenu();
+}
+function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
+function renderMeMenu() {
+  const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
+  const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
+  const ps = h("input", { class: "inp", value: SETTINGS.pseudo || "", placeholder: "Your Hay Day / Discord name", maxLength: 40, autocapitalize: "off", "aria-label": "Your pseudo", oninput: e => { setPseudo(e.target.value.trim()); const av = m.querySelector(".meav"); if (av) av.textContent = (SETTINGS.pseudo || "").trim() ? [...SETTINGS.pseudo.trim()][0].toUpperCase() : "👤"; } });
+  const S = HIST.length ? computeStatsAll() : null;
+  m.append(h("button", { class: "x", "aria-label": "Close", onclick: closeMe }, "×"),
+    h("div", { class: "mehead" }, h("span", { class: "meav" }, (SETTINGS.pseudo || "").trim() ? [...SETTINGS.pseudo.trim()][0].toUpperCase() : "👤"),
+      h("div", { class: "mps" }, h("label", null, "Your pseudo · on your pictures"), ps)),
+    go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
+    go("📊", "Stats", S ? fmt(HIST.length) + " deals · " + short(Math.round(S.in)) + " coins in" : "Your sales, purchases and trades in numbers", () => tab("stats")),
+    go("🕘", "History", HIST.length ? fmt(HIST.length) + " deals" : "Deals marked as done", () => tab("hist")),
+    go("💾", "Backup", "Save or restore everything (posts, history, inventory)", () => { tab("style"); setTimeout(() => { const b = $("#bkOut"); b && b.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); }),
+    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")));
+}
+$("#meBtn").setAttribute("aria-haspopup", "menu"); $("#meBtn").setAttribute("aria-expanded", "false");
+$("#meBtn").onclick = e => { e.stopPropagation(); if ($("#meMenu").hidden) openMe(); else closeMe(); };
+document.addEventListener("pointerdown", e => { const m = $("#meMenu"); if (!m.hidden && !m.contains(e.target) && !$("#meBtn").contains(e.target)) closeMe(); }, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeMe(); });
+window.addEventListener("resize", () => closeMe());
 meInitial();
 $("#itemsShot").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f, "post"); };
 
@@ -4294,8 +4345,9 @@ function iconFeat(id, el) {
     [.92, 1, 1.08].forEach(s => {
       const H2 = Math.round(HC * s), W2 = Math.max(1, Math.round(H2 * tw / th)), q = document.createElement("canvas"); q.width = W2; q.height = H2;
       const qg = q.getContext("2d", { willReadFrequently: true }); qg.imageSmoothingQuality = "high"; qg.drawImage(c, x0, y0, tw, th, 0, 0, W2, H2);
-      sc[s] = { w: W2, h: H2, d: qg.getImageData(0, 0, W2, H2).data };
+      sc[s] = { w: W2, h: H2, d: qg.getImageData(0, 0, W2, H2).data }; q.width = q.height = 0;
     });
+    c.width = c.height = 0;
     const b = sc[1];
     f = { id, sc, asp: tw / th, hist: hueHist(i => b.d[i * 4 + 3] > 128 ? [b.d[i * 4], b.d[i * 4 + 1], b.d[i * 4 + 2]] : null, b.w * b.h) };
   } catch (e) { f = null; }                             // a picture we can't read (no CORS) → skipped
@@ -4367,18 +4419,42 @@ function scanCrops(o) {
   const view = c.toDataURL("image/jpeg", .82);
   sg.putImageData(L, 0, 0); const b = o.box, l = document.createElement("canvas"), kk = 48 / (b.y1 - b.y0 + 1); l.width = Math.max(1, Math.round((o.w - b.x0) * kk)); l.height = Math.round((o.h - b.y0) * kk);
   l.getContext("2d").drawImage(src, b.x0, b.y0, o.w - b.x0, o.h - b.y0, 0, 0, l.width, l.height);
-  return { view, learn: l.toDataURL("image/png") };
+  const learn = l.toDataURL("image/png"); c.width = c.height = src.width = src.height = l.width = l.height = 0;   // free them now (iPhone canvas memory)
+  return { view, learn };
 }
+/** One game picture, small (96 px) — enough to compare, light on the phone. */
+function smallPic(id, ms) {
+  return new Promise(async res => {
+    const p = CAT.byId[id]; let done = false; const fin = v => { if (!done) { done = true; res(v); } };
+    setTimeout(() => fin(null), ms || 12000);
+    try {
+      const u = p && p.file ? await resolveFile(p.file) : null; if (!u) return fin(null);
+      const cands = [u + "/revision/latest/scale-to-width-down/96", PROXY(u).replace("w=256&h=256", "w=96&h=96")];
+      const next = () => { const src = cands.shift(); if (!src) return fin(null); const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => im.naturalWidth ? fin(im) : next(); im.onerror = next; im.src = src; };
+      next();
+    } catch (e) { fin(null); }
+  });
+}
+let FEATS_IDB = null;   // features saved on the phone, loaded once
 /** All game pictures ready to compare (+ the ones learned from your corrections). */
+const FEAT_V = "v1:";
 async function scanPool(onProg) {
   const ids = CAT.list.filter(p => !p.parts && !p.custom && p.cat !== "perso" && p.cat !== "packs").map(p => p.id);
-  let done = 0;
-  await Promise.all(ids.map(id => new Promise(res => {
-    const s = prodState(id); let fin = false;
-    const end = () => { if (fin) return; fin = true; done++; if (done % 12 === 0 || done === ids.length) onProg(done, ids.length); res(); };
-    if (s.ok || s.fail) return end(); s.subs.add(end); setTimeout(end, 25000);
-  })));
-  const pool = ids.map(id => { const s = IMGS.get(id); const f = s && s.ok ? iconFeat(id, s.el) : null; if (f) f.ref = id; return f; }).filter(Boolean);
+  if (!FEATS_IDB) { FEATS_IDB = await IDB.featAll(); FEATS_IDB.forEach((f, k) => { if (k.startsWith(FEAT_V) && f && !SCN.feats.has(k.slice(FEAT_V.length))) SCN.feats.set(k.slice(FEAT_V.length), f); }); }
+  // the pictures not read yet: a few at a time (a phone can't hold 600 full pictures at once)
+  const todo = ids.filter(id => !SCN.feats.has(id)); let done = ids.length - todo.length;
+  onProg(done, ids.length);
+  // never stuck: a picture that doesn't come in 8 s is skipped, and after a minute we go on with what we have (the rest next time)
+  let k = 0; const until = Date.now() + 60000;
+  const worker = async () => {
+    while (k < todo.length && Date.now() < until) {
+      const id = todo[k++], im = await smallPic(id, 8000);
+      if (im) { const f = iconFeat(id, im); if (f) { f.ref = id; IDB.featPut(FEAT_V + id, f); } } else SCN.feats.delete(id);
+      done++; onProg(done, ids.length);
+    }
+  };
+  await Promise.all(Array.from({ length: 8 }, worker));
+  const pool = ids.map(id => { const f = SCN.feats.get(id); if (f) f.ref = id; return f; }).filter(Boolean);
   for (const [k, L] of LEARN.entries()) {
     const key = "L:" + L.ref + ":" + L.url.length + ":" + k;
     if (!SCN.feats.has(key)) { const im = new Image(); im.src = L.url; try { await im.decode(); } catch (e) { continue; } const f = iconFeat(key, im); if (f) Object.assign(f, { ref: L.ref, learned: true }); }
@@ -4406,24 +4482,28 @@ async function scanFiles(files, where) {
     }
     if (!found.length) { scanPut(where, { err: "No item found. Use full screenshots of the Barn or Silo window, as they come from your phone (not cropped or resized)." }); scanDraw(where); return; }
     updScan("Loading the game pictures…"); await sleep(30);
-    const pool = await scanPool((d, t) => updScan("Loading the game pictures… " + d + " / " + t));
-    updScan("Comparing " + found.length + " items…"); await sleep(30);
-    let rows = found.map(({ o, shot }) => {
+    const pool = await scanPool((d, t) => { if (SCN.stop) throw new Error("stopped"); updScan("Loading the game pictures… " + d + " / " + t + (d < t ? " (the first time only)" : "")); });
+    // one item at a time, the screen stays alive (and says where it is)
+    let rows = [];
+    for (const [i, { o, shot }] of found.entries()) {
+      if (i % 3 === 0) { updScan("Comparing the items… " + (i + 1) + " / " + found.length); await sleep(0); }
+      if (SCN.stop) throw new Error("stopped");
       const m = pool.length ? iconMatch(o, pool) : [], cr = scanCrops(o);
-      return { view: cr.view, learn: cr.learn, q: o.n.q, qSure: o.n.sure, m, ref: m[0] ? m[0].ref : null, sure: !!m[0] && m[0].c < .22 && (!m[1] || m[1].c - m[0].c > .04), on: !!m[0], shot };
-    }).map(r => Object.assign(r, { unsure0: !r.sure }));
+      rows.push({ view: cr.view, learn: cr.learn, q: o.n.q, qSure: o.n.sure, m, ref: m[0] ? m[0].ref : null, sure: !!m[0] && m[0].c < .22 && (!m[1] || m[1].c - m[0].c > .04), on: !!m[0], shot });
+    }
+    rows = rows.map(r => Object.assign(r, { unsure0: !r.sure }));
     // the same item on two screenshots (they overlap when you scroll) → once
     const seen = new Map();
     rows = rows.filter(r => { if (!r.ref || !r.sure) return true; const o = seen.get(r.ref); if (!o) { seen.set(r.ref, r); return true; } if (r.q > o.q) o.q = r.q; return false; });
     scanPut(where, { rows, shots: files.length, mode: "upd", noPics: !pool.length, alsoInv: true });
-  } catch (e) { scanPut(where, { err: "Couldn't read it (" + (e && e.message || e) + "). Try again with the original screenshot." }); }
-  scanDraw(where);
+  } catch (e) { const m = (e && e.message) || String(e); scanPut(where, m === "stopped" ? null : { err: "Couldn't read it (" + m + "). Try again with the original screenshot." }); }
+  SCN.stop = false; scanDraw(where);
 }
 function scanCard(where) {
   where = where || "inv";
   const S = scanGet(where), redraw = () => scanDraw(where), post = where === "post";
   const c = h("div", { class: "card fieldset scan" }, h("div", { class: "ch" }, h("h2", null, post ? "Add from screenshots" : "Check what was read")));
-  if (S.busy) { c.append(h("div", { class: "scanbusy" }, h("span", { class: "spin" }), h("span", { id: "scanMsg" }, S.msg))); return c; }
+  if (S.busy) { c.append(h("div", { class: "scanbusy" }, h("span", { class: "spin" }), h("span", { id: "scanMsg" }, S.msg), h("button", { class: "btn sm", onclick: () => { SCN.stop = true; scanPut(where, null); redraw(); } }, "Stop"))); return c; }
   if (S.err) { c.append(h("p", { class: "owarn" }, S.err), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "OK")); return c; }
   const R = S.rows, todo = R.filter(r => r.on && (!r.sure || !r.ref)).length;
   c.append(h("p", { class: "hint" }, plural(R.length, "item") + " found in " + plural(S.shots, "screenshot") + ". Tap an item to fix it, untick what you don't want." + (todo ? " " + plural(todo, "line") + " to check (orange)." : "")));
@@ -4911,7 +4991,7 @@ function dealForm(d) {
       return wrap;
     };
     const days = h("div", { class: "box", style: "max-width:200px" }, h("input", { value: F.days, inputMode: "numeric", placeholder: "until I stop", oninput: e => { F.days = e.target.value; } }), h("span", { class: "u" }, "days"));
-    body.append(seg, h("div", null, h("label", { class: "lbl" }, "With"), who),
+    put(body, seg, h("div", null, h("label", { class: "lbl" }, "With"), who),
       F.type === "trade" ? trade() : F.type === "achat" ? h("div", null, h("label", { class: "lbl" }, "You pay" + (F.daily ? " (each day)" : "")), coinsIn) : side("give", "You give"),
       F.type === "vente" ? h("div", null, h("label", { class: "lbl" }, "You get" + (F.daily ? " (each day)" : "")), coinsIn) : F.type === "achat" ? side("get", "You get") : null,
       h("div", null, h("label", { class: "lbl" }, "How often"), h("div", { class: "seg" }, h("button", { class: F.daily ? "" : "on", onclick: () => { F.daily = false; draw(); } }, "Once"), h("button", { class: F.daily ? "on" : "", onclick: () => { F.daily = true; draw(); } }, "Every day"))),
@@ -5038,19 +5118,27 @@ function dealBar() {
    or the copied text) → a new post here. Read on this device; text with
    Tesseract (loaded the first time), items from their pictures.
    ===================================================================== */
-const IMP = { busy: null, res: null, text: "", worker: null };
+const IMP = { busy: null, res: null, text: "", worker: null, say: null, stop: false };
 const TESS_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
-function loadScript(u) { return new Promise((res, rej) => { const s = document.createElement("script"); s.src = u; s.onload = res; s.onerror = () => rej(new Error("no internet")); document.head.append(s); }); }
+function loadScript(u) { return new Promise((res, rej) => { const s = document.createElement("script"); s.src = u; s.onload = res; s.onerror = () => rej(new Error("no internet")); document.head.append(s); setTimeout(() => rej(new Error("no internet")), 40000); }); }
+const withTime = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
+/** The text reader (downloaded the first time: a few MB — the progress is shown). */
 async function ocrWorker() {
+  if (IMP.worker) return IMP.worker;
+  const say = m => IMP.say && IMP.say(m);
+  say("Downloading the text reader… (first time only)");
   if (!window.Tesseract) await loadScript(TESS_URL);
-  if (!IMP.worker) IMP.worker = await Tesseract.createWorker("eng");
+  const names = { "loading tesseract core": "Downloading the text reader", "initializing tesseract": "Starting the text reader", "loading language traineddata": "Downloading the English reader", "initializing api": "Starting the text reader" };
+  IMP.worker = await withTime(Tesseract.createWorker("eng", 1, { logger: m => { if (names[m.status]) say(names[m.status] + "… " + Math.round((m.progress || 0) * 100) + "%"); } }), 120000, "the text reader didn't start (slow connection?)");
   return IMP.worker;
 }
 /** Text of a canvas: lines → words with boxes (from Tesseract's TSV). */
 async function ocrRead(canvas, psm, wl) {
   const w = await ocrWorker();
   await w.setParameters({ tessedit_pageseg_mode: String(psm || 4), tessedit_char_whitelist: wl || "", preserve_interword_spaces: "1" });
-  const { data } = await w.recognize(canvas, {}, { tsv: true, text: true });
+  let data;
+  try { ({ data } = await w.recognize(canvas, {}, { tsv: true, text: true })); }
+  finally { canvas.width = canvas.height = 0; }          // free it now (iPhones limit the memory of all canvases)
   const lines = new Map();
   String(data.tsv || "").split("\n").forEach(r => {
     const c = r.split("\t"); if (c.length < 12 || c[0] !== "5") return;
@@ -5067,7 +5155,7 @@ function maskCanvas(P, x0, y0, w, h, keep, k) {
   for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) { const i = ((y + y0) * P.W + x + x0) * 4, j = (y * c.width + x) * 4, on = keep(i, x + x0, y + y0); D.data[j] = D.data[j + 1] = D.data[j + 2] = on ? 0 : 255; D.data[j + 3] = 255; }
   g.putImageData(D, 0, 0);
   if (!k || k === 1) return c;
-  const b = mkCanvas(c.width * k, c.height * k), bg = b.getContext("2d"); bg.imageSmoothingEnabled = true; bg.drawImage(c, 0, 0, b.width, b.height); return b;
+  const b = mkCanvas(c.width * k, c.height * k), bg = b.getContext("2d"); bg.imageSmoothingEnabled = true; bg.drawImage(c, 0, 0, b.width, b.height); c.width = c.height = 0; return b;
 }
 const sat = (d, i) => Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
 const cdist = (d, i, c) => Math.abs(d[i] - c[0]) + Math.abs(d[i + 1] - c[1]) + Math.abs(d[i + 2] - c[2]);
@@ -5151,15 +5239,17 @@ async function impReadImage(img, pool, say) {
   // g) which item each emoji is (emojis inside the tiles belong to the tiles)
   say("Finding the items…");
   const toks = lines.filter(L => !inTile((L.x0 + L.x1) / 2, (L.y0 + L.y1) / 2)).map(L => ({ y0: L.y0, y1: L.y1, conf: L.conf, toks: L.words.map(w => ({ x: w.x0, w: w.t, strike: w.strike, conf: w.conf })) }));
-  emo.filter(c => !inTile((c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2)).forEach(c => {
+  const E = emo.filter(c => !inTile((c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2));
+  for (const [i, c] of E.entries()) {
+    if (i % 3 === 0) { say("Finding the items… " + (i + 1) + " / " + (E.length + tiles.length)); await sleep(0); }   // the screen stays alive
     const o = emoObj(P, c, bg), m = pool.length && o.box ? iconMatch(o, pool) : [];
     const cy = (c.y0 + c.y1) / 2; let L = null, bd = 1e9;
     toks.forEach(l => { const dd = Math.abs((l.y0 + l.y1) / 2 - cy); if (dd < bd && dd <= Math.max(l.y1 - l.y0, c.y1 - c.y0) * .75) { bd = dd; L = l; } });
     if (!L) { L = { y0: c.y0, y1: c.y1, toks: [], conf: 99 }; toks.push(L); }
     L.toks.push({ x: c.x0, emo: m[0] && m[0].c < .34 ? m[0].ref : null, m, view: cropView(P, c), learn: o.box ? scanCrops(o).learn : null });
-  });
+  }
   toks.sort((a, b) => a.y0 - b.y0).forEach(L => L.toks.sort((a, b) => a.x - b.x));
-  for (const t of tiles) { const o = emoObj(P, t.box, t.bg, t.occ), mm = pool.length && o.box ? iconMatch(o, pool) : []; Object.assign(t, { ref: mm[0] && mm[0].c < .34 ? mm[0].ref : null, m: mm, view: cropView(P, t.box), learn: o.box ? scanCrops(o).learn : null }); }
+  for (const [i, t] of tiles.entries()) { if (i % 3 === 0) { say("Finding the items… " + (E.length + i + 1) + " / " + (E.length + tiles.length)); await sleep(0); } const o = emoObj(P, t.box, t.bg, t.occ), mm = pool.length && o.box ? iconMatch(o, pool) : []; Object.assign(t, { ref: mm[0] && mm[0].c < .34 ? mm[0].ref : null, m: mm, view: cropView(P, t.box), learn: o.box ? scanCrops(o).learn : null }); }
   // text written on the pictures ("Partial 50+", "I can provide blankets")
   const noteLines = [];
   for (const r of regs) { const rb = regBg(P, r), light = lum(rb, 0) > 128; const rl = await ocrRead(maskCanvas(P, r.x0, r.y0, r.x1 - r.x0 + 1, r.y1 - r.y0 + 1, (i, x, y) => (light ? lum(d, i) < 90 : lum(d, i) > 200) && sat(d, i) < 60 && !inTile(x, y), 2), 4); rl.filter(L => L.conf >= 60).forEach(L => noteLines.push(L.words.map(w => w.t).join(" "))); }
@@ -5198,7 +5288,7 @@ function emoObj(P, c, bg, occBoxes) {
 function cropView(P, c) {
   const w = c.x1 - c.x0 + 1, h = c.y1 - c.y0 + 1, s = mkCanvas(w, h), g = s.getContext("2d"), D = g.createImageData(w, h);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = ((y + c.y0) * P.W + x + c.x0) * 4, j = (y * w + x) * 4; D.data[j] = P.d[i]; D.data[j + 1] = P.d[i + 1]; D.data[j + 2] = P.d[i + 2]; D.data[j + 3] = 255; }
-  g.putImageData(D, 0, 0); const k = 56 / h, o = mkCanvas(w * k, 56); o.getContext("2d").drawImage(s, 0, 0, o.width, o.height); return o.toDataURL("image/jpeg", .85);
+  g.putImageData(D, 0, 0); const k = 56 / h, o = mkCanvas(w * k, 56); o.getContext("2d").drawImage(s, 0, 0, o.width, o.height); const u = o.toDataURL("image/jpeg", .85); s.width = s.height = o.width = o.height = 0; return u;
 }
 /** Tiles of a post-generator picture, found from their labels: "5x" top left, the quantity bottom right (white, outlined). */
 async function impGrid(P, lines, regs) {
@@ -5413,13 +5503,14 @@ function impPosts(R) {
 
 /* ---------- 3. the page ---------- */
 async function impRun(files, text) {
-  IMP.busy = "Starting…"; IMP.res = null; renderImport();
-  const say = m => { IMP.busy = m; const e = $("#impMsg"); if (e) e.textContent = m; };
+  IMP.busy = "Starting…"; IMP.res = null; IMP.stop = false; renderImport();
+  const say = m => { if (IMP.stop) throw new Error("stopped"); IMP.busy = m; const e = $("#impMsg"); if (e) e.textContent = m; };
+  IMP.say = m => { if (!IMP.stop && IMP.busy) { IMP.busy = m; const e = $("#impMsg"); if (e) e.textContent = m; } };
   try {
     let lines = [], tiles = [], picNotes = [];
     if (files && files.length) {
       say("Loading the game pictures…");
-      const pool = await scanPool((n, t) => say("Loading the game pictures… " + n + " / " + t));
+      const pool = await scanPool((n, t) => say("Loading the game pictures… " + n + " / " + t + (n < t ? " (the first time only)" : "")));
       for (const [k, f] of files.entries()) {
         say("Screenshot " + (k + 1) + " / " + files.length + "…");
         const r = await impReadImage(await loadFileImg(f), pool, m => say("Screenshot " + (k + 1) + ": " + m));
@@ -5430,9 +5521,12 @@ async function impRun(files, text) {
     const R = impParse(lines, tiles, picNotes, text);
     IMP.res = { R, posts: impPosts(R) };
     if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
-  } catch (e) { IMP.res = { err: /internet/.test(e && e.message) ? "The text reader couldn't be loaded (no internet?). Paste the text of the post instead." : "Couldn't read it (" + (e && e.message || e) + ")." }; }
-  IMP.busy = null;
-  if (IMP.res && !IMP.res.err && IMP.res.posts) return impCreate();
+  } catch (e) {
+    const m = (e && e.message) || String(e);
+    IMP.res = m === "stopped" ? null : { err: /internet|slow connection/.test(m) ? "The text reader couldn't be loaded (" + m + "). Check your connection and try again, or paste the text of the post instead." : "Couldn't read it: " + m + ". Try again, or paste the text of the post." };
+  }
+  IMP.busy = null; IMP.say = null;
+  if (IMP.res && !IMP.res.err && IMP.res.posts) { try { return impCreate(); } catch (e) { IMP.res = { err: "The post couldn't be made: " + ((e && e.message) || e) }; } }
   renderImport();
 }
 function renderImport() {
@@ -5444,7 +5538,7 @@ function renderImport() {
     h("p", { class: "hint" }, "A screenshot of your Discord message, a picture made by another post maker, or the text → a new post, opened right away. What can't be recognised is kept as written, or marked “?” for you to pick."),
     h("button", { class: "btn pri full", onclick: () => fileIn.click() }, "📷 Screenshots of the post"), fileIn, ta,
     h("button", { class: "btn full", onclick: () => { if (!IMP.text.trim()) return toast("Paste the text first"); impRun(null, IMP.text); } }, "Read the text")));
-  if (IMP.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "impMsg" }, IMP.busy))); return; }
+  if (IMP.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "impMsg" }, IMP.busy), h("button", { class: "btn sm", onclick: () => { IMP.stop = true; IMP.busy = null; IMP.say = null; renderImport(); } }, "Stop"))); return; }
   const S = IMP.res; if (S && S.err) out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, S.err)));
 }
 /* pictures read at the last import, by item: to show them and to learn from your pick (kept for the last import only) */
