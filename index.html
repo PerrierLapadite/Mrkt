@@ -788,9 +788,12 @@ body{padding-bottom:calc(var(--tabh) + 22px + var(--safe-b));-webkit-font-smooth
 .top{padding:calc(var(--safe-t) + 12px) 16px 0;border-bottom:2px solid var(--ink);box-shadow:0 3px 0 -1px var(--bg),0 4px 0 -1px var(--ink);
   background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--acc) 7%,transparent),transparent 55%),var(--bg)}
 .brand{gap:10px}
-.logo{flex:none;width:34px;height:34px;border-radius:10px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 3px 8px -3px color-mix(in srgb,var(--acc) 70%,transparent)}
-.logo svg{width:24px;height:24px}
-@media (max-width:360px){.logo{width:30px;height:30px}.logo svg{width:21px;height:21px}}
+.logo{flex:none;width:30px;height:30px;border-radius:9px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 3px 8px -3px color-mix(in srgb,var(--acc) 70%,transparent)}
+.logo svg{width:21px;height:21px}
+.brand{gap:9px}
+.brand h1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:clip;font-size:clamp(15px,4.6vw,26px)}
+@media (max-width:360px){.logo{width:26px;height:26px;border-radius:8px}.logo svg{width:18px;height:18px}.tools{gap:5px}.hbtn{width:34px;height:34px}.hbtn svg{width:18px;height:18px}.top{padding-left:12px;padding-right:12px}}
+@media (min-width:700px){.logo{width:34px;height:34px;border-radius:10px}.logo svg{width:24px;height:24px}}
 .hbtn{width:40px;height:40px;border:1px solid var(--line2);background:var(--surface);box-shadow:var(--sh1);transition:transform .15s var(--ease),background .15s,color .15s,box-shadow .15s}
 .hbtn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .hbtn.me{border-color:var(--ink)}
@@ -924,6 +927,14 @@ body{padding-bottom:calc(var(--tabh) + 22px + var(--safe-b));-webkit-font-smooth
 .mepop .meit .mi{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--surface2);font-size:18px}
 .mepop .x{top:4px;right:4px;width:32px;height:32px;padding:0;border-radius:50%;display:grid;place-items:center}
 
+/* ---------- inventory: update it from… ---------- */
+.upsrc{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.upsrc .btn{justify-content:flex-start;gap:10px;min-height:58px;padding:8px 12px;text-align:left}
+.upsrc .ui{font-size:22px;line-height:1;flex:none}
+.upsrc b{display:block;font:700 15px var(--sans)}
+.upsrc small{display:block;font-size:12px;font-weight:500;opacity:.7}
+.scrop.stxt{display:flex;align-items:center;padding:0 6px;font:600 11.5px/1.2 var(--sans);color:var(--mut);background:var(--surface2);overflow:hidden;word-break:break-word}
+.stot b{color:var(--ink)}
 /* ---------- small things ---------- */
 #toast{border-radius:999px;padding:11px 18px;bottom:calc(var(--tabh) + 18px + var(--safe-b));box-shadow:var(--sh2);font-size:14.5px}
 @media (min-width:1000px){#toast{bottom:28px}}
@@ -950,7 +961,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 <body data-tab="items">
 <div id="meMenu" class="mepop" hidden role="menu" aria-label="My profile"></div>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1>Market Manager</h1><span style="flex:1"></span><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -2573,6 +2584,12 @@ $$("#tabbar [data-t]").forEach(b => b.onclick = () => {
   TABY[cur] = scrollY; tab(t);
   const y = TABY[t] || 0; if (y) requestAnimationFrame(() => scrollTo({ top: Math.min(y, document.documentElement.scrollHeight - innerHeight) }));
 });
+/* the title always whole on one line: smaller when the room is short (the slab font is wide) */
+function fitBrand() {
+  const t = $("#brandT"); if (!t) return; t.style.fontSize = ""; let fs = parseFloat(getComputedStyle(t).fontSize), n = 0;
+  while (t.scrollWidth > t.clientWidth + 1 && fs > 12 && n++ < 40) { fs -= .5; t.style.fontSize = fs + "px"; }
+}
+fitBrand(); addEventListener("resize", debounce(fitBrand, 100)); if (document.fonts) { document.fonts.ready.then(fitBrand); document.fonts.addEventListener && document.fonts.addEventListener("loadingdone", fitBrand); }
 $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help" },
   h("ol", null,
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋). The coloured dot tells the type: red = Trade, green = Selling, blue = Buying."),
@@ -4284,7 +4301,8 @@ function renderInv() {
   if (IV.view !== "all" && !INV.farms.some(f => f.id === IV.view)) IV.view = "all";
   const all = IV.view === "all", F = all ? curFarm() : farmOf(IV.view), many = INV.farms.length > 1;
   if (!all) INV.cur = F.id;
-  const fileIn = h("input", { type: "file", accept: "image/*,video/*", multiple: true, hidden: true, onchange: e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f); } });
+  const picker = acc => h("input", { type: "file", accept: acc, multiple: true, hidden: true, onchange: e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f); } });
+  const vidIn = picker("video/*"), shotIn = picker("image/*");
   // farms: all of them together, or one
   const chips = h("div", { class: "chips farms", style: "margin:0" },
     many ? h("button", { class: "chip" + (all ? " on" : ""), onclick: () => { IV.view = "all"; renderInv(); } }, "All farms") : null,
@@ -4297,13 +4315,18 @@ function renderInv() {
       kpi("Barn", fmt(invUnits("barn", scope)), plural(invCount("barn", scope), "item")),
       kpi("Silo", fmt(invUnits("silo", scope)), plural(invCount("silo", scope), "item"))),
     h("p", { class: "hint" }, (all && many ? "All your farms added up. " : "") + "Updated " + agoTxt(INV.t) + ". Saved on this device only."),
-    h("div", { class: "two" }, h("button", { class: "btn pri", onclick: () => fileIn.click() }, "📷 Screenshots / video"), h("button", { class: "btn", onclick: addInvSheet }, "＋ Add items")), fileIn,
+    h("label", { class: "lbl", style: "margin:4px 0 -4px" }, "Update it from"),
+    h("div", { class: "upsrc" },
+      h("button", { class: "btn pri", onclick: () => vidIn.click() }, h("span", { class: "ui" }, "🎬"), h("span", null, h("b", null, "A video"), h("small", null, "screen recording"))),
+      h("button", { class: "btn", onclick: () => shotIn.click() }, h("span", { class: "ui" }, "📷"), h("span", null, h("b", null, "Screenshots"), h("small", null, "barn & silo"))),
+      h("button", { class: "btn", onclick: invTextSheet }, h("span", { class: "ui" }, "📝"), h("span", null, h("b", null, "A text"), h("small", null, "paste a list"))),
+      h("button", { class: "btn", onclick: addInvSheet }, h("span", { class: "ui" }, "＋"), h("span", null, h("b", null, "By hand"), h("small", null, "one item")))), vidIn, shotIn,
     many ? h("p", { class: "hint", style: "margin-top:-4px" }, "Screenshots and new items go to: ", h("b", null, curFarm().name), all ? " (tap a farm to change)" : "") : null,
     h("label", { class: "switch sm" }, "Update it with my deals (Order, Search, Deals)", h("input", { type: "checkbox", checked: SETTINGS.invLive !== false, onchange: e => { SETTINGS.invLive = e.target.checked; saveSettings(); renderInv(); } })),
     many && SETTINGS.invLive !== false ? h("div", { class: "row dfarm" }, h("span", { class: "hint" }, "Deals change"), h("select", { class: "sel", onchange: e => { INV.deal = e.target.value; saveInv(); } }, INV.farms.map(f => h("option", { value: f.id, selected: f.id === INV.deal }, f.name)))) : null));
   if (IV.scan) out.append(scanCard());
   const items = invList(scope);
-  if (!items.length) { if (!IV.scan) out.append(h("div", { class: "empty card" }, (many ? "“" + F.name + "” is empty. " : "Your inventory is empty. ") + "Record your screen while you scroll your barn (then your silo) in the game — or take screenshots — then tap “📷 Screenshots / video”. You can also add items by hand.")); return; }
+  if (!items.length) { if (!IV.scan) out.append(h("div", { class: "empty card" }, (many ? "“" + F.name + "” is empty. " : "Your inventory is empty. ") + "Record your screen while you scroll your barn (then your silo) in the game, then tap “🎬 A video”. Screenshots, a pasted list or items by hand work too.")); return; }
   // list
   const fl = h("div", { class: "seg" }, [["all", "All"], ["barn", "Barn"], ["silo", "Silo"]].map(([v, l]) => h("button", { class: IV.f === v ? "on" : "", onclick: () => { IV.f = v; renderInv(); } }, l)));
   const so = h("div", { class: "seg" }, [["az", "A–Z"], ["most", "Most"], ["least", "Least"]].map(([v, l]) => h("button", { class: IV.sort === v ? "on" : "", onclick: () => { IV.sort = v; renderInv(); } }, l)));
@@ -4341,16 +4364,33 @@ function addInvSheet() {
     const n = Math.round(num(qn.value)) || 1; invAdd({ ref: p.id }, n); toast(p.en + " +" + fmt(n) + " → " + fmt(invQty({ ref: p.id }))); renderInv();
   } }, thumb(prodState(p.id), p.e, "mini"), p.en, h("small", null, invQty({ ref: p.id }) ? " · " + fmt(invQty({ ref: p.id })) : "")))); };
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search an item", autocapitalize: "off", oninput: e => fill(e.target.value) });
-  const ta = h("textarea", { class: "ta", rows: 4, placeholder: "Or type a list:\ncarrot pie 26\nbolt x30, plank 25" });
   fill("");
-  openSheet("Add items", [h("div", { class: "row" }, sq, qn), h("p", { class: "hint" }, "Tap an item to add that many (empty = 1)."), res,
-    h("label", { class: "lbl", style: "margin-top:14px" }, "A list"), ta,
-    h("button", { class: "btn pri full", style: "margin-top:8px", onclick: () => {
-      const L = parseList(ta.value.replace(/,/g, "\n")).map(o => ({ o, m: matchProduct(o.name) })).filter(x => x.m.p && !x.m.p.parts && num(x.o.q) > 0);
-      if (!L.length) return toast("No item found — e.g. “carrot pie 26”");
-      L.forEach(x => invSet({ ref: x.m.p.id }, num(x.o.q), true)); saveInv(); closeSheet(); renderInv(); toast(plural(L.length, "item") + " set ✔");
-    } }, "Set these quantities")]);
+  openSheet("Add items by hand", [h("div", { class: "row" }, sq, qn), h("p", { class: "hint" }, "Tap an item to add that many (empty = 1). A whole list? “📝 A text”."), res]);
   setTimeout(() => sq.focus(), 50);
+}
+/** Update the inventory from a text: "Bolt x196", "carrot pie 26", "26 lobster tail"… one per line (or commas). */
+function invTextSheet() {
+  const ta = h("textarea", { class: "ta", rows: 9, placeholder: "One item per line, with how many:\nBolt x196\ncarrot pie 26\n30 plank\n\n(“Copy the list” of another device gives this format.)" });
+  openSheet("Update from a text", [ta, h("div", { class: "two" },
+    h("button", { class: "btn", onclick: async () => { try { ta.value = await navigator.clipboard.readText(); } catch (e) { toast("Paste it in the box (long-press → Paste)"); } } }, "Paste"),
+    h("button", { class: "btn pri", onclick: () => {
+      const rows = invTextRows(ta.value);
+      if (!rows.length) return toast("No item found — e.g. “carrot pie 26”");
+      closeSheet(); scanWhere = "inv"; scanPut("inv", { rows, shots: 0, vids: 0, txt: true, mode: "upd", alsoInv: true }); if (document.body.dataset.tab !== "inv") tab("inv"); else renderInv();
+      setTimeout(() => { const c = document.querySelector(".scan"); c && c.scrollIntoView({ block: "start", behavior: "smooth" }); }, 80);
+    } }, "Read the list"))]);
+  setTimeout(() => ta.focus(), 250);
+}
+function invTextRows(text) {
+  const seen = new Map(), rows = [];
+  parseList(String(text || "").replace(/,(?!\d{3}\b)/g, "\n")).forEach(o => {
+    const r = findMatches(o.name, CAT.list.filter(p => !p.parts), p => p.en), m = matchProduct(o.name), p = m.p ? (m.p.parts ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
+    const q = o.q === "" ? NaN : Math.round(num(o.q));
+    const row = { view: null, txt: o.raw, q, qSure: !isNaN(q), m: r.slice(0, 6).map(x => ({ ref: x.x.id, c: 0 })), ref: p ? p.id : null, sure: !!(p && m.sure), on: !!p, shot: 0 };
+    if (row.ref && seen.has(row.ref)) { const o2 = seen.get(row.ref); if (!isNaN(q)) { o2.q = q; o2.qSure = true; o2.txt = o.raw; } return; }   // twice in the list → the last number
+    if (row.ref) seen.set(row.ref, row); rows.push(row);
+  });
+  return rows.map(r => Object.assign(r, { unsure0: false }));
 }
 /* the profile menu drops from the button; it closes when you tap outside, tap the button again, press Esc or pick something */
 function openMe() {
@@ -4721,17 +4761,17 @@ function scanCard(where) {
   if (S.busy) { c.append(h("div", { class: "scanbusy" }, h("span", { class: "spin" }), h("span", { id: "scanMsg" }, S.msg), h("button", { class: "btn sm", onclick: () => { SCN.stop = true; scanPut(where, null); redraw(); } }, "Stop"))); return c; }
   if (S.err) { c.append(h("p", { class: "owarn" }, S.err), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "OK")); return c; }
   const R = S.rows, todo = R.filter(r => r.on && (!r.sure || !r.ref || isNaN(r.q))).length, noQ = R.filter(r => r.on && isNaN(r.q)).length;
-  const src = [S.shots ? plural(S.shots, "screenshot") : "", S.vids ? (S.vids > 1 ? S.vids + " videos" : "the video") : ""].filter(Boolean).join(" and ");
+  const src = S.txt ? "your list" : [S.shots ? plural(S.shots, "screenshot") : "", S.vids ? (S.vids > 1 ? S.vids + " videos" : "the video") : ""].filter(Boolean).join(" and ");
   c.append(h("p", { class: "hint" }, plural(R.length, "item") + " found in " + src + ". Tap an item to fix it, untick what you don't want." + (todo ? " " + plural(todo, "line") + " to check (orange)." : "")));
   if (S.warn) c.append(h("p", { class: "owarn" }, S.warn));
-  if (noQ) c.append(h("p", { class: "owarn" }, plural(noQ, "item") + " without a number (hidden or unreadable in the video): type how many you have, or untick it."));
+  if (noQ) c.append(h("p", { class: "owarn" }, plural(noQ, "item") + " without a number" + (S.txt ? "" : " (hidden or unreadable)") + ": type how many you have, or untick it."));
   if (S.noPics) c.append(h("p", { class: "owarn" }, "The game pictures couldn't be loaded (no internet?): pick each item by hand."));
   const list = h("div", { class: "slist" });
   R.forEach(r => {
     const p = r.ref && CAT.byId[r.ref];
     const qi = h("input", { value: isNaN(r.q) ? "" : r.q, placeholder: "?", inputMode: "numeric", "aria-label": "Quantity", oninput: () => { r.q = qi.value.trim() === "" ? NaN : Math.round(num(qi.value)); } });
     list.append(h("div", { class: "srow" + (r.on ? "" : " off") + (!r.ref || !r.sure || isNaN(r.q) ? " chk" : "") },
-      h("img", { src: r.view, alt: "", class: "scrop" }),
+      r.view ? h("img", { src: r.view, alt: "", class: "scrop" }) : h("span", { class: "scrop stxt", title: r.txt || "" }, r.txt || ""),
       h("button", { class: "spick", onclick: () => scanPick(r, where) }, p ? thumb(prodState(p.id), p.e, "mini") : null, h("span", null, p ? p.en : "Pick the item"), !r.ref || !r.sure ? h("span", { class: "flag" }, "?") : null),
       h("div", { class: "oq" }, h("span", null, "×"), qi),
       h("input", { type: "checkbox", class: "scb", checked: r.on, "aria-label": "Keep this line", onchange: e => { r.on = e.target.checked; redraw(); } })));
@@ -4740,7 +4780,7 @@ function scanCard(where) {
   // a check anyone can do: the game shows the total at the top of the window ("Barn storage: 3501 / 4450")
   const sum = s0 => R.filter(r => r.on && !isNaN(r.q) && (!s0 || (r.ref && invStore(r.ref) === s0))).reduce((a, r) => a + r.q, 0);
   const tot = stores.length > 1 ? stores.map(s0 => s0[0].toUpperCase() + s0.slice(1) + " " + fmt(sum(s0))).join(" · ") : fmt(sum());
-  c.append(h("p", { class: "hint stot" }, h("b", null, "Total: " + tot), " — the same number as at the top of your " + (stores.length > 1 ? "Barn and Silo windows" : (stores[0] || "barn") === "silo" ? "Silo window" : "Barn window") + " in the game? Then everything was read right."));
+  if (!S.txt) c.append(h("p", { class: "hint stot" }, h("b", null, "Total: " + tot), " — the same number as at the top of your " + (stores.length > 1 ? "Barn and Silo windows" : (stores[0] || "barn") === "silo" ? "Silo window" : "Barn window") + " in the game? Then everything was read right."));
   const n = R.filter(r => r.on && r.ref && r.q >= 0).length;
   c.append(list);
   if (post) c.append(h("p", { class: "hint" }, "Added to " + (targetList() === st.have ? "“" + (st.haveTitle || "I have") + "”" : "your list") + " of “" + (st.name || "this post") + "”, with these quantities. Items already in the list get the new quantity."),
@@ -4758,7 +4798,7 @@ function scanPick(r, where) {
   const fill = q => { res.textContent = ""; search(q, "all").filter(p => !p.parts).slice(0, 12).forEach(p => res.append(btn(p))); };
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", autocapitalize: "off", oninput: e => fill(e.target.value) });
   const best = r.m.map(x => CAT.byId[x.ref]).filter(Boolean);
-  openSheet("Which item is it?", [h("img", { src: r.view, alt: "", class: "scrop big" }),
+  openSheet("Which item is it?", [r.view ? h("img", { src: r.view, alt: "", class: "scrop big" }) : h("p", { class: "hint" }, "“" + (r.txt || "") + "”"),
     best.length ? h("div", null, h("label", { class: "lbl" }, "Closest pictures"), h("div", { class: "menu pick" }, best.map(btn))) : null,
     h("label", { class: "lbl", style: "margin-top:10px" }, "Another item"), sq, res,
     h("button", { class: "btn dashed", style: "margin-top:10px", onclick: () => { r.on = false; closeSheet(); redraw(); } }, "Skip this one")]);
@@ -4778,7 +4818,7 @@ function scanSave(where) {
   if (S.mode === "rep" && !post) { const st2 = new Set(R.map(r => invStore(r.ref))), F = curFarm(); F.items = F.items.filter(i => !st2.has(i.s)); }
   if (!post || S.alsoInv !== false) R.forEach(r => invSet({ ref: r.ref }, r.q, true));
   // learn from what you fixed or confirmed when unsure → better next time
-  R.filter(r => r.fixed || r.unsure0).forEach(r => LEARN.push({ ref: r.ref, url: r.learn }));
+  R.filter(r => (r.fixed || r.unsure0) && r.learn).forEach(r => LEARN.push({ ref: r.ref, url: r.learn }));
   if (LEARN.length > 150) LEARN = LEARN.slice(-150);
   store.set("hd5_scanlearn", LEARN);
   saveInv(); scanPut(where, null); scanDraw(where);
