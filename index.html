@@ -2869,7 +2869,7 @@ function pickItemSheet(it) {
   const btn = p => h("button", { onclick: () => set(p) }, thumb(prodState(p.id), p.e, "mini"), p.en);
   const fill = q => { res.textContent = ""; search(q, "all").slice(0, 12).forEach(p => res.append(btn(p))); };
   const best = ((C && C.c) || []).map(r => CAT.byId[r]).filter(Boolean).slice(0, 6);
-  const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", value: it.chk || it.ref ? "" : it.name || "", autocapitalize: "off", oninput: e => fill(e.target.value) });
+  const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", value: it.chk ? it.hint || "" : it.ref ? "" : it.name || "", autocapitalize: "off", oninput: e => fill(e.target.value) });
   if (sq.value) fill(sq.value);
   openSheet(it.chk ? "Which item is it?" : "Change the item", [
     view ? h("img", { src: view, class: "scrop big", alt: "" }) : null,
@@ -5381,6 +5381,9 @@ async function impReadImage(img, pool, say) {
   }
   const regs = scanLabel(busy, GW, GH, 1).comps.filter(c => (c.x1 - c.x0 + 1) * CS > W * .3 && (c.y1 - c.y0 + 1) * CS > W * .12 && c.n / ((c.x1 - c.x0 + 1) * (c.y1 - c.y0 + 1)) > .55)
     .map(c => ({ x0: c.x0 * CS, y0: c.y0 * CS, x1: Math.min(W - 1, c.x1 * CS + CS - 1), y1: Math.min(H - 1, c.y1 * CS + CS - 1) }));
+  // a picture made by this site → read as a table (name · price · qty · total)
+  const own = await impOwn(img, P, regs, say, pool);
+  if (own) return { lines: [], tiles: [], picNotes: [], own };
   const inReg = (x, y) => regs.some(r => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
   // b) emojis in the text. First a quick read of the text: what it reads confidently is text;
   //    any other line-sized picture on the lines is an emoji — even a thin grey one (a saw, a bar, a bolt)
@@ -5531,6 +5534,255 @@ async function impGrid(P, lines, regs) {
   }
   return tiles.sort((a, b) => Math.round(a.box.y0 / p) - Math.round(b.box.y0 / p) || a.box.x0 - b.box.x0);
 }
+/* ---------- 1b. a picture made by this site (any paper, List / Compact / Auto / trade boxes) ----------
+   Read as a table, from the full-size picture: the paper tells the theme, so only its ink, muted
+   and accent colours are kept; then each row = name · price · ×qty · total, checked with the maths. */
+const OWN_RATES = { coin: 1, ring: RING_RATE, blanket: BLANKET_RATE };
+function lev(a, b) {
+  if (a === b) return 0; const m = a.length, n = b.length; if (!m || !n) return m || n;
+  let p = Array.from({ length: n + 1 }, (_, j) => j), c = new Array(n + 1);
+  for (let i = 1; i <= m; i++) { c[0] = i; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); [p, c] = [c, p]; }
+  return p[n];
+}
+/** A name read on the picture (maybe with a stray letter from the icon, or a note after it) → the item. */
+function ownMatch(words) {
+  const key = s => norm(s).replace(/[^a-z]/g, "");
+  if (!ownMatch.idx || ownMatch.n !== CAT.list.length) { ownMatch.idx = CAT.list.map(p => ({ p, k: key(p.en) })).filter(o => o.k.length >= 3); ownMatch.n = CAT.list.length; }
+  let best = null;
+  for (let i = 0; i < Math.min(3, words.length); i++) for (let j = words.length; j === words.length; j--) {
+    const q = key(words.slice(i, j).join(" ")); if (q.length < 3) continue;
+    for (const o of ownMatch.idx) {
+      if (Math.abs(o.k.length - q.length) > Math.max(2, q.length * .3)) continue;
+      const sc = 1 - lev(q, o.k) / Math.max(q.length, o.k.length) - i * .01 - (words.length - j) * .01;
+      if (!best || sc > best.sc) best = { p: o.p, sc, i, j };
+    }
+  }
+  return best && best.sc >= .74 ? best : null;
+}
+const ownNum = s => { s = String(s).replace(/^[^\d]+|[^\d]+$/g, "").replace(/^0+(?=\d)/, ""); if (!s) return NaN; if (/^\d{1,3}([.,]\d{3})+$/.test(s)) return +s.replace(/[.,]/g, ""); if (/^\d+([.,]\d{1,2})?$/.test(s)) return +s.replace(",", "."); return NaN; };
+/** One token of a row: a word of the name, a price, ×MP, a quantity or a number. */
+function ownTok(w) {
+  const t = w.t.replace(/[|‘’"`“”]+/g, "");
+  let m;
+  if ((m = t.match(/^[^\d]{0,2}(\d+(?:[.,]\d+)?)\s*[x×*«X]\s*M\s*P\W*$/i))) return { k: "x", v: +m[1].replace(",", "."), w };
+  if ((m = t.match(/^[x×*«»+<>X%¥]\s?(\d{1,6})[.,]?$/))) return { k: "q", v: +m[1], w };
+  if ((m = t.match(/^[x×*«»]([\dilIoO|]{1,5})$/)) && /\d|^.[il|]/i.test(m[1])) return { k: "q", v: +m[1].replace(/[ilI|]/g, "1").replace(/[oO]/g, "0"), w, t: m[1] };
+  const t2 = t.replace(/^[A-Za-z©@°$£€¢]{1,2}(?=\d)/, "");
+  if (/^[^a-z]*\d[\d.,]*[^a-z]*$/i.test(t2) && !isNaN(ownNum(t2))) return { k: "n", v: ownNum(t2), w, t: t2 };
+  if (/\d/.test(t2) && !/[a-z]/i.test(t2)) return { k: "d", v: NaN, w, t: t2 };
+  if (/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’&.\-]*$/.test(t.replace(/[.,:;]+$/, "")) && /[A-Za-zÀ-ÿ]{2}/.test(t)) return { k: "w", t: t.replace(/[.,:;]+$/, "").replace(/^\.+/, ""), w };
+  return { k: "j", w };
+}
+/** price · qty · total → checked: p × q (× rate) = total. The reader glues "×42 ©126,000" into "420126000" or
+    misreads a digit: every way to cut the digits is tried, and only one that adds up is kept. */
+function ownFix(S, ref) {
+  const r = { p: null, pu: "coin", q: null, t: null, ok: false };
+  if (S[0] && S[0].k === "q" && S.slice(1).some(s => s.k === "q")) S = [Object.assign({}, S[0], { k: "n" })].concat(S.slice(1));
+  const i0 = S.findIndex(s => s.k === "x" || s.k === "n");
+  if (i0 < 0) { const q = S.find(s => s.k === "q"); if (q) r.q = q.v; return r; }
+  r.p = S[i0].v; if (S[i0].k === "x") r.pu = "xmp";
+  const rest = S.slice(i0 + 1), qT = rest.find(s => s.k === "q"), tT = qT ? rest.slice(rest.indexOf(qT) + 1).find(s => s.k === "n") : rest.filter(s => s.k === "n")[1];
+  if (r.pu === "xmp") {
+    const q = qT || rest.find(s => s.k === "n"); if (q) r.q = q.v;
+    const mp = ref ? maxPrice(ref) : 0, t = q && rest.slice(rest.indexOf(q) + 1).find(s => s.k === "n");
+    if (mp && t && r.p) { const q2 = t.v / (r.p * mp); if (!r.q || Math.abs(r.q * r.p * mp - t.v) > Math.max(2, t.v * .01)) if (Math.abs(q2 - Math.round(q2)) < .02) r.q = Math.round(q2); }
+    r.ok = !!r.q; return r;
+  }
+  const near = (a, b) => Math.abs(a - b) <= Math.max(1.01, b * .0015), rates = Object.entries(OWN_RATES);
+  const digs = n => rest.slice(0, n).map(s => (s.t || s.w.t).replace(/[ilI|]/g, "1").replace(/\D/g, "")).join("");
+  // the coin between the quantity and the total is often read as "0", "06"…: up to 3 digits are skipped
+  const cuts = D => { const o = []; for (let a = 0; a <= 1; a++) for (let sk = 0; sk <= 3; sk++) for (let k = 1; k <= 5; k++) { const b = a + k + sk; if (b >= D.length || D[a] === "0" || D[b] === "0") continue; o.push({ q: +D.slice(a, a + k), t: +D.slice(b) }); } return o; };
+  // 1. as read (a quantity token, then the total)
+  if (qT && tT) for (const [u, k] of rates) if (near(r.p * qT.v * k, tT.v)) return Object.assign(r, { q: qT.v, t: tT.v, pu: u, ok: true });
+  // 2. glued or split differently
+  for (let n = 1; n <= 3; n++) for (const c of cuts(digs(n))) for (const [u, k] of rates) if (near(r.p * c.q * k, c.t)) return Object.assign(r, { q: c.q, t: c.t, pu: u, ok: true });
+  const close = (a, b) => lev(String(a), String(b)) <= 1;
+  // 2b. the price glued to the quantity too: "5508 ©4,400" = 550 × 8 = 4,400
+  if (S[i0].k === "n" && !qT) { const P0 = (S[i0].t || S[i0].w.t).replace(/[ilI|]/g, "1").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+    for (let n = 0; n <= 2; n++) { const D = P0 + digs(n); for (let a = 1; a < Math.min(7, D.length - 1); a++) for (const c of cuts(D.slice(a))) for (const [u, k] of rates) { const p = +D.slice(0, a); if (p > 0 && near(p * c.q * k, c.t)) return Object.assign(r, { p, q: c.q, t: c.t, pu: u, ok: true }); } } }
+  // 3. a digit of the quantity misread (×9 → ×8): the price and the total say it
+  if (tT) for (const [u, k] of rates) { const q2 = tT.v / (r.p * k); if (q2 >= 1 && Math.abs(q2 - Math.round(q2)) < .002 && (!qT || close(Math.round(q2), qT.v))) return Object.assign(r, { q: Math.round(q2), t: tT.v, pu: u, ok: true }); }
+  // 4. a digit of the price misread (11,000 → 1,000): the quantity and the total say it
+  const tryP = (q, t) => { for (const [u, k] of rates) { const p2 = Math.round(t / (q * k) * 10) / 10; if (p2 > 0 && near(p2 * q * k, t) && close(fmtR(p2).replace(/,/g, ""), String(r.p))) return Object.assign(r, { p: p2, q, t, pu: u, ok: true }); } return null; };
+  if (qT && tT && tryP(qT.v, tT.v)) return r;
+  for (let n = 1; n <= 2; n++) for (const c of cuts(digs(n)).filter(c => !qT || c.q === qT.v)) if (tryP(c.q, c.t)) return r;
+  // 5. as read, unchecked
+  if (qT) r.q = qT.v; else if (rest[0] && rest[0].k === "n" && rest[1] && rest[1].k === "n") r.q = rest[0].v;
+  return r;
+}
+/** Lines of words (picture coordinates) → the post. */
+function ownParse(lines, Wc) {
+  const T = L => L.words.map(w => w.t).join(" ");
+  const O = { kind: null, user: "", title: "", header: false, url: false, rows: [], have: [], groups: [], notes: [], disc: "" };
+  let li = 0;
+  for (; li < Math.min(lines.length, 5); li++) {
+    const s = T(lines[li]), m = s.match(/(FOR\s*SA\s*LE|BUY\s*ING|TRA\s*DE)\b\W*(.*)$/i);
+    if (m) { O.kind = /sa\s*le/i.test(m[1]) ? "vente" : /buy/i.test(m[1]) ? "achat" : "trade"; O.user = m[2].replace(/[^\w .'\/-]/g, " ").replace(/\s+/g, " ").trim(); li++; break; }
+  }
+  if (!O.kind) li = 0;
+  const RAT0 = /^\W{0,3}(\d+(?:[.,]\d+)?)\s*\S{0,4}?\s*[:;]\s*(\d+(?:[.,]\d+)?)/;
+  if (!O.kind && !lines.some(L => /PRICE/i.test(T(L))) && lines.some(L => L.words.length <= 8 && RAT0.test(T(L)))) O.kind = "trade";
+  // the title: the biggest letters at the top
+  const hdr0 = lines.findIndex(L => /PRICE|AVAILABLE|LOOKING|WHAT\s*I|I\s*have|^\W*\d+\W{0,4}[:;]/i.test(T(L)));
+  const hgt = L => L.y1 - L.y0, top = lines.slice(li, hdr0 >= li ? Math.min(hdr0, li + 4) : li + 3).filter(L => /[a-z]{2}/i.test(T(L)) && !/\d{2}|AVAILABLE|LOOKING|WHAT\s*I|PRICE/i.test(T(L)) && T(L).replace(/[^A-Za-zÀ-ÿ0-9 ]/g, "").length >= T(L).length * .8);
+  const big = Math.max(0, ...top.map(hgt));
+  const tl = top.filter(L => hgt(L) >= big * .8 && big > 0); if (tl.length && tl.length <= 2) O.title = tl.map(L => L.words.filter(w => /[a-z0-9\/&]/i.test(w.t)).map(w => w.t).join(" ")).join(" ").trim();
+  // columns: from the "PRICE / EA … QTY … TOTAL" header (one per column)
+  const H = lines.find(L => /PR[I1l]CE/i.test(T(L)) && (/Q.?Y|TOTAL|RINGS|BLANK/i.test(T(L)) || L.words.length >= 3));
+  let cols = [0];
+  if (H) { O.header = true; const pw = H.words.filter(w => /PRICE/i.test(w.t)); if (pw.length > 1) { cols = [0]; const hw = H.words.slice().sort((a, b) => a.x0 - b.x0); pw.slice(1).forEach(p => { const prev = hw.filter(w => w.x1 < p.x0); cols.push(prev.length ? prev[prev.length - 1].x1 + 6 : p.x0 - 300); }); } }
+  const colOf = x => { let c = 0; cols.forEach((b, i) => { if (x >= b) c = i; }); return c; };
+  // groups of a trade picture: "50 [icon] : 89"   (+ "10+ sets → 60 : 80")
+  const RATL = /^\W{0,3}(\d+(?:[.,]\d+)?)\s*\S{0,4}?\s*[:;]\s*(\d+(?:[.,]\d+)?)(.*)$/;
+  let zone = O.kind === "trade" ? "have" : "rows", notesOn = false, lastRows = [];
+  const startIdx = H ? lines.indexOf(H) + 1 : li;
+  for (let k = O.kind === "trade" ? li : startIdx; k < lines.length; k++) {
+    const L = lines[k], s = T(L);
+    if (/github\.io|\/Mrkt\b/i.test(s)) { O.url = true; continue; }
+    if (/^\W*NOTES\W*$/i.test(s)) { notesOn = true; continue; }
+    if (notesOn) { const n = s.replace(/^[^\w(]+/, "").trim(); if (/[a-z]{2}/i.test(n) && L.x0 < Wc * .2) O.notes.push(n); continue; }
+    if (/^\W*(sub\s*total|total)\b/i.test(s)) { zone = "total"; continue; }
+    if (zone === "total") { const d = s.match(/[-−–]\s*(\d+(?:[.,]\d+)?)\s*%/); if (d) O.disc = d[1].replace(",", "."); continue; }
+    if (O.kind === "trade") {
+      const rm = s.match(RATL);
+      if (rm && L.words.length <= 12) { const b = rm[3].match(/(\d+)\s*\+[^\d]*?(\d+(?:[.,]\d+)?)\s*[:;]\s*(\d+(?:[.,]\d+)?)/); O.groups.push({ ra: rm[1].replace(",", "."), rb: rm[2].replace(",", "."), bulk: b ? { at: b[1], ra: b[2].replace(",", "."), rb: b[3].replace(",", ".") } : null, items: [] }); zone = "group"; continue; }
+      // names under the pictures: split where the gap is wide (another tile)
+      const ws = L.words.slice().sort((a, b) => a.x0 - b.x0), hh = ws.reduce((a, w) => a + (w.y1 - w.y0), 0) / (ws.length || 1);
+      const chunks = []; ws.forEach(w => { const c = chunks[chunks.length - 1]; if (c && w.x0 - c[c.length - 1].x1 < hh * .75) c.push(w); else chunks.push([w]); });
+      const qs = s.match(/[x×*«]\s?(\d{1,6})/g);
+      chunks.forEach(c => {
+        const words = c.map(w => w.t.replace(/[^\wÀ-ÿ'’&.\-]/g, "")).filter(t => /[a-zÀ-ÿ]{2}/i.test(t)); if (!words.length) return;
+        const m = ownMatch(words); if (!m) return;
+        const it = { ref: m.p.id, x: (c[0].x0 + c[c.length - 1].x1) / 2 };
+        if (zone === "have") O.have.push(it); else if (O.groups.length) O.groups[O.groups.length - 1].items.push(it);
+      });
+      // "×10" under the "I have" items
+      if (zone === "have" && qs && O.have.length) c0: for (const w of L.words) { const m = w.t.match(/^[x×*«]\s?(\d{1,6})$/); if (!m) continue; const x = (w.x0 + w.x1) / 2; let b = null; O.have.forEach(h => { if (!b || Math.abs(h.x - x) < Math.abs(b.x - x)) b = h; }); if (b && !b.q) b.q = m[1]; }
+      continue;
+    }
+    // a row (or two, three side by side): name · price · ×qty · total
+    const toks = L.words.slice().sort((a, b) => a.x0 - b.x0).map(ownTok);
+    // "10x" + "MP" read apart
+    for (let i = 0; i < toks.length - 1; i++) if (toks[i].k === "n" && /[x×*]$/i.test(toks[i].w.t) && /^M\s*P/i.test(toks[i + 1].w.t)) { toks[i] = { k: "x", v: ownNum(toks[i].w.t), w: toks[i].w }; toks[i + 1] = { k: "j", w: toks[i + 1].w }; }
+    const segs = []; let cur = null;
+    toks.forEach(t => {
+      if (t.k === "w") { if (!cur || cur.S.length) { if (cur && cur.S.length && t.t.length < 3) return; cur = { name: [], nh: [], wx: [], S: [], x0: t.w.x0, y: (L.y0 + L.y1) / 2, hh: 0 }; segs.push(cur); } if (!cur.S.length) { cur.name.push(t.t); cur.nh.push(t.w.y1 - t.w.y0); cur.wx.push(t.w.x0); if (t.t.length >= 3 && cur.nx0 == null) { cur.nx0 = t.w.x0; cur.hh = t.w.y1 - t.w.y0; } cur.nx1 = t.w.x1; cur.ny0 = Math.min(cur.ny0 == null ? 1e9 : cur.ny0, t.w.y0); cur.ny1 = Math.max(cur.ny1 || 0, t.w.y1); } }
+      else if (t.k !== "j" && cur && cur.name.length) cur.S.push(t);
+    });
+    const got = [];
+    segs.forEach(g => {
+      if (!g.S.length) return;
+      // a note written after the name, smaller (Compact)
+      const hs = g.nh.filter((x, i) => g.name[i].length >= 3), mh = hs.length ? Math.max(...hs) : 0; let ne = g.name.length; while (ne > 1 && g.nh[ne - 1] < mh * .72 && /^[a-z]/i.test(g.name[ne - 1])) ne--;
+      let m = ownMatch(g.name), noteW = [];
+      if (ne < g.name.length && (!m || m.sc < .9)) { const m2 = ownMatch(g.name.slice(0, ne)); if (m2 && m2.sc > (m ? m.sc : 0) + .05) { m = m2; noteW = g.name.slice(ne); g.name = g.name.slice(0, ne); } }
+      const f = ownFix(g.S, m && m.p.id); if (!f.q || (!m && !f.ok) || (O.header && f.p == null)) return;
+      const left = noteW.join(" ").replace(/^[\s.·…]+|[\s.·…]+$/g, "");
+      const nm = g.name.filter((w, i) => i > 0 || w.length >= 3).join(" ").replace(/[.·…]+$/g, "").trim();
+      const row = { ref: m ? m.p.id : null, name: m ? "" : nm, sc: m ? m.sc : 0, p: f.p, pu: f.pu, q: f.q, ok: f.ok, note: left && /[a-z]{3}/i.test(left) ? left : "", col: colOf(m ? g.wx[m.i] : g.x0), y: g.y, x0: m ? g.wx[m.i] : g.nx0 != null ? g.nx0 : g.x0, hh: g.hh, nx1: g.nx1, ny0: g.ny0, ny1: g.ny1 };
+      O.rows.push(row); got.push(row);
+    });
+    if (got.length) { lastRows = got; continue; }
+    // a line under a row, without numbers: the item's note (List layout)
+    if (lastRows.length && /[a-z]{3}/i.test(s) && !/\d/.test(s)) { const r = lastRows.find(r => Math.abs(r.x0 - L.x0) < Wc * .06); if (r && !r.note) r.note = s.replace(/^[^\w(]+/, "").trim(); }
+  }
+  if (cols.length === 1 && O.rows.length > 3) { const xs = O.rows.map(r => r.x0).sort((a, b) => a - b); for (let i = 1; i < xs.length; i++) if (xs[i] - xs[i - 1] > Wc * .15) cols.push((xs[i] + xs[i - 1]) / 2); O.rows.forEach(r => { r.col = colOf(r.x0); }); }
+  // the rows of a column first, then the next column (as on the picture)
+  O.rows.sort((a, b) => a.col - b.col || a.y - b.y);
+  return O;
+}
+async function impOwn(img, P, regs, say, pool) {
+  const f = (img.naturalWidth || img.width) / P.W, full = { x0: 0, y0: 0, x1: P.W - 1, y1: P.H - 1 };
+  const area = r => (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1);
+  const cands = regs.filter(r => r.y1 - r.y0 > (r.x1 - r.x0) * .5).sort((a, b) => area(b) - area(a));
+  if (!cands.some(r => area(r) > P.W * P.H * .8)) cands.push(full);
+  for (const r of cands) {
+    // which paper: its colours tell the ink to keep
+    const pb = regBg(P, { x0: r.x0 + 4, y0: r.y0 + 4, x1: r.x1 - 4, y1: r.y1 - 4 });
+    const hex = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16));
+    let th = null, bd = 1e9; Object.values(THEMES).forEach(t => { const dd = cdist(hex(t.paper), 0, pb); if (dd < bd) { bd = dd; th = t; } });
+    const paper = bd < 70 ? hex(th.paper) : pb, inks = bd < 70 ? [hex(th.ink), hex(th.mut), hex(th.acc)] : null;
+    const Lp = .299 * paper[0] + .587 * paper[1] + .114 * paper[2], light = Lp > 128;
+    const keep = (d, i) => {
+      if (inks) { const dp = cdist(d, i, paper); return inks.some(c => cdist(d, i, c) < dp * .8); }
+      const l = lum(d, i); return sat(d, i) < 90 && (light ? l < Lp - 70 : l > Lp + 70);
+    };
+    const frame = side => { const W0 = r.x1 - r.x0 + 1, ya = r.y0 + Math.round((r.y1 - r.y0) * .06), yb = r.y1 - Math.round((r.y1 - r.y0) * .06);
+      for (let k = 0; k < W0 * .06; k++) { const x = side ? r.x1 - k : r.x0 + k; let n = 0, t = 0; for (let y = ya; y <= yb; y += 3) { t++; if (cdist(P.d, (y * P.W + x) * 4, paper) > 70) n++; } if (n / t > .85) return true; } return false; };
+    const framed = frame(0) && frame(1);
+    const rx = r.x0 * f, ry = r.y0 * f, rw = (r.x1 - r.x0 + 1) * f, rh = (r.y1 - r.y0 + 1) * f;
+    const s = Math.min(3, Math.max(1, 3600 / rw)), cw = Math.round(rw * s), ch = Math.round(rh * s);
+    const bandH = Math.max(900, Math.floor(7e6 / cw)), ov = 220, lines = [];
+    const paint = (sx, sy, sw, sh, k) => { const c = mkCanvas(sw * k, sh * k), g = c.getContext("2d", { willReadFrequently: true }); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"; g.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height); const D = g.getImageData(0, 0, c.width, c.height), d = D.data; for (let i = 0; i < d.length; i += 4) { const on = keep(d, i); d[i] = d[i + 1] = d[i + 2] = on ? 0 : 255; d[i + 3] = 255; } g.putImageData(D, 0, 0); return c; };
+    const nb = Math.max(1, Math.ceil((ch - ov) / (bandH - ov)));
+    for (let b = 0, by = 0; b < nb; b++, by += bandH - ov) {
+      say("Reading the picture… " + (b + 1) + " / " + nb);
+      const hgt = Math.min(bandH, ch - by); if (hgt < 40) break;
+      const got = await ocrRead(paint(rx, ry + by / s, rw, hgt / s, cw / rw), 6);
+      const lo = b ? ov / 2 : -1, hi = b < nb - 1 ? hgt - ov / 2 : 1e9;
+      got.forEach(L => { const cy = (L.y0 + L.y1) / 2; if (cy < lo || cy >= hi) return; [L].concat(L.words).forEach(o => { o.y0 += by; o.y1 += by; }); lines.push(L); });
+      // not one of our pictures? stop after the first band
+      if (b === 0 && !framed && !lines.some(L => /PRICE|QTY|FOR\s*SALE|BUYING|TRADE|github\.io/i.test(L.words.map(w => w.t).join(" ")))) break;
+    }
+    lines.sort((a, b) => a.y0 - b.y0);
+    const O = ownParse(lines, cw);
+    const toP = (x, y) => [(x / s + rx) / f, (y / s + ry) / f];
+    if (O.kind === "trade" && O.groups.length) {
+      const top = lines.find(L => /\bhave\b/i.test(L.words.map(w => w.t).join(" "))), g1 = lines.find(L => /WANT/i.test(L.words.map(w => w.t).join(" "))) || lines.find(L => /^\W{0,3}\d+\s*\S{0,4}?\s*[:;]\s*\d+/.test(L.words.map(w => w.t).join(" ")));
+      if (top && g1 && g1.y0 > top.y1) {
+        say("Reading what you offer…");
+        const y0 = top.y1 + 4, y1 = g1.y0 - 4, rl = await ocrRead(paint(rx, ry + y0 / s, rw, (y1 - y0) / s, cw / rw), 11);
+        rl.forEach(L => { L.y0 += y0; L.y1 += y0; L.words.forEach(w => { w.y0 += y0; w.y1 += y0; }); });
+        const H2 = ownParse([{ words: [{ t: "TRADE", x0: 0, x1: 1, y0: 0, y1: 1 }], x0: 0, y0: 0, x1: 1, y1: 1 }].concat(rl.sort((a, b) => a.y0 - b.y0)), cw);
+        if (H2.have.length) O.have = H2.have;
+      }
+    }
+    const unsure = O.rows.filter(row => (!row.ref || row.sc < .8) && row.nx1 && row.ny1);
+    for (const [i, row] of unsure.entries()) {
+      say("Reading the small names… " + (i + 1) + " / " + unsure.length);
+      const pd = (row.hh || 20) * .5, X0 = Math.max(0, row.x0 - pd), Y0 = Math.max(0, row.ny0 - pd), X1 = row.nx1 + pd, Y1 = row.ny1 + pd;
+      const k = Math.min(4, Math.max(s * 2, 90 / Math.max(8, (row.ny1 - row.ny0) / s)));
+      const rl = await ocrRead(paint(rx + X0 / s, ry + Y0 / s, (X1 - X0) / s, (Y1 - Y0) / s, k), 7);
+      const ws = rl.flatMap(l => l.words).map(w => w.t.replace(/[^A-Za-zÀ-ÿ'’&\-]/g, "")).filter(t => /[a-zÀ-ÿ]{2}/i.test(t));
+      const m = ws.length && ownMatch(ws); if (m && m.sc > (row.sc || 0)) Object.assign(row, { ref: m.p.id, name: "", sc: m.sc });
+    }
+    for (const [i, row] of O.rows.entries()) {
+      if (row.ref && row.sc >= .86) continue;
+      if (i % 4 === 0) { say("Finding the items… " + (i + 1) + " / " + O.rows.length); await sleep(0); }
+      const hh = row.hh || 30, [ax, ay] = toP(row.x0 - hh * 3.4, row.y - hh * 1.5), [bx, by] = toP(row.x0 - hh * .25, row.y + hh * 1.5);
+      const box = { x0: Math.max(r.x0, Math.round(ax)), y0: Math.max(r.y0, Math.round(ay)), x1: Math.min(r.x1, Math.round(bx)), y1: Math.min(r.y1, Math.round(by)) };
+      if (box.x1 - box.x0 < 6 || box.y1 - box.y0 < 6) continue;
+      const o = emoObj(P, box, paper); if (!o.box) continue;
+      const pic = { x0: o.x0 + o.box.x0, y0: o.y0 + o.box.y0, x1: o.x0 + o.box.x1, y1: o.y0 + o.box.y1 };
+      const mm = pool.length ? iconMatch(o, pool) : [], src = { m: mm, view: cropView(P, pic), learn: scanCrops(o).learn };
+      if (!row.ref && mm[0] && mm[0].c < .34) { row.ref = mm[0].ref; row.name = ""; }
+      row.src = src;
+    }
+    IMP.dbgOwn = lines.map(L => L.words.map(w => w.t).join(" "));
+    const n = O.rows.length + O.groups.reduce((a, g) => a + g.items.length, 0);
+    // only our pictures: the column header or the site's address printed at the bottom
+    if (n >= 1 && (O.header || O.url)) return O;
+  }
+  return null;
+}
+/** What was read on our own pictures → the posts to create. */
+function ownPosts(owns) {
+  const posts = [];
+  owns.forEach(O => {
+    const prev = posts[posts.length - 1];
+    // the next screenshot of the same long picture (no title at the top) → the same post
+    if (prev && !O.kind && prev.type !== "trade") { prev.wants.push(...O.rows.map(ownItem)); prev.notes.push(...O.notes); if (O.disc) prev.disc = O.disc; return; }
+    const type = O.kind || (O.groups.length ? "trade" : "vente"), who = O.user.replace(/\s*\/\s*\d+\s*$/, "").trim();
+    const P = { type, on: true, name: TYPES[type].name + " · " + (who || "imported"), notes: O.notes.slice(0, 20), title: O.title, user: O.user, disc: O.disc };
+    if (type === "trade") {
+      P.have = O.have.map(h => ({ ref: h.ref, q: h.q || "" })); if (!P.have.length) P.have = [{ name: "My items" }];
+      P.wants = O.groups.flatMap(g => g.items.map(it => ({ ref: it.ref, ra: g.ra, rb: g.rb, gi: 0, bulk: g.bulk }))).concat(O.rows.map(ownItem));
+    } else P.wants = O.rows.map(ownItem);
+    posts.push(P);
+  });
+  return posts.map(P => Object.assign(P, { notes: P.notes, wants: P.wants.slice(0, 150) }));
+}
+const ownItem = r => Object.assign(r.ref ? { ref: r.ref, src: r.src || null } : r.src ? { unknown: r.src, src: r.src, hint: r.name } : { name: r.name }, { q: r.q ? String(r.q) : "", p: r.p != null ? String(r.p) : "", pu: r.pu || "coin", note: r.note || "" });
 /* ---------- 2. understanding the post ---------- */
 const RAT = /(\d+(?:[.,]\d+)?)\s*[:：]\s*(\d+(?:[.,]\d+)?)/;
 /** Lines of copied Discord text → the same tokens as a screenshot (:emoji: names, ~~struck~~). */
@@ -5713,19 +5965,19 @@ async function impRun(files, text) {
   const say = m => { if (IMP.stop) throw new Error("stopped"); IMP.busy = m; const e = $("#impMsg"); if (e) e.textContent = m; };
   IMP.say = m => { if (!IMP.stop && IMP.busy) { IMP.busy = m; const e = $("#impMsg"); if (e) e.textContent = m; } };
   try {
-    let lines = [], tiles = [], picNotes = [];
+    let lines = [], tiles = [], picNotes = [], owns = []; IMP.dbg = null;
     if (files && files.length) {
       say("Loading the game pictures…");
       const pool = await scanPool((n, t) => say("Loading the game pictures… " + n + " / " + t + (n < t ? " (the first time only)" : "")));
       for (const [k, f] of files.entries()) {
         say("Screenshot " + (k + 1) + " / " + files.length + "…");
         const r = await impReadImage(await loadFileImg(f), pool, m => say("Screenshot " + (k + 1) + ": " + m));
-        lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes);
+        lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes); if (r.own) owns.push(r.own);
       }
     }
     if (text && text.trim()) lines.push(...textLines(text));
     const R = impParse(lines, tiles, picNotes, text);
-    IMP.res = { R, posts: impPosts(R) };
+    IMP.res = { R, posts: owns.length ? ownPosts(owns).concat(lines.length || tiles.length ? impPosts(R).filter(p => (p.wants || []).length) : []) : impPosts(R) };
     if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
   } catch (e) {
     const m = (e && e.message) || String(e);
@@ -5741,7 +5993,7 @@ function renderImport() {
   const ta = h("textarea", { class: "ta", rows: 5, value: IMP.text, placeholder: "Or paste the text of your post (Discord: long-press the message → Copy Text). ~~struck~~ lines become “out of stock”.", oninput: e => { IMP.text = e.target.value; } });
   out.append(h("div", { class: "card fieldset" },
     h("div", { class: "ch" }, h("h2", null, "Import a post")),
-    h("p", { class: "hint" }, "A screenshot of your Discord message, a picture made by another post maker, or the text → a new post, opened right away. What can't be recognised is kept as written, or marked “?” for you to pick."),
+    h("p", { class: "hint" }, "A picture made with Market Manager (the file or a screenshot of it), a screenshot of your Discord message, a picture made by another post maker, or the text → a new post, opened right away. What can't be recognised is kept as written, or marked “?” for you to pick."),
     h("button", { class: "btn pri full", onclick: () => fileIn.click() }, "📷 Screenshots of the post"), fileIn, ta,
     h("button", { class: "btn full", onclick: () => { if (!IMP.text.trim()) return toast("Paste the text first"); impRun(null, IMP.text); } }, "Read the text")));
   if (IMP.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "impMsg" }, IMP.busy), h("button", { class: "btn sm", onclick: () => { IMP.stop = true; IMP.busy = null; IMP.say = null; renderImport(); } }, "Stop"))); return; }
@@ -5771,11 +6023,12 @@ function impCreate() {
     const src = x.src || x.unknown || null;
     if (x.ref) return crop(mkItem(x.ref, f), src);
     if (x.name) return mkItem(null, Object.assign({ name: x.name, e: "📦" }, f));
-    if (x.unknown) { chk++; return crop(mkItem(null, Object.assign({ name: "?", e: "❔", img: (src && src.view) || "", chk: 1 }, f)), src); }
+    if (x.unknown) { chk++; return crop(mkItem(null, Object.assign({ name: "?", e: "❔", img: (src && src.view) || "", chk: 1 }, x.hint ? { hint: x.hint } : {}, f)), src); }
     return null;
   };
   IMP.res.posts.filter(P => P.on).forEach(P => {
     const p = mkProfile(P.type, P.name.trim() || TYPES[P.type].name);
+    if (P.title) p.title = P.title; if (P.user) p.user = P.user; if (P.disc && P.type === "vente") p.disc = P.disc;
     if (P.type === "trade") {
       p.have = (P.have || []).map(x => mk(x, Object.assign(x.q ? { q: x.q } : {}, x.note ? { note: x.note } : {}))).filter(Boolean);
       const hv = (P.have || []).map((x, i) => [x, p.have[(P.have || []).filter((y, j) => j < i && (y.ref || y.name || y.unknown)).length]]);
@@ -5783,7 +6036,7 @@ function impCreate() {
       p.wants = (P.wants || []).map(x => { const g = giveFor(x); return mk(x, Object.assign({ ra: x.ra, rb: x.rb }, x.bulk ? { bra: x.bulk.ra, brb: x.bulk.rb, bat: x.bulk.at } : {}, g ? { give: g.uid } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {})); }).filter(Boolean);
       // new items you add go to the first ratio of the post, not to a default one
       const w0 = p.wants.find(w => num(w.ra) > 0 && num(w.rb) > 0); p.addR = w0 ? Object.assign({ ra: w0.ra, rb: w0.rb, give: w0.give }, w0.bat ? { bat: w0.bat, bra: w0.bra, brb: w0.brb } : {}) : null;
-    } else p.wants = (P.wants || []).map(x => mk(x, Object.assign({}, x.q ? { q: x.q } : {}, x.p ? { p: x.p, pu: x.pu || "coin" } : {}, x.oos ? { oos: 1 } : {}))).filter(Boolean);
+    } else p.wants = (P.wants || []).map(x => mk(x, Object.assign({}, x.q ? { q: x.q } : {}, x.p ? { p: x.p, pu: x.pu || "coin" } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {}))).filter(Boolean);
     if (P.notes && P.notes.length) {
       p.details = P.notes.map(n => "- " + n).join("\n");
       // "10% off everything" → the post's discount
