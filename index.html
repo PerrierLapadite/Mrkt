@@ -5564,56 +5564,95 @@ const ownNum = s => { s = String(s).replace(/^[^\d]+|[^\d]+$/g, "").replace(/^0+
 function ownTok(w) {
   const t = w.t.replace(/[|‘’"`“”]+/g, "");
   let m;
-  if ((m = t.match(/^[^\d]{0,2}(\d+(?:[.,]\d+)?)\s*[x×*«X]\s*M\s*P\W*$/i))) return { k: "x", v: +m[1].replace(",", "."), w };
+  if ((m = t.replace(/(\d)[oO]|^[oO](?=\d)/g, x => x.replace(/[oO]/, "0")).match(/^[^\d]{0,2}(\d+(?:[.,]\d+)?)\s*[x×*«X%]?\s*[MN]\s*[PRF]\W*$/i))) return { k: "x", v: +m[1].replace(",", "."), w };
   if ((m = t.match(/^[x×*«»+<>X%¥]\s?(\d{1,6})[.,]?$/))) return { k: "q", v: +m[1], w };
-  if ((m = t.match(/^[x×*«»]([\dilIoO|]{1,5})$/)) && /\d|^.[il|]/i.test(m[1])) return { k: "q", v: +m[1].replace(/[ilI|]/g, "1").replace(/[oO]/g, "0"), w, t: m[1] };
+  if ((m = t.match(/^[x×*«»+<>X%¥]([\dilIoO|]{1,5})$/)) && /\d|^.[il|]/i.test(m[1])) return { k: "q", v: +m[1].replace(/[ilI|]/g, "1").replace(/[oO]/g, "0"), w, t: m[1] };
   const t2 = t.replace(/^[A-Za-z©@°$£€¢]{1,2}(?=\d)/, "");
   if (/^[^a-z]*\d[\d.,]*[^a-z]*$/i.test(t2) && !isNaN(ownNum(t2))) return { k: "n", v: ownNum(t2), w, t: t2 };
   if (/\d/.test(t2) && !/[a-z]/i.test(t2)) return { k: "d", v: NaN, w, t: t2 };
-  if (/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’&.\-]*$/.test(t.replace(/[.,:;]+$/, "")) && /[A-Za-zÀ-ÿ]{2}/.test(t)) return { k: "w", t: t.replace(/[.,:;]+$/, "").replace(/^\.+/, ""), w };
+  if ((t2.match(/\d/g) || []).length >= 2 && (t2.match(/\d/g) || []).length >= t2.replace(/[^a-z]/gi, "").length * 2) return { k: "d", v: NaN, w, t: t2 };
+  const t3 = t.replace(/^[^A-Za-zÀ-ÿ\d]+(?=[A-Za-zÀ-ÿ]{2})/, "").replace(/[.,:;]+$/, "");
+  if (/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’&.\-]*$/.test(t3) && /[A-Za-zÀ-ÿ]{2}/.test(t3)) return { k: "w", t: t3.replace(/^\.+/, ""), w };
   return { k: "j", w };
 }
-/** price · qty · total → checked: p × q (× rate) = total. The reader glues "×42 ©126,000" into "420126000" or
-    misreads a digit: every way to cut the digits is tried, and only one that adds up is kept. */
-function ownFix(S, ref) {
+/** price · qty · total → checked: p × q (× rate) = total, exactly. The reader glues "×42 ©126,000" into
+    "420126000", reads the coin as "0" or "©", misses a "×"…: every way to cut the digits into a price, a
+    quantity and a total is tried, and the one that adds up with the fewest odd cuts is kept. */
+function ownSolve(S, noPrice) {
+  let D = "", hard = new Set([0]), soft = new Set();
+  S.slice(0, 7).forEach(s => { const raw = (s.t || s.w.t).replace(/[ilI|]/g, "1").replace(/(\d)[oO]|[oO](?=\d)/g, m => m.replace(/[oO]/, "0"));
+    for (const c of raw) { if (/\d/.test(c)) D += c; else if (!/[,.]/.test(c) && D.length) soft.add(D.length); } hard.add(D.length); });
+  if (D.length < 3) return null;
+  const at = x => hard.has(x) || soft.has(x), cut = x => at(x) ? 0 : 3;
+  const inner = (x, y) => { let n = 0; for (const h of hard) if (h > x && h < y) n++; return n; };
+  // skipped digits: the coin read as 0 / 6 / 8 / 9 — never a whole number of its own
+  const skipOk = (x, y) => y === x || (/^[0689]+$/.test(D.slice(x, y)) && !inner(x, y) && (!(hard.has(x) && hard.has(y)) || y - x === 1));
+  const whole = (x, y) => y > x && hard.has(x) && hard.has(y) ? 2 : 0;
+  // the rings / blankets printed after the total confirm it (102,000 → "124", not 1,020,000 → "1,237")
+  const conv = (c1, t) => { const nx = D.slice(c1, c1 + 12); return [RING_RATE, BLANKET_RATE].some(k => { const v = fmtR(t / k).replace(/\D/g, ""); return v.length >= 2 && (nx.replace(/^[0689]{0,2}/, "").startsWith(v) || nx.startsWith(v)); }) ? -4 : 0; };
+  const rates = Object.entries(OWN_RATES); let best = null;
+  const tryT = (p0, pr, a0, a1, base) => {
+    for (let s1 = 0; s1 <= 2; s1++) for (let b1 = a1 + s1 + 1; b1 <= Math.min(D.length - 1, a1 + s1 + 5); b1++) {
+      const q0 = a1 + s1; if (D[q0] === "0" || inner(q0, b1) || !skipOk(a1, q0)) continue; const q = +D.slice(q0, b1);
+      for (let s2 = 0; s2 <= 3; s2++) for (let c1 = b1 + s2 + 1; c1 <= Math.min(D.length, b1 + s2 + 10); c1++) {
+        const t0 = b1 + s2, ti = inner(t0, c1); if (D[t0] === "0" || ti > 1 || !skipOk(b1, t0)) continue; const t = +D.slice(t0, c1);
+        for (const [u, k] of rates) for (const p of noPrice ? [t / (q * k)] : u === "coin" ? [pr] : [pr, pr / 10]) {
+          if (!(p > 0) || Math.abs(Math.round(p * q * k) - t) > (u === "coin" ? 0 : 1)) continue;
+          if (noPrice && (u !== "coin" || p % 1 || !(p < 1000 || p % 10 === 0))) continue;
+          const cost = base + (q0 > a1 ? (at(a1) ? 1 : 5) + whole(a1, q0) : cut(a1)) + s1 + (t0 > b1 ? (at(b1) ? 1 : 3) + whole(b1, t0) : at(b1) ? 0 : 5) + s2 + cut(c1) + ti * 3 + (u === "coin" ? 0 : 2) + (p !== pr ? 1 : 0) + conv(c1, t);
+          if (!best || cost < best.cost) best = { p, q, t, pu: u, cost };
+        }
+      }
+    }
+  };
+  if (noPrice) { for (let a1 = 0; a1 <= Math.min(2, D.length - 3); a1++) if (!a1 || at(a1)) tryT(0, 0, 0, a1, 2); }
+  else { const h1 = Math.min(...[...hard].filter(h => h > 0)), starts = [0, 1, 2].concat(h1 <= 4 && /^[0689]+$/.test(D.slice(0, h1)) ? [h1] : []);
+    for (const a0 of [...new Set(starts)]) for (let a1 = a0 + 1; a1 <= Math.min(D.length - 2, a0 + 7); a1++) {
+      const pi = inner(a0, a1); if (D[a0] === "0" || pi > 1 || (a0 && !/^[0689]+$/.test(D.slice(0, a0)))) continue;
+      tryT(a0, +D.slice(a0, a1), a0, a1, (a0 === h1 && a0 > 2 ? 3 : a0) + pi * 3);
+    } }
+  return best && best.cost <= 7 ? best : null;
+}
+function ownFix(S, ref, raw) {
   const r = { p: null, pu: "coin", q: null, t: null, ok: false };
-  if (S[0] && S[0].k === "q" && S.slice(1).some(s => s.k === "q")) S = [Object.assign({}, S[0], { k: "n" })].concat(S.slice(1));
-  const i0 = S.findIndex(s => s.k === "x" || s.k === "n");
-  if (i0 < 0) { const q = S.find(s => s.k === "q"); if (q) r.q = q.v; return r; }
-  r.p = S[i0].v; if (S[i0].k === "x") r.pu = "xmp";
-  const rest = S.slice(i0 + 1), qT = rest.find(s => s.k === "q"), tT = qT ? rest.slice(rest.indexOf(qT) + 1).find(s => s.k === "n") : rest.filter(s => s.k === "n")[1];
-  if (r.pu === "xmp") {
-    const q = qT || rest.find(s => s.k === "n"); if (q) r.q = q.v;
-    const mp = ref ? maxPrice(ref) : 0, t = q && rest.slice(rest.indexOf(q) + 1).find(s => s.k === "n");
-    if (mp && t && r.p) { const q2 = t.v / (r.p * mp); if (!r.q || Math.abs(r.q * r.p * mp - t.v) > Math.max(2, t.v * .01)) if (Math.abs(q2 - Math.round(q2)) < .02) r.q = Math.round(q2); }
+  // ×MP: "10×MP" (even read apart or with a letter wrong)
+  const xm = (raw || "").match(/(\d{1,3}(?:[.,]\d)?)\s*[^\d\s]?\s*[MN]\s*[PRF]\b/);
+  if (S.some(s => s.k === "x") || xm) {
+    const xi = S.findIndex(s => s.k === "x"); r.p = xi >= 0 ? S[xi].v : +xm[1].replace(",", "."); r.pu = "xmp";
+    const rest = xi >= 0 ? S.slice(xi + 1) : S.filter(s => s.k !== "n" || !xm || s.v !== +xm[1]), qT = rest.find(s => s.k === "q") || rest.find(s => s.k === "n");
+    if (qT) r.q = qT.v;
+    const mp = ref ? maxPrice(ref) : 0, tT = qT && rest.slice(rest.indexOf(qT) + 1).find(s => s.k === "n");
+    if (mp && tT && r.p) { const q2 = tT.v / (r.p * mp); if (!r.q || Math.abs(r.q * r.p * mp - tT.v) > Math.max(2, tT.v * .01)) if (Math.abs(q2 - Math.round(q2)) < .02) r.q = Math.round(q2); }
     r.ok = !!r.q; return r;
   }
-  const near = (a, b) => Math.abs(a - b) <= Math.max(1.01, b * .0015), rates = Object.entries(OWN_RATES);
-  const digs = n => rest.slice(0, n).map(s => (s.t || s.w.t).replace(/[ilI|]/g, "1").replace(/\D/g, "")).join("");
-  // the coin between the quantity and the total is often read as "0", "06"…: up to 3 digits are skipped
-  const cuts = D => { const o = []; for (let a = 0; a <= 1; a++) for (let sk = 0; sk <= 3; sk++) for (let k = 1; k <= 5; k++) { const b = a + k + sk; if (b >= D.length || D[a] === "0" || D[b] === "0") continue; o.push({ q: +D.slice(a, a + k), t: +D.slice(b) }); } return o; };
-  // 1. as read (a quantity token, then the total)
-  if (qT && tT) for (const [u, k] of rates) if (near(r.p * qT.v * k, tT.v)) return Object.assign(r, { q: qT.v, t: tT.v, pu: u, ok: true });
-  // 2. glued or split differently
-  for (let n = 1; n <= 3; n++) for (const c of cuts(digs(n))) for (const [u, k] of rates) if (near(r.p * c.q * k, c.t)) return Object.assign(r, { q: c.q, t: c.t, pu: u, ok: true });
-  const close = (a, b) => lev(String(a), String(b)) <= 1;
-  // 2b. the price glued to the quantity too: "5508 ©4,400" = 550 × 8 = 4,400
-  if (S[i0].k === "n" && !qT) { const P0 = (S[i0].t || S[i0].w.t).replace(/[ilI|]/g, "1").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
-    for (let n = 0; n <= 2; n++) { const D = P0 + digs(n); for (let a = 1; a < Math.min(7, D.length - 1); a++) for (const c of cuts(D.slice(a))) for (const [u, k] of rates) { const p = +D.slice(0, a); if (p > 0 && near(p * c.q * k, c.t)) return Object.assign(r, { p, q: c.q, t: c.t, pu: u, ok: true }); } } }
-  // 3. a digit of the quantity misread (×9 → ×8): the price and the total say it
+  // "«02500 «7 017500": the first number is the price when a quantity follows
+  if (S[0] && S[0].k === "q" && S.slice(1).some(s => s.k === "q")) S = [Object.assign({}, S[0], { k: "n" })].concat(S.slice(1));
+  const i0 = S.findIndex(s => s.k === "n" || s.k === "d");
+  if (i0 < 0) { const q = S.find(s => s.k === "q"); if (q) r.q = q.v; return r; }
+  // 1. the cut that adds up
+  const sol = ownSolve(S.slice(i0)); if (sol) return Object.assign(r, sol, { ok: true });
+  const first = (raw || "").trim().split(/\s+/)[0] || "", priceGone = S[i0].k === "d" || (["j", "w"].includes(ownTok({ t: first }).k) && first.replace(/[^A-Za-z0-9]/g, "").length >= 3);
+  const noPrice = () => { if (!priceGone) return null; for (const j of [S.findIndex(s => s.k === "q"), S[i0].k === "d" ? i0 + 1 : -1, i0].filter((j, k, a) => j >= 0 && a.indexOf(j) === k)) { const s2 = ownSolve(S.slice(j), true); if (s2) return Object.assign(r, s2, { ok: true }); } return null; };
+  if (S[i0].k === "d") return noPrice() || r;
+  r.p = S[i0].v;
+  const rest = S.slice(i0 + 1), qT = rest.slice(0, 2).find(s => s.k === "q"), nAll = rest.filter(s => s.k === "n");
+  const tT = qT ? rest.slice(rest.indexOf(qT) + 1).find(s => s.k === "n") : nAll.find(s => nAll.indexOf(s) < 2 && s.v >= r.p);
+  const near = (a, b) => Math.abs(a - b) <= 1.01, rates = Object.entries(OWN_RATES), close = (a, b) => lev(String(a), String(b)) <= 1;
+  // 2. a digit of the quantity misread (×9 → ×8): the price and the total say it
   if (tT) for (const [u, k] of rates) { const q2 = tT.v / (r.p * k); if (q2 >= 1 && Math.abs(q2 - Math.round(q2)) < .002 && (!qT || close(Math.round(q2), qT.v))) return Object.assign(r, { q: Math.round(q2), t: tT.v, pu: u, ok: true }); }
-  // 4. a digit of the price misread (11,000 → 1,000): the quantity and the total say it
-  const tryP = (q, t) => { for (const [u, k] of rates) { const p2 = Math.round(t / (q * k) * 10) / 10; if (p2 > 0 && near(p2 * q * k, t) && close(fmtR(p2).replace(/,/g, ""), String(r.p))) return Object.assign(r, { p: p2, q, t, pu: u, ok: true }); } return null; };
-  if (qT && tT && tryP(qT.v, tT.v)) return r;
-  for (let n = 1; n <= 2; n++) for (const c of cuts(digs(n)).filter(c => !qT || c.q === qT.v)) if (tryP(c.q, c.t)) return r;
-  // 5. as read, unchecked
-  if (qT) r.q = qT.v; else if (rest[0] && rest[0].k === "n" && rest[1] && rest[1].k === "n") r.q = rest[0].v;
+  // 3. a digit of the price misread (11,000 → 1,000): the quantity and the total say it
+  if (qT && tT) for (const [u, k] of rates) { const p2 = Math.round(tT.v / (qT.v * k) * 10) / 10; if (p2 > 0 && near(p2 * qT.v * k, tT.v) && close(fmtR(p2).replace(/,/g, ""), String(r.p))) return Object.assign(r, { p: p2, q: qT.v, t: tT.v, pu: u, ok: true }); }
+  // the price unreadable ("On,000", "Oooo"): the quantity and the total give it
+  if (noPrice()) return r;
+  // 4. as read, unchecked (only a number written as a quantity: "×12") — else left empty, to fill in
+  if (qT && !(tT && qT.v === tT.v)) r.q = qT.v;
+  if (tT && r.p === tT.v) r.p = null;
   return r;
 }
 /** Lines of words (picture coordinates) → the post. */
 function ownParse(lines, Wc) {
   const T = L => L.words.map(w => w.t).join(" ");
-  const O = { kind: null, user: "", title: "", header: false, url: false, rows: [], have: [], groups: [], notes: [], disc: "" };
+  const O = { kind: null, user: "", title: "", header: false, url: false, rows: [], have: [], groups: [], notes: [], disc: "", bulk: [], sub: null, cta: null };
   let li = 0;
   for (; li < Math.min(lines.length, 5); li++) {
     const s = T(lines[li]), m = s.match(/(FOR\s*SA\s*LE|BUY\s*ING|TRA\s*DE)\b\W*(.*)$/i);
@@ -5639,10 +5678,17 @@ function ownParse(lines, Wc) {
   for (let k = O.kind === "trade" ? li : startIdx; k < lines.length; k++) {
     const L = lines[k], s = T(L);
     if (/github\.io|\/Mrkt\b/i.test(s)) { O.url = true; continue; }
+    const mid = (L.x0 + L.x1) / 2, centred = Math.abs(mid - Wc / 2) < Wc * .08 && L.x0 > Wc * .15;
+    if (centred && (zone === "total" || notesOn || zone === "group") && /[a-z]{2}/i.test(s)) { const t = s.replace(/[|\[\]{}()_—–=~«»]+/g, " ").replace(/\s+/g, " ").trim(); if (/[|\[\]]/.test(s)) O.cta = t; else O.sub = t; continue; }
     if (/^\W*NOTES\W*$/i.test(s)) { notesOn = true; continue; }
     if (notesOn) { const n = s.replace(/^[^\w(]+/, "").trim(); if (/[a-z]{2}/i.test(n) && L.x0 < Wc * .2) O.notes.push(n); continue; }
     if (/^\W*(sub\s*total|total)\b/i.test(s)) { zone = "total"; continue; }
-    if (zone === "total") { const d = s.match(/[-−–]\s*(\d+(?:[.,]\d+)?)\s*%/); if (d) O.disc = d[1].replace(",", "."); continue; }
+    if (zone === "total") {
+      const bt = s.match(/\+\s*(\d+(?:[.,]\d+)?)\s*%.*?sell\s*me\s*(.*)$/i);
+      if (bt) { const w = bt[2], pc = bt[1].replace(",", "."); let t = null;
+        if (/full/i.test(w)) t = { mode: "pct", at: "100" }; else { const a = w.match(/(\d+(?:[.,]\d+)?)\s*%/), b = w.match(/(\d[\d,.]*)\s*items?/i); if (a) t = { mode: "pct", at: a[1].replace(",", ".") }; else if (b) t = { mode: "order", at: b[1].replace(/[,.]/g, "") }; }
+        if (t && O.bulk.length < 4) O.bulk.push(Object.assign(t, { pct: pc })); continue; }
+      const d = s.match(/[-−–]\s*(\d+(?:[.,]\d+)?)\s*%/); if (d && !O.disc) O.disc = d[1].replace(",", "."); continue; }
     if (O.kind === "trade") {
       const rm = s.match(RATL);
       if (rm && L.words.length <= 12) { const b = rm[3].match(/(\d+)\s*\+[^\d]*?(\d+(?:[.,]\d+)?)\s*[:;]\s*(\d+(?:[.,]\d+)?)/); O.groups.push({ ra: rm[1].replace(",", "."), rb: rm[2].replace(",", "."), bulk: b ? { at: b[1], ra: b[2].replace(",", "."), rb: b[3].replace(",", ".") } : null, items: [] }); zone = "group"; continue; }
@@ -5667,7 +5713,7 @@ function ownParse(lines, Wc) {
     const segs = []; let cur = null;
     toks.forEach(t => {
       if (t.k === "w") { if (!cur || cur.S.length) { if (cur && cur.S.length && t.t.length < 3) return; cur = { name: [], nh: [], wx: [], S: [], x0: t.w.x0, y: (L.y0 + L.y1) / 2, hh: 0 }; segs.push(cur); } if (!cur.S.length) { cur.name.push(t.t); cur.nh.push(t.w.y1 - t.w.y0); cur.wx.push(t.w.x0); if (t.t.length >= 3 && cur.nx0 == null) { cur.nx0 = t.w.x0; cur.hh = t.w.y1 - t.w.y0; } cur.nx1 = t.w.x1; cur.ny0 = Math.min(cur.ny0 == null ? 1e9 : cur.ny0, t.w.y0); cur.ny1 = Math.max(cur.ny1 || 0, t.w.y1); } }
-      else if (t.k !== "j" && cur && cur.name.length) cur.S.push(t);
+      else if (cur && cur.name.length) { cur.raw = (cur.raw || "") + " " + t.w.t; if (t.k !== "j") cur.S.push(t); }
     });
     const got = [];
     segs.forEach(g => {
@@ -5676,7 +5722,7 @@ function ownParse(lines, Wc) {
       const hs = g.nh.filter((x, i) => g.name[i].length >= 3), mh = hs.length ? Math.max(...hs) : 0; let ne = g.name.length; while (ne > 1 && g.nh[ne - 1] < mh * .72 && /^[a-z]/i.test(g.name[ne - 1])) ne--;
       let m = ownMatch(g.name), noteW = [];
       if (ne < g.name.length && (!m || m.sc < .9)) { const m2 = ownMatch(g.name.slice(0, ne)); if (m2 && m2.sc > (m ? m.sc : 0) + .05) { m = m2; noteW = g.name.slice(ne); g.name = g.name.slice(0, ne); } }
-      const f = ownFix(g.S, m && m.p.id); if (!f.q || (!m && !f.ok) || (O.header && f.p == null)) return;
+      const f = ownFix(g.S, m && m.p.id, g.raw); if ((!f.q && !m) || (!m && !f.ok) || (O.header && f.p == null)) return;
       const left = noteW.join(" ").replace(/^[\s.·…]+|[\s.·…]+$/g, "");
       const nm = g.name.filter((w, i) => i > 0 || w.length >= 3).join(" ").replace(/[.·…]+$/g, "").trim();
       const row = { ref: m ? m.p.id : null, name: m ? "" : nm, sc: m ? m.sc : 0, p: f.p, pu: f.pu, q: f.q, ok: f.ok, note: left && /[a-z]{3}/i.test(left) ? left : "", col: colOf(m ? g.wx[m.i] : g.x0), y: g.y, x0: m ? g.wx[m.i] : g.nx0 != null ? g.nx0 : g.x0, hh: g.hh, nx1: g.nx1, ny0: g.ny0, ny1: g.ny1 };
@@ -5773,7 +5819,7 @@ function ownPosts(owns) {
     // the next screenshot of the same long picture (no title at the top) → the same post
     if (prev && !O.kind && prev.type !== "trade") { prev.wants.push(...O.rows.map(ownItem)); prev.notes.push(...O.notes); if (O.disc) prev.disc = O.disc; return; }
     const type = O.kind || (O.groups.length ? "trade" : "vente"), who = O.user.replace(/\s*\/\s*\d+\s*$/, "").trim();
-    const P = { type, on: true, name: TYPES[type].name + " · " + (who || "imported"), notes: O.notes.slice(0, 20), title: O.title, user: O.user, disc: O.disc };
+    const P = { type, on: true, name: TYPES[type].name + " · " + (who || "imported"), notes: O.notes.slice(0, 20), title: O.title, user: O.user, disc: O.disc, bulkT: O.bulk, sub: O.sub, cta: O.cta != null ? O.cta : O.sub != null ? "" : null };
     if (type === "trade") {
       P.have = O.have.map(h => ({ ref: h.ref, q: h.q || "" })); if (!P.have.length) P.have = [{ name: "My items" }];
       P.wants = O.groups.flatMap(g => g.items.map(it => ({ ref: it.ref, ra: g.ra, rb: g.rb, gi: 0, bulk: g.bulk }))).concat(O.rows.map(ownItem));
@@ -5819,6 +5865,8 @@ function namedItems(words) {
     if (!x || !/[a-z]{3}/i.test(x) || NOISE.test(x)) { if (notes.length && out.length) out[out.length - 1].note = [out[out.length - 1].note, ...notes].filter(Boolean).join(" · "); return; }
     // a quantity in front ("120 bem set") or behind ("bem x120")
     let q = ""; x = x.replace(/^(\d+(?:[.,]\d+)?\s*k?)\s*x?\s+(?=[a-z])/i, (m, n) => { q = n; return ""; }).replace(/\s+x\s*(\d+)$/i, (m, n) => { q = n; return ""; }).trim();
+    x = x.replace(/\b([a-z0-9|]{2,5})(\s*sets?)\b/i, (m0, w, st) => { const k = norm(w).replace(/rn/g, "m").replace(/[1|]/g, "l").replace(/0/g, "o"), C = ["bem", "sem", "lem", "tem"];
+      if (C.includes(k)) return k + st; const near = C.filter(c => lev(k, c) <= 1 && k.length === 3); return near.length === 1 ? near[0] + st : m0; });
     const p = importMatch(x.replace(/[.]+/g, " ").trim());
     const it = p ? { ref: p.id } : { name: x.replace(/[.,]+$/, "").replace(/\s+/g, " ") };
     if (q) it.q = String(num(q)); if (notes.length) it.note = notes.join(" · ");
@@ -5886,7 +5934,11 @@ function impParse(lines, tiles, picNotes, text) {
       sec = "have"; const rest = s.replace(HAVE_RE, "");
       let items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
       // "Have BEM Sets 🩹🪵🔩" → the set (its material pictures, recognised or not, are just decoration)
-      const pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
+      let pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
+      if (!pk) { const refs = new Set(items.filter(x => x.ref).map(x => x.ref)), pack = CAT.list.find(p => p.parts && p.parts.filter(r => refs.has(r)).length >= 2);
+        if (pack) { const named = items.find(x => !x.ref && x.name && /\bsets?\b/i.test(x.name)) || items.find(x => !x.ref && x.name && x.q);
+          pk = Object.assign({ ref: pack.id }, named && named.q ? { q: named.q } : {}, named && named.note ? { note: named.note } : {});
+          items = [pk].concat(items.filter(x => x !== named && !(x.ref && pack.parts.includes(x.ref)))); } }
       if (pk) items = items.filter(x => x === pk || (x.ref && !CAT.byId[pk.ref].parts.includes(x.ref) && !(CAT.byId[x.ref] || {}).parts) || (x.ref && CAT.byId[x.ref].parts) || (!x.ref && !x.unknown && x.name));
       if (!items.length) items = [{ unknown: { view: null }, name: "" }];          // "Have [picture not recognised]" → to pick
       giveIdx = R.have.length; R.have.push(...items); lastNote = null; return;
@@ -5919,7 +5971,9 @@ function impParse(lines, tiles, picNotes, text) {
       // a ratio alone on its line → the text line just above is what it's for ("Mixed Juices (2nd page)" / "90:89")
       if (!items.length && lastNote && lastNote.li === li - 1) { R.notes.splice(R.notes.indexOf(lastNote.s), 1); items = [{ name: lastNote.s }]; }
       lastNote = null;
-      const B = bulkOf(s.slice(rm.index + rm[0].length).replace(/~+/g, " ")), rest = cleanNote(B.note);
+      const B = bulkOf(s.slice(rm.index + rm[0].length).replace(/~+/g, " "));
+      if (B.bulk) { const k = (B.bulk.need / B.bulk.have) / (+rm[1].replace(",", ".") / +rm[2].replace(",", ".")); if (!(k > .5 && k < 1.6)) { B.note = s.slice(rm.index + rm[0].length); B.bulk = null; } }
+      const rest = cleanNote(B.note);
       R.groups.push({ give: giveIdx, need: +rm[1].replace(",", "."), have: +rm[2].replace(",", "."), items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "", bulk: B.bulk || null });
       return;
     }
@@ -6029,6 +6083,8 @@ function impCreate() {
   IMP.res.posts.filter(P => P.on).forEach(P => {
     const p = mkProfile(P.type, P.name.trim() || TYPES[P.type].name);
     if (P.title) p.title = P.title; if (P.user) p.user = P.user; if (P.disc && P.type === "vente") p.disc = P.disc;
+    if (P.bulkT && P.bulkT.length && P.type === "achat") p.bulk = P.bulkT.slice(0, 4);
+    if (P.sub != null) p.sub = P.sub; if (P.cta != null) p.cta = P.cta;
     if (P.type === "trade") {
       p.have = (P.have || []).map(x => mk(x, Object.assign(x.q ? { q: x.q } : {}, x.note ? { note: x.note } : {}))).filter(Boolean);
       const hv = (P.have || []).map((x, i) => [x, p.have[(P.have || []).filter((y, j) => j < i && (y.ref || y.name || y.unknown)).length]]);
