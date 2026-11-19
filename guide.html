@@ -319,8 +319,10 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
   </div>
   <ul class="tips">
     <li><b>50 : 89</b> = you give 50 of your item for 89 of theirs. The first number is always yours.</li>
-    <li><b>Sets count materials.</b> 89 BEM = 89 materials, split evenly: 30 Bolt · 30 Plank · 29 Duct Tape. Same for SEM, LEM, TEM and Tools.</li>
+    <li><b>1 set = 89 materials</b>: 30 Bolt · 30 Plank · 29 Duct Tape. 10 sets = 890 = 300 · 300 · 290; what's left over is split evenly (134 BEM = 45 · 45 · 44). Same for SEM, LEM, TEM and Tools.</li>
+    <li>Your “I have” stock of a set is in <b>sets</b> (“BEM Set ×120” = 120 sets = 10,680 materials). After a deal of 890 BEM it goes to 110.</li>
     <li>Items with the same ratio share one box. Change the big numbers → the whole box changes.</li>
+    <li><b>Bulk ratio</b> (⋯ of a box): a better ratio for big deals — e.g. <span class="k">10+ sets → 89 : 40</span> instead of 89 : 45. It shows on the picture, and <b>Order</b> uses it as soon as the deal reaches 10 sets.</li>
   </ul>
   <h3>I have</h3>
   <ul class="tips">
@@ -367,7 +369,7 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
     <li><b>★</b> highlights the item (marked on the picture).</li>
     <li><b>+ Note</b>: a small line under the item on the picture (“Fresh harvest”).</li>
     <li><b>⋯</b>: move up / down / to top, duplicate, remove. In Trade also: change ratio, add a note, move to “I have”.</li>
-    <li>×MP items show the game’s max price: <i>Max price 7 · 5×MP = 35 each</i>.</li>
+    <li>×MP items show the game’s max price of one item, taken from its price for 10: corn is 72 for 10 → <i>Max price 7.2 · 5×MP = 36 each</i>. A set's max price is the sum of its 89 materials.</li>
   </ul>
   <h3>Same price for all</h3>
   <ul class="tips">
@@ -634,16 +636,19 @@ footer p{color:var(--mut);font-size:15px;margin-top:14px}
 <!-- IMPORT -->
 <section class="step" id="import">
   <h2><span class="n">12</span>Import an old post</h2>
-  <p class="say">Your posts from before (on Discord, or made with another post maker) → posts here, in a few taps. The <b>⤓</b> button at the top right, next to your profile.</p>
+  <p class="say">Your posts from before (on Discord, or made with another post maker) → a new post here, made and opened by itself. The <b>⤓</b> button at the top right, next to your profile.</p>
   <div class="steps3">
     <div><span class="no">1</span><b>📷 Screenshots of the post</b> — your Discord message (text, emojis, ~~struck~~ lines) and/or the picture of another post maker (tiles with “5x” and the quantity). Or paste the text: Discord → long-press the message → <b>Copy Text</b>.</div>
-    <div><span class="no">2</span>Check what was read: the type (Trade / Selling / Buying), the items, the ratios, quantities and prices. Orange <b>?</b> = tap to pick the item.</div>
-    <div><span class="no">3</span><b>Create the post</b>. A message with a trade and a picture of items for sale → two posts.</div>
+    <div><span class="no">2</span>The new post opens in <b>Items</b>, named after the author (“Trade · Ladloq”). A message with a trade and a picture of items for sale → two posts.</div>
+    <div><span class="no">3</span>Tap the orange <b>? Pick the item</b> lines (pictures it didn't recognise) and choose the item. A wrong item: ⋯ → <b>Change the item</b>.</div>
   </div>
   <ul class="tips">
     <li>Trades: <span class="k">Need 💍 50:89</span> under <span class="k">Have BEM</span> = they give 50 rings for 89 BEM → here “you give 89 BEM : you get 50”.</li>
     <li>Struck lines (<s>70:89</s>) come in as <b>out of stock</b> (⊘ to change it).</li>
-    <li><b>Emojis</b> become the items: each row shows the picture read on your screenshot next to the item found — a saw comes in as <b>Saw</b>. Wrong or <b>?</b>: tap it and pick the right item. Your pick is <b>remembered</b>: the next import recognises that picture by itself.</li>
+    <li><b>Emojis</b> become the items — a saw comes in as <b>Saw</b>. Your picks are <b>remembered</b>: the next import recognises those pictures by itself.</li>
+    <li>Words it doesn't know as one game item stay <b>as written</b>: <span class="k">Fp jams</span>, <span class="k">mussel foods</span>, <span class="k">olive dip</span> become items with that name.</li>
+    <li><b>Quantities and splits</b>: <span class="k">Have 120 bem set (29/30/30)</span> → BEM Set ×120, note “29/30/30”.</li>
+    <li><b>Bulk ratios</b>: <span class="k">45:89 // 40:89 for 10 sets +</span> → 89 : 45, and 89 : 40 from 10 sets. <span class="k">No bulk discount</span> → the note. Selling: <span class="k">10% off</span> → the discount. Buying: <span class="k">+10% for 100+ items</span> → a bulk bonus.</li>
     <li>Faces and stickers after a ratio (<span class="k">50:89 😶</span>) are left out.</li>
     <li>Other lines (“Dm &amp; ping”, “Partial 50+”) become the notes of the post.</li>
     <li>Everything is read on your phone; the text reader loads the first time (internet needed). Use the original screenshots. If a word is misread, fix it in the list — or paste the text instead.</li>

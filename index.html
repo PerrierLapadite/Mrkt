@@ -431,6 +431,12 @@ body[data-tab=prev] #editor{display:none}
 .tabbar .srch svg{width:15px;height:15px;flex:none}
 .tabbar .srch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--acc)!important}
 /* items: where new items come from */
+.name.pickme{border:1.5px dashed #e6a93a!important;background:rgba(230,169,58,.18)!important;color:var(--ink);border-radius:8px;font:700 14px var(--sans);min-height:36px;padding:0 10px!important;margin-left:0;text-align:left;justify-self:start}
+.bulkr{display:block;width:calc(100% - 20px);margin:-2px 10px 6px;border:1px dashed var(--line2);background:var(--surface2);border-radius:8px;padding:6px 10px;font:600 13px var(--sans);color:var(--ink);text-align:left}
+.bulkr b{color:var(--acc);margin-right:4px}
+.bulkf{display:grid;grid-template-columns:auto 64px auto auto 64px auto 64px;gap:6px;align-items:center;font:600 14px var(--sans);color:var(--mut)}
+.bulkf .inp{padding:8px 6px;text-align:center;min-height:40px}
+.stab td .smat{display:block;font:600 11px var(--sans);color:var(--mut)}
 .srcrow{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;margin-bottom:10px}
 .srcrow .lbl{margin:0;white-space:nowrap}
 .srcseg button{font-size:13px;padding:0 4px}
@@ -1198,6 +1204,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 function num(v) {
   let s = String(v ?? "").toLowerCase().replace(/[\s\u00a0\u202f]/g, "");
   s = /^\d*,\d{1,2}[km]?$/.test(s) ? s.replace(",", ".") : s.replace(/,/g, ""); // "2,5" = 2.5 · "1,500" = 1500
+  if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");                     // "1.000" = 1000 (a dot between thousands)
   if (!s) return 0;
   const m = s.match(/^(\d*\.?\d+)(k|m)?$/);
   if (m) return parseFloat(m[1]) * (m[2] === "k" ? 1e3 : m[2] === "m" ? 1e6 : 1);
@@ -1205,9 +1212,19 @@ function num(v) {
   return isFinite(f) ? f : 0;
 }
 const fmt = n => Math.round(n).toLocaleString("en-US");
+/* ---------- sets: 1 set (BEM, SEM, LEM…) = 89 materials, split 30 / 30 / 29 ---------- */
+const SET_N = 89;
+const isPackRef = ref => { const p = ref && CAT.byId[ref]; return !!(p && p.parts); };
+/** A quantity as materials: sets × 89 (a post's "BEM Set ×10" = 890 materials), anything else as is. */
+const asMat = (x, q) => isPackRef(x && x.ref) ? q * SET_N : q;
+const setsTxt = n => fmtP(n) + (Math.abs(n - 1) < 1e-9 ? " set" : " sets");
+/** A post's stock after giving `given` (materials for a set): 120 sets − 890 materials → 110 sets. */
+const stockLeft = (it, given) => { const have = num(it.q); return isPackRef(it.ref) ? Math.max(0, Math.round((have - given / SET_N) * 100) / 100) : Math.max(0, Math.round(have) - Math.round(given)); };
+/** A price: whole coins as usual, a fraction when there is one (1.5 → "1.5", not "2"). */
+const fmtP = n => Math.abs(n - Math.round(n)) < 1e-9 ? fmt(n) : (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const fmtR = n => (Math.abs(n) < 100 ? Math.round(n * 10) / 10 : Math.round(n)).toLocaleString("en-US", { maximumFractionDigits: 1 });
 // ?demo = read-only copy used by guide.html: never reads or writes the visitor's posts (only shared caches)
-const DEMO = /[?&]demo\b/.test(location.search), CACHE_KEY = /^hd5_(urls|wiki|maxp)$/;
+const DEMO = /[?&]demo\b/.test(location.search), CACHE_KEY = /^hd5_(urls|wiki|maxp|maxp10)$/;
 const store = {
   get(k, d) { if (DEMO && !CACHE_KEY.test(k)) return d; try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { if (DEMO && !CACHE_KEY.test(k)) return true; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
@@ -1545,7 +1562,7 @@ function bulkTxt(t) {
   if (t.mode === "order") return "≥ " + fmt(t.at) + " items at once";
   return t.at >= 100 ? "the full quantity at once" : "≥ " + fmtR(t.at) + "% of the quantity at once";
 }
-const curTxt = (k, n) => fmtR(n) + " " + (Math.abs(n - 1) < 1e-9 ? CUR[k].one : CUR[k].many);
+const curTxt = (k, n) => { const s = fmtR(n); return s + " " + (s === "1" ? CUR[k].one : CUR[k].many); };
 /** Value of an item in coins (sell / buy posts only — trade posts use ratios, no prices). */
 function itemValue(w) {
   if (st && st.type === "trade") return 0;
@@ -1559,19 +1576,21 @@ function unitPrice(w) {
   return p;
 }
 /* ---------- max prices: manual > wiki (cached) > built-in table; sets = sum of their 3 materials ---------- */
-let MAXP = store.get("hd5_maxp", {});           // id -> max price from the wiki (0 = not found)
+// id -> max price of ONE item, from the wiki's price for 10 ("216 for 10" → 21.6; the infobox rounds it to 21) — 0 = not found
+let MAXP = store.get("hd5_maxp10", {});
 const mpQueue = [], mpPending = new Set(); let mpActive = 0;
 const itemMax = w => maxPrice(w.ref); // fixed game values only — not editable
 function maxPrice(id) {
   const p = id && CAT.byId[id]; if (!p) return 0;
-  if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) : 0; }
+  // a set = its 89 materials (30 Bolt + 30 Plank + 29 Duct Tape)
+  if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? packSplit(p, SET_N).reduce((a, s, i) => a + s.n * v[i], 0) : 0; }
   if (MAXP[id] > 0) return MAXP[id];
   if (!(id in MAXP) && !p.custom) queueMax(id);
   return MAXP_BASE[id] || 0;
 }
 function maxSource(w) {
   const p = w.ref && CAT.byId[w.ref]; if (!p) return "none";
-  if (p.parts) return maxPrice(p.id) ? "sum of the 3 materials" : (p.parts.some(x => mpPending.has(x)) ? "loading" : "none");
+  if (p.parts) return maxPrice(p.id) ? "its 89 materials" : (p.parts.some(x => mpPending.has(x)) ? "loading" : "none");
   if (MAXP[p.id] > 0) return "wiki";
   if (mpPending.has(p.id)) return MAXP_BASE[p.id] ? "table" : "loading";
   return MAXP_BASE[p.id] ? "table" : "none";
@@ -1580,31 +1599,30 @@ function queueMax(id) { if (mpPending.has(id)) return; mpPending.add(id); mpQueu
 function pumpMax() {
   while (mpActive < 4 && mpQueue.length) {
     const id = mpQueue.shift(); mpActive++;
-    fetchMax(id).then(v => { if (v !== null) { MAXP[id] = v; store.set("hd5_maxp", MAXP); } })
+    fetchMax(id).then(v => { if (v !== null) { MAXP[id] = v; store.set("hd5_maxp10", MAXP); } })
       .finally(() => { mpActive--; mpPending.delete(id); maxLoaded(); pumpMax(); });
   }
 }
-/** Same method as hd.jjtechdev.com: the wiki infobox "price" reads "1 to N" → N is the max price. */
+/** The game's max price of one item, from its wiki page: "can be bought or sold for a maximum price of 216 Coin for 10 loaves" → 21.6.
+    The infobox ("1 to 21") is only used when the page has no price for 10 (it is rounded). */
 async function fetchMax(id) {
   const p = CAT.byId[id], page = p.en.replace(/ /g, "_");
-  for (const section of ["0", ""]) {
-    let html;
-    try {
-      const q = { origin: "*", action: "parse", page, format: "json", prop: "text", redirects: "1", disablelimitreport: "1", disableeditsection: "1" };
-      if (section) q.section = section;
-      const j = await (await fetch(WIKI_API + "?" + new URLSearchParams(q))).json();
-      if (j.error) return 0;
-      html = j.parse && j.parse.text && j.parse.text["*"];
-    } catch (e) { return null; } // offline: retry next time
-    if (!html) continue;
-    const el = new DOMParser().parseFromString(html, "text/html").querySelector("[data-source='price'], [data-source='Price'], [data-source='maxprice']");
-    if (!el) continue;
-    const t = el.textContent, m = t.match(/to\s*([\d,.]+)/i);
-    const nums = m ? [num(m[1])] : (t.match(/\d[\d,]*/g) || []).map(num);
-    const v = Math.max(0, ...nums.filter(n => n > 0));
-    if (v) return v;
-  }
-  return 0;
+  let html;
+  try {
+    const q = { origin: "*", action: "parse", page, format: "json", prop: "text", redirects: "1", disablelimitreport: "1", disableeditsection: "1" };
+    const j = await (await fetch(WIKI_API + "?" + new URLSearchParams(q))).json();
+    if (j.error) return 0;
+    html = j.parse && j.parse.text && j.parse.text["*"];
+  } catch (e) { return null; } // offline: retry next time
+  if (!html) return 0;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const m10 = (doc.body.textContent || "").replace(/\s+/g, " ").match(/maximum price of\s*([\d][\d,.]*)\s*(?:coins?\s*)*for\s*(\d+)\b/i);
+  if (m10 && num(m10[1]) > 0 && num(m10[2]) > 0) return Math.round(num(m10[1]) / num(m10[2]) * 1000) / 1000;
+  const el = doc.querySelector("[data-source='price'], [data-source='Price'], [data-source='maxprice']");
+  if (!el) return 0;
+  const t = el.textContent, m = t.match(/to\s*([\d,.]+)/i);
+  const nums = m ? [num(m[1])] : (t.match(/\d[\d,]*/g) || []).map(num);
+  return Math.max(0, ...nums.filter(n => n > 0));
 }
 let VAL_UPD = [];
 const maxLoaded = debounce(() => { VAL_UPD.forEach(f => { try { f(); } catch (e) {} }); scheduleDraw(); renderSummary(); if (typeof renderOrder === "function") renderOrder(); }, 120);
@@ -1788,13 +1806,21 @@ const hasRatio = w => num(w.ra) > 0 && num(w.rb) > 0;
 /* ratio groups (trade): items sharing the same "give : get" ratio */
 function firstHave() { return st.have.find(x => (x.name || "").trim() || x.ref) || null; }
 function normGive(uid) { const g = st.have.find(x => x.uid === uid && ((x.name || "").trim() || x.ref)) || firstHave(); return g ? g.uid : ""; }
-function ratioKeyOf(ra, rb, give) { return num(ra) > 0 && num(rb) > 0 ? fmtR(num(ra)) + ":" + fmtR(num(rb)) + ":" + normGive(give) : "none"; }
-const ratioKey = w => ratioKeyOf(w.ra, w.rb, w.give);
+// a group = same ratio, same item given, same bulk ratio
+const bulkSfx = b => b && num(b.at) > 0 && num(b.ra) > 0 && num(b.rb) > 0 ? "|" + fmtR(num(b.at)) + ":" + fmtR(num(b.ra)) + ":" + fmtR(num(b.rb)) : "";
+function ratioKeyOf(ra, rb, give, bulk) { return num(ra) > 0 && num(rb) > 0 ? fmtR(num(ra)) + ":" + fmtR(num(rb)) + ":" + normGive(give) + bulkSfx(bulk) : "none"; }
+const ratioKey = w => ratioKeyOf(w.ra, w.rb, w.give, { at: w.bat, ra: w.bra, rb: w.brb });
 function ratioGroups(list) {
   const m = new Map();
   list.forEach(w => { const k = ratioKey(w); if (!m.has(k)) m.set(k, { key: k, ra: w.ra, rb: w.rb, give: normGive(w.give), none: k === "none", items: [] }); m.get(k).items.push(w); });
-  const g = [...m.values()]; return g.filter(x => !x.none).concat(g.filter(x => x.none));
+  const g = [...m.values()];
+  // bulk ratio (big deals): "from 10 sets → 89 : 40", set on the group's items
+  g.forEach(x => { const b = x.items.find(w => num(w.bat) > 0 && num(w.bra) > 0 && num(w.brb) > 0); x.bulk = b && !x.none ? { at: b.bat, ra: b.bra, rb: b.brb } : null; });
+  return g.filter(x => !x.none).concat(g.filter(x => x.none));
 }
+/** "10+ sets" / "10+ rings": the size a bulk ratio starts at, in what you give. */
+function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; return p && p.parts ? "sets" : gi ? (gi.name || "items").toLowerCase().replace(/(?<!s)$/, "s") : "items"; }
+const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.ra)) + " : " + fmtR(num(g.bulk.rb));
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
   const by = { qty: (x, y) => num(y.q) - num(x.q), value: (x, y) => itemValue(y) - itemValue(x), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[st.sort];
@@ -1826,7 +1852,7 @@ function drawRatio(w, x, cy, s, T) {
 function amounts(w) {
   const p = num(w.p); if (!p) return null;
   const q = num(w.q), v = itemValue(w);
-  return { main: fmt(v), sub: q > 0 ? fmt(q) + " × " + (isCur(w.pu) ? fmtR(p) : fmt(p)) : "each", ring: isCur(w.pu) ? w.pu : null };
+  return { main: fmt(v), sub: q > 0 ? fmt(q) + " × " + (isCur(w.pu) ? fmtR(p) : w.pu === "xmp" ? fmtR(p) + "×MP" : fmtP(p)) : "each", ring: isCur(w.pu) ? w.pu : null };
 }
 function amountsW(a, s) { return Math.max(measure(a.main, "D", s * .84) + s * .9 + 8, measure(a.sub, "600", Math.round(s * .64)) + (a.ring ? s * .8 : 0)); }
 function drawAmounts(a, xr, cy, s, T, center) {
@@ -1844,8 +1870,8 @@ function ledgerVal(w, k) {
   const p = num(w.p), q = num(w.q), v = itemValue(w);
   if (k === "p") {
     if (!p) return null;
-    if (w.pu === "xmp") { const u = unitPrice(w); return { t: fmtR(p) + "×MP", sub: u ? fmt(u) + " ea" : "max price ?" }; }
-    return { t: isCur(w.pu) ? fmtR(p) : fmt(p), ic: isCur(w.pu) ? w.pu : "coin" };
+    if (w.pu === "xmp") { const u = unitPrice(w); return { t: fmtR(p) + "×MP", sub: u ? fmtP(u) + " ea" : "max price ?" }; }
+    return { t: isCur(w.pu) ? fmtR(p) : fmtP(p), ic: isCur(w.pu) ? w.pu : "coin" };
   }
   if (k === "q") return { t: q > 0 ? "×" + fmt(q) : "×1" };
   if (k === "t") return v ? { t: fmt(v), ic: "coin", strong: 1 } : null;
@@ -2070,6 +2096,7 @@ function draw() {
         if (gi) { icon(itemState(gi), gi.e, x + 12 + 26, hy, 52, 1); x += 12 + 52; }
         x += 18; x += txt(":", x, hy, { f: "D", s, c: T.mut }) + 18;
         const rbw = txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.acc });
+        if (g.bulk) txt(bulkLabel(g), W - M - BP - 6, hy + 2, { f: "700", s: 26, c: T.acc, al: "right", maxW: W - 2 * M - 2 * BP - (x + rbw - M) - 40 });
         if (g.items.length && g.items.every(w => w.oos)) { ctx.fillStyle = T.ink; ctx.fillRect(M + BP, Math.round(hy) - 2, x + rbw + 6 - M - BP, 5); } // whole ratio out of stock
       }
       rule(M + 7, W - M - 7, y + 84, 1, T.ink);
@@ -2356,9 +2383,11 @@ function renderCats() {
   renderTarget();
 }
 /* ---------- trade: where new items go (I have, or a ratio group) ---------- */
-const curAddKey = () => st.addR ? ratioKeyOf(st.addR.ra, st.addR.rb, st.addR.give) : "none";
+const curAddKey = () => st.addR ? ratioKeyOf(st.addR.ra, st.addR.rb, st.addR.give, { at: st.addR.bat, ra: st.addR.bra, rb: st.addR.brb }) : "none";
+/** What a new "I want" item gets in a trade post: the ratio (and bulk ratio) of the group you add to. */
+const addRF = () => { const r = st.addR; return Object.assign({ ra: r.ra, rb: r.rb, give: r.give }, r.bat ? { bat: r.bat, bra: r.bra, brb: r.brb } : {}); };
 function ratioLabel(ra, rb) { return fmtR(num(ra)) + " : " + fmtR(num(rb)); }
-function setAddR(r) { st.addR = r ? { ra: r.ra, rb: r.rb, give: normGive(r.give) } : null; SETTINGS.to = "wants"; saveSettings(); saveSoon(); renderTarget(); renderResults(); markTargetGroup(); }
+function setAddR(r) { const b = r && (r.bulk || (r.bat ? { at: r.bat, ra: r.bra, rb: r.brb } : null)); st.addR = r ? Object.assign({ ra: r.ra, rb: r.rb, give: normGive(r.give) }, b ? { bat: b.at, bra: b.ra, brb: b.rb } : {}) : null; SETTINGS.to = "wants"; saveSettings(); saveSoon(); renderTarget(); renderResults(); markTargetGroup(); }
 function renderTarget() {
   const trade = st.type === "trade";
   $("#target").hidden = !trade; if (!trade) return;
@@ -2370,7 +2399,7 @@ function renderTarget() {
   groups.forEach(g => {
     seen.add(g.key);
     const gi = multi && !g.none ? st.have.find(x => x.uid === g.give) : null;
-    tc.append(h("button", { class: "chip r" + (!toHave && k === g.key ? " on" : ""), onclick: () => setAddR(g.none ? null : g) }, gi ? thumb(itemState(gi), gi.e) : null, g.none ? "No ratio" : ratioLabel(g.ra, g.rb)));
+    tc.append(h("button", { class: "chip r" + (!toHave && k === g.key ? " on" : ""), onclick: () => setAddR(g.none ? null : g) }, gi ? thumb(itemState(gi), gi.e) : null, g.none ? "No ratio" : ratioLabel(g.ra, g.rb), g.bulk ? h("small", { class: "cbulk" }, " · " + fmtR(num(g.bulk.rb)) + " bulk") : null));
   });
   if (!toHave && !seen.has(k)) tc.append(h("button", { class: "chip r on" }, k === "none" ? "No ratio" : ratioLabel(st.addR.ra, st.addR.rb)));
   tc.append(h("button", { class: "chip plus", onclick: newRatioSheet }, "+ Ratio"));
@@ -2454,7 +2483,7 @@ function addFromInv(i, quiet) {
   const ex = list.find(it => it.ref === i.ref);
   if (ex) { if (withQ) ex.q = String(i.q); if (!quiet) { flashItem(ex.uid); toast(p.en + (withQ ? ": " + fmt(i.q) : " is already in the list")); } return 0; }
   if (list.length >= 150) { if (!quiet) toast("150 items max per post."); return 0; }
-  list.push(mkItem(i.ref, Object.assign(withQ ? { q: String(i.q) } : {}, st.type === "trade" && list === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : {})));
+  list.push(mkItem(i.ref, Object.assign(withQ ? { q: String(i.q) } : {}, st.type === "trade" && list === st.wants && st.addR ? addRF() : {})));
   pushRecent(i.ref); if (!quiet) { renderLists(); renderInvPick(); changed(); toast("✓ " + p.en + " added" + (withQ ? " ×" + fmt(i.q) : "")); }
   return 1;
 }
@@ -2475,12 +2504,12 @@ function addFromCatalog(p) {
   const list = targetList(), ex = list.find(it => it.ref === p.id);
   if (ex) { flashItem(ex.uid); toast(p.en + " is already in the list"); return; }
   if (list.length >= 150) return toast("150 items max per post.");
-  list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : null)); pushRecent(p.id);
+  list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : null)); pushRecent(p.id);
   renderLists(); renderResults(); changed();
   toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : ""));
 }
 $("#freeAdd").onclick = () => {
-  const it = mkItem(null, Object.assign({ name: $("#q").value.trim(), e: "📦" }, st.type === "trade" && targetList() === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : {}));
+  const it = mkItem(null, Object.assign({ name: $("#q").value.trim(), e: "📦" }, st.type === "trade" && targetList() === st.wants && st.addR ? addRF() : {}));
   targetList().push(it); renderLists(); changed();
   setTimeout(() => { const el = document.querySelector(`[data-uid="${it.uid}"] .name`); if (el) { el.focus(); el.scrollIntoView({ block: "center", behavior: "smooth" }); } }, 50);
 };
@@ -2538,7 +2567,7 @@ function groupCard(g) {
   const a = h("input", { value: g.none ? "" : g.ra, inputMode: "decimal", placeholder: "50", "aria-label": "I give" });
   const b = h("input", { value: g.none ? "" : g.rb, inputMode: "decimal", placeholder: "89", class: "b", "aria-label": "I get" });
   const wasTarget = () => SETTINGS.to !== "have" && curAddKey() === g.key;
-  const apply = () => { const t = wasTarget(); g.items.forEach(w => { w.ra = a.value.trim(); w.rb = b.value.trim(); w.give = g.give; }); if (t) st.addR = { ra: a.value.trim(), rb: b.value.trim(), give: g.give }; g.key = ratioKeyOf(a.value, b.value, g.give); changed(); renderSummary(); };
+  const apply = () => { const t = wasTarget(); g.items.forEach(w => { w.ra = a.value.trim(); w.rb = b.value.trim(); w.give = g.give; }); if (t) st.addR = Object.assign({ ra: a.value.trim(), rb: b.value.trim(), give: g.give }, g.bulk ? { bat: g.bulk.at, bra: g.bulk.ra, brb: g.bulk.rb } : {}); g.key = ratioKeyOf(a.value, b.value, g.give, g.bulk); changed(); renderSummary(); };
   a.oninput = apply; b.oninput = apply;
   a.onchange = b.onchange = () => { renderLists(); renderTarget(); };
   const giveBtn = h("button", { type: "button", class: "ti", title: "Which of your items you give" });
@@ -2552,18 +2581,60 @@ function groupCard(g) {
   };
   const menu = h("button", { class: "ib", "aria-label": "Group actions", onclick: () => openSheet(g.none ? "Items without ratio" : "Ratio " + ratioLabel(g.ra, g.rb), h("div", { class: "menu" },
     h("button", { onclick: () => { closeSheet(); addHere(); } }, h("i", null, "＋"), "Add items to this group"),
+    g.none ? null : h("button", { onclick: () => { closeSheet(); setTimeout(() => bulkSheet(g), 220); } }, h("i", null, "⇣"), g.bulk ? "Bulk ratio: " + bulkLabel(g) : "Bulk ratio (for big deals)"),
     h("button", { class: "danger", onclick: () => { if (!confirm("Remove the " + g.items.length + " items of this group?")) return; st.wants = st.wants.filter(w => !g.items.includes(w)); closeSheet(); renderLists(); renderTarget(); renderResults(); changed(); } }, h("i", null, "×"), "Remove this group and its items"))) }, "⋯");
-  const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(() => $("#q").focus({ preventScroll: true }), 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
+  const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give, bulk: g.bulk }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(() => $("#q").focus({ preventScroll: true }), 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
   card.append(
     h("div", { class: "grp-h" }, h("div", { class: "rin" }, giveBtn, a, h("span", { class: "colon" }, ":"), b), menu),
+    g.bulk ? h("button", { class: "bulkr", title: "Bulk ratio — tap to change", onclick: () => bulkSheet(g) }, h("b", null, "Bulk"), " " + bulkLabel(g)) : null,
     h("div", null, g.items.map(groupRow)),
     h("div", { class: "grp-f" }, h("button", { type: "button", class: "addhere", onclick: addHere }, "+ Add items here")));
   return card;
+}
+/** A better ratio for big deals: "from 10 sets → 89 : 40" (set on the whole group). */
+function bulkSheet(g) {
+  const b0 = g.bulk || {}, unit = bulkUnit(g);
+  const at = h("input", { class: "inp", value: b0.at || "", inputMode: "numeric", placeholder: "10", "aria-label": "From how many" });
+  const ra = h("input", { class: "inp", value: b0.ra || g.ra || "", inputMode: "decimal", placeholder: g.ra || "89", "aria-label": "You give" });
+  const rb = h("input", { class: "inp", value: b0.rb || "", inputMode: "decimal", placeholder: g.rb || "40", "aria-label": "You get" });
+  const put = (A, B, C) => { const tgt = SETTINGS.to !== "have" && curAddKey() === g.key;
+    g.items.forEach(w => { if (A) { w.bat = A; w.bra = B; w.brb = C; } else { delete w.bat; delete w.bra; delete w.brb; } });
+    if (tgt) setAddR({ ra: g.ra, rb: g.rb, give: g.give, bulk: A ? { at: A, ra: B, rb: C } : null });
+    closeSheet(); renderLists(); renderTarget(); changed(); };
+  openSheet("Bulk ratio", [
+    h("p", { class: "hint" }, "For big deals: once someone takes this many, this ratio is used instead of " + ratioLabel(g.ra, g.rb) + ". It shows on the picture and Order uses it."),
+    h("div", { class: "bulkf" }, h("span", null, "From"), at, h("span", null, unit), h("span", null, "→"), ra, h("span", { class: "colon" }, ":"), rb),
+    h("div", { class: "two", style: "margin-top:12px" },
+      g.bulk ? h("button", { class: "btn", onclick: () => put(null) }, "Remove") : h("button", { class: "btn", onclick: closeSheet }, "Cancel"),
+      h("button", { class: "btn pri", onclick: () => { if (!(num(at.value) > 0 && num(ra.value) > 0 && num(rb.value) > 0)) return toast("Fill the 3 numbers"); put(at.value.trim(), ra.value.trim(), rb.value.trim()); } }, "Save"))]);
+  setTimeout(() => at.focus(), 250);
+}
+/** Pick (or change) the game item of a line — its quantity, price, ratio and note stay. A picture read at the import is learned for next time. */
+function pickItemSheet(it) {
+  const C = typeof IMPCROP !== "undefined" ? IMPCROP.get(it.uid) : null, view = (C && C.v) || (it.chk && it.img) || "";
+  const res = h("div", { class: "menu pick" });
+  const set = p => {
+    const keep = {}; ["uid", "q", "p", "pu", "ra", "rb", "give", "note", "oos", "hot", "bra", "brb", "bat"].forEach(k => { if (it[k] !== undefined) keep[k] = it[k]; });
+    Object.keys(it).forEach(k => delete it[k]); Object.assign(it, mkItem(p.id), keep);
+    if (C && C.l) { LEARN.push({ ref: p.id, url: C.l }); if (LEARN.length > 150) LEARN = LEARN.slice(-150); store.set("hd5_scanlearn", LEARN); IMPCROP.delete(it.uid); saveCrops(); }
+    pushRecent(p.id); closeSheet(); renderLists(); renderResults(); changed(); toast("✓ " + p.en + (C && C.l ? " — picture remembered" : ""));
+  };
+  const btn = p => h("button", { onclick: () => set(p) }, thumb(prodState(p.id), p.e, "mini"), p.en);
+  const fill = q => { res.textContent = ""; search(q, "all").slice(0, 12).forEach(p => res.append(btn(p))); };
+  const best = ((C && C.c) || []).map(r => CAT.byId[r]).filter(Boolean).slice(0, 6);
+  const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", value: it.chk || it.ref ? "" : it.name || "", autocapitalize: "off", oninput: e => fill(e.target.value) });
+  if (sq.value) fill(sq.value);
+  openSheet(it.chk ? "Which item is it?" : "Change the item", [
+    view ? h("img", { src: view, class: "scrop big", alt: "" }) : null,
+    view && C && C.l ? h("p", { class: "hint" }, "Your pick is remembered: next time this picture is recognised.") : null,
+    best.length ? h("div", null, h("label", { class: "lbl" }, "Closest pictures"), h("div", { class: "menu pick" }, best.map(btn))) : null,
+    h("label", { class: "lbl", style: "margin-top:10px" }, "Search"), sq, res]);
 }
 /* Game items keep their real name and picture (locked). Only custom items (not in the game list) get a name field. */
 function nameEl(it) {
   const p = it.ref && CAT.byId[it.ref];
   if (p) return h("div", { class: "name fixed", title: p.en }, p.en);
+  if (it.chk) return h("button", { class: "name pickme", onclick: () => pickItemSheet(it) }, "? Pick the item");
   const name = h("input", { class: "inp name", value: it.name || "", placeholder: "Item name", oninput: () => { it.name = name.value; changed(); } });
   return name;
 }
@@ -2646,9 +2717,9 @@ function itemCard(it) {
     mp.hidden = it.pu !== "xmp"; mp.textContent = "";
     if (it.pu === "xmp") {
       const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
-      mp.title = { wiki: "Game max price (wiki)", table: "Game max price", "sum of the 3 materials": "Sum of the 3 materials" }[src] || "";
-      mp.append("Max price", h("i", { class: "coin" }), auto ? fmt(auto) : src === "loading" ? "…" : "—");
-      if (m && num(it.p)) mp.append(" · ", h("b", null, fmtR(num(it.p)) + "×MP = " + fmt(num(it.p) * m) + " each"));
+      mp.title = { wiki: "Game max price (wiki)", table: "Game max price", "its 89 materials": "A set = 89 materials (30 / 30 / 29): the sum of their max prices" }[src] || "";
+      mp.append("Max price", h("i", { class: "coin" }), auto ? fmtP(auto) : src === "loading" ? "…" : "—");
+      if (m && num(it.p)) mp.append(" · ", h("b", null, fmtR(num(it.p)) + "×MP = " + fmtP(num(it.p) * m) + " each"));
     }
     renderSummary();
   };
@@ -2669,6 +2740,7 @@ function itemMenu(it, list) {
   openSheet(it.name || "Item", [
     h("div", { class: "bigprev" }, thumb(itemState(it), it.e), h("div", null, h("b", null, it.name || "Untitled"), h("small", null, it.ref ? "From the library" : "Custom item"))),
     h("div", { class: "menu" },
+      h("button", { onclick: () => { closeSheet(); setTimeout(() => pickItemSheet(it), 220); } }, h("i", null, "⇆"), it.ref ? "Change the item" : "Pick the game item"),
       st.type === "trade" && list === st.wants ? h("button", { onclick: () => { closeSheet(); setTimeout(() => newRatioSheet(it), 220); } }, h("i", null, ":"), "Change ratio") : null,
       st.type === "trade" && list === st.wants && !(it.note || "").trim() ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i - 1, 0, it); }) }, h("i", null, "↑"), "Move up") : null,
@@ -2830,6 +2902,10 @@ function parseOrder(text) {
   const out = [];
   String(text || "").split(/\r?\n|;|•|·|\|/).forEach(raw => {
     let s = raw.replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+]|\d+[.)])\s+/, "").replace(/\s+/g, " ").trim();
+    // a price written with the line is not the quantity: "honey x20 at 450", "x20 @450", "(450 ea)", "x20 1.5k each"
+    const P = "\\d[\\d.,]*\\s*k?\\s*(?:coins?|c)?";
+    s = s.replace(/\s*\([^)]*\d[^)]*\)\s*$/, "").replace(new RegExp("\\s*(?:@|\\bat\\b|\\bfor\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?\\s*$", "i"), "")
+      .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\s*$", "i"), "").trim();
     if (!s || !/[a-z]/i.test(s)) return;
     let m, name = s, q = "";
     const Q = "(\\d[\\d.,]*\\s*k?)";
@@ -2878,8 +2954,9 @@ function priceLine(L) {
   const R = resolveLine(L), q = L.q || 0;
   if (!R.w) return Object.assign(R, { v: 0 });
   if (st.type === "trade") {
-    const a = num(R.w.ra), b = num(R.w.rb), g = giveItem(R.w);
-    return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b } : null, v: 0 });
+    let a = num(R.w.ra), b = num(R.w.rb); const g = giveItem(R.w), tb = ORDER.tb && ORDER.tb.get(ratioKey(R.w));
+    const bulk = !!(tb && tb.on); if (bulk) { a = num(tb.g.bulk.ra); b = num(tb.g.bulk.rb); }
+    return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b, bulk } : null, v: 0 });
   }
   const pw = dealItem(R.w, L), u = unitPrice(pw);
   // stock: selling → what's left in your post, buying → what you still want (the rest isn't counted)
@@ -2887,6 +2964,28 @@ function priceLine(L) {
   // buying: bulk bonus when the seller sells a big part of the item's quantity in one go
   const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(qq, wq, ORDER.oq || 0) : 0;
   return Object.assign(R, { u, bulk, qq, short: L._short || 0, base: u * qq, v: u * qq * (1 + bulk / 100) });
+}
+/** Whole amounts per line that add up exactly to the rounded total of their group (largest remainder):
+    3 lines of 44.5 BEM → 45 + 44 + 44 = 133.5 rounded → 134, not 45 × 3 = 135. */
+function wholeShares(vals, keys, roundTot) {
+  const out = vals.map(() => 0), by = new Map();
+  vals.forEach((v, i) => { if (!(v > 0)) return; const k = keys ? keys[i] : "-"; if (!by.has(k)) by.set(k, []); by.get(k).push(i); });
+  by.forEach(ix => {
+    const tot = roundTot(ix.reduce((a, i) => a + vals[i], 0)), fl = ix.map(i => Math.floor(vals[i] + 1e-9));
+    let left = tot - fl.reduce((a, b) => a + b, 0);
+    ix.map((i, j) => [j, vals[i] - fl[j]]).sort((a, b) => b[1] - a[1]).forEach(([j]) => { if (left > 0) { fl[j]++; left--; } });
+    ix.forEach((i, j) => { out[i] = fl[j]; });
+  });
+  return out;
+}
+/** Trade bulk ratios: a group's better ratio is used once the deal reaches its size (sets or items you give, at the normal ratio). */
+function tradeBulk() {
+  ORDER.tb = new Map();
+  ratioGroups(st.wants).filter(g => g.bulk).forEach(g => ORDER.tb.set(g.key, { g, give: 0, on: false }));
+  if (!ORDER.tb.size) return;
+  // "40:89 for 10 sets +": the deal counts at the bulk ratio (480 items → 10 sets)
+  ORDER.lines.forEach(L => { const R = resolveLine(L); if (!R.w) return; const t = ORDER.tb.get(ratioKey(R.w)); if (t) t.give += (L.q || 0) / num(t.g.bulk.rb) * num(t.g.bulk.ra); });
+  ORDER.tb.forEach(t => { const need = num(t.g.bulk.at) * (bulkUnit(t.g) === "sets" ? SET_N : 1); t.need = need; t.on = need > 0 && t.give >= need - 1e-6; });
 }
 /** Small tag when the quantity was filled from the post (no quantity in the message). */
 const autoTag = L => L._auto === 2 ? h("b", { class: "autot q" }, "how many? · ") : null;
@@ -2896,16 +2995,21 @@ const giveName = g => { const p = packOf(g); return p ? (p.id === "tool-set" ? "
 const giveWhole = n => n > 0 ? Math.max(1, Math.round(n)) : 0;
 /** How many you give in all: whole items (you can't give 46.3 rings) — sets in whole materials. */
 const giveAmt = (g, n) => giveWhole(n);
-function packSplit(p, n) { const k = p.parts.length, b = Math.floor(n / k), r = n - b * k; return p.parts.map((id, i) => ({ id, n: b + (i < r ? 1 : 0), name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })); }
+/** n materials of a set → each material: whole sets are 30 / 30 / 29 each (890 = 300 · 300 · 290), the rest split evenly (134 = 45 · 45 · 44). */
+const evenSplit = (k, n) => { const b = Math.floor(n / k), r = n - b * k; return Array.from({ length: k }, (_, i) => b + (i < r ? 1 : 0)); };
+function packSplit(p, n) {
+  const k = p.parts.length, sets = Math.floor(n / SET_N), base = evenSplit(k, SET_N), rest = evenSplit(k, n - sets * SET_N);
+  return p.parts.map((id, i) => ({ id, n: sets * base[i] + rest[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" }));
+}
 const splitTxt = (g, n) => { const p = packOf(g); return p ? packSplit(p, giveWhole(n)).map(x => fmt(x.n) + " " + x.name).join(" · ") : ""; };
 /** The post item, or a copy priced with the price set for this order only (the post doesn't change). */
 const dealItem = (w, L) => L && L.pp && num(L.pp.p) > 0 ? Object.assign({}, w, { p: L.pp.p, pu: L.pp.pu || "coin" }) : w;
 const pName = w => w ? (w.name || (CAT.byId[w.ref] || {}).en || "Item") : "";
 function priceLabel(w) {
   const p = num(w.p); if (!p) return "no price in your post";
-  if (w.pu === "xmp") { const u = unitPrice(w); return fmtR(p) + "×MP" + (u ? " · " + fmt(u) + " ea" : " · loading max price…"); }
-  if (isCur(w.pu)) return curTxt(w.pu, p) + " ea · " + fmt(unitPrice(w)) + " ea";
-  return fmt(p) + " ea";
+  if (w.pu === "xmp") { const u = unitPrice(w); return fmtR(p) + "×MP" + (u ? " · " + fmtP(u) + " ea" : " · loading max price…"); }
+  if (isCur(w.pu)) return curTxt(w.pu, p) + " ea · " + fmtP(unitPrice(w)) + " ea";
+  return fmtP(p) + " ea";
 }
 
 function renderOrder(force) {
@@ -2941,7 +3045,11 @@ function renderOrder(force) {
     avail.set(R.w, left - c); L._cap = c; L._short = q - c;
     ORDER.oq += capOn ? c : q; // units in the whole order (for "items" bulk tiers)
   });
+  if (trade) tradeBulk();
   const rows = ORDER.lines.map((L, i) => Object.assign(L, { i, r: priceLine(L) }));
+  // what each line shows, in whole numbers that add up to the total shown (items you give / coins)
+  if (trade) { const R = rows.map(L => L.r.ratio), n = wholeShares(R.map(x => x ? x.give : 0), R.map(x => x && x.g ? x.g.uid : "-"), giveWhole); R.forEach((x, i) => { if (x) x.n = n[i]; }); }
+  else { const n = wholeShares(rows.map(L => L.r.v || 0), null, Math.round); rows.forEach((L, i) => { L.r.vs = n[i]; }); }
   const list = h("div", { class: "card olist" });
   const U = ORDER.undoEdit;
   if (U && U.after === ORDER.text) list.append(h("div", { class: "oundo" }, h("span", null, U.what), h("button", { class: "btn sm", onclick: () => orderSet(U.prev, U.text) }, "Undo")));
@@ -2964,11 +3072,13 @@ function renderOrder(force) {
     else if (!w) { right = h("span", { class: "miss" }, "—"); sub = r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick"; }
     else if (trade) {
       const R = r.ratio, pk = R && packOf(R.g);
-      right = R ? h("span", { class: "ov" }, pk ? fmt(giveWhole(R.give)) : fmtR(R.give), R.g ? thumb(itemState(R.g), R.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
+      right = R ? h("span", { class: "ov" }, fmt(R.n), R.g ? thumb(itemState(R.g), R.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
       // "89 BEM for 50" — what you give for how many of this item
-      sub = [autoTag(L), R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) : "No ratio in your post"];
+      const tb = ORDER.tb && ORDER.tb.get(ratioKey(w));
+      sub = [autoTag(L), R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) : "No ratio in your post",
+        tb ? h("b", { class: "bulkt" }, R && R.bulk ? " · bulk ratio (" + fmtR(num(tb.g.bulk.at)) + "+ " + bulkUnit(tb.g) + ")" : " · bulk ratio from " + fmtR(num(tb.g.bulk.at)) + " " + bulkUnit(tb.g)) : null];
     } else {
-      right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—");
+      right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.vs != null ? r.vs : r.v)) : h("span", { class: "miss" }, "—");
       const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : w.oos ? "out of stock" : "none left — " + fmt(r.short) + " missing") : null;
       const deal = L.pp && num(L.pp.p) > 0;
       const pb = h("button", { class: "opb" + (deal ? " on" : ""), title: "Another price for this order only", onclick: () => { L._edit = !L._edit; if (L._edit && !L.pp) L.pp = { p: "", pu: w.pu || "coin" }; renderOrder(); if (L._edit) setTimeout(() => { const e = $(`[data-edit="${L.i}"]`); e && e.focus(); }, 30); } }, deal ? priceLabel(dealItem(w, L)) : priceLabel(w), h("i", null, " ✎"));
@@ -3021,7 +3131,8 @@ function renderOrder(force) {
       if (p) tot.append(h("div", { class: "osplit" }, packSplit(p, n).map(x => h("span", null, thumb(prodState(x.id), x.e, "mini"), h("b", null, fmt(x.n)), " " + x.name))),
         h("p", { class: "hint osh" }, "= " + fmt(n) + " materials, split evenly between the " + p.parts.length + "."));
     });
-    by.forEach(o => { const s = o.g ? num(o.g.q) : 0, need = giveWhole(o.n); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + " — " + fmt(need - s) + " missing")); });
+    // your "I have" stock: sets for a set (×89 materials)
+    by.forEach(o => { const s = o.g ? Math.floor(asMat(o.g, num(o.g.q)) + 1e-9) : 0, need = giveWhole(o.n); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + (packOf(o.g) ? " (" + setsTxt(num(o.g.q)) + ")" : "") + " — " + fmt(need - s) + " missing")); });
   } else {
     const sub = rows.reduce((a, L) => a + (L.r.v || 0), 0), d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
     const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
@@ -3035,7 +3146,7 @@ function renderOrder(force) {
     if (hasTiers && ORDER.applyBulk !== false) {
       const base = sub - bonus;
       tot.append(h("div", { class: "brk" }, h("span", null, "Subtotal"), h("span", null, fmt(base))),
-        h("div", { class: "brk bulkl" }, h("span", null, "Bulk bonus" + (reached.length ? " (" + reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : "")), h("span", null, bonus > 0 ? "+" + fmt(bonus) : "—")));
+        h("div", { class: "brk bulkl" }, h("span", null, "Bulk bonus" + (reached.length ? " (" + reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : "")), h("span", null, bonus > 0 ? "+" + fmt(Math.round(sub) - Math.round(base)) : "—")));   // shown so that subtotal + bonus = total
       next.slice(0, 1).forEach(t => { const miss = Math.max(0, t.at - (ORDER.oq || 0)); if (miss > 0) tot.append(h("p", { class: "bnext" }, miss + " more item" + (miss > 1 ? "s" : "") + " → +" + fmtR(t.pct) + "% on the whole order")); });
     }
     tot.append(h("div", { class: "k" }, st.type === "achat" ? "Total to pay" : "Total to receive"),
@@ -3047,6 +3158,10 @@ function renderOrder(force) {
     ORDER.total = total; ORDER.sub = sub; ORDER.useD = useD; ORDER.d = d;
   }
   if (missing) tot.append(h("p", { class: "owarn" }, missing + " line" + (missing > 1 ? "s" : "") + " not counted — tap the name to pick the right item from your post."));
+  // ×MP prices still coming from the wiki: the total will change — say it, so it isn't copied too early
+  const mpWait = !trade && rows.some(L => { const w = L.r.w; if (!w || w.pu !== "xmp" || !w.ref) return false; const p = CAT.byId[w.ref]; return [w.ref, ...((p && p.parts) || [])].some(id => mpPending.has(id)); });
+  ORDER.mpWait = mpWait;
+  if (mpWait) tot.append(h("p", { class: "owarn" }, "⏳ Max prices are still loading from the wiki — the total updates by itself in a moment. Wait before copying."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
   out.append(tot);
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
@@ -3060,7 +3175,7 @@ function proposal(rows) {
     if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + R.give); }
     else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
   });
-  return [...agg].map(([w, n0]) => { const n = trade ? giveWhole(n0) : n0, have = Math.round(num(w.q)); return { w, n, have, left: have ? Math.max(0, have - n) : 0, on: have > 0 }; })
+  return [...agg].map(([w, n0]) => { const n = trade ? giveWhole(n0) : n0, have = num(w.q), pk = trade && !!packOf(w); return { w, n, have, pk, left: have ? (trade ? stockLeft(w, n) : Math.max(0, Math.round(have) - n)) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
 }
 /* ---------- deal done: update the post (optional) + save it in the History tab ---------- */
@@ -3072,8 +3187,8 @@ function updCard(P, trade) {
     card.append(h("p", { class: "hint" }, what + " — only the ticked lines change, with the exact quantities."));
     P.forEach(p => {
       const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
-      const w = p.have ? [fmt(p.have) + " → ", p.left ? fmt(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
-      card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, (trade ? giveName(p.w) : pName(p.w)) + "  −" + fmt(p.n)), h("span", null, ...w)));
+      const u = n => p.pk ? setsTxt(n) : fmtP(n), w = p.have ? [u(p.have) + " → ", p.left ? u(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
+      card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, (trade ? giveName(p.w) : pName(p.w)) + "  −" + fmt(p.n) + (p.pk ? " (" + setsTxt(Math.round(p.n / SET_N * 100) / 100) + ")" : "")), h("span", null, ...w)));
     });
   }
   const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); } });
@@ -3108,7 +3223,7 @@ function histEntry(who) {
   if (trade) L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = gives.get(k) || { g: R.g, name: giveName(R.g), ref: R.g ? R.g.ref : null, e: R.g ? R.g.e : "", n: 0 }; o.n += R.give; gives.set(k, o); });
   return {
     id: uid(), t: Date.now(), type: st.type, post: st.name || TYPES[st.type].name, who: who || "",
-    lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0, v: Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
+    lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0, v: x.r.vs != null ? x.r.vs : Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
     gives: [...gives.values()].map(({ g, ...o }) => ({ ...o, n: giveWhole(o.n), split: splitTxt(g, o.n) || undefined })),
     total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
     reply: replyText()
@@ -3126,7 +3241,7 @@ function applyDeal(P, trade, keep, who) {
   const list = trade ? st.have : st.wants;
   sel.forEach(p => {
     const i = list.indexOf(p.w); if (i < 0) return;
-    if (p.have && p.left > 0) { p.w.q = String(p.left); notes.push(pName(p.w) + ": " + fmt(p.have) + " → " + fmt(p.left)); }
+    if (p.have && p.left > 0) { p.w.q = String(p.left); notes.push(pName(p.w) + ": " + (p.pk ? setsTxt(p.have) + " → " + setsTxt(p.left) : fmtP(p.have) + " → " + fmtP(p.left))); }
     else { list.splice(i, 1); notes.push(pName(p.w) + ": removed"); }
   });
   ORDER.done = { text: ORDER.text, pid: st.id, reply, notes, hid, upd: sel.length > 0, invU };
@@ -3192,25 +3307,27 @@ function replyText() {
   const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w);
   const lines = L.map(x => {
     const n = pName(x.r.w);
-    if (trade) { const R = x.r.ratio; if (!(x.q > 0)) return null; return R ? `${fmt(x.q)}× ${n} → ${packOf(R.g) ? fmt(giveWhole(R.give)) : fmtR(R.give)} ${giveName(R.g)}` : `${fmt(x.q)}× ${n} → no ratio`; }
+    if (trade) { const R = x.r.ratio; if (!(x.q > 0)) return null; return R ? `${fmt(x.q)}× ${n} → ${fmt(R.n != null ? R.n : giveWhole(R.give))} ${giveName(R.g)}` : `${fmt(x.q)}× ${n} → no ratio`; }
     const w = dealItem(x.r.w, x), p = num(w.p);
-    const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmt(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmt(p)} ea`;
+    if (!x.r.u) return null;   // no price in your post: not counted (the screen says so)
+    const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmtP(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmtP(p)} ea`;
     const bk = x.r.bulk ? ` +${fmtR(x.r.bulk)}% bulk` : "";
     // only what is really counted: 10 asked, 1 left → "1× …"; none left → not in the reply
     const qn = ORDER.capStock !== false && x._cap != null ? x._cap : x.q;
     if (!(qn > 0)) return null;
-    return `${fmt(qn)}× ${n} — ${how}${bk} = ${fmt(x.r.v)}`;
+    return `${fmt(qn)}× ${n} — ${how}${bk} = ${fmt(x.r.vs != null ? x.r.vs : x.r.v)}`;
   }).filter(Boolean);
   let foot = "";
   if (trade) {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
     foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), s = splitTxt(o.g, o.n); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
-    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(ORDER.bonus)}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   return lines.join("\n") + "\n" + foot;
 }
 async function copyReply() {
+  if (ORDER.mpWait) return toast("Max prices are still loading — one moment");
   const t = replyText();
   try { await navigator.clipboard.writeText(t); toast("Reply copied — paste it in Discord ✔"); }
   catch (e) { openSheet("Reply", [h("textarea", { class: "ta", rows: 10, value: t, readOnly: true }), h("p", { class: "hint" }, "Select all and copy.")]); }
@@ -3324,7 +3441,7 @@ function advPreview() {
     inOrder ? h("small", null, " · " + fmt(inOrder) + " already in the order") : null));
   if (hits.length) {
     const f = (A.rules.find(r => advLive(r) && !advOff(r) && r.f !== "c") || {}).f;
-    const val = w => f === "q" ? fmt(num(w.q)) : f === "x" ? fmtR(advMetric(w, "x")) + "×" : f === "p" ? fmt(unitPrice(w)) : num(w.q) ? fmt(num(w.q)) : "";
+    const val = w => f === "q" ? fmt(num(w.q)) : f === "x" ? fmtR(advMetric(w, "x")) + "×" : f === "p" ? fmtP(unitPrice(w)) : num(w.q) ? fmt(num(w.q)) : "";
     const chips = h("div", { class: "achips" });
     hits.slice(0, 24).forEach(w => chips.append(h("span", { class: "achip" + (fresh.includes(w) ? "" : " in") }, thumb(itemState(w), w.e, "mini"), pName(w), val(w) ? h("small", null, val(w)) : null)));
     if (hits.length > 24) chips.append(h("span", { class: "achip amore" }, "+" + (hits.length - 24)));
@@ -3627,9 +3744,9 @@ function renderStats() {
       const P = [...S.packs.values()].sort((a, b) => (b.out + b.inT + b.bought + b.sold) - (a.out + a.inT + a.bought + a.sold));
       kids.push(h("table", { class: "stab" }, h("thead", null, h("tr", null, h("th", null, "Set"), h("th", null, "Traded away"), h("th", null, "Traded in"), h("th", null, "Bought"), h("th", null, "Sold"))),
         h("tbody", null, P.map(o => h("tr", null, h("td", { class: "nm" }, h("div", { class: "nmi" }, sThumb({ ref: o.p.id, e: o.p.e }), h("span", null, giveName({ ref: o.p.id })))),
-          h("td", { class: "n" }, fmt(o.out)), h("td", { class: "n" }, fmt(o.inT)), h("td", { class: "n" }, fmt(o.bought)), h("td", { class: "n" }, fmt(o.sold)))))));
+          h("td", { class: "n" }, o.out ? h("span", null, fmtR(o.out / SET_N) + " sets", h("small", { class: "smat" }, fmt(o.out) + " mat.")) : "0"), h("td", { class: "n" }, fmt(o.inT)), h("td", { class: "n" }, fmt(o.bought)), h("td", { class: "n" }, fmt(o.sold)))))));
       P.filter(o => o.out).forEach(o => kids.push(h("div", { class: "osplit" }, h("span", { class: "spl" }, giveName({ ref: o.p.id }) + " given:"), o.p.parts.map((id, i) => h("span", null, thumb(prodState(id), (CAT.byId[id] || {}).e, "mini"), h("b", null, fmt(o.parts[i])), " " + ((CAT.byId[id] || {}).en || id))))));
-      kids.push(h("p", { class: "hint" }, "Sets count materials: 89 BEM = 30 Bolt · 30 Plank · 29 Duct Tape. Traded away = what you gave in trades."));
+      kids.push(h("p", { class: "hint" }, "A set = 89 materials: 30 Bolt · 30 Plank · 29 Duct Tape. Traded away = what you gave in trades (sets and materials); bought / sold = sets in your selling and buying posts."));
     }
     if (S.tin.size) kids.push(h("h3", { class: "sh3" }, "Received in trades"), sTable("tin", byQ(S.tin), [{ t: "Item" }, { t: "Received", f: o => fmt(o.q) }, { t: "Trades", f: o => fmt(o.n) }], o => o.q, "in"));
     const toutNP = byQ(S.tout).filter(o => !(o.ref && CAT.byId[o.ref] && CAT.byId[o.ref].parts));
@@ -3815,10 +3932,11 @@ const invChanged = debounce(() => { if (typeof renderProfiles !== "function" || 
 function stockNeed(it, p) {
   p = p || st; if (!invAny() || !it.ref || !CAT.byId[it.ref]) return null;
   const gives = p.type === "vente" ? p.wants.includes(it) : p.type === "trade" ? p.have.includes(it) : false; if (!gives) return null;
-  const need = Math.max(1, Math.round(num(it.q)) || 1), have = invQty(it);
-  return have < need ? { need, have } : null;
+  const pk = isPackRef(it.ref), q = num(it.q) > 0 ? num(it.q) : 1, need = pk ? Math.round(q * SET_N) : Math.max(1, Math.round(q)), have = invQty(it);  // a set: 89 materials each
+  return have < need ? { need, have, pk } : null;
 }
-function stockBadge(it) { const s = stockNeed(it); return s ? h("b", { class: "sbad", title: "Your inventory: " + fmt(s.have) + (num(it.q) ? " — this post says " + fmt(s.need) : "") }, s.have ? short(s.have) : "0") : null; }
+function stockBadge(it) { const s = stockNeed(it); if (!s) return null; const u = n => s.pk ? fmtR(n / SET_N) + " sets (" + fmt(n) + " materials)" : fmt(n);
+  return h("b", { class: "sbad", title: "Your inventory: " + u(s.have) + (num(it.q) ? " — this post says " + u(s.need) : "") }, s.have ? short(s.pk ? Math.floor(s.have / SET_N) : s.have) : "0"); }
 const postShort = p => p.type === "vente" ? p.wants.some(it => stockNeed(it, p)) : p.type === "trade" ? p.have.some(it => stockNeed(it, p)) : false;
 function renderItemsScan() { const box = $("#itemsScan"); if (!box) return; box.textContent = ""; if (PS.scan) { box.append(scanCard("post")); if (!PS.scan.busy) box.scrollIntoView({ behavior: "smooth", block: "start" }); } }
 /** Silo = crops of the fields; everything else goes to the barn. */
@@ -3828,7 +3946,13 @@ const invFind = (x, scope) => invList(scope).find(i => i.k === invKey(x));
 /** How many you have — in all your farms unless said (a set = what its materials allow, split evenly). */
 function invQty(x, scope) {
   const p = x && x.ref && CAT.byId[x.ref];
-  if (p && p.parts) return p.parts.length * Math.min(...p.parts.map(id => invQty({ ref: id }, scope)));
+  // a set = its materials given evenly, the extra ones going to the first (89 = 30 Bolt · 30 Plank · 29 Duct Tape):
+  // 30 / 30 / 29 in the barn covers 89, not 3 × 29 = 87
+  if (p && p.parts) {
+    const q = p.parts.map(id => invQty({ ref: id }, scope)), base = evenSplit(q.length, SET_N), sets = Math.min(...q.map((v, i) => Math.floor(v / base[i])));
+    const rem = q.map((v, i) => v - sets * base[i]), m = Math.min(...rem); let r = m * q.length; for (const v of rem) { if (v > m) r++; else break; }
+    return sets * SET_N + Math.min(r, SET_N - 1);
+  }
   const k = invKey(x); return farmIds(scope).reduce((a, id) => { const i = farmOf(id).items.find(o => o.k === k); return a + (i ? i.q : 0); }, 0);
 }
 /** Set a quantity in one farm (the current one unless said). */
@@ -3852,9 +3976,10 @@ function invAdd(x, d, quiet, fid) {
 /** Deals change the farm chosen for them (Inventory → "Deals update …"). */
 function invApply(e, sign) {
   const sg = sign || 1, L = e.lines || [], f = INV.deal;
-  if (e.type === "vente") L.forEach(l => invAdd(l, -sg * (l.q || 0), true, f));
-  if (e.type === "achat") L.forEach(l => invAdd(l, sg * (l.q || 0), true, f));
-  if (e.type === "trade") { L.forEach(l => invAdd(l, sg * (l.q || 0), true, f)); (e.gives || []).forEach(g => invAdd(g, -sg * (g.n || 0), true, f)); }
+  // lines count sets for a set (×89 materials); what a trade gives is already in materials
+  if (e.type === "vente") L.forEach(l => invAdd(l, -sg * asMat(l, l.q || 0), true, f));
+  if (e.type === "achat") L.forEach(l => invAdd(l, sg * asMat(l, l.q || 0), true, f));
+  if (e.type === "trade") { L.forEach(l => invAdd(l, sg * asMat(l, l.q || 0), true, f)); (e.gives || []).forEach(g => invAdd(g, -sg * (g.n || 0), true, f)); }
   saveInv();
 }
 const invLive = () => SETTINGS.invLive !== false && invAny();
@@ -4329,7 +4454,7 @@ function scanSave(where) {
       const ex = list.find(it => it.ref === r.ref);
       if (ex) { ex.q = String(r.q); return; }
       if (list.length >= 150) return;
-      list.push(mkItem(r.ref, Object.assign({ q: String(r.q) }, st.type === "trade" && list === st.wants && st.addR ? { ra: st.addR.ra, rb: st.addR.rb, give: st.addR.give } : {}))); added++;
+      list.push(mkItem(r.ref, Object.assign({ q: String(r.q) }, st.type === "trade" && list === st.wants && st.addR ? addRF() : {}))); added++;
     });
     renderLists(); renderResults(); changed();
   }
@@ -4414,7 +4539,7 @@ function srRows() {
   const { items, defQ } = parseBuyList(SR.text), dq = SR.defQ !== "" ? Math.round(num(SR.defQ)) : defQ;
   return { defQ, dq, rows: items.map(it => {
     const m = srMatch(it), p = m.p, E = SR.ed[it.key] || {};
-    const have = p ? invQty({ ref: p.id }, SR.scope) : 0, ask = it.q != null ? it.q : dq || null;
+    const have = p ? (p.parts ? Math.floor(invQty({ ref: p.id }, SR.scope) / SET_N) : invQty({ ref: p.id }, SR.scope)) : 0, ask = it.q != null ? it.q : dq || null;
     const price = E.p != null ? E.p : it.p || 0, q = E.q != null ? E.q : Math.min(ask == null ? have : ask, have);
     return { it, m, p, have, ask, price, q, off: !!E.off, v: q * price };
   }) };
@@ -4466,7 +4591,7 @@ function renderSearch() {
       h("button", { class: "btn", disabled: !live.some(r => r.q > 0), onclick: () => srLater(live, total) }, "⏳ Save for later"))));
 }
 function srReply(live, total) {
-  const L = live.filter(r => r.q > 0).map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmt(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`);
+  const L = live.filter(r => r.q > 0).map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmtP(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`);
   return "I can sell you:\n" + L.join("\n") + `\n**Total: ${fmt(total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, total / CUR[k].rate)}`).join(" ·") + "**";
 }
 /** Deal done: a sale in your History (and Stats), and your inventory goes down. */
@@ -4517,8 +4642,9 @@ const dayKey = t => { const d = new Date(t); return d.getFullYear() + "-" + d.ge
 const doneToday = d => !!(d.daily && d.daily.log.some(x => dayKey(x.t) === dayKey(Date.now())));
 function dealBadge() { const b = $("#tabbar [data-t=deals]"); if (!b) return; let i = b.querySelector(".tbdg"); const n = openDeals().length; if (!i) { i = h("b", { class: "tbdg" }); b.append(i); } i.textContent = n || ""; i.hidden = !n; }
 /** What you hand over in one delivery (or one day): sold items, items given in a trade. */
-function dealOut(e) { return e.type === "vente" ? (e.lines || []).map(l => ({ ref: l.ref, e: l.e, name: l.name, n: l.q || 0 })) : e.type === "trade" ? (e.gives || []).map(g => ({ ref: g.ref, e: g.e, name: g.name, n: g.n || 0 })) : []; }
-function dealIn(e) { return e.type === "achat" || e.type === "trade" ? (e.lines || []).map(l => ({ ref: l.ref, e: l.e, name: l.name, n: l.q || 0 })) : []; }
+// amounts in what the inventory counts: materials for a set (a sale of "BEM Set ×2" = 178)
+function dealOut(e) { return e.type === "vente" ? (e.lines || []).map(l => ({ ref: l.ref, e: l.e, name: l.name, n: asMat(l, l.q || 0) })) : e.type === "trade" ? (e.gives || []).map(g => ({ ref: g.ref, e: g.e, name: g.name, n: g.n || 0 })) : []; }
+function dealIn(e) { return e.type === "achat" || e.type === "trade" ? (e.lines || []).map(l => ({ ref: l.ref, e: l.e, name: l.name, n: asMat(l, l.q || 0) })) : []; }
 /** Everything the open deals still need from your inventory (today's part for daily ones). */
 function reserved(except) {
   const m = new Map();
@@ -4544,7 +4670,7 @@ function confirmDeal(d) {
     const p = STATE.list.find(x => x.id === d.tr.pid);
     if (p) {
       snap.post = { pid: p.id, wants: clone(p.wants), have: clone(p.have) };
-      (e.gives || []).forEach(g => { const it = p.have.find(x => x.ref && x.ref === g.ref); if (!it || !num(it.q)) return; const left = Math.max(0, Math.round(num(it.q)) - Math.round(g.n)); if (left) it.q = String(left); else p.have.splice(p.have.indexOf(it), 1); pu++; });
+      (e.gives || []).forEach(g => { const it = p.have.find(x => x.ref && x.ref === g.ref); if (!it || !num(it.q)) return; const left = stockLeft(it, g.n); if (left) it.q = String(left); else p.have.splice(p.have.indexOf(it), 1); pu++; });
       if (pu) { if (p.id === st.id) { renderLists(); renderTarget(); renderResults(); } changed(); }
     }
   }
@@ -5120,15 +5246,48 @@ const HAVE_RE = /^(?:i\s*have|have|offering|giving|got)\b/i, NEED_RE = /^(?:need
 const NOISE = /^(?:[•*\-–—·>|]+|dm|ping|&|and|or|the|a|my|for|of|at|set|sets|each|ea|pls|please)$/i;
 /** Words → items named in the text ("BEM Sets", "rings", "olive oil"…), the rest kept as text. */
 function namedItems(words) {
-  const s = words.join(" ").replace(/[!?;]+/g, " ").replace(/\s+/g, " ").trim(); if (!s) return [];
+  let s = words.join(" ").replace(/[!?;]+/g, " ").replace(/\s+/g, " ").trim(); if (!s) return [];
+  // "(29/30/30)", "(only 1 set)" stay with their item, as its note
+  const par = []; s = s.replace(/\(([^)]*)\)?/g, (m, t) => { par.push(t.trim()); return " \u0001" + (par.length - 1) + " "; });
   const out = [];
-  s.split(/\s*(?:,|\/|\s&\s|\band\b|\bor\b|\+)\s*/i).map(x => x.trim()).filter(x => x && /[a-z]{3}/i.test(x.replace(/\([^)]*\)/g, "")) && !NOISE.test(x)).forEach(x => {
-    const bare = x.replace(/\([^)]*\)/g, " ").replace(/[.]+/g, " ").replace(/\s+/g, " ").trim();
-    const m = matchProduct(bare.replace(/\bsets?\b/i, "Set").replace(/\b(rings|blankets|bars?)\b/i, t => t.replace(/s$/i, "")));
-    out.push(m.p && m.sure ? { ref: m.p.id } : { name: x.replace(/[.,]+$/, "").replace(/\s+/g, " ") });
+  s.split(/\s*(?:,|\/|\s&\s|\band\b|\bor\b|\+)\s*/i).map(x => x.trim()).forEach(x => {
+    const notes = []; x = x.replace(/\u0001(\d+)/g, (m, k) => { if (par[k]) notes.push(par[k]); return " "; }).replace(/\s+/g, " ").trim();
+    if (!x || !/[a-z]{3}/i.test(x) || NOISE.test(x)) { if (notes.length && out.length) out[out.length - 1].note = [out[out.length - 1].note, ...notes].filter(Boolean).join(" · "); return; }
+    // a quantity in front ("120 bem set") or behind ("bem x120")
+    let q = ""; x = x.replace(/^(\d+(?:[.,]\d+)?\s*k?)\s*x?\s+(?=[a-z])/i, (m, n) => { q = n; return ""; }).replace(/\s+x\s*(\d+)$/i, (m, n) => { q = n; return ""; }).trim();
+    const p = importMatch(x.replace(/[.]+/g, " ").trim());
+    const it = p ? { ref: p.id } : { name: x.replace(/[.,]+$/, "").replace(/\s+/g, " ") };
+    if (q) it.q = String(num(q)); if (notes.length) it.note = notes.join(" · ");
+    out.push(it);
   });
   return out;
 }
+/** A game item only when the text names it — every word belongs to its name: "Peach jam" yes, "second page jams up to Peach jam" no, "Fp jams" no. */
+const GENERIC = /^(?:jams?|juices?|sauces?|foods?|cakes?|pies?|items?|stuff|things|goods|products|mix|mixed|candy|candies|soups?|salads?|sandwich(?:es)?|ice ?creams?|smoothies?|drinks?)$/i;
+const FILLW = new Set(["s", "x", "the", "a", "of", "and", "my", "your", "any", "all", "each", "ea", "pcs", "pc", "units"]);
+const sing = w => w.length > 3 ? w.replace(/(ies)$/, "y").replace(/(es)$/, w.endsWith("sses") ? "es" : "e").replace(/s$/, "") : w;
+function importMatch(x) {
+  if (!x || GENERIC.test(x.trim())) return null;
+  const fix = x.replace(/\bsets?\b/i, "Set").replace(/\b(rings|blankets|bars?)\b/i, t => t.replace(/s$/i, ""));
+  const m = matchProduct(fix); if (!m.p || !m.sure) return null;
+  const al = ALIASES[slug(x)] || ALIASES[slug(x).replace(/s$/, "")];
+  if (al && al === m.p.id && !GENERIC.test(x)) return m.p;
+  const name = new Set(toks(m.p.en + " " + (m.p.fr || "").split("~")[0]).flatMap(w => [w, sing(w)]));
+  const words = toks(x).filter(w => !/^\d+$/.test(w) && !FILLW.has(w));
+  return words.length && words.every(w => name.has(w) || name.has(sing(w))) ? m.p : null;
+}
+/** "45:89 // 40:89 for 10 sets +" → the better ratio for big deals; the rest of the text is kept as a note. */
+function bulkOf(rest) {
+  const m = rest.match(/(\d+(?:[.,]\d+)?)\s*[:：]\s*(\d+(?:[.,]\d+)?)([^]*)$/); if (!m) return { note: rest };
+  const SZ = /(?:for|from|if|at|when|on|>=|≥|over|bulk)?\s*(\d+)\s*\+?\s*(?:sets?|bem|sem|lem|tem|tools?|or more|\+)/i;
+  const before = rest.slice(0, m.index), after = m[3];
+  let c = after.match(SZ) || after.match(/^\s*\(?\s*(\d+)\s*\+/), inB = false;
+  if (!c && (c = before.match(SZ))) inB = true;          // "10+ sets: 40:89"
+  if (!c) return { note: rest };
+  const left = ((inB ? before.replace(c[0], " ") : before) + " " + (inB ? after : after.replace(c[0], " "))).replace(/[()+]/g, " ").replace(/\bbulk\b\s*:?/i, " ");
+  return { bulk: { need: +m[1].replace(",", "."), have: +m[2].replace(",", "."), at: +c[1] }, note: left };
+}
+const cleanNote = s => String(s || "").replace(/[~]+/g, " ").replace(/^[\s\/|\\·,;:\-–—]+|[\s\/|\\·,;:\-–—+]+$/g, "").replace(/\s+/g, " ").trim();
 /** An emoji read on the screenshot → the item (keeps the picture, to check it and to learn from a correction). */
 const eItem = t => t.emo ? { ref: t.emo, src: t } : { unknown: t, src: t };
 /** The post: trade groups (ratio + items, struck = out of stock), priced lists, picture tiles, notes. */
@@ -5148,16 +5307,23 @@ function impParse(lines, tiles, picNotes, text) {
     let s = txt(L);
     const emos = L.toks.filter(t => t.emo !== undefined);
     // the header "name / level  22:07" (a time, not a ratio)
-    const tm = s.match(/(\d{1,2})\s?[:.]\s?(\d{2})\s*$/);
-    if (li < 3 && !R.author && tm && +tm[1] < 24 && +tm[2] < 60 && (/[a-z]{2}/i.test(s.slice(0, tm.index)) || li <= 1) && !RAT.test(s.slice(0, tm.index))) { R.author = s.slice(0, tm.index).replace(/\s*\/\s*\d+.*$/, "").replace(/[^\w .'-]/g, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" "); return; }
+    const tm = s.match(/(\d{1,2})\s?[:.\-]\s?(\d{2})\s*$/);
+    if (li < 3 && !R.author && tm && +tm[1] < 24 && +tm[2] < 60 && (/[a-z]{2}/i.test(s.slice(0, tm.index)) || li <= 1) && !RAT.test(s.slice(0, tm.index))) {
+      // "Ladloq ᐠ^._.^ᐟ / 77" → Ladloq (the decorations and the level go)
+      const w = s.slice(0, tm.index).replace(/\s*\/.*$/, "").replace(/[^\w .'-]/g, " ").replace(/\s+/g, " ").trim().split(" "), keep = [];
+      for (const x of w) { if (keep.length && (x.length <= 2 || !/[a-z]/.test(x))) break; if (/[a-z0-9]/i.test(x)) keep.push(x); if (keep.length === 3) break; }
+      R.author = keep.join(" "); return;
+    }
     s = s.replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "");
     if (BUY_RE.test(s)) buying = true; if (SELL_RE.test(s)) selling = true;
+    // "10% off everything", "+10% for 100+ items": discounts and bonuses → notes (read when the post is made)
+    if (!RAT.test(s) && /\d\s*%/.test(s) && /off|discount|disc\b|bonus|extra|bulk|r[ée]duc|\+\s*\d+(?:[.,]\d+)?\s*%/i.test(s)) { R.notes.push(cleanNote(s)); lastNote = null; return; }
     if (HAVE_RE.test(s)) {
       sec = "have"; const rest = s.replace(HAVE_RE, "");
       let items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
-      // "Have BEM Sets 🩹🪵🔩" → the set (its material pictures are just decoration)
+      // "Have BEM Sets 🩹🪵🔩" → the set (its material pictures, recognised or not, are just decoration)
       const pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
-      if (pk) items = items.filter(x => x === pk || (x.ref && !CAT.byId[pk.ref].parts.includes(x.ref) && !(CAT.byId[x.ref] || {}).parts) || (x.ref && CAT.byId[x.ref].parts));
+      if (pk) items = items.filter(x => x === pk || (x.ref && !CAT.byId[pk.ref].parts.includes(x.ref) && !(CAT.byId[x.ref] || {}).parts) || (x.ref && CAT.byId[x.ref].parts) || (!x.ref && !x.unknown && x.name));
       if (!items.length) items = [{ unknown: { view: null }, name: "" }];          // "Have [picture not recognised]" → to pick
       giveIdx = R.have.length; R.have.push(...items); lastNote = null; return;
     }
@@ -5165,21 +5331,31 @@ function impParse(lines, tiles, picNotes, text) {
       const rest = s.replace(NEED_RE, "").trim(), items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
       // "Need 10 or 20 of each item, partials 50+" (no item, a sentence) → a note
       if (!emos.length && !items.some(x => x.ref) && /\d/.test(rest)) { R.notes.push(s); lastNote = { s, li }; return; }
-      sec = "need"; pend.push(...items); lastNote = { s: "", li, need: true }; return;
+      const named = namedItems(rest.split(/\s+/));
+      sec = "need"; pend.push(...items); lastNote = { s: "", li, need: true, txt: rest, n: named.length }; return;
     }
-    // "chocolate" on the line after "Need fp jams, sauces, …," → more items
-    if (sec === "need" && lastNote && lastNote.need && lastNote.li === li - 1 && !RAT.test(s) && !/\d/.test(s)) { pend.push(...namedItems(s.split(/\s+/))); lastNote = { s: "", li, need: true }; return; }
+    // the line after "Need …": "chocolate" (after a comma) = more items; "Peach jam" after "… up to" = the same words, carried on
+    if (sec === "need" && lastNote && lastNote.need && lastNote.li === li - 1 && !RAT.test(s) && !/\d/.test(s)) {
+      if (lastNote.txt && /(?:\b(?:to|up to|until|and|or|of|from|with|the|than|except|but|exc)|[+&\-–])\s*$/i.test(lastNote.txt)) {
+        pend.splice(pend.length - lastNote.n, lastNote.n); const t = lastNote.txt + " " + s, it = namedItems(t.split(/\s+/)); pend.push(...it); lastNote = { s: "", li, need: true, txt: t, n: it.length };
+      } else { const it = namedItems(s.split(/\s+/)); pend.push(...it); lastNote = { s: "", li, need: true, txt: s, n: it.length }; }
+      return;
+    }
     const rm = s.match(RAT);
     if (rm && (sec || R.have.length || emos.length)) {
       const before = s.slice(0, rm.index).replace(NEED_RE, ""), ratioTok = L.toks.find(t => t.w && RAT.test(t.w)) || L.toks.find(t => t.w && /\d/.test(t.w));
+      // "Bulk 10+ sets 55:89" on its own line → the better ratio of the group just above
+      if (!emos.length && !pend.length && R.groups.length && /^[\s\w:+()\-–]*$/.test(before) && /bulk|\d\s*\+|or more|\bsets?\b/i.test(before) && !/[a-z]{3}/i.test(before.replace(/\b(?:bulk|for|from|over|sets?|or|more|if|you|take|bem|sem|lem|tem)\b/gi, ""))) {
+        const B2 = bulkOf(s); if (B2.bulk) { const pg = R.groups[R.groups.length - 1]; pg.bulk = B2.bulk; lastNote = null; return; }
+      }
       // a picture after the ratio that isn't an item is decoration (a face, a sticker)
       let items = [...pend, ...emos.filter(t => !ratioTok || t.x < ratioTok.x || (t.emo && (t.ename || (t.m && t.m[0] && t.m[0].c < .25)))).map(eItem), ...namedItems(before.split(/\s+/))];
       pend = [];
       // a ratio alone on its line → the text line just above is what it's for ("Mixed Juices (2nd page)" / "90:89")
       if (!items.length && lastNote && lastNote.li === li - 1) { R.notes.splice(R.notes.indexOf(lastNote.s), 1); items = [{ name: lastNote.s }]; }
       lastNote = null;
-      const rest = s.slice(rm.index + rm[0].length).replace(/[~\-–—]+/g, " ").trim();
-      R.groups.push({ give: giveIdx, need: +rm[1].replace(",", "."), have: +rm[2].replace(",", "."), items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "" });
+      const B = bulkOf(s.slice(rm.index + rm[0].length).replace(/~+/g, " ")), rest = cleanNote(B.note);
+      R.groups.push({ give: giveIdx, need: +rm[1].replace(",", "."), have: +rm[2].replace(",", "."), items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "", bulk: B.bulk || null });
       return;
     }
     if (!rm && emos.length && !/\d+\s*k\b|\d{3,}/i.test(s)) { pend.push(...emos.map(eItem), ...namedItems(s.split(/\s+/))); return; }
@@ -5206,8 +5382,9 @@ function impPosts(R) {
     if (!have.length) have = [{ name: "My items" }];
     const seen = new Set(); have = have.filter(x => { const k = x.ref || x.name || "u" + x._i; if (seen.has(k)) return false; seen.add(k); return true; });
     const giveOf = g => { const c = have.filter(x => x._i >= g.give); return c.length ? have.indexOf(c[0]) : 0; };
-    posts.push({ type: "trade", on: true, name: nm("trade"), have: have.map(x => ({ ...x, q: "" })),
-      wants: R.groups.flatMap(g => g.items.filter(x => x.ref || x.name || x.unknown).map(x => ({ ref: x.ref || null, name: x.name || "", unknown: x.unknown || null, src: x.src || null, ra: String(g.have), rb: String(g.need), oos: g.oos, note: g.note, gi: giveOf(g) }))), notes });
+    posts.push({ type: "trade", on: true, name: nm("trade"), have: have.map(x => ({ ...x, q: x.q || "" })),
+      wants: R.groups.flatMap(g => g.items.filter(x => x.ref || x.name || x.unknown).map(x => ({ ref: x.ref || null, name: x.name || "", unknown: x.unknown || null, src: x.src || null, ra: String(g.have), rb: String(g.need),
+        bulk: g.bulk ? { ra: String(g.bulk.have), rb: String(g.bulk.need), at: String(g.bulk.at) } : null, oos: g.oos, note: [x.note, g.note].filter(Boolean).join(" · "), gi: giveOf(g) }))), notes });
   }
   const sell = R.kind === "achat" ? "achat" : "vente", items = [];
   R.tiles.forEach(t => items.push({ ref: t.ref, unknown: t.ref ? null : t, src: t, view: t.view, m: t.m, q: t.q, p: t.px, pu: t.px ? "xmp" : "coin" }));
@@ -5234,35 +5411,11 @@ async function impRun(files, text) {
     if (text && text.trim()) lines.push(...textLines(text));
     const R = impParse(lines, tiles, picNotes, text);
     IMP.res = { R, posts: impPosts(R) };
-    if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
+    if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
   } catch (e) { IMP.res = { err: /internet/.test(e && e.message) ? "The text reader couldn't be loaded (no internet?). Paste the text of the post instead." : "Couldn't read it (" + (e && e.message || e) + ")." }; }
-  IMP.busy = null; renderImport();
-}
-const impLabel = x => x.ref && CAT.byId[x.ref] ? CAT.byId[x.ref].en : x.name || "Pick the item";
-function impRow(x, P, list) {
-  const p = x.ref && CAT.byId[x.ref], trade = P.type === "trade", isHave = list === P.have;
-  const row = h("div", { class: "irw" + (x.oos ? " oos" : "") + (!x.ref && !x.name ? " chk" : "") },
-    impView(x) ? h("img", { class: "icrop", src: impView(x), alt: "" }) : p ? thumb(prodState(p.id), p.e, "mini") : h("span", { class: "th mini" }, "📦"),
-    h("button", { class: "spick", onclick: () => impPick(x) }, h("span", { class: "inm" }, impLabel(x)), p && impView(x) ? thumb(prodState(p.id), p.e, "mini") : null, !x.ref ? h("span", { class: "flag" }, x.name ? "✎" : "?") : null));
-  if (trade && !isHave) row.append(h("span", { class: "irat" }, h("input", { value: x.ra, inputMode: "decimal", "aria-label": "You give", oninput: e => { x.ra = e.target.value; } }), ":", h("input", { value: x.rb, inputMode: "decimal", "aria-label": "You get", oninput: e => { x.rb = e.target.value; } })));
-  else if (!trade) row.append(h("span", { class: "irat" }, h("input", { value: x.q, inputMode: "numeric", placeholder: "qty", "aria-label": "Quantity", oninput: e => { x.q = e.target.value; } }), h("input", { value: x.p, inputMode: "decimal", placeholder: "price", "aria-label": "Price", oninput: e => { x.p = e.target.value; } }), h("small", null, x.pu === "xmp" ? "×MP" : "")));
-  if (!isHave) row.append(h("button", { class: "ioos" + (x.oos ? " on" : ""), title: "Out of stock (struck through)", onclick: () => { x.oos = !x.oos; renderImport(); } }, "⊘"));
-  row.append(h("button", { class: "odel", "aria-label": "Remove", onclick: () => { list.splice(list.indexOf(x), 1); renderImport(); } }, "×"));
-  return row;
-}
-const impView = x => x.view || (x.src && x.src.view) || (x.unknown && x.unknown.view) || null;
-function impPick(x) {
-  const res = h("div", { class: "menu pick" });
-  const btn = p => h("button", { onclick: () => { x.ref = p.id; x.name = ""; x.fixed = true; closeSheet(); renderImport(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
-  const fill = q => { res.textContent = ""; search(q, "all").slice(0, 12).forEach(p => res.append(btn(p))); };
-  const best = ((x.m || (x.src && x.src.m) || (x.unknown && x.unknown.m)) || []).map(a => CAT.byId[a.ref]).filter(Boolean).slice(0, 6);
-  const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", value: x.name || "", autocapitalize: "off", oninput: e => fill(e.target.value) });
-  if (x.name) fill(x.name);
-  openSheet("Which item is it?", [impView(x) ? h("img", { src: impView(x), class: "scrop big", alt: "" }) : null,
-    impView(x) ? h("p", { class: "hint" }, "Your pick is remembered: next time this picture is recognised.") : null,
-    best.length ? h("div", null, h("label", { class: "lbl" }, "Closest pictures"), h("div", { class: "menu pick" }, best.map(btn))) : null,
-    h("label", { class: "lbl", style: "margin-top:10px" }, "Search"), sq, res,
-    h("button", { class: "btn dashed", style: "margin-top:10px", onclick: () => { const v = sq.value.trim(); if (!v) return; x.ref = null; x.name = v; closeSheet(); renderImport(); } }, "Keep it as a custom item (the text above)")]);
+  IMP.busy = null;
+  if (IMP.res && !IMP.res.err && IMP.res.posts) return impCreate();
+  renderImport();
 }
 function renderImport() {
   const out = $("#impOut"); if (!out) return; out.textContent = "";
@@ -5270,52 +5423,51 @@ function renderImport() {
   const ta = h("textarea", { class: "ta", rows: 5, value: IMP.text, placeholder: "Or paste the text of your post (Discord: long-press the message → Copy Text). ~~struck~~ lines become “out of stock”.", oninput: e => { IMP.text = e.target.value; } });
   out.append(h("div", { class: "card fieldset" },
     h("div", { class: "ch" }, h("h2", null, "Import a post")),
-    h("p", { class: "hint" }, "Bring an old post here: a screenshot of your Discord message, a picture made by another post maker, or the text. You check everything before it's created."),
+    h("p", { class: "hint" }, "A screenshot of your Discord message, a picture made by another post maker, or the text → a new post, opened right away. What can't be recognised is kept as written, or marked “?” for you to pick."),
     h("button", { class: "btn pri full", onclick: () => fileIn.click() }, "📷 Screenshots of the post"), fileIn, ta,
     h("button", { class: "btn full", onclick: () => { if (!IMP.text.trim()) return toast("Paste the text first"); impRun(null, IMP.text); } }, "Read the text")));
   if (IMP.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "impMsg" }, IMP.busy))); return; }
-  const S = IMP.res; if (!S) return;
-  if (S.err) { out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, S.err))); return; }
-  S.posts.forEach(P => {
-    const card = h("div", { class: "card fieldset impc" + (P.on ? "" : " off") });
-    card.append(h("div", { class: "ihead" }, h("input", { type: "checkbox", class: "scb", checked: P.on, "aria-label": "Create this post", onchange: e => { P.on = e.target.checked; renderImport(); } }),
-      h("div", { class: "seg" }, Object.keys(TYPES).map(t => h("button", { class: P.type === t ? "on" : "", onclick: () => { P.type = t; if (t === "trade" && !P.have) P.have = [{ name: "My items", q: "" }]; renderImport(); } }, TYPES[t].name)))));
-    card.append(h("input", { class: "inp", value: P.name, "aria-label": "Post name", oninput: e => { P.name = e.target.value; } }));
-    if (P.type === "trade") { card.append(h("label", { class: "lbl" }, "I have")); (P.have = P.have || []).forEach(x => card.append(impRow(x, P, P.have))); }
-    const W = P.wants || (P.wants = []);
-    card.append(h("label", { class: "lbl" }, P.type === "trade" ? "I want · ratio = you give : you get" : P.type === "achat" ? "I buy · quantity · price" : "For sale · quantity · price"));
-    W.forEach(x => card.append(impRow(x, P, W)));
-    card.append(h("button", { class: "btn sm dashed", onclick: () => { const x = { ref: null, name: "", q: "", p: "", pu: "coin", ra: W.length ? W[W.length - 1].ra : "", rb: W.length ? W[W.length - 1].rb : "" }; W.push(x); impPick(x); } }, "＋ Add an item"));
-    if (P.notes && P.notes.length) card.append(h("label", { class: "lbl" }, "Notes (shown on the picture)"), h("textarea", { class: "ta", rows: Math.min(5, P.notes.length + 1), value: P.notes.join("\n"), oninput: e => { P.notes = e.target.value.split("\n").filter(Boolean); } }));
-    const todo = [...(P.have || []), ...W].filter(x => !x.ref && !x.name).length;
-    if (todo) card.append(h("p", { class: "hint" }, plural(todo, "item") + " to check (“?”): tap to pick it, or remove it."));
-    out.append(card);
-  });
-  const n = S.posts.filter(p => p.on).length;
-  out.append(h("button", { class: "btn pri full", disabled: !n, onclick: impCreate }, n > 1 ? "Create the " + n + " posts" : "Create the post"));
+  const S = IMP.res; if (S && S.err) out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, S.err)));
 }
-/** Create the posts (items not recognised and not named are left out). */
+/* pictures read at the last import, by item: to show them and to learn from your pick (kept for the last import only) */
+const IMPCROP = new Map(Object.entries(store.get("hd5_impcrop", {})));
+const saveCrops = () => { try { store.set("hd5_impcrop", Object.fromEntries(IMPCROP)); } catch (e) { /* full: kept in memory */ } };
+/** Make the post(s) from what was read and open the first one. */
 function impCreate() {
-  let last = null, made = 0;
-  // learn the pictures you picked by hand (and the ones it wasn't sure about) → recognised next time
-  const auto = s => s.emo !== undefined ? s.emo : s.ref;
-  const learn = IMP.res.posts.filter(P => P.on).flatMap(P => [...(P.have || []), ...(P.wants || [])]).filter(x => x.ref && x.src && x.src.learn && (x.fixed || !auto(x.src)));
-  if (learn.length) { const seen = new Set(); learn.forEach(x => { if (seen.has(x.src)) return; seen.add(x.src); LEARN.push({ ref: x.ref, url: x.src.learn }); }); if (LEARN.length > 150) LEARN = LEARN.slice(-150); store.set("hd5_scanlearn", LEARN); }
+  let first = null, made = 0, chk = 0;
+  IMPCROP.clear();
+  const crop = (it, src) => { if (src && (src.learn || src.view)) IMPCROP.set(it.uid, { l: src.learn || "", v: src.view || "", c: (src.m || []).slice(0, 6).map(a => a.ref) }); return it; };
+  const mk = (x, f) => {
+    const src = x.src || x.unknown || null;
+    if (x.ref) return crop(mkItem(x.ref, f), src);
+    if (x.name) return mkItem(null, Object.assign({ name: x.name, e: "📦" }, f));
+    if (x.unknown) { chk++; return crop(mkItem(null, Object.assign({ name: "?", e: "❔", img: (src && src.view) || "", chk: 1 }, f)), src); }
+    return null;
+  };
   IMP.res.posts.filter(P => P.on).forEach(P => {
     const p = mkProfile(P.type, P.name.trim() || TYPES[P.type].name);
-    const mk = (x, f) => x.ref ? mkItem(x.ref, f) : x.name ? mkItem(null, Object.assign({ name: x.name, e: "📦" }, f)) : null;
     if (P.type === "trade") {
-      p.have = (P.have || []).map(x => mk(x, x.q ? { q: x.q } : {})).filter(Boolean);
-      const hv = (P.have || []).map((x, i) => [x, p.have[(P.have || []).filter((y, j) => j < i && (y.ref || y.name)).length]]);
-      const giveFor = x => { const src = (P.have || [])[x.gi || 0]; const pair = hv.find(([a]) => a === src); return (pair && (src.ref || src.name) && pair[1]) || p.have[0]; };
-      p.wants = (P.wants || []).map(x => { const g = giveFor(x); return mk(x, Object.assign({ ra: x.ra, rb: x.rb }, g ? { give: g.uid } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {})); }).filter(Boolean);
+      p.have = (P.have || []).map(x => mk(x, Object.assign(x.q ? { q: x.q } : {}, x.note ? { note: x.note } : {}))).filter(Boolean);
+      const hv = (P.have || []).map((x, i) => [x, p.have[(P.have || []).filter((y, j) => j < i && (y.ref || y.name || y.unknown)).length]]);
+      const giveFor = x => { const src = (P.have || [])[x.gi || 0]; const pair = hv.find(([a]) => a === src); return (pair && pair[1]) || p.have[0]; };
+      p.wants = (P.wants || []).map(x => { const g = giveFor(x); return mk(x, Object.assign({ ra: x.ra, rb: x.rb }, x.bulk ? { bra: x.bulk.ra, brb: x.bulk.rb, bat: x.bulk.at } : {}, g ? { give: g.uid } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {})); }).filter(Boolean);
+      // new items you add go to the first ratio of the post, not to a default one
+      const w0 = p.wants.find(w => num(w.ra) > 0 && num(w.rb) > 0); p.addR = w0 ? Object.assign({ ra: w0.ra, rb: w0.rb, give: w0.give }, w0.bat ? { bat: w0.bat, bra: w0.bra, brb: w0.brb } : {}) : null;
     } else p.wants = (P.wants || []).map(x => mk(x, Object.assign({}, x.q ? { q: x.q } : {}, x.p ? { p: x.p, pu: x.pu || "coin" } : {}, x.oos ? { oos: 1 } : {}))).filter(Boolean);
-    if (P.notes && P.notes.length) p.details = P.notes.map(n => "- " + n).join("\n");
+    if (P.notes && P.notes.length) {
+      p.details = P.notes.map(n => "- " + n).join("\n");
+      // "10% off everything" → the post's discount
+      const d = P.type === "vente" && P.notes.join(" ").match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:off|discount|disc\b|r[ée]duc)/i); if (d) p.disc = d[1].replace(",", ".");
+      // buying: "+10% for 100+ items" → a bulk bonus tier (items sold in one go)
+      if (P.type === "achat") P.notes.forEach(n => { const b = n.match(/\+\s*(\d+(?:[.,]\d+)?)\s*%[^\d]{0,30}?(\d+)\s*(?:\+|or more|items?|pcs)/i); if (b && p.bulk.length < 4) p.bulk.push({ mode: "order", at: b[2], pct: b[1].replace(",", ".") }); });
+    }
     if (!p.user && SETTINGS.pseudo) p.user = SETTINGS.pseudo;
-    STATE.list.push(p); last = p; made++;
+    STATE.list.push(p); if (!first) first = p; made++;
   });
-  if (!last) return;
-  IMP.res = null; IMP.text = ""; selectProfile(last.id); tab("items"); toast(made > 1 ? made + " posts created ✔ — check them" : "Post created ✔ — check it");
+  saveCrops();
+  if (!first) return;
+  IMP.res = null; IMP.text = ""; selectProfile(first.id); tab("items");
+  toast((made > 1 ? made + " posts imported ✔" : "Post imported ✔") + (chk ? " — " + plural(chk, "item") + " to pick (?)" : ""));
 }
 $("#impBtn").onclick = () => tab("imp");
 
