@@ -726,7 +726,8 @@ body[data-tab=prev] #editor{display:none}
 .scard h2{font-size:19px}
 .isets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .iset{border:1px solid var(--line2);border-radius:12px;padding:8px 10px;display:grid;gap:2px;min-width:0}
-.isn{display:flex;align-items:baseline;gap:6px}.isn b{font:700 14px var(--sans);color:var(--mut)}.isn strong{font:800 22px/1 var(--sans);margin-left:auto}.isu{font-size:12px;color:var(--mut)}
+.isn{display:flex;align-items:center;gap:6px}.isn .th{width:28px;height:28px;flex:none}
+.ismat{display:flex;flex-wrap:wrap;gap:4px 10px;font:700 13px var(--sans)}.ismat span{display:inline-flex;align-items:center;gap:3px}.ismat .th{width:20px;height:20px}.isn b{font:700 14px var(--sans);color:var(--mut)}.isn strong{font:800 22px/1 var(--sans);margin-left:auto}.isu{font-size:12px;color:var(--mut)}
 .iset small{color:var(--mut);font-size:11.5px;line-height:1.3}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .kpis.three{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -5392,8 +5393,8 @@ function invSets(scope) {
   const S = invSetsOf(scope); if (!S.length) return null;
   const box = h("div", { class: "isets" });
   S.forEach(x => box.append(h("div", { class: "iset" },
-    h("div", { class: "isn" }, h("span", null, x.p.e), h("b", null, x.p.en.replace(/ Set$/, "")), h("strong", null, fmt(x.sets)), h("span", { class: "isu" }, x.sets === 1 ? "set" : "sets")),
-    h("small", null, x.p.parts.map((id, i) => fmt(x.st[i]) + " " + CAT.byId[id].en).join(" · ")),
+    h("div", { class: "isn" }, thumb(prodState(x.p.id), x.p.e, "mini"), h("b", null, x.p.en.replace(/ Set$/, "")), h("strong", null, fmt(x.sets)), h("span", { class: "isu" }, x.sets === 1 ? "set" : "sets")),
+    h("div", { class: "ismat" }, x.p.parts.map((id, i) => h("span", { title: CAT.byId[id].en }, thumb(prodState(id), CAT.byId[id].e, "mini"), fmt(x.st[i])))),
     h("small", null, fmt(x.tot) + " materials" + (x.rest ? " · " + fmt(x.rest) + "/" + SET_N + " to the next" : "") + (x.even < x.sets ? " · " + fmt(x.even) + " with a fair mix" : "")))));
   return box;
 }
