@@ -2232,24 +2232,30 @@ function ledgerVal(w, k) {
   if (k === "r") return v ? { t: fmtR(v / RING_RATE), ic: "ring", acc: 1 } : null;
   if (k === "b") return v ? { t: fmtR(v / BLANKET_RATE), ic: "blanket", acc: 1 } : null;
 }
+const LED_S = { p: 32, q: 40, t: 44, r: 34, b: 34 };
+/** Ledger columns (width + header) of a sell / buy row; compact rows keep the main total only (the ≈ conversions stay in the Total). */
+const LED_W = { p: 186, q: 116, t: 244, r: 160, b: 180 }, LED_L = { p: "PRICE / EA", q: "QTY", t: "TOTAL", r: "RINGS", b: "BLANKETS" };
+const ledCols = ks => ks.map(k => ({ k, w: LED_W[k], l: LED_L[k] }));
+const ledWidth = C => C.reduce((a, c) => a + c.w, 0) + (C.length - 1) * 14;
 function ledgerRow(w, LC, cy, T, sc, compact) {
   sc = sc || 1;
   LC.forEach(c => {
     const v = ledgerVal(w, c.k); if (!v) return;
-    const s = (v.strong ? 29 : 24) * sc;
-    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w - (v.ic ? 26 * sc : 0), min: 13 });
-    if (v.ic === "coin") coin(c.xr - tw - 19 * sc, cy, 10 * sc); else if (v.ic) curIcon(v.ic, c.xr - tw - 21 * sc, cy, 12 * sc);
-    if (v.sub && sc === 1 && !compact) { const sw = txt(v.sub, c.xr, cy + 27, { f: "600i", s: 17, c: T.mut, al: "right", maxW: c.w }); }
+    // readable once Discord shrinks the picture: the quantity and the total are the biggest
+    const s = LED_S[c.k] * sc, ir = s * .4;
+    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w - (v.ic ? ir * 2 + 10 : 0), min: 16 });
+    if (v.ic === "coin") coin(c.xr - tw - ir - 8, cy, ir); else if (v.ic) curIcon(v.ic, c.xr - tw - ir * 1.2 - 8, cy, ir * 1.2);
+    if (v.sub && sc === 1 && !compact) txt(v.sub, c.xr, cy + 34, { f: "600i", s: 20, c: T.mut, al: "right", maxW: c.w });
   });
 }
 function ledgerLine(w, c, xl, xr, cy, T, small) {
   const v = ledgerVal(w, c.k); if (!v) return;
   const lab = { p: "Price / ea", q: "Qty", t: "Total", r: "Rings", b: "Blankets" }[c.k];
-  txt(lab, xl, cy, { f: v.strong ? "700" : "600", s: small ? 18 : 21, c: v.strong ? T.ink : T.mut });
-  const s = (v.strong ? 25 : 21) - (small ? 3 : 0);
-  if (v.sub) { const sw = txt("(" + v.sub + ")", xr, cy + 1, { f: "600i", s: small ? 14 : 16, c: T.mut, al: "right" }); xr -= sw + 8; }
+  txt(lab, xl, cy, { f: v.strong ? "700" : "600", s: small ? 20 : 23, c: v.strong ? T.ink : T.mut });
+  const s = (v.strong ? 32 : c.k === "q" ? 29 : 26) - (small ? 4 : 0), ir = s * .38;
+  if (v.sub) { const sw = txt("(" + v.sub + ")", xr, cy + 1, { f: "600i", s: small ? 15 : 18, c: T.mut, al: "right", maxW: (xr - xl) * .4 }); xr -= sw + 8; }
   const tw = txt(v.t, xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right" });
-  if (v.ic === "coin") coin(xr - tw - 17, cy, 9); else if (v.ic) curIcon(v.ic, xr - tw - 19, cy, 11);
+  if (v.ic === "coin") coin(xr - tw - ir - 8, cy, ir); else if (v.ic) curIcon(v.ic, xr - tw - ir * 1.2 - 8, cy, ir * 1.2);
 }
 
 /* ---------- paper texture ---------- */
@@ -2284,13 +2290,16 @@ function draw() {
   const unit = st.totUnit === "rings" || st.totUnit === "blankets" ? st.totUnit : "coins";
   const mainK = unit === "rings" ? "r" : unit === "blankets" ? "b" : "t";
   const convK = ["r", "b"].filter(k => k !== mainK && (k === "r" ? st.showR !== false : st.showB !== false));
-  const fiveCols = !trade && mainK === "t" && convK.length > 1 && wants.some(w => num(w.p) > 0);
-  if (lay === "list" && fiveCols) W = 1240;
-  const CW = trade ? 470 : fiveCols ? 900 : 780, CG = 48, RH = trade ? 60 : 72;
+  // sell / buy columns: price per unit → quantity → total (→ rings, blankets in the list); the picture widens so names keep ~300 px
+  const priced = !trade && wants.some(w => num(w.p) > 0);
+  const LC = priced ? ledCols(["p", "q", mainK, ...convK]) : [], LCc = priced ? ledCols(["p", "q", mainK]) : [];
+  if (lay === "list" && LC.length) W = Math.max(W, Math.round(2 * M + 100 + 280 + 40 + ledWidth(LC)));
+  const CW = trade ? 580 : 72 + 14 + 280 + 24 + (LCc.length ? ledWidth(LCc) : 160), CG = 48, RH = trade ? 78 : 100;
   let cc = 1, colW = 0;
   if (compact) {
+    // fewer, longer columns: a tall picture stays readable on a phone, a very wide one gets tiny
     const maxC = trade ? 4 : 3;
-    for (cc = 1; cc < maxC; cc++) { const Wc = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); if (Math.ceil(wants.length / cc) * RH <= Wc * 1.15) break; }
+    for (cc = 1; cc < maxC; cc++) { const Wc = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); if (Math.ceil(wants.length / cc) * RH <= Wc * 1.6) break; }
     W = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); colW = (W - 2 * M - (cc - 1) * CG) / cc;
   }
   const hair = T.dark ? "rgba(240,229,207,.13)" : "rgba(42,29,20,.13)";
@@ -2314,15 +2323,9 @@ function draw() {
   if (have.length) H += 104 + orows * oh + (orows - 1) * OG + 44;
   H += 74; // list heading
 
-  // ledger columns for sell / buy: price per unit → quantity → total → rings
-  const LC = []; let ledgerL = W - M;
-  if (!trade && wants.some(w => num(w.p) > 0)) {
-    const L1 = { t: { w: 172, l: "TOTAL" }, r: { w: 122, l: "RINGS" }, b: { w: 146, l: "BLANKETS" } };
-    LC.push({ k: "p", w: 172, l: "PRICE / EA" }, { k: "q", w: 84, l: "QTY" });
-    [mainK, ...convK].forEach(k => LC.push({ k, ...L1[k] }));
-    let xr = W - M; for (let i = LC.length - 1; i >= 0; i--) { LC[i].xr = xr; xr -= LC[i].w + 14; }
-    ledgerL = xr + 14;
-  }
+  // ledger columns for sell / buy, placed from the right
+  let ledgerL = W - M;
+  if (LC.length) { let xr = W - M; for (let i = LC.length - 1; i >= 0; i--) { LC[i].xr = xr; xr -= LC[i].w + 14; } ledgerL = xr + 14; }
   // list rows
   const rightW = w => trade ? (hasRatio(w) ? ratioW(w, 32) : 0) : (LC.length ? W - M - ledgerL : 0);
   const nameX = M + 100;
@@ -2331,7 +2334,7 @@ function draw() {
     rows = wants.map(w => {
       const rw = rightW(w), nameMax = W - M - nameX - (rw ? rw + 40 : 0);
       const nl = (w.note || "").trim() ? wrap(w.note.trim(), nameMax, "500i", 23, 3) : [];
-      return { w, rw, nameMax, nl, h: Math.max(100, 70 + nl.length * 29) };
+      return { w, rw, nameMax, nl, h: Math.max(LC.length ? 116 : 100, 70 + nl.length * 29) };
     });
     H += rows.reduce((a, r) => a + r.h, 0) + 10 + (LC.length ? 46 : 0);
   }
@@ -2339,19 +2342,13 @@ function draw() {
   const anyNote = wants.some(w => (w.note || "").trim());
   const anyPrice = trade ? wants.some(hasRatio) : wants.some(w => amounts(w));
   const nLed = LC.length;
-  const tagH = 50 + imgH + 18 + 40 + (anyNote ? 54 : 0) + (anyPrice ? 26 + (trade ? 50 : nLed * 34) : 0) + 20;
+  const tagH = 50 + imgH + 18 + 40 + (anyNote ? 54 : 0) + (anyPrice ? 26 + (trade ? 50 : nLed * 42) : 0) + 20;
   if (grid) H += wants.length ? Math.ceil(wants.length / C) * (tagH + 34) - 34 + 30 : 0;
   if (!wants.length) H += 80;
-  const LCc = [];
-  if (compact && !trade && wants.some(w => num(w.p) > 0)) {
-    const L2 = { t: { w: 156, l: "TOTAL" }, r: { w: 106, l: "RINGS" }, b: { w: 124, l: "BLANKETS" } };
-    LCc.push({ k: "p", w: 132, l: "PRICE / EA" }, { k: "q", w: 74, l: "QTY" });
-    [mainK, ...convK].forEach(k => LCc.push({ k, ...L2[k] }));
-  }
   const per = compact ? Math.ceil(wants.length / cc) : 0;
   const tileH = g => 12 + 86 + 10 + 28 + (g.items.some(w => (w.note || "").trim()) ? 22 : 0) + 12;
   if (grouped && wants.length) H += GR.reduce((a, g) => a + 84 + Math.ceil(g.items.length / gPer(W)) * tileH(g) + 14 + 26, 0) + 4;
-  if (compact && wants.length) H += (LCc.length ? 34 : 0) + per * RH + 30;
+  if (compact && wants.length) H += (LCc.length ? 40 : 0) + per * RH + 30;
 
   const showTot = !trade && st.showTotal !== false && TT.sub > 0;
   // the total grows with the picture, so it stays readable when the image gets wide (many items)
@@ -2460,7 +2457,7 @@ function draw() {
         if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x, ty + 2, tw, th - 4); starShape(x + tw - 16, ty + 18, 11, T.acc); }
         ctx.beginPath(); ctx.arc(cx, ty + 12 + 43, 43, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
         icon(itemState(w), w.e, cx, ty + 12 + 43, 78);
-        const tnw = txt(w.name || "", cx, ty + 12 + 86 + 10 + 14, { f: "700", s: 21, c: T.ink, al: "center", maxW: tw - 6, min: 14 });
+        const tnw = txt(w.name || "", cx, ty + 12 + 86 + 10 + 14, { f: "700", s: 24, c: T.ink, al: "center", maxW: tw - 6, min: 15 });
         if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 86 + 10 + 28 + 10, { f: "500i", s: 16, c: T.mut, al: "center", maxW: tw - 6 });
         if (w.oos) oosMark(x, ty + 2, tw, th - 4, cx - tnw / 2 - 6, cx + tnw / 2 + 6, ty + 12 + 86 + 10 + 14, T);
       });
@@ -2469,32 +2466,32 @@ function draw() {
     y += 4;
   }
   else if (compact) {
-    const hdr = LCc.length ? 34 : 0, colsPos = [];
+    const hdr = LCc.length ? 40 : 0, colsPos = [];
     for (let c = 0; c < cc; c++) {
       const x0 = M + c * (colW + CG), xr = x0 + colW, defs = LCc.map(d => ({ ...d }));
       let xx = xr; for (let i = defs.length - 1; i >= 0; i--) { defs[i].xr = xx; xx -= defs[i].w + 12; }
       colsPos.push({ x0, xr, defs, left: xx + 12 });
-      if (hdr && c * per < wants.length) defs.forEach(d => txt(d.l, d.xr, y + 10, { f: "700", s: 16, c: T.mut, sp: 2, al: "right" }));
+      if (hdr && c * per < wants.length) defs.forEach(d => txt(d.l, d.xr, y + 12, { f: "700", s: 19, c: T.mut, sp: 2, al: "right" }));
       if (c > 0) { ctx.fillStyle = hair; ctx.fillRect(Math.round(x0 - CG / 2), y, 1, hdr + per * RH); }
     }
-    if (hdr) rule(M, W - M, y + 26, 1, hair);
+    if (hdr) rule(M, W - M, y + 32, 1, hair);
     y += hdr;
     wants.forEach((w, i) => {
       const c = Math.floor(i / per), r = i % per, P0 = colsPos[c], ry = y + r * RH, cy = ry + RH / 2;
       if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(P0.x0 - 8, ry + 3, colW + 16, RH - 6); ctx.fillStyle = T.acc; ctx.fillRect(P0.x0 - 8, ry + 3, 4, RH - 6); }
-      const big = !trade, iz = big ? 54 : 46;
+      const big = !trade, iz = big ? 72 : 60;
       icon(itemState(w), w.e, P0.x0 + iz / 2 + 3, cy, iz);
       let nx = P0.x0 + iz + 14; const nx0 = nx;
       if (w.hot) { starShape(nx + 9, cy - 1, 10, T.acc); nx += 24; }
-      const rw = trade ? (hasRatio(w) ? ratioW(w, 22) : 0) : (LCc.length ? P0.xr - P0.left : 0);
+      const rw = trade ? (hasRatio(w) ? ratioW(w, 34) : 0) : (LCc.length ? P0.xr - P0.left : 0);
       const maxN = P0.xr - nx - (rw ? rw + 24 : 0);
-      let nw = txt(w.name || "", nx, cy, { f: "700", s: big ? 27 : 24, c: T.ink, maxW: maxN, min: 16 });
+      let nw = txt(w.name || "", nx, cy, { f: "700", s: big ? 36 : 30, c: T.ink, maxW: maxN, min: 19 });
       const note = (w.note || "").trim().replace(/\n/g, " · ");
-      if (note && maxN - nw > 60) nw += txt("  " + note, nx + nw, cy + 1, { f: "500i", s: 18, c: T.mut, maxW: maxN - nw });
+      if (note && maxN - nw > 60) nw += txt("  " + note, nx + nw, cy + 1, { f: "500i", s: 21, c: T.mut, maxW: maxN - nw });
       if (rw) {
         ctx.fillStyle = T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.32)";
         for (let x = nx + nw + 10; x < P0.xr - rw - 10; x += 8) { ctx.beginPath(); ctx.arc(x, cy + 7, 1.4, 0, 7); ctx.fill(); }
-        if (trade) drawRatio(w, P0.xr - rw, cy, 22, T); else ledgerRow(w, P0.defs, cy, T, 1, true);
+        if (trade) drawRatio(w, P0.xr - rw, cy, 34, T); else ledgerRow(w, P0.defs, cy, T, 1, true);
       }
       if (w.oos) oosMark(P0.x0 - 8, ry + 3, colW + 16, RH - 6, nx, P0.xr, cy, T);
       if (r < per - 1 && i < wants.length - 1) rule(nx0, P0.xr, ry + RH, 1, hair);
@@ -2503,7 +2500,7 @@ function draw() {
   }
   else if (!grid) {
     if (LC.length) {
-      LC.forEach(c => txt(c.l, c.xr, y + 14, { f: "700", s: 16, c: T.mut, sp: 3, al: "right" }));
+      LC.forEach(c => txt(c.l, c.xr, y + 14, { f: "700", s: 19, c: T.mut, sp: 3, al: "right" }));
       rule(M, W - M, y + 34, 1, T.dark ? "rgba(240,229,207,.2)" : "rgba(42,29,20,.2)");
       y += 46;
     }
@@ -2513,7 +2510,7 @@ function draw() {
       icon(itemState(w), w.e, M + 40, top + rh / 2, 76);
       let nx = nameX;
       if (w.hot) { starShape(nx + 12, ny - 2, 13, T.acc); nx += 32; }
-      const nw = txt(w.name || "", nx, ny, { f: "700", s: trade ? 34 : 32, c: T.ink, maxW: nameMax - (nx - nameX), min: 20 });
+      const nw = txt(w.name || "", nx, ny, { f: "700", s: trade ? 34 : 36, c: T.ink, maxW: nameMax - (nx - nameX), min: 20 });
       nl.forEach((l, i) => txt(l, nameX, ny + 36 + i * 29, { f: "500i", s: 23, c: T.mut }));
       const xr = W - M;
       if (rw) {
@@ -2552,7 +2549,7 @@ function draw() {
         yy += 26;
         const s = C === 2 ? 32 : 26;
         if (trade && hasRatio(w)) drawRatio(w, cx - ratioW(w, s) / 2, yy + 22, s, T);
-        else if (!trade && num(w.p) > 0) LC.forEach((c, k) => ledgerLine(w, c, x + 22, x + tagW - 22, yy + 14 + k * 34, T, C === 3));
+        else if (!trade && num(w.p) > 0) LC.forEach((c, k) => ledgerLine(w, c, x + 22, x + tagW - 22, yy + 16 + k * 42, T, C === 3));
       }
     });
     y += Math.ceil(wants.length / C) * (tagH + 34) - 34 + 30;
