@@ -4084,10 +4084,11 @@ function renderOrder(force) {
     const bonus = rows.reduce((a, L) => a + ((L.r.v || 0) - (L.r.base || L.r.v || 0)), 0), hasTiers = st.type === "achat" && bulkTiers().length > 0;
     const useD = d > 0 && ORDER.applyDisc, total = useD ? sub * (1 - d / 100) : sub;
     // buying: bulk breakdown — subtotal, bonus with the tiers reached, and what's missing for the next "items" tier
-    const reached = [], next = [];
+    // tiers don't add up: each line gets the biggest tier it reaches, so only the tiers really applied are shown
+    const reached = [], next = [], top = Math.max(0, ...rows.map(L => L.r.bulk || 0));
     if (hasTiers && ORDER.applyBulk !== false) bulkTiers().forEach(t => {
-      const hit = rows.some(L => L.r.w && L.r.bulk >= t.pct && bulkHit(t, L.q || 0, num(L.r.w.q), ORDER.oq || 0));
-      if (hit) reached.push(t); else if (t.mode === "order") next.push(t);
+      const used = rows.some(L => L.r.w && L.r.bulk === t.pct && bulkHit(t, L.r.qq != null ? L.r.qq : L.q || 0, num(L.r.w.q), ORDER.oq || 0));
+      if (used) reached.push(t); else if (t.mode === "order" && t.pct > top) next.push(t);
     });
     if (hasTiers && ORDER.applyBulk !== false) {
       const base = sub - bonus;
@@ -4264,6 +4265,8 @@ function fitStock() {
 }
 function replyText() {
   const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w);
+  // each line before the bulk bonus, in whole coins adding up to the subtotal
+  const baseW = new Map(); if (!trade) { const n = wholeShares(L.map(x => x.r.base || 0), null, Math.round); L.forEach((x, i) => baseW.set(x, n[i])); }
   const lines = L.map(x => {
     const n = pName(x.r.w);
     if (trade) { const R = x.r.ratio; if (!(x.q > 0)) return null;
@@ -4272,19 +4275,19 @@ function replyText() {
     const w = dealItem(x.r.w, x), p = num(w.p);
     if (!x.r.u) return null;   // no price in your post: not counted (the screen says so)
     const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmtP(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmtP(p)} ea`;
-    const bk = x.r.bulk ? ` +${fmtR(x.r.bulk)}% bulk` : "";
+    const bk = "";   // the bulk bonus is written once, under the subtotal (not on each line, it would look counted twice)
     // only what is really counted: 10 asked, 1 left → "1× …"; none left → not in the reply
     const qn = ORDER.capStock !== false && x._cap != null ? x._cap : x.q;
     if (!(qn > 0)) return null;
     const mo = mixOf(x.r.w), mx = x.r.mix && mo && mo.mix.length > 1 && x.r.mix.some(o => o.n) ? " (" + x.r.mix.filter(o => o.n).map(o => fmt(o.n) + " " + o.name).join(", ") + ")" : "";
-    return `${fmt(qn)}× ${n}${mx} — ${how}${bk} = ${fmt(x.r.vs != null ? x.r.vs : x.r.v)}`;
+    return `${fmt(qn)}× ${n}${mx} — ${how}${bk} = ${fmt(ORDER.bonus > 0 ? baseW.get(x) : x.r.vs != null ? x.r.vs : x.r.v)}`;
   }).filter(Boolean);
   let foot = "";
   if (trade) {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
     foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), mg = mixOf(o.g), s = splitTxt(o.g, o.n) || (mg ? mixTxt(mg, n) : ""); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
-    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(Math.round(ORDER.sub - ORDER.bonus))}\nBulk bonus${(ORDER.reached || []).length ? " " + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% (" + bulkTxt(t).replace(" at once", "") + ")").join(" / ") : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
   const T = trade && orderTmp(), I = trade && ORDER.intent;
   const head = T ? "Ratio " + fmtR(T.rb) + ":" + fmtR(T.ra) + (I && I.sets ? " for " + setsTxt(I.sets) : "") + "\n" : "";
