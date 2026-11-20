@@ -2232,9 +2232,10 @@ function ledgerVal(w, k) {
   if (k === "r") return v ? { t: fmtR(v / RING_RATE), ic: "ring", acc: 1 } : null;
   if (k === "b") return v ? { t: fmtR(v / BLANKET_RATE), ic: "blanket", acc: 1 } : null;
 }
-const LED_S = { p: 32, q: 40, t: 44, r: 34, b: 34 };
+// the price per item first (biggest), the line's total smaller — in Zilla (finer than the heavy display slab), so the row doesn't turn into a blob
+const LED_S = { p: 40, q: 36, t: 33, r: 30, b: 30 }, LED_F = { p: "700", q: "700", t: "600", r: "600", b: "600" };
 /** Ledger columns (width + header) of a sell / buy row; compact rows keep the main total only (the ≈ conversions stay in the Total). */
-const LED_W = { p: 186, q: 116, t: 244, r: 160, b: 180 }, LED_L = { p: "PRICE / EA", q: "QTY", t: "TOTAL", r: "RINGS", b: "BLANKETS" };
+const LED_W = { p: 236, q: 112, t: 214, r: 150, b: 170 }, LED_L = { p: "PRICE / EA", q: "QTY", t: "TOTAL", r: "RINGS", b: "BLANKETS" };
 const ledCols = ks => ks.map(k => ({ k, w: LED_W[k], l: LED_L[k] }));
 const ledWidth = C => C.reduce((a, c) => a + c.w, 0) + (C.length - 1) * 14;
 function ledgerRow(w, LC, cy, T, sc, compact) {
@@ -2242,8 +2243,8 @@ function ledgerRow(w, LC, cy, T, sc, compact) {
   LC.forEach(c => {
     const v = ledgerVal(w, c.k); if (!v) return;
     // readable once Discord shrinks the picture: the quantity and the total are the biggest
-    const s = LED_S[c.k] * sc, ir = s * .4;
-    const tw = txt(v.t, c.xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right", maxW: c.w - (v.ic ? ir * 2 + 10 : 0), min: 16 });
+    const s = LED_S[c.k] * sc, ir = s * .38;
+    const tw = txt(v.t, c.xr, cy + 1, { f: LED_F[c.k], s, c: v.acc ? T.acc : c.k === "t" ? T.mut : T.ink, al: "right", maxW: c.w - (v.ic ? ir * 2 + 10 : 0), min: 16 });
     if (v.ic === "coin") coin(c.xr - tw - ir - 8, cy, ir); else if (v.ic) curIcon(v.ic, c.xr - tw - ir * 1.2 - 8, cy, ir * 1.2);
     if (v.sub && sc === 1 && !compact) txt(v.sub, c.xr, cy + 34, { f: "600i", s: 20, c: T.mut, al: "right", maxW: c.w });
   });
@@ -2252,9 +2253,9 @@ function ledgerLine(w, c, xl, xr, cy, T, small) {
   const v = ledgerVal(w, c.k); if (!v) return;
   const lab = { p: "Price / ea", q: "Qty", t: "Total", r: "Rings", b: "Blankets" }[c.k];
   txt(lab, xl, cy, { f: v.strong ? "700" : "600", s: small ? 20 : 23, c: v.strong ? T.ink : T.mut });
-  const s = (v.strong ? 32 : c.k === "q" ? 29 : 26) - (small ? 4 : 0), ir = s * .38;
+  const s = (c.k === "p" ? 34 : c.k === "q" ? 29 : 27) - (small ? 4 : 0), ir = s * .38;
   if (v.sub) { const sw = txt("(" + v.sub + ")", xr, cy + 1, { f: "600i", s: small ? 15 : 18, c: T.mut, al: "right", maxW: (xr - xl) * .4 }); xr -= sw + 8; }
-  const tw = txt(v.t, xr, cy + 1, { f: "D", s, c: v.acc ? T.acc : T.ink, al: "right" });
+  const tw = txt(v.t, xr, cy + 1, { f: c.k === "t" ? "600" : "700", s, c: v.acc ? T.acc : c.k === "t" ? T.mut : T.ink, al: "right" });
   if (v.ic === "coin") coin(xr - tw - ir - 8, cy, ir); else if (v.ic) curIcon(v.ic, xr - tw - ir * 1.2 - 8, cy, ir * 1.2);
 }
 
