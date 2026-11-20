@@ -1000,9 +1000,9 @@ details summary{-webkit-tap-highlight-color:transparent}
 </style>
 </head>
 <body data-tab="items">
-<div id="meMenu" class="mepop" hidden role="menu" aria-label="My profile"></div>
+<div id="meMenu" class="mepop" hidden role="menu" aria-label="Menu"></div>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="My profile" title="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg></button></span></div>
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -2801,7 +2801,7 @@ function tab(t) {
   if (t === "inv") renderInv();
   if (t === "search") renderSearch();
   if (t === "deals") renderOngoing();
-  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist"].includes(t));
+  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist", "imp"].includes(t));
   $("#impBtn").classList.toggle("on", t === "imp");
   if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
@@ -4993,7 +4993,9 @@ const backTo = (t, label) => h("button", { class: "back", onclick: () => t === "
 
 /* ---------- profile ---------- */
 const ME_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.7 3.9-5.6 7.5-5.6s6.6 1.9 7.5 5.6"/></svg>';
-function meInitial() { const p = (SETTINGS.pseudo || "").trim(); const b = $("#meBtn"); if (!b) return; if (p) b.textContent = [...p][0].toUpperCase(); else b.innerHTML = ME_SVG; }
+// the header has one button, ☰: profile, inventory, stats, history, import, backup, guide are in its menu
+const MENU_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>';
+function meInitial() { const b = $("#meBtn"); if (b && !b.querySelector("svg")) b.innerHTML = MENU_SVG; }
 function setPseudo(v) {
   const old = SETTINGS.pseudo || "";
   STATE.list.forEach(p => { if (!(p.user || "").trim() || p.user === old) p.user = v; });
@@ -5148,8 +5150,10 @@ function renderMeMenu() {
     go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
     go("📊", "Stats", S ? fmt(HIST.length) + " deals · " + short(Math.round(S.in)) + " coins in" : "Your sales, purchases and trades in numbers", () => tab("stats")),
     go("🕘", "History", HIST.length ? fmt(HIST.length) + " deals" : "Deals marked as done", () => tab("hist")),
+    go("📥", "Import a post", "An old post, from a screenshot or its text", () => tab("imp")),
     go("💾", "Backup", "Save or restore everything (posts, history, inventory)", () => { tab("style"); setTimeout(() => { const b = $("#bkOut"); b && b.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); }),
-    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")));
+    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
+    go("❔", "Quick help", "The main things on one page", () => $("#helpBtn").click()));
 }
 $("#meBtn").setAttribute("aria-haspopup", "menu"); $("#meBtn").setAttribute("aria-expanded", "false");
 $("#meBtn").onclick = e => { e.stopPropagation(); if ($("#meMenu").hidden) openMe(); else closeMe(); };
