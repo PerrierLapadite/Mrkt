@@ -674,6 +674,23 @@ body[data-tab=prev] #editor{display:none}
 .i1,.gi1,.haveitem .i1{grid-template-columns:auto minmax(0,1fr);grid-auto-flow:column;grid-auto-columns:auto}
 .haveitem .i1{grid-template-columns:auto minmax(0,1fr) 112px}
 .i1 .ib,.gi1 .ib{width:34px;height:34px}
+.qc .ta{min-height:110px}
+.qcpct{display:grid;grid-template-columns:1fr 90px auto;gap:8px;align-items:center}
+.qcpct .lbl{margin:0}
+.qcout{display:grid;gap:8px}
+.qcl,.qctot{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:3px;background:var(--surface)}
+.qctot{border-color:var(--ink);background:var(--card,var(--surface))}
+.qct{display:flex;align-items:center;gap:8px}
+.qct>span:not(.qci){flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.qct b{font:800 18px/1.2 var(--sans);white-space:nowrap;display:flex;align-items:center;gap:5px}
+.qctot .qct b{font-size:22px}
+.qct .qci{flex:0 0 30px!important;width:30px;height:30px;display:grid;place-items:center;font-size:22px;overflow:hidden}
+.qct .qci *{max-width:30px;max-height:30px}
+.qcl small,.qctot small{color:var(--mut);font-size:12.5px;line-height:1.35}
+.qcl.err small{color:#c0583f}
+.qcparts{display:grid;gap:2px;margin-top:4px;padding-top:6px;border-top:1px dashed var(--line)}
+.qcparts span{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
+.qcparts b{font-weight:700;white-space:nowrap}
 .hsw{margin-bottom:2px}
 .ib.idel{color:var(--mut);font-size:22px;font-weight:500;width:30px!important}
 .ib.idel:hover{color:var(--red,#c0392b)}
@@ -1021,7 +1038,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 <body data-tab="items">
 <div id="meMenu" class="mepop" hidden role="menu" aria-label="Menu"></div>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn" id="calcBtn" aria-label="Quick calc" title="Quick calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 15.5h.01M12 15.5h.01M15.5 15.5v2"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -5227,6 +5244,135 @@ function renderMeMenu() {
     go("🎨", "Style & backup", "Paper, layout, texts · backup of everything", () => tab("style")),
     h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")));
 }
+
+/* =====================================================================
+   QUICK CALC — a calculation on its own, nothing to do with your posts:
+   "10 bem set 150k ea", "200 olive oil 2.5k", "50 diamond rings 3xmp", "30 lobster 1 ring",
+   "12 bem sets for 1.5m" (a total), or plain math "150k*10".
+   Coins are counted exactly (to the coin); rings and blankets use the fixed rates.
+   ===================================================================== */
+const QC_UNIT = [[/^(?:coins?|c|g|gold)$/, "coin"], [/^(?:rings?|💍|dr|diamond\s*rings?)$/, "ring"], [/^(?:blankets?|🛏️?|bl)$/, "blanket"], [/^(?:[x×]\s*m\.?\s*p|m\s*[x×]\s*p|[x×]\s*max(?:\s*price)?|m\.?p)$/, "xmp"]];
+/** Plain math: numbers (150k, 1.5m, 2,500), + − × ÷ ( ). Returns null if it isn't math. */
+function qcMath(t) {
+  const s = t.replace(/\s+/g, "").replace(/[×x]/gi, "*").replace(/÷/g, "/").replace(/−/g, "-");
+  if (!/^[\d.,km+\-*/()]+$/i.test(s) || !/[\dkm)][+\-*/][\d(-]/i.test(s)) return null;
+  const tk = s.match(/\d[\d.,]*[km]?|[+\-*/()]/gi); if (!tk || tk.join("") !== s) return null;
+  let i = 0;
+  const atom = () => { const x = tk[i++]; if (x === "(") { const v = expr(); if (tk[i++] !== ")") throw 0; return v; } if (x === "-") return -atom(); const v = num(x); if (!(v >= 0)) throw 0; return v; };
+  const term = () => { let v = atom(); while (tk[i] === "*" || tk[i] === "/") { const o = tk[i++], r = atom(); if (o === "/" && !r) throw 0; v = o === "*" ? v * r : v / r; } return v; };
+  const expr = () => { let v = term(); while (tk[i] === "+" || tk[i] === "-") { const o = tk[i++], r = term(); v = o === "+" ? v + r : v - r; } return v; };
+  try { const v = expr(); return i === tk.length && isFinite(v) ? v : null; } catch (e) { return null; }
+}
+/** One line → { q, name, p (the item), each (coins for one), total, how, err }. */
+function qcLine(raw) {
+  let t = raw.trim(); if (!t) return null;
+  const m0 = qcMath(t); if (m0 != null) return { math: true, total: m0, txt: t };
+  t = t.toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ");
+  let q = null, m;
+  // quantity: "10 bem set", "x10 bem set", "10x bem set", "bem set x10"
+  if ((m = t.match(/^(?:[x×]\s*)?(\d[\d.,]*[km]?)\s*(?:[x×]|pcs|pieces?)?\s+(?=\D)/))) { q = num(m[1]); t = t.slice(m[0].length); }
+  else if ((m = t.match(/\s(?:[x×]\s*)(\d[\d.,]*[km]?)\b/))) { q = num(m[1]); t = (t.slice(0, m.index) + " " + t.slice(m.index + m[0].length)).trim(); }
+  // price at the end: "150k ea", "@ 2.5k", "for 1.5m" (a total), "3xmp", "1 ring", "2 blankets each"
+  let price = null, unit = "coin", total = false;
+  m = t.match(/(?:^|\s)(?:(@|at|for|à|a|price|=)\s*)?(\d[\d.,]*\s*[km]?)\s*(coins?|c|g|gold|rings?|💍|dr|diamond\s*rings?|blankets?|🛏️?|bl|[x×]\s*m\.?\s*p|m\s*[x×]\s*p|[x×]\s*max(?:\s*price)?|m\.?p)?\s*(each|ea|apiece|per\s*(?:one|unit|item|set|piece)|a\s*piece|in\s*total|total|for\s*all|all)?\s*$/);
+  if (m && (m[1] || m[3] || m[4] || /\D/.test(t.slice(0, m.index)) || q == null)) {
+    price = num(m[2].replace(/\s+/g, ""));
+    if (m[3]) unit = (QC_UNIT.find(([re]) => re.test(m[3].replace(/\s+/g, " ").trim())) || [, "coin"])[1];
+    total = /^(?:in\s*total|total|for\s*all|all)$/.test(m[4] || "") || (m[1] === "for" && !m[4] && q > 1);
+    t = t.slice(0, m.index).trim();
+  }
+  if (q == null) q = 1;
+  const name = t.replace(/^(?:of|the)\s+/, "").replace(/\s+(?:at|for|@|each|ea)$/, "").trim();
+  const R = name ? matchProduct(name) : {}, P = R && R.p && !R.ignored ? R.p : null;
+  const L = { q, name, p: P, unit, price, total, txt: raw.trim() };
+  if (!(q > 0)) return Object.assign(L, { err: "no quantity" });
+  if (price == null) return Object.assign(L, { err: "no price — e.g. “" + (q > 1 ? fmt(q) + " " : "") + (P ? P.en.toLowerCase() : name || "item") + " 150k ea”" });
+  let one;   // coins for one unit of the price
+  if (unit === "ring") one = price * RING_RATE;
+  else if (unit === "blanket") one = price * BLANKET_RATE;
+  else if (unit === "xmp") {
+    if (!P) return Object.assign(L, { err: "which item? ×MP needs one" });
+    // a mix (page jams…): each jam at its own max price, not an average
+    if (P.mix) { const miss = P.mix.filter(id => !(maxPrice(id) > 0)); if (miss.length) return Object.assign(L, { err: miss.map(id => (CAT.byId[id] || {}).en || id).join(", ") + ": max price not loaded yet" }); one = 0; }
+    else { const mp = maxPrice(P.id); if (!(mp > 0)) return Object.assign(L, { err: P.en + ": max price not loaded yet" }); one = price * mp; L.mp = mp; }
+  }
+  else one = price;
+  if (P && P.mix) return qcMix(L, P, one);
+  // exact to the coin: the total is what they pay; one item = total ÷ quantity
+  const tot = total ? one : one * q;
+  L.total = Math.round(tot * 100) / 100; L.each = L.total / q;
+  if (P && P.parts) qcPack(L, P);
+  return L;
+}
+/** A set: its materials (89 a set: 30 Bolt + 30 Plank + 29 Duct Tape) and what each part is worth, in whole coins adding up to the total. */
+function qcPack(L, P) {
+  const n = Math.round(L.q * SET_N); L.mats = n; if (!n) return;
+  L.parts = packSplit(P, n).filter(x => x.n);
+  const v = wholeShares(L.parts.map(x => L.total * x.n / n), null, Math.round); L.parts.forEach((x, i) => x.v = v[i]);
+  L.perMat = L.total / n;
+}
+/** A mix (First Page Jams…): the quantity shared evenly between its items; with ×MP each one at its own max price. */
+function qcMix(L, P, one) {
+  const ids = P.mix, sp = evenSplit(ids.length, Math.round(L.q));
+  L.parts = ids.map((id, i) => ({ id, n: sp[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })).filter(x => x.n);
+  let raw;
+  if (L.unit === "xmp") raw = L.parts.map(x => x.n * L.price * maxPrice(x.id));
+  else if (L.total) raw = L.parts.map(x => one * x.n / L.q);   // "60 first page jams for 90k": the 90k shared by quantity
+  else raw = L.parts.map(x => x.n * one);
+  const tot = raw.reduce((a, b) => a + b, 0);
+  L.total = Math.round(tot * 100) / 100; L.each = L.total / L.q; L.mixed = true;
+  const v = wholeShares(raw, null, Math.round); L.parts.forEach((x, i) => { x.v = v[i]; x.each = x.n ? raw[i] / x.n : 0; });
+  return L;
+}
+const qcUnitTxt = L => L.unit === "ring" ? fmtR(L.price) + " " + (L.price === 1 ? "ring" : "rings") : L.unit === "blanket" ? fmtR(L.price) + " " + (L.price === 1 ? "blanket" : "blankets") : L.unit === "xmp" ? fmtR(L.price) + "×MP" : fmt(L.price) === String(L.price) || Number.isInteger(L.price) ? fmt(L.price) : fmtR(L.price);
+const qcConv = v => "≈ " + fmtR(v / RING_RATE) + " rings · ≈ " + fmtR(v / BLANKET_RATE) + " blankets";
+const qcExact = v => Number.isInteger(Math.round(v * 100) / 100) ? fmt(v) : (Math.round(v * 100) / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function openCalc() {
+  const ta = h("textarea", { class: "ta", rows: 4, value: SETTINGS.calc || "", placeholder: "One calculation a line, e.g.\n10 bem set 150k ea\n200 olive oil 2.5k\n50 diamond rings 3xmp\n12 bem sets for 1.5m\n150k*10", autocapitalize: "off", spellcheck: false });
+  const pct = h("input", { class: "inp", inputMode: "decimal", value: SETTINGS.calcPct || "", placeholder: "0", "aria-label": "Bonus or discount in %" });
+  const out = h("div", { class: "qcout" });
+  const paint = () => {
+    SETTINGS.calc = ta.value; SETTINGS.calcPct = pct.value; saveSettings();
+    out.textContent = "";
+    const Ls = ta.value.split(/\r?\n/).map(qcLine).filter(Boolean);
+    if (!Ls.length) { out.append(h("p", { class: "hint" }, "Quantity, item, price. “ea” = each, “for 1.5m” = for all of them. Prices in coins (150k, 2.5k, 1.5m), rings, blankets or ×MP. Plain math works too: 150k*10.")); return; }
+    let sum = 0, n = 0, items = 0;
+    Ls.forEach(L => {
+      if (L.math) { sum += L.total; n++; out.append(h("div", { class: "qcl" }, h("div", { class: "qct" }, h("span", null, L.txt), h("b", null, qcExact(L.total))))); return; }
+      if (L.err) { out.append(h("div", { class: "qcl err" }, h("div", { class: "qct" }, h("span", null, L.txt), h("small", null, L.err)))); return; }
+      sum += L.total; n++; items += L.q;
+      const nm = L.p ? L.p.en : L.name || "item";
+      out.append(h("div", { class: "qcl" },
+        h("div", { class: "qct" }, L.p ? h("span", { class: "qci" }, thumb(itemState({ ref: L.p.id }), L.p.e)) : null, h("span", null, fmt(L.q) + " × " + nm), h("b", null, h("i", { class: "coin" }), qcExact(L.total))),
+        h("small", null, L.q > 1 || L.unit !== "coin" ? qcExact(L.each) + " each" + (L.unit !== "coin" ? " (" + qcUnitTxt(L) + (L.mp ? " · max price " + fmt(L.mp) : "") + ")" : "") + " · " : "",
+          qcConv(L.total)),
+        L.p && L.p.parts && L.parts ? h("small", { class: "qcp" }, fmt(L.mats) + " materials: " + L.parts.map(x => fmt(x.n) + " " + x.name).join(" + ") + " · 1 material = " + qcExact(L.perMat) + " · a crate of 10 = " + qcExact(L.perMat * 10)) : null,
+        L.parts ? h("div", { class: "qcparts" }, L.parts.map(x => h("span", null, (CAT.byId[x.id] || {}).e || "", " " + fmt(x.n) + " " + x.name + (L.mixed && L.unit === "xmp" ? " (" + qcExact(x.each) + " ea)" : ""), h("b", null, fmt(x.v))))) : null,
+        L.mixed ? h("small", { class: "qcp" }, "Shared evenly between the " + L.parts.length + " " + (L.p.cat === "jams" ? "jams" : L.p.cat === "drinks" ? "juices" : "items") + (L.unit === "xmp" ? ", each at its own max price (another mix changes the total)." : ".")) : null));
+    });
+    const k = num(pct.value.replace("%", "").replace("+", "")) * (/^\s*-/.test(pct.value) ? -1 : 1);
+    if (n > 1 || k) {
+      const fin = Math.round(sum * (1 + k / 100) * 100) / 100;
+      out.append(h("div", { class: "qctot" },
+        h("div", { class: "qct" }, h("span", null, "Total" + (items ? " · " + plural(items, "item") : "")), h("b", null, h("i", { class: "coin" }), qcExact(fin))),
+        k ? h("small", null, qcExact(sum) + (k > 0 ? " + " : " − ") + fmtR(Math.abs(k)) + "% (" + (k > 0 ? "+" : "−") + qcExact(Math.abs(fin - sum)) + ")") : null,
+        h("small", null, qcConv(fin))));
+    }
+    out.append(h("button", { class: "btn", onclick: () => copyText(qcText(Ls, sum, k)) }, "Copy"));
+  };
+  ta.oninput = debounce(paint, 120); pct.oninput = debounce(paint, 120);
+  openSheet("Quick calc", h("div", { class: "stack qc" }, h("p", { class: "hint" }, "On its own: nothing here touches your posts, orders or inventory."), ta,
+    h("div", { class: "qcpct" }, h("label", { class: "lbl" }, "Bonus / discount %"), pct, h("button", { class: "btn sm", onclick: () => { ta.value = ""; pct.value = ""; paint(); ta.focus(); } }, "Clear")), out));
+  paint(); setTimeout(() => ta.focus(), 250);
+}
+async function copyText(t) { try { await navigator.clipboard.writeText(t); toast("Copied ✔"); } catch (e) { openSheet("Copy", h("textarea", { class: "ta", rows: 8, value: t })); } }
+function qcText(Ls, sum, k) {
+  const lines = Ls.filter(L => !L.err).map(L => L.math ? L.txt + " = " + qcExact(L.total) : fmt(L.q) + "× " + (L.p ? L.p.en : L.name || "item") + " — " + (L.q > 1 && !L.mixed ? qcExact(L.each) + " ea = " : "") + qcExact(L.total) + (L.parts ? " (" + L.parts.map(x => fmt(x.n) + " " + x.name).join(" + ") + ")" : ""));
+  const fin = Math.round(sum * (1 + k / 100) * 100) / 100;
+  if (lines.length > 1 || k) lines.push((k ? "With " + (k > 0 ? "+" : "−") + fmtR(Math.abs(k)) + "%: " : "Total: ") + qcExact(fin) + " coins");
+  return lines.join("\n");
+}
+$("#calcBtn").onclick = openCalc;
 $("#meBtn").setAttribute("aria-haspopup", "menu"); $("#meBtn").setAttribute("aria-expanded", "false");
 $("#meBtn").onclick = e => { e.stopPropagation(); if ($("#meMenu").hidden) openMe(); else closeMe(); };
 document.addEventListener("pointerdown", e => { const m = $("#meMenu"); if (!m.hidden && !m.contains(e.target) && !$("#meBtn").contains(e.target)) closeMe(); }, true);
