@@ -627,6 +627,7 @@ body[data-tab=prev] #editor{display:none}
 .owarnc{border-left:4px solid #e6a93a}
 .oline.srl .omid small{white-space:normal}
 .srinv{margin:-4px 2px 0}
+.omix{display:block;color:var(--ink2);font-style:normal}
 .three{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px}
 .three .btn{padding-left:6px;padding-right:6px;white-space:nowrap}
 .srinfo{display:grid;gap:6px}
@@ -1399,6 +1400,32 @@ const PACKS = [
   {en:"Tool Set", fr:"Lot outils · Axe Saw Shovel · déblayage", parts:["axe","saw","shovel"], e:"🧰"}
 ];
 
+/* "Mixes": one item made of several that players trade as one — any of them counts (Jam Maker pages: 5 jams a page, as in the game;
+   all the bars of the Smelter). In your inventory they are their items: you have = the sum, a deal takes them from what you have most of. */
+const MIXES = [
+  { en: "First Page Jams", fr: "Confitures page 1 · fp jams · 1st page jams · page 1", e: "🫙", cat: "jams", badge: "1", mix: ["apple-jam", "raspberry-jam", "blackberry-jam", "cherry-jam", "strawberry-jam"] },
+  { en: "Second Page Jams", fr: "Confitures page 2 · sp jams · 2nd page jams · page 2", e: "🫙", cat: "jams", badge: "2", mix: ["peach-jam", "grape-jam", "marmalade", "blueberry-chutney", "plum-jam"] },
+  { en: "Third Page Jams", fr: "Confitures page 3 · tp jams · 3rd page jams · page 3", e: "🫙", cat: "jams", badge: "3", mix: ["passion-fruit-jam"] },
+  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
+];
+const mixOf = x => { const p = x && (typeof x === "string" ? CAT.byId[x] : x.mix ? x : x.ref ? CAT.byId[x.ref] : null); return p && p.mix ? p : null; };
+const isVirt = p => !!(p && (p.parts || p.mix));            // a set or a mix: not an item of the barn itself
+/** "fp jams", "1st page jams", "jams page 2", "all bars", "mixed bars" → the mix (not when it says "up to …": then it's a part of a page). */
+function mixFromText(s) {
+  const n = " " + norm(s).replace(/[^a-z0-9]+/g, " ").trim() + " ";
+  if (/ up ?to /.test(n)) return null;
+  const jam = /\b(?:jams?|jelly|jellies|jam maker|confitures?|confs?)\b/.test(n), short = n.match(/ (fp|sp|tp)j /);
+  if (jam || short) {
+    const pg = short ? { fp: 1, sp: 2, tp: 3 }[short[1]]
+      : / (?:fp|1st|first|frst|p ?1|pg ?1|page ?1|page one|premiere|1ere) /.test(n) ? 1
+      : / (?:sp|2nd|second|scnd|p ?2|pg ?2|page ?2|page two|deuxieme|2eme) /.test(n) ? 2
+      : / (?:tp|3rd|third|p ?3|pg ?3|page ?3|page three|last page|troisieme|3eme) /.test(n) ? 3 : 0;
+    return pg ? CAT.byId[["first", "second", "third"][pg - 1] + "-page-jams"] || null : null;
+  }
+  if (/ (?:all|mix|mixed|any|every|assorted|random|tous les|toutes les) (?:the |of |kinds? of |types? of )?(?:bars?|lingots?) | bars? (?:mix|mixed) |^ (?:bars|lingots) $/.test(n)) return CAT.byId["all-bars"] || null;
+  return null;
+}
+
 // Raccourcis de recherche / migration des anciens noms
 const ALIASES = {
   "feathers":"duck-feather","feather":"duck-feather","plume":"duck-feather","plumes":"duck-feather",
@@ -1406,7 +1433,7 @@ const ALIASES = {
   "ring":"diamond-ring","rings":"diamond-ring","bague":"diamond-ring",
   "dt":"duct-tape","tape":"duct-tape","tnt":"tnt-barrel","map":"map-piece",
   "bem":"bem-set","sem":"sem-set","lem":"lem-set","tem":"tem-set",
-  "jams":"strawberry-jam","mayo":"mayonnaise","malet":"mallet"
+  "mayo":"mayonnaise","malet":"mallet"
 };
 
 const POPULAR = ["bem-set","sem-set","lem-set","tem-set","bolt","plank","duct-tape","nail","screw","wood-panel","land-deed","mallet","marker-stake","axe","saw","shovel","dynamite","tnt-barrel","pickaxe","map-piece","diamond-ring","lobster-tail","duck-feather","blanket","lemon-curd","mayonnaise","soy-sauce","tomato-sauce","olive-oil","strawberry-jam","honey","beeswax"];
@@ -1529,11 +1556,12 @@ function buildCatalog() {
   });
   (store.get("hd5_wiki", { names: [] }).names || []).forEach(addWikiName);
   CUSTOM.forEach(c => addProduct({ id: c.id, en: c.en, fr: c.fr || "", e: c.e || "⭐", cat: "perso", custom: true }));
+  MIXES.forEach(m => { const ids = m.mix.filter(id => CAT.byId[id]); if (ids.length) addProduct({ id: slug(m.en), en: m.en, fr: m.fr, e: m.e, cat: m.cat, mix: ids, badge: m.badge }); });
 }
 function addWikiName(n) {
   if (!n || WIKI_BLACKLIST.has(n) || /\b(tree|bush|icon|field|coins?|experience|voucher|level|building|machine)\b/i.test(n)) return;
   const id = slug(n);
-  if (CAT.byId[id]) return;
+  if (CAT.byId[id] || MIXES.some(m => slug(m.en) === id)) return;
   addProduct({ id, en: n, fr: "", e: "📦", cat: "other", file: n.replace(/ /g, "_"), wiki: true });
 }
 /** Récupère la liste complète des produits sur le wiki (comme hd.jjtechdev.com), mise en cache 7 jours. */
@@ -1559,6 +1587,7 @@ async function refreshWikiList(force) {
 function findProduct(name) {
   const n = norm(name).replace(/\s*\|.*$/, "");
   if (!n) return null;
+  const mx = mixFromText(n); if (mx) return mx;
   const s = slug(n);
   if (CAT.byId[s]) return CAT.byId[s];
   if (ALIASES[s]) return CAT.byId[ALIASES[s]] || null;
@@ -1678,6 +1707,7 @@ function prodState(id) {
     const ov = null; // game pictures can't be replaced
     if (p.custom) { const c = USERIMG.get("c:" + id); if (c) cands.push(c); }
     if (p.parts && !ov) return composePack(s, p);
+    if (p.mix) return composeMix(s, p);
     if (LOCAL.has(id)) cands.push("images/" + id + ".png");
     if (p.file) {
       const u = await resolveFile(p.file);
@@ -1699,6 +1729,28 @@ function composePack(s, p) {
     const g = c.getContext("2d");
     const spots = ok.length === 1 ? [[128, 128, 230]] : ok.length === 2 ? [[90, 120, 170], [166, 140, 170]] : [[78, 92, 150], [178, 92, 150], [128, 170, 160]];
     ok.slice(0, 3).forEach((x, i) => { const [cx, cy, z] = spots[i], im = x.el, k = z / Math.max(im.naturalWidth, im.naturalHeight); g.drawImage(im, cx - im.naturalWidth * k / 2, cy - im.naturalHeight * k / 2, im.naturalWidth * k, im.naturalHeight * k); });
+    s.el = c; try { s.src = c.toDataURL("image/png"); } catch (e) { s.src = ""; }
+    s.ok = true; notify(s);
+  };
+  sts.forEach(x => { if (!(x.ok || x.fail)) x.subs.add(done); });
+  done();
+}
+/** Picture of a mix (jam pages, all bars): up to 4 of its items + its badge ("1", "2", "3", "ALL"). */
+function composeMix(s, p) {
+  const sts = p.mix.slice(0, 4).map(prodState);
+  const done = () => {
+    if (!sts.every(x => x.ok || x.fail)) return;
+    const ok = sts.filter(x => x.ok && x.el);
+    if (!ok.length) { s.fail = true; return notify(s); }
+    const c = document.createElement("canvas"); c.width = c.height = 256;
+    const g = c.getContext("2d");
+    const spots = ok.length === 1 ? [[128, 124, 220]] : ok.length === 2 ? [[86, 120, 160], [170, 136, 160]] : ok.length === 3 ? [[80, 86, 136], [176, 86, 136], [128, 170, 140]] : [[78, 76, 124], [178, 76, 124], [78, 174, 124], [178, 174, 124]];
+    ok.forEach((x, i) => { const [cx, cy, z] = spots[i], im = x.el, w = im.naturalWidth || im.width, hh = im.naturalHeight || im.height, k = z / Math.max(w, hh); g.drawImage(im, cx - w * k / 2, cy - hh * k / 2, w * k, hh * k); });
+    if (p.badge) {
+      const t = String(p.badge), r = t.length > 1 ? 50 : 40, bx = 256 - r - 6, by = 256 - r - 6;
+      g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fillStyle = "#c2452d"; g.fill(); g.lineWidth = 8; g.strokeStyle = "#fff8e7"; g.stroke();
+      g.fillStyle = "#fff8e7"; g.font = "800 " + (t.length > 1 ? 34 : 50) + "px system-ui, -apple-system, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t, bx, by + 2);
+    }
     s.el = c; try { s.src = c.toDataURL("image/png"); } catch (e) { s.src = ""; }
     s.ok = true; notify(s);
   };
@@ -1727,7 +1779,7 @@ function itemState(it) {
 }
 function resetProdImage(id) {
   IMGS.delete(id);
-  CAT.list.filter(p => p.parts && p.parts.includes(id)).forEach(p => IMGS.delete(p.id));
+  CAT.list.filter(p => (p.parts && p.parts.includes(id)) || (p.mix && p.mix.includes(id))).forEach(p => IMGS.delete(p.id));
 }
 /** Remplit un conteneur .th avec l’image (ou l’emoji en attendant / en secours). */
 function fillThumb(el, s, emoji) {
@@ -1831,6 +1883,7 @@ function maxPrice(id) {
   const p = id && CAT.byId[id]; if (!p) return 0;
   // a set = its 89 materials (30 Bolt + 30 Plank + 29 Duct Tape)
   if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? packSplit(p, SET_N).reduce((a, s, i) => a + s.n * v[i], 0) : 0; }
+  if (p.mix) { const v = p.mix.map(maxPrice); return v.length && v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
   if (MAXP[id] > 0) return MAXP[id];
   if (!(id in MAXP) && !p.custom) queueMax(id);
   return MAXP_BASE[id] || 0;
@@ -1838,6 +1891,7 @@ function maxPrice(id) {
 function maxSource(w) {
   const p = w.ref && CAT.byId[w.ref]; if (!p) return "none";
   if (p.parts) return maxPrice(p.id) ? "its 89 materials" : (p.parts.some(x => mpPending.has(x)) ? "loading" : "none");
+  if (p.mix) return maxPrice(p.id) ? "the average of its " + p.mix.length + " items" : (p.mix.some(x => mpPending.has(x)) ? "loading" : "none");
   if (MAXP[p.id] > 0) return "wiki";
   if (mpPending.has(p.id)) return MAXP_BASE[p.id] ? "table" : "loading";
   return MAXP_BASE[p.id] ? "table" : "none";
@@ -2611,7 +2665,8 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
-    h("li", null, h("b", null, "Search:"), " paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “fp jams” or “mussel foods”: tap the items they mean."),
+    h("li", null, h("b", null, "Search:"), " paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
+    h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams (the Jam Maker's pages, 5 jams a page) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
     h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
     h("li", null, h("b", null, "Import (⤓, top right):"), " an old post → a new post here: a screenshot of your Discord message or of a picture made by another post maker, or the copied text. Struck items come in as “out of stock”."),
     h("li", null, h("b", null, "Out of stock:"), " ⋯ on an item → “Out of stock”: it stays on the picture, faded and struck through, and isn't counted or sold in Order."),
@@ -3171,57 +3226,229 @@ async function loadLocalManifest() {
    ===================================================================== */
 const ORDER = { text: "", lines: [], applyDisc: true };
 
-/** Split a pasted message into { raw, name, q } lines. Handles "carrot pies x26", "pumpkin pie x 42",
-    "26 carrot pies", "26x carrot pie", "carrot pie 26", "carrot pie: 26", bullets, emojis, markdown. */
+/** A buyer's message → { raw, name, q } lines, however it's written: one item a line or all on one line
+    ("I will take tower doner, feta pie, straw candle, all jams"), "10 feta pie 20 straw candle", "feta pie x10 straw candle x20",
+    "carrot pies x26", "26x carrot pie", "carrot pie: 26", "10 of each", bullets, emojis, markdown, "hi / pls / thx". */
+const ORD_LEAD = new Set("do does did still got any left is are there anything else thanks thank thx ty tysm cheers bye hi hii hello hey yo ok okay so and also plus then i ill id im ive we will would wanna want wants need needs like love take get grab have buy order reserve book purchase can could may let me give pls please plz kindly sure yes yeah yep just some your ur from you u to for dm send sell itd it be is are there would like i'd i'll i'm".split(" "));
+const ORD_TAIL = /(?:\s+(?:please|pls|plz|thanks|thank you|thx|ty|tyvm|if possible|if (?:you|u) (?:can|have)|for me|too|as well|also|asap|now|today|tho|though|ok|okay|all|all of (?:it|them)|(?:all |everything )?(?:you|u) have|!+|\?+|:\)|:d))+\s*$/i;
+const ORD_QTY = "\\d[\\d.,]*\\s*k?";
+/** One piece "26x carrot pie" → { name, q } (q "" = none). A price written with it is not the quantity: "honey x20 at 450", "(450 ea)". */
+function orderPiece(s) {
+  const P = "\\d[\\d.,]*\\s*k?\\s*(?:coins?|c)?";
+  s = s.replace(/\s*\([^)]*\d[^)]*\)\s*$/, "").replace(new RegExp("\\s*(?:@|\\bat\\b|\\bfor\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?\\s*$", "i"), "")
+    .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\s*$", "i"), "").trim();
+  if (!s || !/[a-z]/i.test(s)) return null;
+  s = s.replace(/^(?:x|×)\s*(\d)/i, "$1");                               // "x10 popcorn"
+  let m, name = s, q = "";
+  const Q = "(" + ORD_QTY + ")";
+  if ((m = s.match(new RegExp("^(.*?[a-z)'’])[\\s:=\\-–]*(?:x|×|\\*)\\s*" + Q + "\\s*(?:pcs?|pieces?)?$", "i")))) { name = m[1]; q = m[2]; }
+  else if ((m = s.match(new RegExp("^" + Q + "\\s*(?:x|×|\\*|pcs?|pieces?)?\\s+(?:of\\s+(?:the\\s+|your\\s+)?)?(.+)$", "i")))) { q = m[1]; name = m[2]; }
+  else if ((m = s.match(new RegExp("^(.*?[a-z)'’])\\s*[:=\\-–]?\\s+" + Q + "\\s*(?:pcs?|pieces?|x)?$", "i")))) { name = m[1]; q = m[2]; }
+  name = name.replace(/\s*[:=\-–]+\s*$/, "").trim();
+  return name ? { name, q } : null;
+}
+/** The words of the item: "I will take the" / "pls" / "thx" out, "all" / "every" kept as a flag. */
+function orderWords(s) {
+  const w = s.trim().split(/\s+/).filter(Boolean); let all = false;
+  while (w.length) {
+    const t = norm(w[0]).replace(/[^a-z]/g, "");
+    if (/^(?:all|every|everything|whole|entire)$/.test(t)) { all = true; if (t === "everything" && w.length === 1) break; w.shift(); continue; }
+    if (ORD_LEAD.has(t) || /^(?:of|the|ur|your|my|them|those|these|a|an)$/.test(t)) { w.shift(); continue; }
+    break;
+  }
+  const out = w.join(" ").replace(ORD_TAIL, "").trim();
+  return { s: out || (all ? "everything" : ""), all };
+}
+/** "I'd like to get 30 …" → "30 …" (the words before the item; "all" / "every" stay). */
+function orderLead(s) {
+  const w = s.trim().split(/\s+/).filter(Boolean);
+  while (w.length > 1 && (ORD_LEAD.has(norm(w[0]).replace(/[^a-z]/g, "")) || /^(?:of|the|ur|your|my|a|an|:)$/i.test(w[0]))) w.shift();
+  return w.join(" ");
+}
+/** Several items in one piece without commas: split at the quantities ("10 feta pie 20 straw candle", "feta pie x10 straw candle x20"). */
+function orderSplitQty(s) {
+  const q1 = "(?:x|×)\\s*\\d[\\d.,]*k?(?![a-z0-9])|\\d[\\d.,]*k?(?:\\s*(?:x|×|pcs?))?(?![a-z0-9.,])";
+  const n = (s.match(new RegExp(q1, "gi")) || []).length; if (n < 2) return [s];
+  if (new RegExp("^\\s*(?:" + q1 + ")", "i").test(s)) return s.split(new RegExp("\\s+(?=(?:x|×)?\\s*\\d[\\d.,]*k?(?:\\s*(?:x|×|pcs?))?\\s+[a-z])", "i")).filter(Boolean);   // quantity first
+  return s.replace(new RegExp("(" + q1 + ")\\s+(?=[a-z])", "gi"), "$1\u0001").split("\u0001").filter(Boolean);                            // quantity after
+}
+/** Names of your post (+ the library) that a run of words can be: for a piece written without commas ("feta pie straw candle lamb soup"). */
+function orderSegment(s, names) {
+  const w = s.split(/\s+/).filter(Boolean); if (w.length < 3 || !names.length) return [s];
+  const fits = span => { const qt = toks(span); if (!qt.length) return 0; let b = 0; for (const n of names) { const r = matchInfo(qt, n, 1); if (r.sc > b) b = r.sc; } return b; };
+  if (fits(s) >= 4) return [s];                                          // one name of your post ("blue woolly hat")
+  const out = []; let i = 0, skipped = 0;
+  while (i < w.length) {
+    let took = 0;
+    for (let L = Math.min(5, w.length - i); L >= 1; L--) { const span = w.slice(i, i + L).join(" "); if (fits(span) >= (L === 1 ? 4.5 : 4)) { out.push(span); took = L; break; } }
+    if (took) i += took; else { if (out.length) out[out.length - 1] += " " + w[i]; else skipped++; i++; }
+  }
+  return out.length >= 2 && skipped <= 1 ? out : [s];
+}
 function parseOrder(text) {
-  const out = [];
-  String(text || "").split(/\r?\n|;|•|·|\|/).forEach(raw => {
-    let s = raw.replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+]|\d+[.)])\s+/, "").replace(/\s+/g, " ").trim();
-    // a price written with the line is not the quantity: "honey x20 at 450", "x20 @450", "(450 ea)", "x20 1.5k each"
-    const P = "\\d[\\d.,]*\\s*k?\\s*(?:coins?|c)?";
-    s = s.replace(/\s*\([^)]*\d[^)]*\)\s*$/, "").replace(new RegExp("\\s*(?:@|\\bat\\b|\\bfor\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?\\s*$", "i"), "")
-      .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\s*$", "i"), "").trim();
-    if (!s || !/[a-z]/i.test(s)) return;
-    let m, name = s, q = "";
-    const Q = "(\\d[\\d.,]*\\s*k?)";
-    if ((m = s.match(new RegExp("^(.*?[a-z)'’])[\\s:=\\-–]*(?:x|×|\\*)\\s*" + Q + "\\s*(?:pcs?|pieces?)?$", "i")))) { name = m[1]; q = m[2]; }
-    else if ((m = s.match(new RegExp("^" + Q + "\\s*(?:x|×|\\*|pcs?|pieces?)?\\s+(.+)$", "i")))) { q = m[1]; name = m[2]; }
-    else if ((m = s.match(new RegExp("^(.*?[a-z)'’])\\s*[:=\\-–]?\\s+" + Q + "\\s*(?:pcs?|pieces?|x)?$", "i")))) { name = m[1]; q = m[2]; }
-    name = name.replace(/\s*[:=\-–]+\s*$/, "").trim();
-    if (!name) return;
-    out.push({ raw: raw.trim(), name, q: q ? Math.round(num(q.replace(/\s/g, ""))) : 1, qGuess: !q }); // no quantity → filled with the post's quantity in renderOrder
+  const out = [], post = (typeof st !== "undefined" && st ? st.wants : []).filter(w => (w.name || "").trim() || w.ref).map(w => pName(w));
+  const whole = (c, n) => { const qt = toks(c); return qt.length >= toks(n).length && matchInfo(qt, n, 1).sc > 0; };
+  let T = emoNames(String(text || "")).replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
+    .replace(/\b(page|pg|p)\s*([1-3])\b(?!\s*(?:x|×|pcs?)\b)/gi, "$1$2").replace(/[?!]+|\.(?=\s+[a-z])/gi, "\n");
+  // "10 of each" / "10 each" / "x10 each": the quantity of every item without one
+  let each = null;
+  // (not a price: "x20 450 each", "4k each")
+  T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m; each = +n; return pre + " , "; })
+    .replace(/\beach\s*(?:x\s*)?(\d{1,3})\b/gi, (m, n) => { each = +n; return " , "; });
+  // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity
+  const P = "\\d[\\d.,]*\\s*k?\\s*(?:coins?|c)?", END = "(?=\\s*(?:$|[,;\\n|]|\\s(?:and|&|\\+)\\s))";
+  T = T.replace(/\s*\([^)\n]*\d[^)\n]*\b(?:ea|each|k|coins?|apiece|per)\b[^)\n]*\)/gi, " ")
+    .replace(new RegExp("\\s*(?:@|\\bat\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?" + END, "gi"), " ")
+    .replace(new RegExp("\\s+\\bfor\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)" + END, "gi"), " ")
+    .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), " ");
+  T.split(/\r?\n|;|•|·|\|/).forEach(line => {
+    // pieces: commas (not "1,500"), then "and" / "&" / "+" unless it's one name of your post ("bacon and eggs")
+    line.split(/,(?!\d{3}\b)|\s+\/\s+/).forEach(chunk => {
+      let parts = [chunk];
+      if (/\s(?:and|&|\+|plus|n|also|with)\s/i.test(chunk)) {
+        const bare = c => orderWords(c.trim().replace(/^(?:\d[\d.,]*\s*x?\s+|x\s*\d+\s+)/i, "").replace(/\s+(?:x\s*)?\d[\d.,]*\s*x?$/i, "")).s;
+        const andNames = post.concat(CAT.list.map(p => p.en)).filter(n => / and | & /i.test(" " + n + " "));
+        const sp = chunk.split(/(\s+(?:and|&|\+|plus|n|also|with)\s+)/i); parts = [sp[0]];
+        for (let i = 1; i < sp.length; i += 2) {
+          const joined = parts[parts.length - 1] + sp[i] + sp[i + 1];
+          if (/and|&/i.test(sp[i]) && andNames.some(n => whole(bare(joined), n))) parts[parts.length - 1] = joined; else parts.push(sp[i + 1]);
+        }
+      }
+      parts.forEach(part => {
+        // "all" starts a new piece: "feta pie all jams"; "I need 30 … 20 …": the quantities split once "I need" is out
+        part.split(/\s+(?=(?:all|every)\s+[a-z])/i).forEach(p0 => orderSplitQty(orderLead(p0)).forEach(p1 => {
+          const raw = p1.replace(/\s+/g, " ").trim(); if (!raw) return;
+          // a quantity alone ("I'd take 10") is for the item just before
+          const qa = raw.match(/^(?:x|×)?\s*(\d[\d.,]*\s*k?)\s*(?:x|×|pcs?)?$/i);
+          if (qa) { const pv = out[out.length - 1]; if (pv && pv.qGuess) { pv.q = Math.round(num(qa[1].replace(/\s/g, ""))); pv.qGuess = false; } return; }
+          if (!/[a-z]/i.test(raw)) return;
+          let s = raw.replace(/^[\s:=\-–,.!?]+/, "").replace(/^\s*(?:[-–—+]|\d+[.)])\s+/, "");
+          const W = orderWords(s.replace(/^(\d[\d.,]*\s*k?\s*(?:x|×)?\s+)/i, "")), lead = (s.match(/^(\d[\d.,]*\s*k?\s*(?:x|×)?\s+)/i) || [""])[0];
+          const pc = orderPiece((lead + W.s).trim()) || orderPiece(W.s); if (!pc) return;
+          const W2 = orderWords(pc.name);                                    // "10 of the feta pie", "x5 pls"
+          const name = W2.s || pc.name, all = W.all || W2.all;
+          const segs = !pc.q && !all ? orderSegment(name, post) : [name];
+          segs.forEach(nm => out.push({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }));
+        }));
+      });
+    });
   });
+  // "10 of each": every item without its own quantity
+  if (each > 0) out.forEach(L => { if (L.qGuess && !L.all) { L.q = each; L.qGuess = false; } });
   return out;
 }
-/** Word-by-word fuzzy match: plurals (pies → pie), prefixes (rasp → raspberry), aliases (feathers, dt…). */
+/** Word-by-word fuzzy match: plurals (pies → pie), prefixes (rasp → raspberry), aliases (feathers, dt…).
+    Loose (mode 1): one wrong / missing / extra letter (two in long words) — "blackbery", "musels", "choclate".
+    Looser (mode 2, buyers' messages): a word that names nothing is allowed ("tower doner" → Lamb Döner Wrap), flagged to check. */
 // plural-tolerant word forms: pies→pie, berries→berry, cookies→cookie, tomatoes→tomato, boxes→box
 const forms = t => { const v = new Set([t]); if (t.length > 3 && t.endsWith("s")) { v.add(t.slice(0, -1)); if (t.endsWith("es")) v.add(t.slice(0, -2)); if (t.endsWith("ies")) v.add(t.slice(0, -3) + "y"); } return v; };
 const toks = s => norm(s).replace(/&/g, " and ").split(/[^a-z0-9]+/).filter(t => t && t !== "and" && t !== "of" && t !== "the");
 const same = (a, b) => { const fb = forms(b); for (const x of forms(a)) if (fb.has(x)) return true; return false; };
-function matchScore(qt, name) {
-  const pt = toks(name); if (!pt.length) return 0;
-  let score = 0; const used = new Set();
+/** Edit distance (with swapped letters), stops above max. */
+function editDist(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let p2 = null, p1 = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const c = [i]; let lo = i;
+    for (let j = 1; j <= b.length; j++) {
+      let v = Math.min(p1[j] + 1, c[j - 1] + 1, p1[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (p2 && i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, p2[j - 2] + 1);
+      c.push(v); if (v < lo) lo = v;
+    }
+    if (lo > max) return max + 1;
+    p2 = p1; p1 = c;
+  }
+  return p1[b.length];
+}
+function matchInfo(qt, name, mode) {
+  const pt = toks(name); if (!pt.length) return { sc: 0, miss: 0 };
+  let score = 0, miss = 0, strong = 0, typo = 0; const used = new Set();
   for (const t of qt) {
     let best = 0, bi = -1;
-    pt.forEach((p, i) => { if (used.has(i)) return; const s = same(t, p) ? 3 : (t.length >= 3 && [...forms(t)].some(f => f.length >= 3 && p.startsWith(f))) ? 2 : (p.length >= 4 && t.startsWith(p)) ? 1.5 : 0; if (s > best) { best = s; bi = i; } });
-    if (!best) return 0;
-    used.add(bi); score += best;
+    pt.forEach((p, i) => {
+      if (used.has(i)) return;
+      let s = same(t, p) ? 3 : (t.length >= 3 && [...forms(t)].some(f => f.length >= 3 && p.startsWith(f))) ? 2 : (p.length >= 4 && t.startsWith(p)) ? 1.5 : 0;
+      if (!s && mode && t.length >= 4 && p.length >= 3) {
+        const lim = Math.max(t.length, p.length) >= 8 ? 2 : 1, d = Math.min(...[...forms(t)].map(f => editDist(f, p, lim)));
+        if (d <= lim) s = 2.4 - d * .3;
+        else if (t.length >= 4 && p.length > t.length && editDist(t, p.slice(0, t.length), 1) <= 1) s = 1.4;   // "chocolat…" → chocolate, "blackber" → blackberry
+        if (s) typo++;
+      }
+      if (s > best) { best = s; bi = i; }
+    });
+    if (!best) { if (mode !== 2) return { sc: 0, miss: 0 }; miss++; continue; }
+    used.add(bi); score += best; if (best >= 2) strong++;
   }
-  return score + (used.size === pt.length ? 2 : 0) - (pt.length - used.size) * .6;
+  if (miss && (!strong || miss > used.size)) return { sc: 0, miss };
+  return { sc: score - miss * 1.6 + (used.size === pt.length ? 2 : 0) - (pt.length - used.size) * .6, miss, typo };
 }
-function findMatches(name, pool, label) {
+const matchScore = (qt, name, mode) => matchInfo(qt, name, mode).sc;
+function findMatches(name, pool, label, mode) {
   const al = ALIASES[slug(name)] || ALIASES[slug(name).replace(/s$/, "")];
   const qt = toks(name);
-  return pool.map(x => { const nm = label(x), id = x.ref || x.id; let sc = matchScore(qt, nm); if (al && id === al) sc = Math.max(sc, 50); if (slug(nm) === slug(name)) sc = 100; return { x, sc }; })
+  return pool.map(x => { const nm = label(x), id = x.ref || x.id, I = matchInfo(qt, nm, mode); let sc = I.sc; if (al && id === al) sc = Math.max(sc, 50); if (slug(nm) === slug(name)) sc = 100; return { x, sc, miss: sc >= 50 ? 0 : I.miss, typo: sc >= 50 ? 0 : I.typo }; })
     .filter(r => r.sc > 0).sort((a, b) => b.sc - a.sc);
 }
+/** A guess with a stray word ("tower doner") stands only on a real word of the name — "doner", not "pie" / "jam" / "cake". */
+const ORD_COMMON = /^(?:pies?|cakes?|jams?|juices?|soups?|salads?|popcorns?|muffins?|breads?|smoothies?|sushi|pizzas?|sandwich(?:es)?|cand(?:y|ies)|ice|creams?|sauces?|dips?|bars?|teas?|coffees?|hats?|scarf|scarves|dress(?:es)?|sweaters?|wraps?|stews?|fries|chips|rolls?|cookies?|tarts?|honey|berry|berries|red|blue|green|hot|cold|mixed|big|small|lamb|fish|egg|eggs)$/;
+function orderKeyWord(q, name) {
+  const pt = toks(name);
+  return toks(q).some(t => t.length >= 4 && !ORD_COMMON.test(t) && pt.some(p => !ORD_COMMON.test(p) && (same(t, p) || p.startsWith(t) || editDist(t, p, 1) <= 1)));
+}
+/* ---------- "all jams", "all your popcorn", "fp jams", "all bars", "everything": the items of your post they mean ---------- */
+const postItems = () => st.wants.filter(w => (w.name || "").trim() || w.ref);
+const ORD_FAM_FILL = /^(?:all|every|everything|of|the|your|ur|my|any|some|mixed?|mix|kinds?|types?|sorts?|foods?|stuff|items?|things|goods|products|ones|1st|2nd|3rd|first|second|third|page|pages|fp|sp|tp|you|have|got|in|post|shop|list)$/;
+/** A family of items written as words only ("jams", "all popcorns", "mussel stuff") → the library's items; null for a name ("chocolate pie"). */
+function orderFamily(name) {
+  const w = norm(name).replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean), core = w.filter(t => !ORD_FAM_FILL.test(t));
+  if (!core.length) return null;
+  const grp = t => GROUPS.some(([re]) => re.test(t));
+  if (core.every(grp)) return srGroup(core.join(" "));
+  // "<ingredient> foods / stuff / items": what's made with it
+  if (w.some(t => /^(?:foods?|stuff|items?|things|goods|products)$/.test(t))) return srGroup(w.join(" "));
+  return null;
+}
+/** The lines of a family / mix / "everything" become one line per item of your post (one quantity → shared, from the biggest stock). */
+function orderGroup(L, post) {
+  const n = norm(L.name).replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const take = items => {
+    items = items.filter(w => !w.oos); if (!items.length) return null;
+    if (L.qGuess) return { items };
+    const q = levelTake(items.map(w => num(w.q) || 0), L.q); let rest = L.q - q.reduce((a, b) => a + b, 0);
+    if (rest > 0) evenSplit(items.length, rest).forEach((v, i) => q[i] += v);
+    return { items, q };
+  };
+  if (/^(?:everything|every thing|all|all of it|all of them|all items?|all things|the whole (?:post|list|shop)|whole (?:post|list|shop)|full (?:post|list)|tout)$/.test(n)) return take(post);
+  const exact = post.find(w => slug(pName(w)) === slug(L.name));
+  if (exact) return null;
+  const mx = mixFromText(L.name);
+  if (mx) { if (post.some(w => w.ref === mx.id)) return null; return take(post.filter(w => mx.mix.includes(w.ref))); }
+  const fam = orderFamily(L.name); if (!fam) return null;
+  const ids = new Set(fam.map(p => p.id));
+  // "fp jams 2nd page" style pages inside a family, and mixes of the post that belong to it ("all jams" takes "First Page Jams" too)
+  return take(post.filter(w => ids.has(w.ref) || (mixOf(w) && mixOf(w).mix.some(id => ids.has(id)))));
+}
+/** The message's lines, with families / pages / "everything" opened into the items of your post. */
+function orderLines(text) {
+  const post = postItems(), out = [];
+  parseOrder(text).forEach(L => {
+    const G = orderGroup(L, post);
+    if (!G) return out.push(L);
+    G.items.forEach((w, k) => out.push(Object.assign({}, L, { name: pName(w), gpick: w.uid, grp: (L.all && !/^(?:all|every)/i.test(L.name) && L.name !== "everything" ? "all " : "") + L.name, q: G.q ? G.q[k] : 1, qGuess: !G.q })));
+  });
+  return out;
+}
 function resolveLine(L) {
-  const post = st.wants.filter(w => (w.name || "").trim() || w.ref);
+  const post = postItems();
   if (L.pick === "-") return { w: null, ignored: true };
   if (L.pick) { const w = post.find(x => x.uid === L.pick); if (w) return { w, sure: true }; }
-  const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "");
-  if (r.length) return { w: r[0].x, sure: !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
-  const c = findMatches(L.name, CAT.list, p => p.en)[0];
+  if (L.gpick) { const w = post.find(x => x.uid === L.gpick); if (w) return { w, sure: true }; }        // from "all jams" / "fp jams"…
+  const mx = mixFromText(L.name); if (mx) { const w = post.find(x => x.ref === mx.id); return w ? { w, sure: true } : { w: null, prod: mx }; }
+  // typos and stray words allowed (a buyer's message); a guess with a stray word is flagged "?"
+  const lib = findMatches(L.name, CAT.list, p => p.en, 1)[0];
+  const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "", 2).filter(m => !m.miss || (!(lib && lib.sc >= 4) && orderKeyWord(L.name, pName(m.x))));
+  if (r.length) return { w: r[0].x, sure: !r[0].miss && !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
+  const c = lib;
   return { w: null, prod: c ? c.x : null };
 }
 /** Price one line from the active post: sell / buy → coins; trade → my items given by ratio. */
@@ -3233,9 +3460,13 @@ function priceLine(L) {
     const bulk = !!(tb && tb.on); if (bulk) { a = num(tb.g.bulk.ra); b = num(tb.g.bulk.rb); }
     return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b, bulk } : null, v: 0 });
   }
-  const pw = dealItem(R.w, L), u = unitPrice(pw);
+  const pw = dealItem(R.w, L); let u = unitPrice(pw);
   // stock: selling → what's left in your post, buying → what you still want (the rest isn't counted)
   const qq = ORDER.capStock !== false && L._cap != null ? L._cap : q;
+  // a mix (fp jams, all bars): the items it takes from your inventory, each at its own ×MP
+  const mx = mixOf(pw);
+  if (mx && qq > 0) { R.mix = mixSplit(mx, qq, dealScope(), st.type === "achat");
+    if (pw.pu === "xmp") { const v = R.mix.reduce((a, x) => a + x.n * maxPrice(x.id), 0); if (R.mix.every(x => !x.n || maxPrice(x.id) > 0)) u = num(pw.p) * v / qq; } }
   // buying: bulk bonus when the seller sells a big part of the item's quantity in one go
   const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(qq, wq, ORDER.oq || 0) : 0;
   return Object.assign(R, { u, bulk, qq, short: L._short || 0, base: u * qq, v: u * qq * (1 + bulk / 100) });
@@ -3294,7 +3525,7 @@ function renderOrder(force) {
   const adv = () => { if (typeof advSync === "function") advSync(); };
   if (ORDER.done && ORDER.done.text === ORDER.text) { adv(); return renderDone(); }
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
-  ORDER.lines = parseOrder(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit } : {}));
+  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit } : {}));
   ORDER.prev = ORDER.lines;
   adv();
   const out = $("#orderOut"); out.textContent = "";
@@ -3356,9 +3587,11 @@ function renderOrder(force) {
       right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.vs != null ? r.vs : r.v)) : h("span", { class: "miss" }, "—");
       const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : w.oos ? "out of stock" : "none left — " + fmt(r.short) + " missing") : null;
       const deal = L.pp && num(L.pp.p) > 0;
-      const pb = h("button", { class: "opb" + (deal ? " on" : ""), title: "Another price for this order only", onclick: () => { L._edit = !L._edit; if (L._edit && !L.pp) L.pp = { p: "", pu: w.pu || "coin" }; renderOrder(); if (L._edit) setTimeout(() => { const e = $(`[data-edit="${L.i}"]`); e && e.focus(); }, 30); } }, deal ? priceLabel(dealItem(w, L)) : priceLabel(w), h("i", null, " ✎"));
-      sub = [autoTag(L), deal ? h("s", null, priceLabel(w).split(" · ")[0]) : null, deal ? " " : null, pb, r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null, sh];
+      const pb = h("button", { class: "opb" + (deal ? " on" : ""), title: "Another price for this order only", onclick: () => { L._edit = !L._edit; if (L._edit && !L.pp) L.pp = { p: "", pu: w.pu || "coin" }; renderOrder(); if (L._edit) setTimeout(() => { const e = $(`[data-edit="${L.i}"]`); e && e.focus(); }, 30); } }, r.mix && dealItem(w, L).pu === "xmp" && r.u ? fmtR(num(dealItem(w, L).p)) + "×MP · " + fmtP(r.u) + " ea" : deal ? priceLabel(dealItem(w, L)) : priceLabel(w), h("i", null, " ✎"));
+      sub = [autoTag(L), deal ? h("s", null, priceLabel(w).split(" · ")[0]) : null, deal ? " " : null, pb, r.bulk ? h("b", { class: "bulkt" }, " · +" + fmtR(r.bulk) + "% bulk") : null, sh,
+        r.mix ? h("span", { class: "omix" }, "= " + r.mix.filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ")) : null];
     }
+    if (L.grp && w) sub = [].concat(sub, h("span", { class: "omix" }, "from “" + L.grp + "”"));
     const row = h("div", { class: "oline" + (r.ignored ? " ign" : !w ? " bad" : !r.sure ? " warn" : r.short ? " short" : "") + (L.pp && num(L.pp.p) > 0 ? " deal" : "") },
       thumb(w ? itemState(w) : r.prod ? prodState(r.prod.id) : null, w ? w.e : r.prod ? r.prod.e : "❔", "oth"),
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
@@ -3434,7 +3667,7 @@ function renderOrder(force) {
   }
   if (missing) tot.append(h("p", { class: "owarn" }, missing + " line" + (missing > 1 ? "s" : "") + " not counted — tap the name to pick the right item from your post."));
   // ×MP prices still coming from the wiki: the total will change — say it, so it isn't copied too early
-  const mpWait = !trade && rows.some(L => { const w = L.r.w; if (!w || w.pu !== "xmp" || !w.ref) return false; const p = CAT.byId[w.ref]; return [w.ref, ...((p && p.parts) || [])].some(id => mpPending.has(id)); });
+  const mpWait = !trade && rows.some(L => { const w = L.r.w; if (!w || w.pu !== "xmp" || !w.ref) return false; const p = CAT.byId[w.ref]; return [w.ref, ...((p && (p.parts || p.mix)) || [])].some(id => mpPending.has(id)); });
   ORDER.mpWait = mpWait;
   if (mpWait) tot.append(h("p", { class: "owarn" }, "⏳ Max prices are still loading from the wiki — the total updates by itself in a moment. Wait before copying."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
@@ -3590,7 +3823,8 @@ function replyText() {
     // only what is really counted: 10 asked, 1 left → "1× …"; none left → not in the reply
     const qn = ORDER.capStock !== false && x._cap != null ? x._cap : x.q;
     if (!(qn > 0)) return null;
-    return `${fmt(qn)}× ${n} — ${how}${bk} = ${fmt(x.r.vs != null ? x.r.vs : x.r.v)}`;
+    const mo = mixOf(x.r.w), mx = x.r.mix && mo && mo.mix.length > 1 && x.r.mix.some(o => o.n) ? " (" + x.r.mix.filter(o => o.n).map(o => fmt(o.n) + " " + o.name).join(", ") + ")" : "";
+    return `${fmt(qn)}× ${n}${mx} — ${how}${bk} = ${fmt(x.r.vs != null ? x.r.vs : x.r.v)}`;
   }).filter(Boolean);
   let foot = "";
   if (trade) {
@@ -3740,7 +3974,7 @@ function advApply(replace) {
     const tail = n ? " x" + n : /\d\s*k?$/i.test(nm) ? " x" + (Math.round(num(w.q)) || 1) : "";
     return { raw: nm + tail, pick: w.uid };
   });
-  const keep = replace ? [] : parseOrder(ORDER.text).map((L, i) => { const p = (ORDER.prev || [])[i]; return p && p.raw === L.raw ? p : L; });
+  const keep = replace ? [] : orderLines(ORDER.text).map((L, i) => { const p = (ORDER.prev || [])[i]; return p && p.raw === L.raw ? p : L; });
   const base = replace ? "" : (ORDER.text || "").replace(/\s+$/, "");
   ORDER.text = (base ? base + "\n" : "") + add.map(x => x.raw).join("\n");
   ORDER.prev = keep.concat(add);
@@ -4093,6 +4327,7 @@ function matchProduct(name, pick) {
   if (pick === "-") return { ignored: true };
   if (pick === "+") return { custom: true };
   if (pick && CAT.byId[pick]) return { p: CAT.byId[pick], sure: true };
+  const mx = mixFromText(name); if (mx) return { p: mx, sure: true };
   const r = findMatches(name, CAT.list, p => p.en);
   if (r.length) return { p: r[0].x, sure: !(r[1] && r[1].sc >= r[0].sc - .01) };
   const s = search(name, "all")[0];
@@ -4221,6 +4456,7 @@ const invFind = (x, scope) => invList(scope).find(i => i.k === invKey(x));
 /** How many you have — in all your farms unless said (a set = what its materials allow, split evenly). */
 function invQty(x, scope) {
   const p = x && x.ref && CAT.byId[x.ref];
+  if (p && p.mix) return p.mix.reduce((a, id) => a + invQty({ ref: id }, scope), 0);   // a mix = all its items
   // a set = its materials given evenly, the extra ones going to the first (89 = 30 Bolt · 30 Plank · 29 Duct Tape):
   // 30 / 30 / 29 in the barn covers 89, not 3 × 29 = 87
   if (p && p.parts) {
@@ -4234,7 +4470,7 @@ function invQty(x, scope) {
 function invSet(x, q, quiet, fid) {
   const F = farmOf(fid || INV.cur);
   const p = x.ref && CAT.byId[x.ref], k = invKey(x); q = Math.max(0, Math.round(q || 0));
-  if (p && p.parts) return;                                // sets live as their materials
+  if (p && (p.parts || p.mix)) return;                      // sets live as their materials, mixes as their items
   let i = F.items.find(o => o.k === k);
   if (!i && q <= 0) return;
   if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name, e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; F.items.push(i); }
@@ -4244,9 +4480,32 @@ function invSet(x, q, quiet, fid) {
 /** + / − on the inventory; a set (BEM…) changes its materials (89 → 30 · 30 · 29). */
 function invAdd(x, d, quiet, fid) {
   const p = x && x.ref && CAT.byId[x.ref]; fid = fid || INV.cur;
+  if (p && p.mix) { mixSplit(p, Math.abs(d), fid, d > 0).forEach(s => { if (s.n) invAdd({ ref: s.id }, Math.sign(d) * s.n, true, fid); }); if (!quiet) saveInv(); return; }
   if (p && p.parts) { packSplit(p, Math.round(Math.abs(d))).forEach(s => invAdd({ ref: s.id }, Math.sign(d) * s.n, true, fid)); if (!quiet) saveInv(); return; }
   invSet(x, invQty(x, fid) + d, quiet, fid);
 }
+/** n taken from stocks, from the biggest down (levels them): [30, 10, 0] − 25 → [5, 0, 0] … taken [25, 0, 0]; − 35 → [17, 13, 0]… */
+function levelTake(stocks, n) {
+  const st = stocks.map(v => Math.max(0, Math.floor(v || 0))), tot = st.reduce((a, b) => a + b, 0), out = st.map(() => 0);
+  let left = Math.min(Math.max(0, Math.round(n)), tot); if (!left) return out;
+  const over = L => st.reduce((a, v) => a + Math.max(0, v - L), 0);
+  let lo = 0, hi = Math.max(...st);                         // the lowest level L with over(L) ≤ left
+  while (lo < hi) { const m = (lo + hi) >> 1; if (over(m) <= left) hi = m; else lo = m + 1; }
+  st.forEach((v, i) => { out[i] = Math.max(0, v - lo); }); left -= over(lo);
+  for (let i = 0; i < st.length && left > 0; i++) if (st[i] - out[i] >= lo && lo > 0) { out[i]++; left--; }
+  return out;
+}
+/** n items of a mix → which ones. Out: from what you have most of (the stock stays even); what you don't have, shared evenly.
+    In (bought / received): shared evenly. Same farm as the deals (Inventory → "Deals update …"). */
+function mixSplit(p, n, scope, adding) {
+  const ids = p.mix || [], k = ids.length; n = Math.max(0, Math.round(n || 0)); if (!k) return [];
+  let out = ids.map(() => 0);
+  if (!adding) { out = levelTake(ids.map(id => invQty({ ref: id }, scope)), n); const rest = n - out.reduce((a, b) => a + b, 0); if (rest > 0) evenSplit(k, rest).forEach((v, i) => out[i] += v); }
+  else out = evenSplit(k, n);
+  return ids.map((id, i) => ({ id, n: out[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" }));
+}
+const dealScope = () => INV.deal || INV.cur;
+const mixTxt = (p, n, adding) => mixSplit(p, n, dealScope(), adding).filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ");
 /** A deal (History entry) applied to the inventory: sold / given → out, bought / received → in. */
 /** Deals change the farm chosen for them (Inventory → "Deals update …"). */
 function invApply(e, sign) {
@@ -4370,7 +4629,7 @@ function renderInv() {
 function addInvSheet() {
   const qn = h("input", { class: "inp", inputMode: "numeric", placeholder: "How many (e.g. 20)", style: "max-width:170px" });
   const res = h("div", { class: "menu pick" });
-  const fill = q => { res.textContent = ""; (q ? search(q, "all") : POPULAR.map(id => CAT.byId[id]).filter(Boolean)).filter(p => !p.parts).slice(0, 14).forEach(p => res.append(h("button", { onclick: () => {
+  const fill = q => { res.textContent = ""; (q ? search(q, "all") : POPULAR.map(id => CAT.byId[id]).filter(Boolean)).filter(p => !isVirt(p)).slice(0, 14).forEach(p => res.append(h("button", { onclick: () => {
     const n = Math.round(num(qn.value)) || 1; invAdd({ ref: p.id }, n); toast(p.en + " +" + fmt(n) + " → " + fmt(invQty({ ref: p.id }))); renderInv();
   } }, thumb(prodState(p.id), p.e, "mini"), p.en, h("small", null, invQty({ ref: p.id }) ? " · " + fmt(invQty({ ref: p.id })) : "")))); };
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search an item", autocapitalize: "off", oninput: e => fill(e.target.value) });
@@ -4394,7 +4653,7 @@ function invTextSheet() {
 function invTextRows(text) {
   const seen = new Map(), rows = [];
   parseList(String(text || "").replace(/,(?!\d{3}\b)/g, "\n")).forEach(o => {
-    const r = findMatches(o.name, CAT.list.filter(p => !p.parts), p => p.en), m = matchProduct(o.name), p = m.p ? (m.p.parts ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
+    const r = findMatches(o.name, CAT.list.filter(p => !isVirt(p)), p => p.en), m = matchProduct(o.name), p = m.p ? (isVirt(m.p) ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
     const q = o.q === "" ? NaN : Math.round(num(o.q));
     const row = { view: null, txt: o.raw, q, qSure: !isNaN(q), m: r.slice(0, 6).map(x => ({ ref: x.x.id, c: 0 })), ref: p ? p.id : null, sure: !!(p && m.sure), on: !!p, shot: 0 };
     if (row.ref && seen.has(row.ref)) { const o2 = seen.get(row.ref); if (!isNaN(q)) { o2.q = q; o2.qSure = true; o2.txt = o.raw; } return; }   // twice in the list → the last number
@@ -4696,7 +4955,7 @@ let FEATS_IDB = null;   // features saved on the phone, loaded once
 /** All game pictures ready to compare (+ the ones learned from your corrections). */
 const FEAT_V = "v1:";
 async function scanPool(onProg) {
-  const ids = CAT.list.filter(p => !p.parts && !p.custom && p.cat !== "perso" && p.cat !== "packs").map(p => p.id);
+  const ids = CAT.list.filter(p => !isVirt(p) && !p.custom && p.cat !== "perso" && p.cat !== "packs").map(p => p.id);
   if (!FEATS_IDB) { FEATS_IDB = await IDB.featAll(); FEATS_IDB.forEach((f, k) => { if (k.startsWith(FEAT_V) && f && !SCN.feats.has(k.slice(FEAT_V.length))) SCN.feats.set(k.slice(FEAT_V.length), f); }); }
   // the pictures not read yet: a few at a time (a phone can't hold 600 full pictures at once)
   const todo = ids.filter(id => !SCN.feats.has(id)); let done = ids.length - todo.length;
@@ -4820,7 +5079,7 @@ function scanPick(r, where) {
   const redraw = () => scanDraw(where || "inv");
   const res = h("div", { class: "menu pick" });
   const btn = p => h("button", { onclick: () => { if (r.ref !== p.id) r.fixed = true; r.ref = p.id; r.sure = true; r.on = true; closeSheet(); redraw(); } }, thumb(prodState(p.id), p.e, "mini"), p.en);
-  const fill = q => { res.textContent = ""; search(q, "all").filter(p => !p.parts).slice(0, 12).forEach(p => res.append(btn(p))); };
+  const fill = q => { res.textContent = ""; search(q, "all").filter(p => !isVirt(p)).slice(0, 12).forEach(p => res.append(btn(p))); };
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", autocapitalize: "off", oninput: e => fill(e.target.value) });
   const best = r.m.map(x => CAT.byId[x.ref]).filter(Boolean);
   openSheet("Which item is it?", [r.view ? h("img", { src: r.view, alt: "", class: "scrop big" }) : h("p", { class: "hint" }, "“" + (r.txt || "") + "”"),
@@ -5272,9 +5531,10 @@ const GROUP_FILL = /\b(?:mixed?|mix|any|all|the|of|1st|2nd|3rd|first|second|thir
 function srGroup(name) {
   const n = norm(name).replace(/[()]/g, " "); if (!n || /^(?:foods?|items?|stuff|anything|ready foods?)$/.test(n.trim())) return null;
   const upTo = n.match(/\bup\s*to\s+(.+)$/), stop = upTo ? matchProduct(upTo[1]).p : null, base = upTo ? n.slice(0, upTo.index) : n;
-  const pool = CAT.list.filter(p => !p.parts && !p.custom);
-  let out = null;
-  for (const [re, f] of GROUPS) if (re.test(base)) { out = pool.filter(p => typeof f === "function" ? f(p) : f.test(p.en.toLowerCase())); break; }
+  const pool = CAT.list.filter(p => !isVirt(p) && !p.custom);
+  let out = null; const pm = mixFromText(base);
+  if (pm) out = pm.mix.map(id => CAT.byId[id]).filter(Boolean);
+  else for (const [re, f] of GROUPS) if (re.test(base)) { out = pool.filter(p => typeof f === "function" ? f(p) : f.test(p.en.toLowerCase())); break; }
   // "mussel foods", "lobster stuff": the items made with it
   if (!out) { const rest = base.replace(GROUP_FILL, " ").replace(/\s+/g, " ").trim();
     if (rest && rest.length >= 3 && rest !== n.trim() && !/[^a-z ]/.test(rest)) { const w = rest.split(" ").map(sing); out = pool.filter(p => w.every(x => new RegExp("\\b" + x + "(?:s|es)?\\b", "i").test(p.en)) && slug(p.en) !== slug(rest)); } }
@@ -5327,6 +5587,7 @@ function srItem(a) {
   const pk = SR.picks[a.key];
   if (pk === "-") return { ignored: true };
   if (pk && CAT.byId[pk]) return { p: CAT.byId[pk], sure: true };
+  if (!a.ref && a.name) { const mx = mixFromText(a.name); if (mx) return { p: mx, sure: true }; }
   if (a.kind === "coin" && a.it) { const m = srMatch(a.it); if (m.p && (m.sure || !srGroup(a.name))) return m; const gr = srGroup(a.name); return gr ? { group: gr } : m; }
   if (a.ref && CAT.byId[a.ref]) return { p: CAT.byId[a.ref], sure: !a.pic || !a.pic.m || !a.pic.m[0] || a.pic.m[0].c < .28 };
   // a name the post didn't match for sure: a family of items, or the library's sure match only (no wild guess)
@@ -6531,7 +6792,9 @@ const GENERIC = /^(?:jams?|juices?|sauces?|foods?|cakes?|pies?|items?|stuff|thin
 const FILLW = new Set(["s", "x", "the", "a", "of", "and", "my", "your", "any", "all", "each", "ea", "pcs", "pc", "units"]);
 const sing = w => w.length > 3 ? w.replace(/(ies)$/, "y").replace(/(es)$/, w.endsWith("sses") ? "es" : "e").replace(/s$/, "") : w;
 function importMatch(x) {
-  if (!x || GENERIC.test(x.trim())) return null;
+  if (!x) return null;
+  const mx = mixFromText(x); if (mx) return mx;
+  if (GENERIC.test(x.trim())) return null;
   const fix = x.replace(/\bsets?\b/i, "Set").replace(/\b(rings|blankets|bars?)\b/i, t => t.replace(/s$/i, ""));
   const m = matchProduct(fix); if (!m.p || !m.sure) return null;
   const al = ALIASES[slug(x)] || ALIASES[slug(x).replace(/s$/, "")];
