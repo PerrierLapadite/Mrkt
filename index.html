@@ -670,6 +670,13 @@ body[data-tab=prev] #editor{display:none}
 .srpic{width:28px;height:24px;object-fit:contain;border-radius:4px;background:#fff9db}
 .srinv a{color:var(--ink);font-weight:700}
 .smiss summary{cursor:pointer}
+.srcard>summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:2px;padding-right:28px;position:relative;margin:0}
+.srcard>summary::-webkit-details-marker{display:none}
+.srcard>summary span{font:700 17px/1.25 var(--slab);color:var(--ink)}
+.srcard>summary small{font:500 13px/1.35 var(--sans);color:var(--mut);letter-spacing:0;text-transform:none}
+.srcard>summary::after{content:"›";position:absolute;right:4px;top:50%;transform:translateY(-50%) rotate(90deg);font:600 22px/1 var(--sans);color:var(--mut);transition:transform .2s}
+.srcard[open]>summary::after{transform:translateY(-50%) rotate(-90deg)}
+.srcard[open]>summary{margin-bottom:10px}
 .owarnc b{font:700 16px var(--slab)}
 /* stats */
 .scard h2{font-size:19px}
@@ -760,7 +767,8 @@ body[data-tab=prev] #editor{display:none}
 .oshort .sl span{color:var(--mut);text-align:right}
 .oshort .sl em{font-style:normal;font-weight:700;color:#b26b00}
 .ototal .bnext{margin:0;font:italic 600 14px var(--slab);color:var(--acc)}
-.sbar .tchips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent)}
+.sbar .tchips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);scroll-snap-type:x proximity}
+.sbar .tchips>*{scroll-snap-align:start;flex:none}
 
 /* ---------- preview ---------- */
 .pv-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
@@ -1013,7 +1021,6 @@ details summary{-webkit-tap-highlight-color:transparent}
     <button data-t="order"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6L6 20.5z"/><path d="M9.2 8.5h5.6M9.2 12h5.6M9.2 15.5h3"/></svg><span class="tbl">Order</span></button>
     <button data-t="deals"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13.5"/><path d="m14.5 5 3.5 3.5-3.5 3.5"/><path d="M19.5 15.5H6"/><path d="M9.5 12 6 15.5 9.5 19"/></svg><span class="tbl">Deals</span></button>
     <button data-t="prev"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="9.5" r="1.6"/><path d="m20.5 15.5-4.6-4.6L6 20"/></svg><span class="tbl">Preview</span></button>
-    <button data-t="search" class="srch" aria-label="Buyer search"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg><span class="tbl">Search</span></button>
   </nav>
   <div id="editor">
     <!-- ===== ITEMS ===== -->
@@ -1094,6 +1101,15 @@ details summary{-webkit-tap-highlight-color:transparent}
 
     <!-- ===== INVENTORY (profile menu) ===== -->
     <section class="panel" id="p-inv">
+      <!-- check a post against your inventory: paste it (or its screenshot), see what you have at their prices -->
+      <details class="card fieldset srcard" id="srCard">
+        <summary class="sh3"><span>🔍 Check a post</span><small>Paste a buying / selling / trade post: what you have, at their prices</small></summary>
+        <p class="hint">Paste any post (a “buying” list with prices, a “selling” list, a trade “Have … / Need … 45:89”) or add its screenshot. You see right away what you have in your inventory and the total at their prices or ratios.</p>
+        <textarea class="ta" id="srIn" rows="6" placeholder="e.g.&#10;(10) nachos, bacon fries 3k&#10;Selling 10 Diamond ring 2700ea&#10;Have BEM sets — Need 💍 🫒 45:89"></textarea>
+        <div class="three"><button class="btn" id="srPaste">Paste</button><button class="btn" id="srShot">📷 Screenshot</button><button class="btn" id="srClear">Clear</button></div>
+        <input type="file" id="srFile" accept="image/*" multiple hidden>
+      </details>
+      <div id="srOut" class="stack"></div>
       <div id="invOut" class="stack"></div>
     </section>
 
@@ -1105,18 +1121,6 @@ details summary{-webkit-tap-highlight-color:transparent}
     <!-- ===== DEALS ===== -->
     <section class="panel" id="p-deals">
       <div id="dealOut" class="stack"></div>
-    </section>
-
-    <!-- ===== SEARCH ===== -->
-    <section class="panel" id="p-search">
-      <div class="card fieldset">
-        <div class="ch"><h2>Search a post</h2></div>
-        <p class="hint">Paste any post — a “buying” list with prices, a trade “Have … / Need … 45:89” — or add its screenshot (a Discord message, a post-maker picture): we look in your inventory and make the order at their prices or ratios.</p>
-        <textarea class="ta" id="srIn" rows="7" placeholder="e.g.&#10;(10) nachos, bacon fries 3k&#10;15 marmalade, 10 peach jam 5k each&#10;Have BEM sets — Need 💍 🫒 45:89"></textarea>
-        <div class="three"><button class="btn" id="srPaste">Paste</button><button class="btn" id="srShot">📷 Screenshot</button><button class="btn" id="srClear">Clear</button></div>
-        <input type="file" id="srFile" accept="image/*" multiple hidden>
-      </div>
-      <div id="srOut" class="stack"></div>
     </section>
 
     <!-- ===== ORDER ===== -->
@@ -1996,7 +2000,7 @@ function defaults(type) {
     wants: [mkItem("mayonnaise", { q: "100", p: "700" }), mkItem("tomato-sauce", { q: "30", p: "1100", hot: 1 })] };
   return { ...base, title: "Selling / Swapping", wantTitle: "What I want", cta: "Mix accepted",
     have: [mkItem("bem-set", { q: "10" })],
-    addR: { ra: "50", rb: "89", give: "" },
+    addR: { ra: "89", rb: "50", give: "" },   // 50 : 89 — you give 89 (a set), you get 50
     wants: [["lemon-curd", "50"], ["mayonnaise", "50"], ["goat-cheese", "50"], ["soy-sauce", "50"], ["blanket", "50"], ["tomato-sauce", "50"], ["diamond-ring", "45", 1], ["lobster-tail", "60", 1], ["olive-oil", "60"], ["strawberry-jam", "60"]]
       .map(([id, a, hot, note]) => mkItem(id, { ra: a, rb: "89", hot: hot || 0, note: note || "" })) };
 }
@@ -2791,6 +2795,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet()
 function tab(t) {
   if (t === "me") { openMe(); return; }   // the profile is a menu that drops from its button
   if (t === "paste") { tab("items"); $("#sdrop").hidden = false; setSrc("text"); return; }   // "From a text" is in the Items search panel
+  if (t === "search") { tab("inv"); $("#srCard").open = true; requestAnimationFrame(() => $("#srCard").scrollIntoView({ behavior: "smooth", block: "start" })); return; }   // Search is a card of the inventory page
   document.body.dataset.tab = t;
   $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   if (t === "prev") draw();
@@ -2798,8 +2803,7 @@ function tab(t) {
   if (t === "hist") renderHist();
   if (t === "stats") renderStats();
   closeMe();
-  if (t === "inv") renderInv();
-  if (t === "search") renderSearch();
+  if (t === "inv") { renderInv(); renderSearch(); }
   if (t === "deals") renderOngoing();
   $("#meBtn").classList.toggle("on", ["inv", "stats", "hist", "imp"].includes(t));
   $("#impBtn").classList.toggle("on", t === "imp");
@@ -2833,11 +2837,11 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
-    h("li", null, h("b", null, "Search:"), " paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
+    h("li", null, h("b", null, "Check a post"), " (in Inventory): paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
     h("li", null, h("b", null, "How the trade goes:"), " under a trade order — how many of their accounts, the crates in the right order (7×10 = 70, then 9 = 79, then 10 = 89: an account buys while it's under 80), what you buy at their shop. Copy it for Discord."),
     h("li", null, h("b", null, "Ratios (trade):"), " written as on Discord — 60 : 89 = 60 of the item for 89 of yours (the 89 is on the side of what you give, with its picture). Order gives 89 BEM for 60, 45 for 30."),
     h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams and Juices (the Jam Maker's and Juice Press's pages, as in the game) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
-    h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
+    h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or “Check a post” (Inventory), or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
     h("li", null, h("b", null, "Import (⤓, top right):"), " an old post → a new post here: a screenshot of your Discord message or of a picture made by another post maker, or the copied text. Struck items come in as “out of stock”."),
     h("li", null, h("b", null, "Out of stock:"), " ⋯ on an item → “Out of stock”: it stays on the picture, faded and struck through, and isn't counted or sold in Order."),
     h("li", null, h("b", null, "Profile (top right):"), " your pseudo, your Inventory (read from a screen recording of your barn / silo, from screenshots, or by hand — it follows your deals) and your Stats."),
@@ -2904,7 +2908,11 @@ function renderTarget() {
   if (!toHave && !seen.has(k)) tc.append(h("button", { class: "chip r on" }, k === "none" ? "No ratio" : ratioLabel(st.addR.ra, st.addR.rb)));
   tc.append(h("button", { class: "chip plus", onclick: newRatioSheet }, "+ Ratio"));
   // keep the selected chip visible without cutting the first ones
-  const on = tc.querySelector(".on"); if (on) requestAnimationFrame(() => { const a = tc.getBoundingClientRect(), b = on.getBoundingClientRect(); if (b.right > a.right - 28) tc.scrollLeft += b.right - a.right + 40; else if (b.left < a.left) tc.scrollLeft -= a.left - b.left + 12; });
+  // the chosen chip in view, and the row starting on a whole chip (never a chip cut in half at the left)
+  const on = tc.querySelector(".on"); if (on) requestAnimationFrame(() => { const a = tc.getBoundingClientRect(), b = on.getBoundingClientRect(); let sl = tc.scrollLeft;
+    if (b.right > a.right - 28) sl += b.right - a.right + 40; else if (b.left < a.left) sl -= a.left - b.left + 12;
+    if (sl > 0) { const ks = [...tc.children].map(c => c.offsetLeft - tc.firstElementChild.offsetLeft); const k = ks.find(x => x >= sl - 1); sl = k != null ? k : sl; }
+    tc.scrollLeft = Math.max(0, sl); });
 }
 function newRatioSheet(it) {
   const a = h("input", { inputMode: "decimal", placeholder: "89", class: "b", "aria-label": "You give" }), b = h("input", { inputMode: "decimal", placeholder: "60", "aria-label": "You get" });
@@ -4656,7 +4664,7 @@ const whenWho = e => [e && e.who ? e.who : null, e ? dayLabel(e.t) : null].filte
 /* ---------- the tab ---------- */
 function renderStats() {
   const out = $("#statsOut"); out.textContent = "";
-  out.append(backTo("me", "Profile"));
+  out.append(backTo("me", "Menu"));
   const per = h("div", { class: "seg" }, SV_PER.map(([v, l]) => h("button", { class: SV.per === v ? "on" : "", onclick: () => { SV.per = v; renderStats(); } }, l)));
   out.append(h("div", { class: "card fieldset" }, h("div", { class: "ch" }, h("h2", null, "Stats")), per,
     h("p", { class: "hint" }, "From your History — all your posts. A deal counts once you tap “✓ Mark as done” in Order.")));
@@ -5037,7 +5045,7 @@ function farmMenu(f) {
 }
 function renderInv() {
   const out = $("#invOut"); out.textContent = "";
-  out.append(backTo("me", "Profile"));
+  out.append(backTo("me", "Menu"));
   if (IV.view !== "all" && !INV.farms.some(f => f.id === IV.view)) IV.view = "all";
   const all = IV.view === "all", F = all ? curFarm() : farmOf(IV.view), many = INV.farms.length > 1;
   if (!all) INV.cur = F.id;
@@ -6299,10 +6307,13 @@ function renderSearch() {
   if (SR.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "srMsg" }, SR.busy), h("button", { class: "btn sm", onclick: () => { SR.stop = true; SR.busy = null; IMP.say = null; renderSearch(); } }, "Stop"))); return; }
   if (SR.err) out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, SR.err)));
   if (SR.done) return srDone(out);
+  // nothing pasted yet: the card says what to do, the inventory follows
+  if (!(SR.text || "").trim() && !SR.tiles.length) return;
+  $("#srCard").open = true;
   const { rows, groups, info, dq, buy } = srRows(); SR.buyNow = buy;
   if (!rows.length && !groups.length) { if (!SR.err) out.append(h("div", { class: "empty card" }, SR.text.trim() || SR.tiles.length ? ("No item found in this post. Tap an item name in the text, or paste the text of the post (Discord: long-press → Copy Text).") : "Paste any post — a buying list “(10) nachos 4k each”, a trade “Need 🫙 45:89”… — or add its screenshot. You'll see right away what you have, at their prices or ratios.")); return; }
-  if (invAny()) out.append(h("p", { class: "hint srinv" }, "Your inventory: " + plural(invCount(null, SR.scope), "item") + " · updated " + agoTxt(INV.t) + " · ", h("a", { href: "#", onclick: e => { e.preventDefault(); tab("inv"); } }, "open")), farmChips(() => SR.scope, v => { SR.scope = v; SR.ed = {}; renderSearch(); }, "Look in") || "");
-  if (!invAny() && !buy) out.append(h("div", { class: "card owarnc" }, h("b", null, "Your inventory is empty"), h("p", { class: "hint" }, "Add your barn and silo first (screenshots or by hand) — then the search knows what you have."), h("button", { class: "btn pri", onclick: () => tab("inv") }, "Open my inventory")));
+  if (invAny()) out.append(h("p", { class: "hint srinv" }, "Your inventory: " + plural(invCount(null, SR.scope), "item") + " · updated " + agoTxt(INV.t)), farmChips(() => SR.scope, v => { SR.scope = v; SR.ed = {}; renderSearch(); }, "Look in") || "");
+  if (!invAny() && !buy) out.append(h("div", { class: "card owarnc" }, h("b", null, "Your inventory is empty"), h("p", { class: "hint" }, "Add your barn and silo below first (screenshots or by hand): then you see what you have.")));
   // what the post is
   const kindT = info.kind === "trade" || info.cmd ? "🔁 Trade post" : buy ? "💰 Selling post — you buy" : info.kind === "achat" ? "🛒 Buying post — you sell" : "📋 Post — you sell";
   // which way: they sell (you buy, your inventory doesn't matter) or they buy (you sell what you have)
@@ -6520,12 +6531,12 @@ function renderOngoing() {
   const O = openDeals(), daily = O.filter(d => d.daily), once = O.filter(d => !d.daily);
   out.append(h("div", { class: "card fieldset" },
     h("div", { class: "ch dh" }, h("h2", null, "Ongoing deals"), h("button", { class: "btn sm pri", onclick: () => dealForm() }, "＋ New deal")),
-    h("p", { class: "hint" }, O.length ? plural(once.length, "deal") + " to finish · " + plural(daily.length, "every-day trade") : "Keep several deals going at once: save one from Order or Search (⏳ Save for later) or add one here. Confirm it when it's done — your History, Stats and inventory follow.")));
+    h("p", { class: "hint" }, O.length ? plural(once.length, "deal") + " to finish · " + plural(daily.length, "every-day trade") : "Keep several deals going at once: save one from Order or Check a post (⏳ Save for later) or add one here. Confirm it when it's done — your History, Stats and inventory follow.")));
   if (DL.undo) out.append(h("div", { class: "card oundo dund" }, h("span", null, DL.undo.what), h("button", { class: "btn sm", onclick: undoDeal }, "Undo")));
   const res = reserved();
   if (daily.length) { out.append(h("h3", { class: "dsec" }, "Every day")); daily.forEach(d => out.append(dealCard(d, res))); }
   if (once.length) { out.append(h("h3", { class: "dsec" }, "To finish")); once.forEach(d => out.append(dealCard(d, res))); }
-  if (!O.length) out.append(h("div", { class: "empty card" }, "No deal in progress.", h("div", { class: "two", style: "margin-top:12px" }, h("button", { class: "btn", onclick: () => tab("order") }, "Order"), h("button", { class: "btn", onclick: () => tab("search") }, "Search"))));
+  if (!O.length) out.append(h("div", { class: "empty card" }, "No deal in progress.", h("div", { class: "two", style: "margin-top:12px" }, h("button", { class: "btn", onclick: () => tab("order") }, "Order"), h("button", { class: "btn", onclick: () => tab("search") }, "Check a post"))));
   const closed = DEALS.filter(d => d.status !== "open").sort((a, b) => (b.closed || 0) - (a.closed || 0)).slice(0, 15);
   if (closed.length) out.append(h("details", { class: "card dclosed", open: DL.showDone, ontoggle: e => { DL.showDone = e.target.open; } }, h("summary", null, "Finished & cancelled (" + closed.length + ")"),
     closed.map(d => h("div", { class: "dcl" }, h("span", null, DTYPE[d.e.type].i), h("div", null, h("b", null, d.who || DTYPE[d.e.type].t), h("small", null, (d.status === "done" ? "Done " : "Cancelled ") + dayLabel(d.closed) + (d.daily ? " · " + plural(d.daily.log.length, "day") : "") + " · " + dealText(d))),
