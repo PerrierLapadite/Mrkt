@@ -641,6 +641,10 @@ body[data-tab=prev] #editor{display:none}
 .oline.srl .omid small{white-space:normal}
 .srinv{margin:-4px 2px 0}
 .omix{display:block;color:var(--ink2);font-style:normal;white-space:normal}
+.osteps{margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:12px;display:grid;gap:6px}
+.osteps b{font-size:14px}
+.osteps ol{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+.osteps .hint{margin:0}
 .ointent{display:grid;gap:6px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--line);font-size:14px}
 .ointent .oi1{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .ointent .oi1 small{color:var(--mut)}
@@ -2716,6 +2720,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Search:"), " paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
+    h("li", null, h("b", null, "How the trade goes:"), " under a trade order — how many of their accounts, the crates in the right order (7×10 = 70, then 9 = 79, then 10 = 89: an account buys while it's under 80), what you buy at their shop. Copy it for Discord."),
     h("li", null, h("b", null, "Ratios (trade):"), " written as on Discord — 60 : 89 = 60 of the item for 89 of yours (the 89 is on the side of what you give, with its picture). Order gives 89 BEM for 60, 45 for 30."),
     h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams and Juices (the Jam Maker's and Juice Press's pages, as in the game) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
     h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
@@ -3406,7 +3411,7 @@ const ORDER = { text: "", lines: [], applyDisc: true };
 /** A buyer's message → { raw, name, q } lines, however it's written: one item a line or all on one line
     ("I will take tower doner, feta pie, straw candle, all jams"), "10 feta pie 20 straw candle", "feta pie x10 straw candle x20",
     "carrot pies x26", "26x carrot pie", "carrot pie: 26", "10 of each", bullets, emojis, markdown, "hi / pls / thx". */
-const ORD_LEAD = new Set("do does did still got any left is are there anything else thanks thank thx ty tysm cheers bye hi hii hello hey yo ok okay so and also plus then i ill id im ive we will would wanna want wants need needs like love take get grab have buy order reserve book purchase can could may let me give pls please plz kindly sure yes yeah yep just some your ur from you u to for dm send sell itd it be is are there would like i'd i'll i'm".split(" "));
+const ORD_LEAD = new Set("fine alright alr right sure deal yeah yea yep yup cool great perfect nice good wait well hmm bro bruh mate man dude sir then now ok okk okay oke okey kk do does did still got any left is are there anything else thanks thank thx ty tysm cheers bye hi hii hello hey yo ok okay so and also plus then i ill id im ive we will would wanna want wants need needs like love take get grab have buy order reserve book purchase can could may let me give pls please plz kindly sure yes yeah yep just some your ur from you u to for dm send sell itd it be is are there would like i'd i'll i'm".split(" "));
 const ORD_TAIL = /(?:\s+(?:please|pls|plz|thanks|thank you|thx|ty|tyvm|if possible|if (?:you|u) (?:can|have)|for me|too|as well|also|asap|now|today|tho|though|ok|okay|all|all of (?:it|them)|(?:all |everything )?(?:you|u) have|!+|\?+|:\)|:d))+\s*$/i;
 const ORD_QTY = "\\d[\\d.,]*\\s*k?";
 /** One piece "26x carrot pie" → { name, q } (q "" = none). A price written with it is not the quantity: "honey x20 at 450", "(450 ea)". */
@@ -3641,11 +3646,50 @@ function orderBySets(lines) {
   const q = same ? evenSplit(auto.length, Math.round(G * r0.b / r0.a)) : auto.map(x => { const r = rat(x.R.w); return Math.round(G / auto.length * r.b / r.a); });
   auto.forEach((x, i) => { x.L.q = q[i]; x.L.qGuess = false; x.L._sets = I.sets; });
 }
+/** How the trade goes, step by step: a buyer's account buys while it has under 80 → 7 crates of 10 (70), one of 9 (79), a last 10 (89).
+    So one set (89) per account of theirs, the crates in that order; then what you buy at their shop. */
+const TR_LIM = 80, TR_CR = 10, TR_MAX = TR_LIM - 1 + TR_CR;
+function crateOrder(items) {
+  const full = [], part = [];
+  items.forEach(it => { let n = Math.round(it.n); while (n >= TR_CR) { full.push({ id: it.id, n: TR_CR }); n -= TR_CR; } if (n > 0) part.push({ id: it.id, n }); });
+  const last = full.length ? full.pop() : null, seq = full.concat(part); if (last) seq.push(last);
+  return seq;
+}
+function tradeStepsText(rows) {
+  const live = rows.filter(L => L.r.w && L.r.ratio && L.q > 0); if (!live.length) return null;
+  const by = new Map(); live.forEach(L => { const g = L.r.ratio.g, k = g ? g.uid : "-"; const o = by.get(k) || { g, n: 0 }; o.n += L.r.ratio.give; by.set(k, o); });
+  const out = [];
+  by.forEach(o => {
+    const p = packOf(o.g), n = p ? Math.round(o.n) : giveWhole(o.n); if (!n) return;
+    // one account of theirs takes 89 at most → the accounts and what each takes
+    const per = [], left0 = n; let left = left0;
+    while (left > 0) { const k = Math.min(TR_MAX, left); per.push(k); left -= k; }
+    const nm = p ? p.en.replace(/ Set$/, "") : giveName(o.g);
+    out.push((p ? setsTxt(n / SET_N) + " = " + fmt(n) + " " + nm : fmt(n) + " " + nm) + " → " + plural(per.length, "account") + " of theirs" + (per.some(x => x !== per[0]) ? " (" + per.map(fmt).join(" + ") + ")" : "") + " — an account can only buy while it has under " + TR_LIM + ", so " + TR_MAX + " max.");
+    const seq = crateOrder(p ? packSplit(p, per[0]).map(x => ({ id: x.id, n: x.n })) : [{ id: o.g.ref, n: per[0] }]);
+    let tot = 0; const steps = seq.map(c => { tot += c.n; return { c, tot }; });
+    // "10 Bolt ×3 · 10 Plank ×3 · 10 Duct Tape (70) → 9 Duct Tape (79) → 10 Duct Tape (89)"
+    const grp = []; steps.forEach(s => { const g = grp[grp.length - 1]; if (g && g.id === s.c.id && g.n === s.c.n && s.c.n === TR_CR && s !== steps[steps.length - 1]) { g.k++; g.tot = s.tot; } else grp.push({ id: s.c.id, n: s.c.n, k: 1, tot: s.tot }); });
+    const name = id => (CAT.byId[id] || {}).en || pName(o.g);
+    out.push((per.length > 1 ? "Each account" : "The account") + (per.length > 1 && per[per.length - 1] !== per[0] ? " (the last one: " + fmt(per[per.length - 1]) + ")" : "") + " buys in this order: " + grp.map(g => g.n + " " + name(g.id) + (g.k > 1 ? " ×" + g.k : "") + " (" + g.tot + ")").join(" → ") + ".");
+    if (seq.some(c => c.n < TR_CR)) { const nine = steps.find(s => s.c.n < TR_CR); out.push("The " + nine.c.n + " comes before the last 10: at " + (nine.tot - nine.c.n) + " they can still buy, at " + nine.tot + " too (under " + TR_LIM + "), then the last 10 → " + steps[steps.length - 1].tot + ". With 10s only they'd stop at " + TR_LIM + "."); }
+  });
+  // what you buy at their shop
+  const get = live.map(L => fmt(L.q) + " " + pName(L.r.w) + " (" + plural(Math.ceil(L.q / TR_CR), "crate") + ")");
+  out.push("Then you buy at their shop: " + get.join(" + ") + ".");
+  return out;
+}
+function tradeSteps(rows) {
+  const T = tradeStepsText(rows); if (!T) return null;
+  return h("div", { class: "osteps" }, h("b", null, "How the trade goes"), h("ol", null, T.map(t => h("li", null, t))),
+    h("button", { class: "btn sm", onclick: async () => { const t = "How we do it:\n" + T.map((x, i) => (i + 1) + ". " + x).join("\n"); try { await navigator.clipboard.writeText(t); toast("Steps copied ✔"); } catch (e) { openSheet("Steps", h("textarea", { class: "ta", rows: 8, value: t, readOnly: true })); } } }, "Copy the steps for Discord"));
+}
 /** What the message asked for the whole deal, checked: the ratio (this order only, or back to your post's) and the sets. */
 function intentBar(rows) {
   const I = ORDER.intent, T = orderTmp(), live = rows.filter(L => L.r.w && !L.r.ignored && L.r.ratio);
   const posts = [...new Set(live.map(L => ratioLabel(L.r.w.ra, L.r.w.rb)))];
   const box = h("div", { class: "ointent" });
+  if (I.kept) box.append(h("div", { class: "oi1" }, h("small", null, "Kept from the earlier message of this deal"), h("button", { class: "btn sm", onclick: () => { ORDER.lastOff = true; renderOrder(); } }, "Don't keep")));
   if (I.ratio) box.append(h("div", { class: "oi1" }, h("span", null, T ? h("b", null, "Ratio " + fmtR(I.ratio.rb) + " : " + fmtR(I.ratio.ra) + " for this order") : "Your post's ratios (the message asks " + fmtR(I.ratio.rb) + " : " + fmtR(I.ratio.ra) + ")",
       T && posts.length ? h("small", null, " · your post: " + posts.join(", ")) : null),
     h("button", { class: "btn sm", onclick: () => { ORDER.tmpOff = !ORDER.tmpOff; renderOrder(); } }, T ? "Use my post's" : "Use " + fmtR(I.ratio.rb) + ":" + fmtR(I.ratio.ra))));
@@ -3663,13 +3707,19 @@ function intentBar(rows) {
 /** The message's lines, with families / pages / "everything" opened into the items of your post. */
 function orderLines(text) {
   const post = postItems(), out = [];
-  ORDER.intent = st.type === "trade" ? orderIntent(text) : null;
-  if (ORDER.intent && ORDER.intent.any) text = ORDER.intent.clean;
+  const I = ORDER.intent = st.type === "trade" ? orderIntent(text) : null;
+  if (I && I.any) text = I.clean;
   parseOrder(text).forEach(L => {
     const G = orderGroup(L, post);
     if (!G) return out.push(L);
     G.items.forEach((w, k) => out.push(Object.assign({}, L, { name: pName(w), gpick: w.uid, grp: (L.all && !/^(?:all|every)/i.test(L.name) && L.name !== "everything" ? "all " : "") + L.name, q: G.q ? G.q[k] : 1, qGuess: !G.q })));
   });
+  if (I) {
+    const uids = out.map(L => resolveLine(L).w).filter(Boolean).map(w => w.uid), LI = ORDER.lastI;
+    if (I.ratio || I.sets) ORDER.lastI = { post: st.id, ratio: I.ratio, sets: I.sets, uids };
+    // the next message of the same deal names the same items without the ratio / sets → they still count
+    else if (LI && LI.post === st.id && !ORDER.lastOff && uids.length && uids.every(u => LI.uids.includes(u))) { I.ratio = LI.ratio; I.sets = LI.sets; I.kept = true; I.any = true; }
+  }
   return out;
 }
 function resolveLine(L) {
@@ -3927,6 +3977,7 @@ function renderOrder(force) {
   ORDER.mpWait = mpWait;
   if (mpWait) tot.append(h("p", { class: "owarn" }, "⏳ Max prices are still loading from the wiki — the total updates by itself in a moment. Wait before copying."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
+  if (trade) { const H = tradeSteps(rows); if (H) tot.append(H); }
   out.append(tot);
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
   // keep typing in the deal-price box after the refresh
@@ -4120,7 +4171,7 @@ function pickSheet(L) {
   ]);
 }
 $("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
-$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
+$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
 
 /* =====================================================================
