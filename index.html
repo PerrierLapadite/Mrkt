@@ -691,6 +691,12 @@ body[data-tab=prev] #editor{display:none}
 .qcparts{display:grid;gap:2px;margin-top:4px;padding-top:6px;border-top:1px dashed var(--line)}
 .qcparts span{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
 .qcparts b{font-weight:700;white-space:nowrap}
+.paybox{margin:10px 0 4px;border:1px dashed var(--line2);border-radius:12px;padding:10px 12px;display:grid;gap:8px}
+.paybox summary{cursor:pointer;font-weight:600;color:var(--mut)}
+.paybox.on{border-style:solid;border-color:var(--acc)}
+.payh{display:flex;align-items:center;gap:10px}.payh>div{flex:1;min-width:0;display:grid;line-height:1.25}.payh small{color:var(--mut)}
+.payv{display:grid;gap:2px;font-size:14px;color:var(--mut)}
+.payv b{font:800 20px/1.2 var(--sans);color:var(--ink)}
 .hsw{margin-bottom:2px}
 .gi1 .gq{width:58px;height:34px;padding:0 6px;text-align:center;font-size:14px}
 .ti.multi{display:inline-flex;align-items:center}
@@ -3725,11 +3731,40 @@ function orderSegment(s, names) {
   }
   return out.length >= 2 && skipped <= 1 ? out : [s];
 }
+/** A greeting or a sentence of the message, not an item: "Heyyyy", "Was wondering if you're interested in trading some food for lobs". */
+const ORD_HELLO = /^(?:h+e+y+a*|h+i+|h+e+l+o+|yo+|sup|hiya|howdy|good (?:morning|evening|afternoon|night)|thanks?(?: you)?|thx|ty|ok(?:ay)?|sure|cool|great|deal|bro|hello there|hey there)$/i;
+const ORD_CHAT = /\b(?:if|you|you'?re|youre|ur|u|interested|wondering|would|could|wanna|let me|lmk|i'?m|im|i was|i am|do you|are you|trading|trade|swap|exchange|offer|deal|want to|looking to|hello|hey|hi)\b/i;
+function orderChat(name, post) {
+  const n = norm(name).replace(/[^a-z0-9' ]/g, " ").replace(/\s+/g, " ").trim();
+  if (!n) return true;
+  if (ORD_HELLO.test(n)) return true;
+  const w = n.split(" ");
+  if (post.some(x => norm(x) === n)) return false;
+  return w.length >= 5 && ORD_CHAT.test(n);
+}
+/** "trading some food for lobs", "can I pay in rings", "I'll give you lobsters for it": what they pay with instead of coins. */
+function orderPay(text) {
+  const T = emoNames(String(text || "")).toLowerCase().replace(/[*_`~>#]/g, " ");
+  const inPost = id => st.wants.some(w => w.ref === id);
+  for (const sen of T.split(/[\n.!?]+/)) {
+    // a trade word, or a short line / question ending on "for lobs"
+    if (!/\b(?:trad(?:e|ing)|swap(?:ping)?|exchang(?:e|ing)|pay(?:ing)?|give (?:you|u)|in return|instead of coins|rather than coins)\b/.test(sen) && !/\bfor\s+(?:some |your |a few )?[a-z][a-z' ]{1,28}\s*$/.test(sen)) continue;
+    const re = /\b(?:for|with|in|against|using|pay(?:ing)? (?:in|with)|give (?:you|u))\s+(?:some |your |my |a few |a bunch of |the |few )?([a-z][a-z' ]{1,28}?)(?=\s*$|\s*,|\s+(?:if|instead|rather|please|pls|maybe|or|and|from|for|to|in)\b)/g;
+    let m; while ((m = re.exec(sen))) {
+      const nm = m[1].trim().replace(/\s+(?:of yours|of mine|ok)$/, ""); if (/^(?:it|them|that|this|those|these|coins?|gold|money|food|foods|stuff|items?|things|some|you|me|your post|trade|trading)$/.test(nm)) continue;
+      const R = matchProduct(nm); if (!R || !R.p || inPost(R.p.id) || R.p.parts || R.p.mix) continue;
+      // sure, or every word starts a word of its name ("lobs" → Lobster Tail, "feathers" → Duck Feather)
+      const pw = toks(R.p.en), ok = R.sure || toks(nm).every(w => w.length >= 3 && pw.some(x => x.startsWith(w.replace(/s$/, "")) || same(x, w)));
+      if (ok) return { ref: R.p.id, said: nm };
+    }
+  }
+  return null;
+}
 function parseOrder(text) {
   const out = [], post = (typeof st !== "undefined" && st ? st.wants : []).filter(w => (w.name || "").trim() || w.ref).map(w => pName(w));
   const whole = (c, n) => { const qt = toks(c); return qt.length >= toks(n).length && matchInfo(qt, n, 1).sc > 0; };
   let T = emoNames(String(text || "")).replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
-    .replace(/\b(page|pg|p)\s*([1-3])\b(?!\s*(?:x|×|pcs?)\b)/gi, "$1$2").replace(/[?!]+|\.(?=\s+[a-z])/gi, "\n");
+    .replace(/\b(page|pg|p)\s*([1-3])\b(?!\s*(?:x|×|pcs?)\b)/gi, "$1$2").replace(/[?!]+|\.(?=\s+[a-z])|\s+\.(?=[a-z])/gi, "\n");
   // "10 of each" / "10 each" / "x10 each": the quantity of every item without one
   let each = null;
   // (not a price: "x20 450 each", "4k each")
@@ -3767,6 +3802,7 @@ function parseOrder(text) {
           const pc = orderPiece((lead + W.s).trim()) || orderPiece(W.s); if (!pc) return;
           const W2 = orderWords(pc.name);                                    // "10 of the feta pie", "x5 pls"
           const name = W2.s || pc.name, all = W.all || W2.all;
+          if (!pc.q && orderChat(name, post)) return;                    // "Heyyyy", "was wondering if you're interested in…"
           const segs = !pc.q && !all ? orderSegment(name, post) : [name];
           segs.forEach(nm => out.push({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }));
         }));
@@ -4023,7 +4059,9 @@ function resolveLine(L) {
   const lib = findMatches(L.name, CAT.list, p => p.en, 1)[0];
   const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "", 2).filter(m => !m.miss || (!(lib && lib.sc >= 4) && orderKeyWord(L.name, pName(m.x))));
   if (r.length) return { w: r[0].x, sure: !r[0].miss && !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
-  const c = lib;
+  const c = lib, mp = !c && L.name.length >= 3 ? matchProduct(L.name) : null, sub = (a, b) => { let i = 0; for (const ch of b) if (ch === a[i]) i++; return i === a.length; },
+    okMp = mp && mp.p && slug(mp.p.en)[0] === slug(L.name)[0] && sub(slug(L.name).replace(/-/g, ""), slug(mp.p.en).replace(/-/g, "")), inP = c ? post.find(x => x.ref === c.x.id) : okMp && post.find(x => x.ref === mp.p.id);
+  if (inP) return { w: inP, sure: false };                              // "mlk": a short typo found in the catalog, and it's in your post
   return { w: null, prod: c ? c.x : null };
 }
 /** Price one line from the active post: sell / buy → coins; trade → my items given by ratio. */
@@ -4104,6 +4142,8 @@ function renderOrder(force) {
   const adv = () => { if (typeof advSync === "function") advSync(); };
   if (ORDER.done && ORDER.done.text === ORDER.text) { adv(); return renderDone(); }
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
+  // paid in an item ("food for lobs"): read from the message; your choices stay while the message is the same
+  if (ORDER.payText !== ORDER.text) { ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null; if (ORDER.payRef !== undefined && !(ORDER.text || "").trim()) ORDER.payRef = null; ORDER.payMode = null; ORDER.payRound = null; ORDER.payEach = ""; if (ORDER.payAuto) ORDER.payRef = null; }
   ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
   ORDER.prev = ORDER.lines;
   if (trade) orderBySets(ORDER.lines);                                    // "if I buy 8 sets": the quantities from the sets
@@ -4260,6 +4300,7 @@ function renderOrder(force) {
     tot.append(h("div", { class: "k" }, st.type === "achat" ? "Total to pay" : "Total to receive"),
       h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(total)),
       ...convs().map(k => h("div", { class: "rings" }, "≈ " + curTxt(k, total / CUR[k].rate) + " ", curEl(k))));
+    tot.append(payBox(rows, total));
     if (hasTiers) tot.append(h("label", { class: "switch sm" }, "Apply the bulk bonus", h("input", { type: "checkbox", checked: ORDER.applyBulk !== false, onchange: e => { ORDER.applyBulk = e.target.checked; renderOrder(); } })));
     ORDER.bonus = bonus; ORDER.reached = reached;
     if (d > 0) tot.append(h("label", { class: "switch sm" }, "Apply your discount (−" + fmtR(d) + "%" + (useD ? ", was " + fmt(sub) : "") + ")", h("input", { type: "checkbox", checked: ORDER.applyDisc, onchange: e => { ORDER.applyDisc = e.target.checked; renderOrder(); } })));
@@ -4276,6 +4317,44 @@ function renderOrder(force) {
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
   // keep typing in the deal-price box after the refresh
   if (ORDER.editFocus != null) { const e = out.querySelector(`[data-edit="${ORDER.editFocus}"]`); ORDER.editFocus = null; if (e) { e.focus(); const n = e.value.length; try { e.setSelectionRange(n, n); } catch (er) {} } }
+}
+/* ---------- paid in an item instead of coins ("some food for lobs"): this order only, the post doesn't change ----------
+   value of one = its max price × the ×MP of the order (same ×MP on both sides) — or 1×MP, or what you type; rings / blankets at their fixed rate */
+function payInfo(rows, total) {
+  const ref = ORDER.payRef === "coin" ? null : ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref);
+  if (!ref || !CAT.byId[ref]) return null;
+  const P = CAT.byId[ref], fixed = ref === "diamond-ring" ? RING_RATE : ref === "blanket" ? BLANKET_RATE : 0, mp = fixed ? 0 : maxPrice(ref);
+  // the order's ×MP: Σ value ÷ Σ (quantity × max price), when every line is priced in ×MP
+  const xl = rows.filter(L => L.r.w && L.r.qq > 0), allX = xl.length && xl.every(L => L.r.w.pu === "xmp");
+  const mpSum = allX ? xl.reduce((a, L) => a + L.r.qq * maxPrice(L.r.w.ref), 0) : 0, kOrder = allX && mpSum > 0 ? Math.round(xl.reduce((a, L) => a + L.r.base, 0) / mpSum * 100) / 100 : 0;
+  const mode = ORDER.payMode || (fixed ? "fixed" : kOrder ? "order" : "mp1");
+  const k = mode === "order" ? kOrder : mode === "mp1" ? 1 : 0;
+  const each = fixed ? fixed : mode === "custom" ? num(ORDER.payEach) : k * mp;
+  if (!(each > 0)) return { P, ref, fixed, mp, kOrder, mode, each: 0, wait: !fixed && !(mp > 0) };
+  const exact = total / each, lo = Math.floor(exact + 1e-9), hi = Math.ceil(exact - 1e-9);
+  const n = ORDER.payRound === "up" ? hi : ORDER.payRound === "down" ? lo : Math.round(exact);
+  return { P, ref, fixed, mp, kOrder, mode, k, each, exact, lo, hi, n, diff: n * each - total };
+}
+function payBox(rows, total) {
+  const I = payInfo(rows, total); ORDER.pay = I && I.each > 0 ? I : null;
+  const pick = h("input", { class: "inp", placeholder: "Item they pay with (e.g. lobster)", value: "", onchange: e => { const R = matchProduct(e.target.value.trim()); if (R && R.p && R.sure) { ORDER.payRef = R.p.id; ORDER.payMode = null; ORDER.payRound = null; renderOrder(); } else if (e.target.value.trim()) toast("Item not found"); } });
+  if (!I) return h("details", { class: "paybox" }, h("summary", null, "💱 Paid in an item instead of coins?"), pick);
+  const box = h("div", { class: "paybox on" });
+  box.append(h("div", { class: "payh" }, thumb(prodState(I.ref), I.P.e, "mini"), h("div", null, h("b", null, "Paid in " + I.P.en), ORDER.payAuto && ORDER.payAuto.ref === I.ref && !ORDER.payRef ? h("small", null, "from their message (“" + ORDER.payAuto.said + "”)") : null),
+    h("button", { class: "ib", "aria-label": "Back to coins", title: "Back to coins", onclick: () => { ORDER.payRef = "coin"; renderOrder(); } }, "×")));
+  if (I.wait) { box.append(h("p", { class: "hint" }, "⏳ " + I.P.en + ": max price loading…")); return box; }
+  if (!I.fixed) {
+    const seg = h("div", { class: "seg" }, [["mp1", "1×MP · " + fmt(I.mp)], ...(I.kOrder ? [["order", fmtRt(I.kOrder) + "×MP · " + fmt(I.kOrder * I.mp)]] : []), ["custom", "Custom"]].map(([m, t]) => h("button", { class: I.mode === m ? "on" : "", onclick: () => { ORDER.payMode = m; if (m === "custom" && !num(ORDER.payEach)) ORDER.payEach = String(Math.round(I.each)); renderOrder(); } }, t)));
+    box.append(h("label", { class: "lbl" }, "1 " + I.P.en + " ="), seg);
+    if (I.mode === "custom") box.append(h("input", { class: "inp", inputMode: "decimal", value: ORDER.payEach || "", placeholder: "coins for 1", "data-edit": "payEach", oninput: e => { ORDER.payEach = e.target.value; renderOrderSoon(); } }));
+    if (I.kOrder && I.mode === "order") box.append(h("p", { class: "hint" }, "Your items are at " + fmtRt(I.kOrder) + "×MP in this order, so " + I.P.en + " counts at " + fmtRt(I.kOrder) + "×MP too: max price for max price."));
+  } else box.append(h("p", { class: "hint" }, "1 " + I.P.en + " = " + fmtR(I.each) + " coins (fixed rate)."));
+  if (I.each > 0) {
+    box.append(h("div", { class: "payv" }, h("b", null, fmt(I.n) + " " + I.P.en), h("span", null, qcExact(total) + " ÷ " + qcExact(I.each) + " = " + fmtRt(I.exact))));
+    if (I.lo !== I.hi) box.append(h("div", { class: "seg" }, [["down", fmt(I.lo) + " (" + (I.lo * I.each - total >= 0 ? "+" : "−") + qcExact(Math.abs(I.lo * I.each - total)) + ")"], ["up", fmt(I.hi) + " (+" + qcExact(I.hi * I.each - total) + ")"]].map(([r, t]) => h("button", { class: (ORDER.payRound || (I.n === I.hi ? "up" : "down")) === r ? "on" : "", onclick: () => { ORDER.payRound = r; renderOrder(); } }, t))),
+      h("p", { class: "hint" }, "In coins, the difference: what rounding to a whole " + I.P.en + " gives or takes."));
+  }
+  return box;
 }
 /* ---------- optional: update the post after the deal (exact quantities) ---------- */
 function proposal(rows) {
@@ -4300,6 +4379,7 @@ function updCard(P, trade) {
       card.append(h("label", null, cb, thumb(itemState(p.w), p.w.e), h("b", null, (trade ? giveName(p.w) : pName(p.w)) + "  −" + fmt(p.n) + (p.pk ? " (" + setsTxt(Math.round(p.n / SET_N * 100) / 100) + ")" : "")), h("span", null, ...w)));
     });
   }
+  if (ORDER.pay && ORDER.pay.n && !trade) card.append(h("p", { class: "hint" }, (st.type === "achat" ? "You pay " : "You get ") + fmt(ORDER.pay.n) + " " + ORDER.pay.P.en + " instead of coins" + (invLive() ? ": your inventory " + (st.type === "achat" ? "loses" : "gets") + " them too." : ".")));
   const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); } });
   const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; } });
   card.append(h("label", { class: "switch sm" }, "Save it in my History", save), who,
@@ -4339,6 +4419,7 @@ function histEntry(who) {
     gives: [...gives.values()].map(({ g, ...o }) => { const n = giveWhole(o.n), mg = mixOf(g), ms = mg ? mixSplit(mg, n, dealScope()) : null;
       return { ...o, n, split: splitTxt(g, o.n) || (ms ? ms.filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ") : undefined), mix: ms ? ms.filter(x => x.n).map(x => ({ ref: x.id, name: x.name, n: x.n })) : undefined }; }),
     total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
+    pay: !trade && ORDER.pay ? { ref: ORDER.pay.ref, name: ORDER.pay.P.en, n: ORDER.pay.n, each: ORDER.pay.each } : undefined,
     reply: replyText()
   };
 }
@@ -4449,6 +4530,7 @@ function replyText() {
     foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), mg = mixOf(o.g), s = splitTxt(o.g, o.n) || (mg ? mixTxt(mg, n) : ""); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
     foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(Math.round(ORDER.sub - ORDER.bonus))}\nBulk bonus${(ORDER.reached || []).length ? " " + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% (" + bulkTxt(t).replace(" at once", "") + ")").join(" / ") : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    const Y = ORDER.pay; if (Y) foot += `\nIn ${Y.P.en}: ${fmt(ORDER.total)} ÷ ${qcExact(Y.each)}${Y.fixed ? "" : " (" + (Y.mode === "custom" ? "each" : fmtRt(Y.mode === "order" ? Y.kOrder : 1) + "×MP") + ")"} = **${fmt(Y.n)} ${Y.P.en}**` + (Math.abs(Y.diff) >= .5 ? ` (${Y.diff > 0 ? "+" : "−"}${qcExact(Math.abs(Y.diff))} coins with the rounding)` : "");
   }
   const T = trade && orderTmp(), I = trade && ORDER.intent;
   const head = T ? "Ratio " + fmtR(T.rb) + ":" + fmtR(T.ra) + (I && I.sets ? " for " + setsTxt(I.sets) : "") + "\n" : "";
@@ -5146,6 +5228,8 @@ function invApply(e, sign) {
   // lines count sets for a set (×89 materials); what a trade gives is already in materials
   if (e.type === "vente") L.forEach(l => add(l, -sg * asMat(l, l.q || 0)));
   if (e.type === "achat") L.forEach(l => add(l, sg * asMat(l, l.q || 0)));
+  // paid in an item: it comes in when you sell, goes out when you buy
+  if (e.pay && e.pay.ref && e.pay.n) invAdd({ ref: e.pay.ref }, (e.type === "achat" ? -1 : 1) * sg * e.pay.n, true, f);
   if (e.type === "trade") { L.forEach(l => add(l, sg * asMat(l, l.q || 0))); (e.gives || []).forEach(g => add(g, -sg * (g.n || 0))); }
   saveInv();
 }
