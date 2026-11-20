@@ -173,6 +173,19 @@ body[data-tab=prev] #editor{display:none}
 .ratiobar{display:grid;gap:8px;padding:12px 14px;border-style:dashed}
 .rb-t b{font:700 15px var(--slab)}.rb-t small{display:none}
 .rb-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.spcard .hint{margin:0}
+.spcard .ta{min-height:96px}
+.spsug{margin-top:0}
+.spsug .mchip{cursor:pointer;padding:4px 9px}
+.spprev{display:grid;gap:8px}
+.sprule{border-top:1px solid var(--line);padding-top:8px}
+.sprule .sph{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px;align-items:baseline}
+.sprule .sph small{color:var(--mut);font-weight:600}
+.sprule.bad b,.sprule.bad small{color:var(--acc)}
+.sprule .mchips{margin-top:6px}
+.spmsg{font-weight:700;font-size:13px}
+.spundo{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--line2);border-radius:12px;font-size:14px}
+.spundo span{flex:1}
 .rbox{display:grid;grid-template-columns:1fr 22px 1fr;align-items:end;gap:4px}
 .rbox .side{display:grid;gap:4px;min-width:0}
 .rbox .side>span{font:700 12px var(--slab);color:var(--mut);text-transform:uppercase;letter-spacing:.05em;padding-left:1px}
@@ -2691,7 +2704,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Pick a post"), " at the top: Trade, Selling or Buying (create more with ＋). The coloured dot tells the type: red = Trade, green = Selling, blue = Buying."),
     h("li", null, h("b", null, "Moving around:"), " each tab of the bottom bar keeps your place. Tap the tab you are on to go back to the top. Swipe a panel down to close it."),
     h("li", null, h("b", null, "Search products"), " (the search bar stays at the top while you scroll) and tap them to add them. For trades, choose first where they go: “I have”, a ratio like 50 : 89, or “+ Ratio”."),
-    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
+    h("li", null, h("b", null, "Selling / Buying:"), " enter the price each and the quantity — or “＝ Prices by group…”: one rule a line (all jams 5x · mussel products 6k · all bars 800 · everything 4x), checked before it's applied, with Undo. Price in coins, rings, blankets or ×MP — type “5x” or “5xmp” for 5 × the item’s max price in the game (fixed values). Totals and the conversions (10 rings = 8,244 coins · 10 blankets = 10,980 coins) are automatic. “Same price for all” sets every item at once."),
     h("li", null, h("b", null, "Buying:"), " a bulk bonus lets you pay more when someone sells you a big part of an item’s quantity in one go (Notes → Bulk bonus & total)."),
     h("li", null, h("b", null, "Add items (Items → search bar):"), " Add from 📚 Base = every game item · 📦 Inventory = your farms, with your quantities · 📝 Text = paste a list (e.g. “lobster tail x20 1500”) to build a post in one go."),
     h("li", null, h("b", null, "Order:"), " paste a buyer’s or seller’s message (e.g. “carrot pies x26”) — it is priced automatically from your post, with a reply ready to copy. “Advanced” adds a group of items by rules (price, quantity, ×MP, category). Then “✓ Mark as done” can remove exactly what left (49 − 30 → 19 left) and save the deal in your History — Undo is there if needed."),
@@ -2900,7 +2913,9 @@ function renderLists() {
   st.have.forEach(it => hl.append(haveCard(it)));
   if (!st.have.length) hl.append(h("div", { class: "empty card" }, "Pick “I have” above the search to add what you offer."));
   const wl = $("#wantList"); wl.textContent = ""; VAL_UPD = [];
+  const spu = spUndoBar(); if (spu) wl.append(spu);
   if (trade) {
+    if (st.wants.length > 1) wl.append(samePriceBar());
     ratioGroups(st.wants).forEach(g => wl.append(groupCard(g)));
     wl.append(h("button", { class: "btn dashed newgrp", onclick: () => newRatioSheet() }, "+ New ratio group"));
     markTargetGroup();
@@ -2910,19 +2925,142 @@ function renderLists() {
   if ($("#lfilter").hidden) $("#lf").value = ""; else applyListFilter();
   renderSummary(); requestAnimationFrame(updJump);
 }
-/* ---------- sell / buy: one price for every item (e.g. everything at 5×MP) ---------- */
-let spOpen = false;
+/* ---------- prices by group, one rule a line: "all jams 5x", "mussel products 6k", "all bars 800", "everything 4x"
+   (trade posts: "all jams 45:89"). Checked before anything changes; later lines win; Undo. ---------- */
+let spOpen = false, spUndo = null;
+const SP_MAX_LINES = 60, SP_MAX_LEN = 3000;
+const SP_CATS = { bakery: "bakery", breads: "bakery", dairy: "dairy", sugar: "dairy", grill: "snack", meals: "snack", snacks: "snack", sweets: "sweets", candies: "sweets", drinks: "drinks", textiles: "textile", textile: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", fishing: "fish", fish: "fish", feed: "feed", crops: "crops", trees: "trees", fruits: "trees", animal: "animal", "animal goods": "animal", tools: "ext", materials: "ext" };
+const SP_FILL = /^(?:all|every|everything|the|my|your|of|each|ea|items?|products?|stuff|things|goods|foods?|kinds?|types?|any|mixed?|mix)$/;
+/** The price at the end (or start) of a rule → { p, pu, rest } — trade: a ratio "45:89" → { rb: 45 (you get), ra: 89 (you give) }. */
+function spPrice(line, trade) {
+  const s = line.replace(/\s+/g, " ").trim(), N = "(\\d+(?:[.,]\\d+)?)";
+  const tries = trade
+    ? [[new RegExp("(?:^|\\s|[:=@→-])\\s*" + N + "\\s*[:/]\\s*" + N + "\\s*$"), m => ({ rb: num(m[1]), ra: num(m[2]) })]]
+    : [[new RegExp("(?:^|\\s|[:=@→-])\\s*" + N + "\\s*(?:x|×)\\s*(?:mp|max(?:\\s*price)?)?\\s*(?:each|ea)?\\s*$", "i"), m => ({ p: num(m[1]), pu: "xmp" })],
+       [new RegExp("(?:^|\\s|[:=@→-])\\s*" + N + "\\s*(?:r|rings?|dr|diamond\\s*rings?|💍)\\s*(?:each|ea)?\\s*$", "i"), m => ({ p: num(m[1]), pu: "ring" })],
+       [new RegExp("(?:^|\\s|[:=@→-])\\s*" + N + "\\s*(?:b|bl|blankets?)\\s*(?:each|ea)?\\s*$", "i"), m => ({ p: num(m[1]), pu: "blanket" })],
+       [new RegExp("(?:^|\\s|[:=@→-])\\s*(\\d+(?:[.,]\\d+)?\\s*[km]?)\\s*(?:c|coins?|🪙)?\\s*(?:each|ea)?\\s*$", "i"), m => ({ p: num(m[1].replace(/\s/g, "")), pu: "coin" })]];
+  for (const [re, f] of tries) { const m = s.match(re); if (m) return Object.assign(f(m), { rest: s.slice(0, m.index).replace(/[\s:=@→-]+$/, "").trim() }); }
+  // the price first: "5x all jams", "6k mussel"
+  const lead = s.match(trade ? new RegExp("^" + N + "\\s*[:/]\\s*" + N + "\\s+") : /^(\d+(?:[.,]\d+)?)\s*(x|×|k|m)?\s*(mp)?\s+/i);
+  if (lead) { const rest = s.slice(lead[0].length).replace(/^(?:for|on|=|:)\s+/i, "").trim();
+    if (trade) return { rb: num(lead[1]), ra: num(lead[2]), rest };
+    const x = /x|×/i.test(lead[2] || "") || !!lead[3]; return { p: x ? num(lead[1]) : num(lead[1] + (lead[2] || "")), pu: x ? "xmp" : "coin", rest }; }
+  return null;
+}
+/** The items of your post a rule means: everything · a page / mix · a family (jams, soups…) · a category · a word they share (mussel) · one item. */
+function spTarget(name, items) {
+  const n = norm(name).replace(/[^a-z0-9& ]/g, " ").replace(/\s+/g, " ").trim();
+  if (!n || /^(?:all|everything|every ?thing|all items?|all of (?:it|them)|tout|tous|the rest|rest)$/.test(n)) return { items: items.slice(), how: "every item" };
+  const withMix = ids => items.filter(w => ids.has(w.ref) || (mixOf(w) && mixOf(w).mix.some(id => ids.has(id))));
+  const mx = mixFromText(n);
+  if (mx) return { items: items.filter(w => w.ref === mx.id || mx.mix.includes(w.ref)), how: mx.en };
+  const core = n.split(" ").filter(t => !SP_FILL.test(t)), c = core.join(" "), all = /^(?:all|every|each|any)\b/.test(n) || /\b(?:items|products|stuff|things|goods|foods)$/.test(n);
+  if (!core.length) return { items: items.slice(), how: "every item" };
+  const has = (w, t) => toks(pName(w)).some(p => same(t, p) || (t.length >= 4 && p.startsWith(t)));
+  const wd = items.filter(w => core.every(t => has(w, t)));
+  // one item named exactly ("lobster tail") — but "all popcorn" with several popcorns = all of them
+  const exact = items.filter(w => slug(pName(w)) === slug(c));
+  if (exact.length && !(all && wd.length > exact.length)) return { items: exact, how: "this item" };
+  const fam = orderFamily(n) || orderFamily(c);
+  if (fam) { const f = withMix(new Set(fam.map(p => p.id))); if (f.length) return { items: f, how: "family" }; }
+  const cat = SP_CATS[c] || SP_CATS[core[0]];
+  if (cat && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && CAT.byId[w.ref].cat === cat), how: "category" };
+  // a word they share: "mussel" → Mussel Nigiri, Grilled Mussels, Steamed Mussels…
+  if (wd.length >= 2) return { items: wd, how: "named “" + c + "”" };
+  const r = findMatches(c, items, w => pName(w), 1);
+  if (r.length && r[0].sc >= 4 && !(r[1] && r[1].sc >= r[0].sc - .01)) return { items: [r[0].x], how: "this item" + (r[0].typo ? " (spelling?)" : "") };
+  if (wd.length === 1) return { items: wd, how: "this item" };
+  return { items: [], how: "" };
+}
+/** The rules of the box → each with its items, price, and what's wrong. Later lines win where they overlap. */
+function spRules(text, items, trade) {
+  const out = [];
+  String(text || "").slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES).forEach((line, i) => {
+    const P = spPrice(line, trade), R = { i, line, price: P, items: [], err: "" };
+    if (!P) R.err = trade ? "no ratio — write it like 45:89" : "no price — write it like 5x, 6k, 800, 2r";
+    else if (trade ? !(P.ra > 0 && P.rb > 0 && P.ra <= 1e6 && P.rb <= 1e6) : !(P.p > 0 && P.p <= (P.pu === "coin" ? 1e9 : 1e5))) R.err = "the price isn't valid";
+    else { const T = spTarget(P.rest, items); R.items = T.items; R.how = T.how; if (!T.items.length) R.err = "“" + (P.rest || "?") + "” — no item of your post"; }
+    out.push(R);
+  });
+  // the last rule for each item is the one used
+  const last = new Map(); out.forEach(R => { if (!R.err) R.items.forEach(w => last.set(w.uid, R)); });
+  out.forEach(R => { R.used = R.err ? [] : R.items.filter(w => last.get(w.uid) === R); });
+  return { rules: out, last };
+}
+const spLabel = (P, trade) => trade ? fmtR(P.rb) + " : " + fmtR(P.ra) : P.pu === "xmp" ? fmtR(P.p) + "×MP" : P.pu === "ring" ? fmtR(P.p) + " ring" + (P.p === 1 ? "" : "s") : P.pu === "blanket" ? fmtR(P.p) + " blanket" + (P.p === 1 ? "" : "s") : fmt(P.p) + " coins";
+/** Groups of your post to start a rule from: pages, families, shared words ("all mussel (4)"). */
+function spSuggest(items) {
+  // one chip per different set of items (no "all bar" next to "all bars")
+  const out = [], seen = new Set(), sig = list => list.map(w => w.uid).sort().join("|");
+  const add = (label, list) => { const k = sig(list); if (list.length >= 2 && !seen.has(k)) { seen.add(k); out.push({ label, n: list.length }); } };
+  add("everything", items);
+  CAT.list.filter(p => p.mix).forEach(m => { const L = items.filter(w => w.ref === m.id || m.mix.includes(w.ref)); if (L.length) { const k = sig(L); if (!seen.has(k)) { seen.add(k); out.push({ label: m.en.toLowerCase(), n: L.length }); } } });
+  const cnt = new Map();
+  items.forEach(w => new Set(toks(pName(w)).map(sing).filter(t => t.length >= 3 && !/^(?:and|with|the|for|red|big|hot)$/.test(t))).forEach(t => cnt.set(t, (cnt.get(t) || 0) + 1)));
+  [...cnt].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 14).forEach(([t]) => add("all " + t, spTarget("all " + t, items).items));
+  return out;
+}
 function samePriceBar() {
-  if (!spOpen) return h("button", { type: "button", class: "spbtn", onclick: () => { spOpen = true; renderLists(); setTimeout(() => { const i = $("#wantList .ratiobar input"); i && i.focus(); }, 30); } }, "＝ Same price for all…");
-  const t = { pu: st.allPu || "xmp", p: st.allP || "" };
-  const inp = h("input", { value: t.p, inputMode: "text", placeholder: "5", "aria-label": "Price for all", oninput: () => { const m = inp.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i); if (m) { t.pu = "xmp"; inp.value = m[1]; ub.repaint(); } t.p = inp.value; st.allP = t.p; st.allPu = t.pu; saveSoon(); } });
-  const ub = unitBtn(t, "pu", ["xmp", "coin", "ring", "blanket"], () => { st.allPu = t.pu; saveSoon(); });
-  return h("div", { class: "card ratiobar" }, h("div", { class: "rb-t" }, h("b", null, "Same price for all"), h("button", { type: "button", "aria-label": "Close", onclick: () => { spOpen = false; renderLists(); } }, "✕")),
-    h("div", { class: "rb-row" }, h("div", { class: "box" }, inp, ub), h("button", { class: "btn pri sm", onclick: () => {
-      if (!num(t.p)) return toast("Enter a price first");
-      st.wants.forEach(w => { w.p = t.p; w.pu = t.pu; }); spOpen = false; renderLists(); changed();
-      toast("All items at " + fmtR(num(t.p)) + (t.pu === "xmp" ? "×MP" : t.pu === "ring" ? " ring(s)" : t.pu === "blanket" ? " blanket(s)" : " coins") + " each");
-    } }, "Apply")));
+  const trade = st.type === "trade";
+  if (!spOpen) return h("button", { type: "button", class: "spbtn", onclick: () => { spOpen = true; renderLists(); setTimeout(() => { const i = $("#spIn"); i && i.focus(); }, 30); } }, trade ? "＝ Ratios by group…" : "＝ Prices by group…");
+  const items = st.wants.filter(w => (w.name || "").trim() || w.ref);
+  const ta = h("textarea", { class: "ta", id: "spIn", rows: 4, maxLength: SP_MAX_LEN, autocapitalize: "off", spellcheck: false, value: st.spText || "", "aria-label": trade ? "Ratios by group" : "Prices by group",
+    placeholder: trade ? "One rule a line, e.g.\nall jams 45:89\nmussel products 60:89\nall bars 120:89" : "One rule a line, e.g.\nall jams 5x\nmussel products 6k\nall bars 800\neverything 4x" });
+  const prev = h("div", { class: "spprev" }), msg = h("div", { class: "spmsg" });
+  const apply = h("button", { class: "btn pri", disabled: true }, "Apply");
+  let cur = { rules: [], last: new Map() };
+  const show = () => {
+    st.spText = ta.value.slice(0, SP_MAX_LEN); saveSoon();
+    cur = spRules(st.spText, items, trade); prev.textContent = "";
+    cur.rules.forEach(R => {
+      const ch = R.err ? null : R.used.map(w => { const after = trade ? null : unitPrice({ ref: w.ref, p: String(R.price.p), pu: R.price.pu });
+        return h("span", { class: "mchip" + (R.used.length < R.items.length ? "" : "") }, thumb(itemState(w), w.e, "mini"), pName(w), !trade && R.price.pu !== "coin" && after ? h("small", null, " " + fmtP(after) + " ea") : null); });
+      const over = R.err ? 0 : R.items.length - R.used.length;
+      prev.append(h("div", { class: "sprule" + (R.err ? " bad" : "") },
+        h("div", { class: "sph" }, h("b", null, R.err ? "⚠ " + R.line : (R.how === "every item" ? "Every item" : R.price.rest || "Every item") + " → " + spLabel(R.price, trade)),
+          R.err ? h("small", null, R.err) : h("small", null, plural(R.used.length, "item") + (R.how && R.how !== "every item" ? " · " + R.how : "") + (over ? " · " + over + " set by a later line" : ""))),
+        ch && ch.length ? h("div", { class: "mchips" }, ch) : null));
+    });
+    const n = cur.last.size, same = [...cur.last].filter(([uid, R]) => { const w = items.find(x => x.uid === uid); return w && (trade ? num(w.ra) === R.price.ra && num(w.rb) === R.price.rb : num(w.p) === R.price.p && (w.pu || "coin") === R.price.pu); }).length;
+    const bad = cur.rules.filter(R => R.err).length, keep = items.length - n;
+    msg.textContent = !cur.rules.length ? "" : (n ? plural(n - same, "item") + " will change" + (same ? " · " + same + " already at that price" : "") + (keep ? " · " + plural(keep, "item") + " keep their " + (trade ? "ratio" : "price") : "") : "No item to change yet") + (bad ? " · " + plural(bad, "line") + " to fix ⚠" : "");
+    apply.disabled = !(n - same > 0) || bad > 0;
+    apply.textContent = bad ? "Fix the lines with ⚠ first" : "Apply to " + plural(n - same, "item");
+  };
+  apply.onclick = () => {
+    if (apply.disabled) return;
+    const snap = items.map(w => ({ uid: w.uid, p: w.p, pu: w.pu, ra: w.ra, rb: w.rb, give: w.give, bat: w.bat, bra: w.bra, brb: w.brb }));
+    let k = 0, bulkOff = 0; const g0 = (st.have.find(x => (x.name || "").trim() || x.ref) || {}).uid || "";
+    cur.last.forEach((R, uid) => {
+      const w = items.find(x => x.uid === uid); if (!w) return;
+      if (trade) { const ra = String(R.price.ra), rb = String(R.price.rb); if (num(w.ra) === R.price.ra && num(w.rb) === R.price.rb) return;
+        if (w.bat) { delete w.bat; delete w.bra; delete w.brb; bulkOff++; }   // a bulk ratio belonged to the old ratio
+        w.ra = ra; w.rb = rb; if (!w.give) w.give = g0; k++; }
+      else { if (num(w.p) === R.price.p && (w.pu || "coin") === R.price.pu) return; w.p = String(R.price.p); w.pu = R.price.pu; k++; }
+    });
+    spUndo = { pid: st.id, snap, n: k }; spOpen = false; renderLists(); if (trade) renderTarget(); changed();
+    toast((trade ? "Ratios" : "Prices") + " set on " + plural(k, "item") + (bulkOff ? " · " + bulkOff + " bulk ratio" + (bulkOff > 1 ? "s" : "") + " removed" : "") + " — Undo below");
+  };
+  const sug = spSuggest(items);
+  const chips = h("div", { class: "mchips spsug" }, sug.map(s => h("button", { type: "button", class: "mchip", onclick: () => {
+    const v = ta.value.replace(/\s+$/, ""); ta.value = (v ? v + "\n" : "") + s.label + " "; ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) {} show(); } }, s.label, h("small", null, " " + s.n))));
+  ta.addEventListener("input", debounce(show, 120));
+  const card = h("div", { class: "card ratiobar spcard" },
+    h("div", { class: "rb-t" }, h("b", null, trade ? "Ratios by group" : "Prices by group"), h("button", { type: "button", "aria-label": "Close", onclick: () => { spOpen = false; renderLists(); } }, "✕")),
+    h("p", { class: "hint" }, trade ? "One rule a line: a group of your items, then the ratio as on Discord (45:89 = 45 of them for 89 of yours). Later lines win." : "One rule a line: a group of your items, then the price — 5x (×MP), 6k, 800, 2r (rings), 1b (blankets). Later lines win."),
+    sug.length ? chips : null, ta, prev, msg, apply);
+  show();
+  return card;
+}
+/** Undo the last "by group" change (same post only). */
+function spUndoBar() {
+  if (!spUndo || spUndo.pid !== st.id) return null;
+  return h("div", { class: "spundo" }, h("span", null, (st.type === "trade" ? "Ratios" : "Prices") + " changed on " + plural(spUndo.n, "item")),
+    h("button", { class: "btn sm", onclick: () => { const by = new Map(spUndo.snap.map(o => [o.uid, o]));
+      st.wants.forEach(w => { const o = by.get(w.uid); if (!o) return; ["p", "pu", "ra", "rb", "give", "bat", "bra", "brb"].forEach(k => { if (o[k] === undefined) delete w[k]; else w[k] = o[k]; }); });
+      spUndo = null; renderLists(); if (typeof renderTarget === "function") renderTarget(); changed(); toast("Undone"); } }, "Undo"),
+    h("button", { class: "btn sm", "aria-label": "Hide", onclick: () => { spUndo = null; renderLists(); } }, "✕"));
 }
 /* ---------- trade: one card per ratio ---------- */
 function groupCard(g) {
