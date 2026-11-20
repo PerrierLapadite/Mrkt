@@ -1176,7 +1176,7 @@ details summary{-webkit-tap-highlight-color:transparent}
       <div class="card fieldset">
         <div class="ch"><h2>Order calculator</h2></div>
         <p class="hint" id="orderFor"></p>
-        <textarea class="ta" id="orderIn" rows="7" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
+        <textarea class="ta" id="orderIn" rows="7" autocomplete="off" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
         <div class="three"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderShot" title="Their barn / silo screenshot (or screen recording): every item in it goes in the order">📷 Barn</button><button class="btn" id="orderClear">Clear</button></div>
         <input type="file" id="orderFile" accept="image/*,video/*" multiple hidden>
         <div id="orderAdv"></div>
@@ -4165,9 +4165,37 @@ function priceLabel(w) {
   return fmtP(p) + " ea";
 }
 
+/* ---------- each post keeps its own order: the text, the picks and quantities, who it's for, kept on this device ---------- */
+let ODRAFT = (() => { try { return store.get("hd5_odraft") || {}; } catch (e) { return {}; } })(), odT = 0;
+const ORD_KEEP = ["payRef", "payMode", "payEach", "payRound", "tmpOff"];
+function orderDraftSave() {
+  clearTimeout(odT); odT = 0;
+  if (ORDER.deal || !ORDER.pid || !STATE) return;               // a deal open in Order is saved in Deals, not here
+  const S = orderState(); delete S.pid;
+  if (!S.text.trim() && !S.who) delete ODRAFT[ORDER.pid];
+  else { ORD_KEEP.forEach(k => { if (ORDER[k] != null && ORDER[k] !== "") S[k] = ORDER[k]; }); if (ORDER.done && ORDER.done.text === ORDER.text) S.done = ORDER.done; S.t = Date.now(); ODRAFT[ORDER.pid] = S; }
+  const ids = new Set(STATE.list.map(x => x.id)); Object.keys(ODRAFT).forEach(k => { if (!ids.has(k) && Date.now() - (ODRAFT[k].t || 0) > 864e5 * 30) delete ODRAFT[k]; });
+  try { store.set("hd5_odraft", ODRAFT); } catch (e) {}
+}
+const orderDraftSoon = () => { clearTimeout(odT); odT = setTimeout(orderDraftSave, 300); };
+/** Another post (or the first time): save the order on screen, show that post's own. */
+function orderDraftSwitch() {
+  if (!st || ORDER.deal || ORDER.pid === st.id) return;
+  if (ORDER.pid) orderDraftSave();
+  const S = ODRAFT[st.id] || { text: "", lines: [], who: "" };
+  ORDER.pid = st.id; ORDER.text = S.text || ""; ORDER.who = S.who || "";
+  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp }));
+  ORDER.done = S.done || null; ORDER.dismissed = null; ORDER.undoEdit = null; ORDER.lastI = null; ORDER.scan = null;
+  ORD_KEEP.forEach(k => { ORDER[k] = S[k] != null ? S[k] : k === "payEach" ? "" : k === "tmpOff" ? false : null; });
+  ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null;
+  const ta = $("#orderIn"); if (ta) ta.value = ORDER.text;
+  const who = $("#orderWho"); if (who) who.value = ORDER.who;
+}
 function renderOrder(force) {
   ORDER.pend = false;
+  orderDraftSwitch();
   if (!force && document.body.dataset.tab !== "order") return;
+  orderDraftSoon();
   { const ae = document.activeElement; if (ae && ae.dataset && ae.dataset.edit != null) ORDER.editFocus = ae.dataset.edit; } // keep typing after a refresh
   const trade = st.type === "trade";
   const adv = () => { if (typeof advSync === "function") advSync(); };
@@ -4413,7 +4441,7 @@ function updCard(P, trade) {
   }
   if (ORDER.pay && ORDER.pay.n && !trade) card.append(h("p", { class: "hint" }, (st.type === "achat" ? "You pay " : "You get ") + fmt(ORDER.pay.n) + " " + ORDER.pay.P.en + " instead of coins" + (invLive() ? ": your inventory " + (st.type === "achat" ? "loses" : "gets") + " them too." : ".")));
   const save = h("input", { type: "checkbox", checked: SETTINGS.histOn !== false, onchange: () => { SETTINGS.histOn = save.checked; saveSettings(); } });
-  const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; } });
+  const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; orderDraftSoon(); } });
   card.append(h("label", { class: "switch sm" }, "Save it in my History", save), who,
     h("div", { class: "two" },
       h("button", { class: "btn pri", onclick: () => applyDeal(P, trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
@@ -4587,7 +4615,9 @@ function pickSheet(L) {
     h("button", { class: "btn dashed", onclick: () => choose(null) }, "Ignore this line")
   ]);
 }
-$("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
+$("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; orderDraftSoon(); renderOrderSoon(); });
+addEventListener("pagehide", () => { if (odT) orderDraftSave(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && odT) orderDraftSave(); });
 $("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderShot").onclick = () => $("#orderFile").click();
 $("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f, "order"); };
@@ -7237,7 +7267,7 @@ function saveActive(S) {
 function closeActive(fromLater, then) {
   const A = ORDER.deal; if (!A) return then && then();
   const cur = orderState(), ch = dealChanges(A.base, cur), d = DEALS.find(x => x.id === A.id);
-  const finish = msg => { ORDER.deal = null; ORDER.text = ""; ORDER.prev = []; ORDER.who = ""; $("#orderIn").value = ""; renderOrder(true); renderOngoing(); toast(msg); if (then) then(); else if (fromLater) tab("deals"); };
+  const finish = msg => { ORDER.deal = null; ORDER.pid = null; ORDER.text = ""; ORDER.prev = []; ORDER.who = ""; $("#orderIn").value = ""; renderOrder(true); renderOngoing(); toast(msg); if (then) then(); else if (fromLater) tab("deals"); };
   if (!d) return finish("Deal closed");
   if (!ch.length) return finish("Back in Deals");
   const boxes = ch.map(c => ({ c, cb: h("input", { type: "checkbox", checked: true }) }));
