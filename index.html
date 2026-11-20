@@ -3620,7 +3620,14 @@ function orderIntent(text) {
   if ((m = t.match(rre))) { let g = num(m[1]), v = num(m[2]); if (g % SET_N === 0 && v % SET_N) [g, v] = [v, g]; if (g > 0 && v > 0) ratio = { rb: g, ra: v, txt: fmtR(g) + ":" + fmtR(v) }; t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length); }
   // the size: "8 sets", "8 bem sets", "8 bem", "for 8 sets together"
   const sre = /\b(?:if\s+i\s+(?:buy|take|get|grab|order|do)\s+|i'?(?:ll|\s+will)\s+(?:buy|take|get)\s+|for\s+|buying\s+|take\s+)?(\d+)\s*(?:x\s*)?(?:full\s+)?(?:(?:bem|sem|lem|tem|tool)\s*(?:sets?|lots?)?|sets?|lots?)\b(?:\s+(?:all\s+)?together|\s+in\s+total|\s+total)?/i;
-  if ((m = t.match(sre))) { sets = num(m[1]); t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length); }
+  if ((m = t.match(sre))) {
+    const n = num(m[1]), word = /(?:sets?|lots?)\b/i.test(m[0].slice(m[0].indexOf(m[1]) + m[1].length));
+    // "89 bem" / "178 bem" = materials (1 / 2 sets); "8 bem" = 8 sets
+    sets = word || n < SET_N ? n : n % SET_N === 0 ? n / SET_N : null;
+    if (sets) t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length);
+  }
+  // "for bem set", "for a set", "per set", "one bem set": 1 set (not "sets")
+  if (!sets && (m = t.match(/(^|[^a-z])(?:(?:for|per|each|every)\s+|x\s*)?(?:(?:a|one|the)\s+)?(?:full\s+)?(?:(?:bem|sem|lem|tem|tool)\s*set|set)(?![a-z])/i))) { sets = 1; t = t.slice(0, m.index + m[1].length) + " " + t.slice(m.index + m[0].length); }
   // the words around them aren't items
   t = t.replace(/\b(?:can|could|would|will|do)\s+(?:you|u|ya)\s+(?:do|make|give|sell|trade|offer|accept|go)\b/gi, " ")
     .replace(/\bis\s+it\s+(?:possible|ok|okay)\b/gi, " ").replace(/\b(?:the\s+|a\s+|your\s+|ur\s+)?(?:ratio|rate|deal|price)s?\b/gi, " ")
@@ -3691,6 +3698,7 @@ function intentBar(rows) {
   const box = h("div", { class: "ointent" });
   if (I.kept) box.append(h("div", { class: "oi1" }, h("small", null, "Kept from the earlier message of this deal"), h("button", { class: "btn sm", onclick: () => { ORDER.lastOff = true; renderOrder(); } }, "Don't keep")));
   if (I.ratio) box.append(h("div", { class: "oi1" }, h("span", null, T ? h("b", null, "Ratio " + fmtR(I.ratio.rb) + " : " + fmtR(I.ratio.ra) + " for this order") : "Your post's ratios (the message asks " + fmtR(I.ratio.rb) + " : " + fmtR(I.ratio.ra) + ")",
+      T && I.ratio.implied ? h("small", null, " · from the message: " + fmt(live.reduce((a, L) => a + (L.q || 0), 0)) + " items for " + setsTxt(I.sets)) : null,
       T && posts.length ? h("small", null, " · your post: " + posts.join(", ")) : null),
     h("button", { class: "btn sm", onclick: () => { ORDER.tmpOff = !ORDER.tmpOff; renderOrder(); } }, T ? "Use my post's" : "Use " + fmtR(I.ratio.rb) + ":" + fmtR(I.ratio.ra))));
   if (I.sets) {
@@ -3700,7 +3708,7 @@ function intentBar(rows) {
       ? [h("b", null, setsTxt(I.sets) + " = " + fmt(want) + " " + giveName(g)), " → " + fmt(items) + " items: " + live.map(L => fmt(L.q) + " " + pName(L.r.w)).join(" · "),
          ok ? " ✓" : h("span", null, " — the lines give " + fmt(Math.round(give)) + " " + giveName(g) + (live.some(L => L.qEdit) ? " (you changed a quantity)" : ""))]
       : "“" + setsTxt(I.sets) + "” — what you give in this post isn't a set."));
-    if (live.length > 1) box.append(h("p", { class: "hint" }, "Shared evenly between the items — type a quantity on a line to change the split."));
+    if (live.length > 1 && live.some(L => L._sets)) box.append(h("p", { class: "hint" }, "Shared evenly between the items — type a quantity on a line to change the split."));
   }
   return box;
 }
@@ -3714,6 +3722,15 @@ function orderLines(text) {
     if (!G) return out.push(L);
     G.items.forEach((w, k) => out.push(Object.assign({}, L, { name: pName(w), gpick: w.uid, grp: (L.all && !/^(?:all|every)/i.test(L.name) && L.name !== "everything" ? "all " : "") + L.name, q: G.q ? G.q[k] : 1, qGuess: !G.q })));
   });
+  // "55 olive oil for 1 bem set": the quantities written with the sets ARE the ratio of this order (55 : 89), not the post's
+  if (I && I.sets && !I.ratio) {
+    const rs = out.map(L => ({ L, R: resolveLine(L) })).filter(x => x.R.w && !x.R.ignored), pk = x => (packOf(giveItem(x.R.w)) || {}).id;
+    const Q = rs.reduce((a, x) => a + (x.L.q || 0), 0);
+    if (rs.length && rs.every(x => !x.L.qGuess && x.L.q > 0 && pk(x) && pk(x) === pk(rs[0])) && Q > 0) {
+      const one = Q % I.sets === 0, rb = one ? Q / I.sets : Q, ra = one ? SET_N : I.sets * SET_N;
+      I.ratio = { rb, ra, txt: fmtR(rb) + ":" + fmtR(ra), implied: true };
+    }
+  }
   if (I) {
     const uids = out.map(L => resolveLine(L).w).filter(Boolean).map(w => w.uid), LI = ORDER.lastI;
     if (I.ratio || I.sets) ORDER.lastI = { post: st.id, ratio: I.ratio, sets: I.sets, uids };
