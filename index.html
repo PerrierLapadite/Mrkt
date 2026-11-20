@@ -627,7 +627,16 @@ body[data-tab=prev] #editor{display:none}
 .owarnc{border-left:4px solid #e6a93a}
 .oline.srl .omid small{white-space:normal}
 .srinv{margin:-4px 2px 0}
-.omix{display:block;color:var(--ink2);font-style:normal}
+.omix{display:block;color:var(--ink2);font-style:normal;white-space:normal}
+.omixb{display:block;margin-top:3px;padding:0;border:0;background:none;font:inherit;color:var(--acc);text-align:left;text-decoration:underline dotted;cursor:pointer;white-space:normal}
+.omixb.on{color:var(--ink)}
+.omixe{grid-column:1/-1;display:block;padding:8px 0 2px}
+.omixe .ol{display:block;font-weight:700;font-size:13px}
+.omixe>b{display:block;margin:2px 0 8px;font-size:13px}
+.omixg{display:grid;grid-template-columns:1fr;gap:6px;width:100%;margin:6px 0}
+.omixg label{display:grid;grid-template-columns:28px minmax(0,1fr) 64px;align-items:center;gap:8px;font-size:13px;margin:0}
+.omixg label span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.omixg input{width:56px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font:inherit;text-align:right}
 .three{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px}
 .three .btn{padding-left:6px;padding-right:6px;white-space:nowrap}
 .srinfo{display:grid;gap:6px}
@@ -1737,19 +1746,21 @@ function composePack(s, p) {
 }
 /** Picture of a mix (jam pages, all bars): up to 4 of its items + its badge ("1", "2", "3", "ALL"). */
 function composeMix(s, p) {
-  const sts = p.mix.slice(0, 4).map(prodState);
+  const sts = p.mix.slice(0, 9).map(prodState);
   const done = () => {
     if (!sts.every(x => x.ok || x.fail)) return;
     const ok = sts.filter(x => x.ok && x.el);
     if (!ok.length) { s.fail = true; return notify(s); }
     const c = document.createElement("canvas"); c.width = c.height = 256;
     const g = c.getContext("2d");
-    const spots = ok.length === 1 ? [[128, 124, 220]] : ok.length === 2 ? [[86, 120, 160], [170, 136, 160]] : ok.length === 3 ? [[80, 86, 136], [176, 86, 136], [128, 170, 140]] : [[78, 76, 124], [178, 76, 124], [78, 174, 124], [178, 174, 124]];
+    // all its items, in rows (5 → 3 + 2, the last row centred), so a page of jams shows every jam of the page
+    const n = ok.length, cols = n === 1 ? 1 : n === 2 ? 2 : 3, rows = Math.ceil(n / cols), cell = Math.min(244 / cols, 232 / rows), z = cell * (n === 1 ? .92 : 1.08), y0 = (256 - rows * cell) / 2;
+    const spots = ok.map((x, i) => { const r = Math.floor(i / cols), inRow = Math.min(cols, n - r * cols), c = i - r * cols, x0 = (256 - inRow * cell) / 2; return [x0 + cell * (c + .5), y0 + cell * (r + .5), z]; });
     ok.forEach((x, i) => { const [cx, cy, z] = spots[i], im = x.el, w = im.naturalWidth || im.width, hh = im.naturalHeight || im.height, k = z / Math.max(w, hh); g.drawImage(im, cx - w * k / 2, cy - hh * k / 2, w * k, hh * k); });
     if (p.badge) {
-      const t = String(p.badge), r = t.length > 1 ? 50 : 40, bx = 256 - r - 6, by = 256 - r - 6;
+      const t = String(p.badge), r = t.length > 1 ? 40 : 30, bx = 256 - r - 4, by = 256 - r - 4;
       g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fillStyle = "#c2452d"; g.fill(); g.lineWidth = 8; g.strokeStyle = "#fff8e7"; g.stroke();
-      g.fillStyle = "#fff8e7"; g.font = "800 " + (t.length > 1 ? 34 : 50) + "px system-ui, -apple-system, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t, bx, by + 2);
+      g.fillStyle = "#fff8e7"; g.font = "800 " + (t.length > 1 ? 27 : 38) + "px system-ui, -apple-system, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t, bx, by + 2);
     }
     s.el = c; try { s.src = c.toDataURL("image/png"); } catch (e) { s.src = ""; }
     s.ok = true; notify(s);
@@ -3316,7 +3327,7 @@ function parseOrder(text) {
       }
       parts.forEach(part => {
         // "all" starts a new piece: "feta pie all jams"; "I need 30 … 20 …": the quantities split once "I need" is out
-        part.split(/\s+(?=(?:all|every)\s+[a-z])/i).forEach(p0 => orderSplitQty(orderLead(p0)).forEach(p1 => {
+        part.replace(/([a-z)'’])\s+(?=(?:all|every)\s+[a-z])/gi, "$1\u0001").split("\u0001").forEach(p0 => orderSplitQty(orderLead(p0)).forEach(p1 => {
           const raw = p1.replace(/\s+/g, " ").trim(); if (!raw) return;
           // a quantity alone ("I'd take 10") is for the item just before
           const qa = raw.match(/^(?:x|×)?\s*(\d[\d.,]*\s*k?)\s*(?:x|×|pcs?)?$/i);
@@ -3525,7 +3536,7 @@ function renderOrder(force) {
   const adv = () => { if (typeof advSync === "function") advSync(); };
   if (ORDER.done && ORDER.done.text === ORDER.text) { adv(); return renderDone(); }
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
-  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit } : {}));
+  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
   ORDER.prev = ORDER.lines;
   adv();
   const out = $("#orderOut"); out.textContent = "";
@@ -3581,8 +3592,13 @@ function renderOrder(force) {
       right = R ? h("span", { class: "ov" }, fmt(R.n), R.g ? thumb(itemState(R.g), R.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
       // "89 BEM for 50" — what you give for how many of this item
       const tb = ORDER.tb && ORDER.tb.get(ratioKey(w));
+      const mw = mixOf(w), MI = mw ? mixIn(L, mw) : null;
       sub = [autoTag(L), R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) : "No ratio in your post",
-        tb ? h("b", { class: "bulkt" }, R && R.bulk ? " · bulk ratio (" + fmtR(num(tb.g.bulk.at)) + "+ " + bulkUnit(tb.g) + ")" : " · bulk ratio from " + fmtR(num(tb.g.bulk.at)) + " " + bulkUnit(tb.g)) : null];
+        tb ? h("b", { class: "bulkt" }, R && R.bulk ? " · bulk ratio (" + fmtR(num(tb.g.bulk.at)) + "+ " + bulkUnit(tb.g) + ")" : " · bulk ratio from " + fmtR(num(tb.g.bulk.at)) + " " + bulkUnit(tb.g)) : null,
+        // "35 First Page Jams" = 35 jams of that page, any of them: say which ones you got (or they're shared evenly)
+        mw ? h("span", { class: "omix" }, "Any mix of: " + mixShort(mw)) : null,
+        mw && L.q > 0 ? h("button", { class: "omixb" + (MI.custom ? " on" : ""), onclick: () => { L._mix = !L._mix; renderOrder(); } },
+          (MI.custom ? "You get " : "You get (even, tap to set) ") + MI.list.filter(o => o.n).map(o => fmt(o.n) + " " + o.name.replace(/ (?:Jam|Bar)$/, "")).join(" · "), h("i", null, " ✎")) : null];
     } else {
       right = r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.vs != null ? r.vs : r.v)) : h("span", { class: "miss" }, "—");
       const buy = st.type === "achat", sh = r.short ? h("b", { class: "shortt" }, buy ? "you want " + fmt(L._cap) + " — " + fmt(r.short) + " extra" : L._cap ? "only " + fmt(L._cap) + " left — " + fmt(r.short) + " missing" : w.oos ? "out of stock" : "none left — " + fmt(r.short) + " missing") : null;
@@ -3597,6 +3613,15 @@ function renderOrder(force) {
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
       h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right,
       h("button", { class: "odel", "aria-label": "Remove this line", title: "Remove this line", onclick: () => dropLine(L) }, "×"));
+    // a mix received in a trade: which of its items, as they come in the game
+    if (w && trade && L._mix && mixOf(w)) {
+      const mw = mixOf(w), MI = mixIn(L, mw), c = L.mixIn || (L.mixIn = {});
+      const sum = h("b", { class: MI.over ? "shortt" : "" }, (MI.sum || 0) + " / " + fmt(L.q || 0) + (MI.over ? " — more than the line" : MI.sum && MI.sum < L.q ? " — the other " + fmt(L.q - MI.sum) + " shared evenly" : MI.sum === L.q ? " ✓" : " — none typed: shared evenly"));
+      row.append(h("div", { class: "omixe" }, h("span", { class: "ol" }, "What they give you (" + fmt(L.q || 0) + " " + pName(w) + ")"),
+        h("div", { class: "omixg" }, mw.mix.map(id => { const pp = CAT.byId[id] || { en: id, e: "" };
+          return h("label", null, thumb(prodState(id), pp.e, "mini"), h("span", null, pp.en.replace(/ (?:Jam|Bar)$/, "")), h("input", { value: c[id] || "", inputMode: "numeric", placeholder: "0", "data-edit": L.i + ":" + id, oninput: e => { c[id] = Math.max(0, Math.round(num(e.target.value))); ORDER.editFocus = L.i + ":" + id; renderOrderSoon(); } })); })),
+        sum, h("div", { class: "two" }, h("button", { class: "btn sm", onclick: () => { L.mixIn = {}; renderOrder(); } }, "Even"), h("button", { class: "btn sm", onclick: () => { L._mix = false; renderOrder(); } }, "Done"))));
+    }
     // another price, for this order only
     if (w && !trade && L._edit) {
       const pp = L.pp || (L.pp = { p: "", pu: w.pu || "coin" });
@@ -3638,6 +3663,9 @@ function renderOrder(force) {
       tot.append(h("div", { class: "v" }, (p ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + " ", o.g ? thumb(itemState(o.g), o.g.e, "mini") : null));
       if (p) tot.append(h("div", { class: "osplit" }, packSplit(p, n).map(x => h("span", null, thumb(prodState(x.id), x.e, "mini"), h("b", null, fmt(x.n)), " " + x.name))),
         h("p", { class: "hint osh" }, "= " + fmt(n) + " materials, split evenly between the " + p.parts.length + "."));
+      const mg = mixOf(o.g);
+      if (mg) tot.append(h("div", { class: "osplit" }, mixSplit(mg, n, dealScope()).filter(x => x.n).map(x => h("span", null, thumb(prodState(x.id), x.e, "mini"), h("b", null, fmt(x.n)), " " + x.name))),
+        h("p", { class: "hint osh" }, "= " + fmt(n) + " " + giveName(o.g) + ", taken from what you have most of."));
     });
     // your "I have" stock: sets for a set (×89 materials)
     by.forEach(o => { const s = o.g ? Math.floor(asMat(o.g, num(o.g.q)) + 1e-9) : 0, need = giveWhole(o.n); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + (packOf(o.g) ? " (" + setsTxt(num(o.g.q)) + ")" : "") + " — " + fmt(need - s) + " missing")); });
@@ -3731,8 +3759,12 @@ function histEntry(who) {
   if (trade) L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = gives.get(k) || { g: R.g, name: giveName(R.g), ref: R.g ? R.g.ref : null, e: R.g ? R.g.e : "", n: 0 }; o.n += R.give; gives.set(k, o); });
   return {
     id: uid(), t: Date.now(), type: st.type, post: st.name || TYPES[st.type].name, who: who || "",
-    lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => ({ ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q: !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0, v: x.r.vs != null ? x.r.vs : Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0 })),
-    gives: [...gives.values()].map(({ g, ...o }) => ({ ...o, n: giveWhole(o.n), split: splitTxt(g, o.n) || undefined })),
+    lines: L.filter(x => trade || (ORDER.capStock !== false && x._cap != null ? x._cap : x.q) > 0).map(x => { const mx = mixOf(x.r.w), q = !trade && ORDER.capStock !== false && x._cap != null ? x._cap : x.q || 0;
+      const ml = mx ? (trade ? mixIn(x, mx).list : x.r.mix || mixSplit(mx, q, dealScope(), st.type === "achat")) : null;
+      return { ref: x.r.w.ref || null, e: x.r.w.e || "", name: pName(x.r.w), q, v: x.r.vs != null ? x.r.vs : Math.round(x.r.v || 0), bulk: x.r.bulk || 0, give: trade && x.r.ratio ? Math.round(x.r.ratio.give * 100) / 100 : 0,
+        mix: ml ? ml.filter(o => o.n).map(o => ({ ref: o.id, name: o.name, n: o.n })) : undefined }; }),
+    gives: [...gives.values()].map(({ g, ...o }) => { const n = giveWhole(o.n), mg = mixOf(g), ms = mg ? mixSplit(mg, n, dealScope()) : null;
+      return { ...o, n, split: splitTxt(g, o.n) || (ms ? ms.filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ") : undefined), mix: ms ? ms.filter(x => x.n).map(x => ({ ref: x.id, name: x.name, n: x.n })) : undefined }; }),
     total: trade ? 0 : Math.round(ORDER.total || 0), bonus: Math.round(ORDER.bonus || 0), disc: ORDER.useD ? ORDER.d : 0,
     reply: replyText()
   };
@@ -3815,7 +3847,9 @@ function replyText() {
   const trade = st.type === "trade", L = ORDER.lines.filter(x => x.r && x.r.w);
   const lines = L.map(x => {
     const n = pName(x.r.w);
-    if (trade) { const R = x.r.ratio; if (!(x.q > 0)) return null; return R ? `${fmt(x.q)}× ${n} → ${fmt(R.n != null ? R.n : giveWhole(R.give))} ${giveName(R.g)}` : `${fmt(x.q)}× ${n} → no ratio`; }
+    if (trade) { const R = x.r.ratio; if (!(x.q > 0)) return null;
+      const mw = mixOf(x.r.w), MI = mw ? mixIn(x, mw) : null, mt = mw ? (MI.custom ? " (" + MI.list.filter(o => o.n).map(o => fmt(o.n) + " " + o.name).join(", ") + ")" : " (any mix: " + mixShort(mw) + ")") : "";
+      return R ? `${fmt(x.q)}× ${n}${mt} → ${fmt(R.n != null ? R.n : giveWhole(R.give))} ${giveName(R.g)}` : `${fmt(x.q)}× ${n}${mt} → no ratio`; }
     const w = dealItem(x.r.w, x), p = num(w.p);
     if (!x.r.u) return null;   // no price in your post: not counted (the screen says so)
     const how = w.pu === "xmp" ? `${fmtR(p)}×MP (${fmtP(x.r.u)} ea)` : isCur(w.pu) ? `${curTxt(w.pu, p)} ea` : `${fmtP(p)} ea`;
@@ -3829,7 +3863,7 @@ function replyText() {
   let foot = "";
   if (trade) {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
-    foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), s = splitTxt(o.g, o.n); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
+    foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), mg = mixOf(o.g), s = splitTxt(o.g, o.n) || (mg ? mixTxt(mg, n) : ""); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
     foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
@@ -4506,14 +4540,23 @@ function mixSplit(p, n, scope, adding) {
 }
 const dealScope = () => INV.deal || INV.cur;
 const mixTxt = (p, n, adding) => mixSplit(p, n, dealScope(), adding).filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ");
+/** A mix you receive (trade "89 BEM for 35 First Page Jams"): the jams they give, as you typed them, otherwise shared evenly. */
+function mixIn(L, mx) {
+  const q = Math.max(0, Math.round(L.q || 0)), c = L.mixIn || {}, typed = mx.mix.map(id => Math.max(0, Math.round(num(c[id]) || 0))), sum = typed.reduce((a, b) => a + b, 0);
+  const custom = sum > 0 && sum <= q, rest = custom ? q - sum : q, ev = evenSplit(mx.mix.length, rest);
+  return { custom, sum, over: sum > q, list: mx.mix.map((id, i) => ({ id, n: (custom ? typed[i] : 0) + ev[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })) };
+}
+const mixShort = mx => mx.mix.map(id => ((CAT.byId[id] || {}).en || id).replace(/ (?:Jam|Bar)$/, "")).join(", ");
 /** A deal (History entry) applied to the inventory: sold / given → out, bought / received → in. */
 /** Deals change the farm chosen for them (Inventory → "Deals update …"). */
 function invApply(e, sign) {
   const sg = sign || 1, L = e.lines || [], f = INV.deal;
+  // a mix with its items written in the deal ("7 Apple Jam · 7 Cherry Jam…") changes exactly those
+  const add = (x, d) => { const m = x.mix; if (Array.isArray(m) && m.length && mixOf(x) && m.reduce((a, o) => a + (o.n || 0), 0) === Math.round(Math.abs(d))) m.forEach(o => { if (o.n) invAdd({ ref: o.ref }, Math.sign(d) * o.n, true, f); }); else invAdd(x, d, true, f); };
   // lines count sets for a set (×89 materials); what a trade gives is already in materials
-  if (e.type === "vente") L.forEach(l => invAdd(l, -sg * asMat(l, l.q || 0), true, f));
-  if (e.type === "achat") L.forEach(l => invAdd(l, sg * asMat(l, l.q || 0), true, f));
-  if (e.type === "trade") { L.forEach(l => invAdd(l, sg * asMat(l, l.q || 0), true, f)); (e.gives || []).forEach(g => invAdd(g, -sg * (g.n || 0), true, f)); }
+  if (e.type === "vente") L.forEach(l => add(l, -sg * asMat(l, l.q || 0)));
+  if (e.type === "achat") L.forEach(l => add(l, sg * asMat(l, l.q || 0)));
+  if (e.type === "trade") { L.forEach(l => add(l, sg * asMat(l, l.q || 0))); (e.gives || []).forEach(g => add(g, -sg * (g.n || 0))); }
   saveInv();
 }
 const invLive = () => SETTINGS.invLive !== false && invAny();
