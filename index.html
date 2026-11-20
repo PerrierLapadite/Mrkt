@@ -2292,7 +2292,8 @@ function draw() {
   const convK = ["r", "b"].filter(k => k !== mainK && (k === "r" ? st.showR !== false : st.showB !== false));
   // sell / buy columns: price per unit → quantity → total (→ rings, blankets in the list); the picture widens so names keep ~300 px
   const priced = !trade && wants.some(w => num(w.p) > 0);
-  const LC = priced ? ledCols(["p", "q", mainK, ...convK]) : [], LCc = priced ? ledCols(["p", "q", mainK]) : [];
+  // rings / blankets aren't repeated on every row: only in the Total — more room for quantity and price
+  const LC = priced ? ledCols(["p", "q", mainK]) : [], LCc = LC.map(c => ({ ...c }));
   if (lay === "list" && LC.length) W = Math.max(W, Math.round(2 * M + 100 + 280 + 40 + ledWidth(LC)));
   const CW = trade ? 580 : 72 + 14 + 280 + 24 + (LCc.length ? ledWidth(LCc) : 160), CG = 48, RH = trade ? 78 : 100;
   let cc = 1, colW = 0;
@@ -2308,9 +2309,9 @@ function draw() {
 
   /* ---------- measure ---------- */
   let tSize, tLines;
-  const tMax = Math.round(Math.min(168, 128 * W / 1080));
-  for (tSize = tMax; tSize >= 84; tSize -= 4) { tLines = wrap(st.title || " ", W - 2 * M, "D", tSize); if (tLines.length === 1) break; }
-  if (tLines.length > 1) for (tSize = Math.round(tMax * .85); ; tSize -= 4) { tLines = wrap(st.title || " ", W - 2 * M, "D", tSize); if (tLines.length <= 2 || tSize <= 60) break; }
+  const tMax = Math.round(Math.min(130, 100 * W / 1080));
+  for (tSize = tMax; tSize >= 72; tSize -= 4) { tLines = wrap(st.title || " ", W - 2 * M, "D", tSize); if (tLines.length === 1) break; }
+  if (tLines.length > 1) for (tSize = Math.round(tMax * .85); ; tSize -= 4) { tLines = wrap(st.title || " ", W - 2 * M, "D", tSize); if (tLines.length <= 2 || tSize <= 54) break; }
   if (tLines.length > 2) tLines = wrap(st.title || "", W - 2 * M, "D", tSize, 2);
   const kick = (st.kicker || "").trim();
   let H = 132 + tLines.length * tSize * 1.02 + (kick ? 50 : 0) + 56;
@@ -2362,13 +2363,13 @@ function draw() {
   if (details) details.split("\n").forEach(raw => {
     const b = /^\s*[-•*]\s+/.test(raw), t = raw.replace(/^\s*[-•*]\s+/, "").trim();
     if (!t) return;
-    wrap(t, W - 2 * M - 40, "500", 28).forEach((l, i) => notes.push({ t: l, b: b && i === 0, ind: b }));
+    wrap(t, W - 2 * M - 40, "500", 34).forEach((l, i) => notes.push({ t: l, b: b && i === 0, ind: b }));
   });
   if (notes.length > 20) notes.length = 20;
-  if (notes.length) H += 30 + 44 + notes.length * 42 + 20;
+  if (notes.length) H += 30 + 50 + notes.length * 52 + 20;
   const cta = (st.cta || "").trim();
   if (cta) H += 40 + 120 + 40;
-  if ((st.sub || "").trim()) H += 46;
+  if ((st.sub || "").trim()) H += 54;
   const zL = Math.min(1.8, Math.max(1, W / 1080)); // site link size grows with wide pictures
   H = Math.round(H + 64 + 54 * zL);
   if (cv.width !== W) cv.width = W;
@@ -2591,14 +2592,14 @@ function draw() {
       const cy = ry + (showTot ? 34 : 27) * z;
       if (i) rule(x0 + 26 * z, x1 - 26 * z, ry, 1, hair);
       const bw = txt("+" + fmtR(t.pct) + "%", x0 + 26 * z, cy, { f: "D", s: 38 * z, c: T.acc });
-      txt("if you sell me " + bulkTxt(t), x0 + 26 * z + bw + 18 * z, cy, { f: "600", s: 25 * z, c: T.ink, maxW: (showTot ? (x1 - x0) * .52 : x1 - x0 - bw - 80 * z) });
+      txt("if you sell me " + bulkTxt(t), x0 + 26 * z + bw + 18 * z, cy, { f: "600", s: 28 * z, c: T.ink, maxW: (showTot ? (x1 - x0) * .52 : x1 - x0 - bw - 80 * z) });
       if (showTot) {
         // the whole list sold this way: the bonus goes to every item that can reach this tier
         const units = wants.reduce((a, w) => a + Math.max(0, num(w.q)), 0), open = wants.some(w => !(num(w.q) > 0));
         const v = wants.reduce((a, w) => { const q = num(w.q), okT = t.mode === "order" ? open || units >= t.at : q > 0; return a + itemValue(w) * (okT ? 1 + t.pct / 100 : 1); }, 0), big = { t: [fmt(v), "coin"], r: [fmtR(v / RING_RATE), "ring"], b: [fmtR(v / BLANKET_RATE), "blanket"] }[mainK];
         const tw = txt(big[0], x1 - 26 * z, cy, { f: "D", s: 36 * z, c: T.ink, al: "right" });
         if (big[1] === "coin") coin(x1 - 26 * z - tw - 22 * z, cy, 14 * z); else curIcon(big[1], x1 - 26 * z - tw - 22 * z, cy, 15 * z);
-        if (convK.length) txt(convK.map(k => "≈ " + fmtR(v / (k === "r" ? RING_RATE : k === "b" ? BLANKET_RATE : 1)) + " " + { r: "rings", b: "blankets", t: "coins" }[k]).join(" · "), x1 - 26 * z, cy + 32 * z, { f: "600i", s: 21 * z, c: T.mut, al: "right" });
+        if (convK.length) txt(convK.map(k => "≈ " + fmtR(v / (k === "r" ? RING_RATE : k === "b" ? BLANKET_RATE : 1)) + " " + { r: "rings", b: "blankets", t: "coins" }[k]).join(" · "), x1 - 26 * z, cy + 33 * z, { f: "600i", s: 23 * z, c: T.mut, al: "right" });
       }
       ry += bRow;
     });
@@ -2608,14 +2609,14 @@ function draw() {
   /* ---------- notes: lined paper ---------- */
   if (notes.length) {
     y += 30;
-    txt("NOTES", M, y + 12, { f: "700", s: 22, c: T.acc, sp: 6 });
-    y += 44;
+    txt("NOTES", M, y + 12, { f: "700", s: 26, c: T.acc, sp: 6 });
+    y += 50;
     notes.forEach(n => {
-      const ly = y + 18;
-      if (n.b) { ctx.save(); ctx.translate(M + 8, ly); ctx.rotate(Math.PI / 4); ctx.fillStyle = T.acc; ctx.fillRect(-5, -5, 10, 10); ctx.restore(); }
-      txt(n.t, M + (n.ind ? 32 : 0), ly, { f: "500", s: 28, c: T.ink });
-      rule(M, W - M, y + 41, 1, T.dark ? "rgba(240,229,207,.14)" : "rgba(42,29,20,.14)");
-      y += 42;
+      const ly = y + 22;
+      if (n.b) { ctx.save(); ctx.translate(M + 9, ly); ctx.rotate(Math.PI / 4); ctx.fillStyle = T.acc; ctx.fillRect(-6, -6, 12, 12); ctx.restore(); }
+      txt(n.t, M + (n.ind ? 36 : 0), ly, { f: "500", s: 34, c: T.ink });
+      rule(M, W - M, y + 50, 1, T.dark ? "rgba(240,229,207,.14)" : "rgba(42,29,20,.14)");
+      y += 52;
     });
     y += 20;
   }
@@ -2637,7 +2638,7 @@ function draw() {
     ctx.restore(); ctx.globalAlpha = 1;
     y += bh + 40;
   }
-  if ((st.sub || "").trim()) txt(st.sub.trim(), W / 2, y + 18, { f: "500i", s: 26, c: T.mut, al: "center", maxW: W - 2 * M });
+  if ((st.sub || "").trim()) txt(st.sub.trim(), W / 2, y + 22, { f: "500i", s: 32, c: T.mut, al: "center", maxW: W - 2 * M });
 
   /* ---------- site link: small, centred at the bottom, inside the frame ---------- */
   {
