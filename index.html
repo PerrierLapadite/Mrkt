@@ -3936,6 +3936,7 @@ function priceLabel(w) {
 }
 
 function renderOrder(force) {
+  ORDER.pend = false;
   if (!force && document.body.dataset.tab !== "order") return;
   { const ae = document.activeElement; if (ae && ae.dataset && ae.dataset.edit != null) ORDER.editFocus = ae.dataset.edit; } // keep typing after a refresh
   const trade = st.type === "trade";
@@ -3990,7 +3991,7 @@ function renderOrder(force) {
   }
   rows.forEach(L => {
     const r = L.r, w = r.w;
-    const q = h("input", { value: L.q, inputMode: "numeric", "aria-label": "Quantity", oninput: () => { L.q = Math.round(num(q.value)); L.qEdit = 1; renderOrderSoon(); } });
+    const q = h("input", { value: L.q, inputMode: "numeric", enterKeyHint: "done", "aria-label": "Quantity", "data-edit": "q" + L.i, oninput: () => { L.q = Math.round(num(q.value)); L.qEdit = 1; renderOrderSoon(); } });
     const nameBtn = h("button", { class: "oname", onclick: () => pickSheet(L) }, w ? pName(w) : L.name, !w || !r.sure ? h("span", { class: "flag" }, w ? "?" : "!") : null);
     let right, sub;
     if (r.ignored) { right = h("span", { class: "miss" }, "—"); sub = "Ignored — tap to pick an item"; }
@@ -4221,7 +4222,14 @@ function renderDone() {
       } }, "Undo"),
       h("button", { class: "btn", onclick: () => { ORDER.done = null; $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); $("#orderIn").focus(); } }, "New order"))));
 }
-const renderOrderSoon = debounce(renderOrder, 250);
+// typing in a box of the order (quantity, price…): no redraw while the keyboard is open — a redraw replaces the box and
+// the phone closes its keyboard after each character. The values are kept as you type; the order is redrawn when you leave the box.
+const orderTyping = () => { const a = document.activeElement, o = $("#orderOut"); return !!(a && o && o.contains(a) && /^(?:INPUT|TEXTAREA)$/.test(a.tagName)); };
+const renderOrderSoon = debounce(() => { if (orderTyping()) { ORDER.pend = true; return; } renderOrder(); }, 250);
+$("#orderOut").addEventListener("focusout", () => { if (!ORDER.pend) return; setTimeout(() => { if (!ORDER.pend || orderTyping()) return; ORDER.pend = false; renderOrder(); }, 320); });
+// a tap on a button right after typing: the order is brought up to date first, so the button works on the new quantities
+document.addEventListener("click", () => { if (ORDER.pend && !orderTyping()) { ORDER.pend = false; renderOrder(); } }, true);
+$("#orderOut").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.tagName === "INPUT" && !e.target.closest(".obar")) e.target.blur(); });
 /* ---------- edit the order in one tap (the order box is rewritten, one item per line) ---------- */
 const cleanLine = s => String(s).replace(/[;|•·\r\n]/g, " ").replace(/\s+/g, " ").trim();
 /** One line of the order box for this line: its item name + a quantity (none = all of the post). */
