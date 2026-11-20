@@ -1125,9 +1125,11 @@ details summary{-webkit-tap-highlight-color:transparent}
         <div class="ch"><h2>Order calculator</h2></div>
         <p class="hint" id="orderFor"></p>
         <textarea class="ta" id="orderIn" rows="7" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
-        <div class="two"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderClear">Clear</button></div>
+        <div class="three"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderShot" title="Their barn / silo screenshot (or screen recording): every item in it goes in the order">📷 Barn</button><button class="btn" id="orderClear">Clear</button></div>
+        <input type="file" id="orderFile" accept="image/*,video/*" multiple hidden>
         <div id="orderAdv"></div>
       </div>
+      <div id="orderScan"></div>
       <div id="orderOut" class="stack"></div>
     </section>
 
@@ -4301,6 +4303,8 @@ function pickSheet(L) {
 }
 $("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
 $("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
+$("#orderShot").onclick = () => $("#orderFile").click();
+$("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f, "order"); };
 $("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
 
 /* =====================================================================
@@ -5434,9 +5438,11 @@ async function scanPool(onProg) {
 }
 /* where the reading goes: "inv" = Inventory page · "post" = Items tab (adds to the post) */
 const PS = { scan: null };
-const scanGet = w => w === "post" ? PS.scan : IV.scan;
-const scanPut = (w, v) => { if (w === "post") PS.scan = v; else IV.scan = v; };
-const scanDraw = w => w === "post" ? renderItemsScan() : renderInv();
+// where a scan goes: "inv" (your inventory), "post" (the post's list), "order" (their barn → the order)
+const scanGet = w => w === "post" ? PS.scan : w === "order" ? ORDER.scan : IV.scan;
+const scanPut = (w, v) => { if (w === "post") PS.scan = v; else if (w === "order") ORDER.scan = v; else IV.scan = v; };
+const scanDraw = w => w === "post" ? renderItemsScan() : w === "order" ? renderOrderScan() : renderInv();
+function renderOrderScan() { const box = $("#orderScan"); if (!box) return; box.textContent = ""; if (ORDER.scan) { box.append(scanCard("order")); if (!ORDER.scan.busy) box.scrollIntoView({ behavior: "smooth", block: "start" }); } }
 let scanWhere = "inv";
 function updScan(msg) { const S = scanGet(scanWhere); if (S) S.msg = msg; const e = $("#scanMsg"); if (e) e.textContent = msg; }
 const isVideo = f => /^video\//.test(f.type || "") || /\.(mov|mp4|m4v|webm|3gp)$/i.test(f.name || "");
@@ -5444,7 +5450,7 @@ async function scanFiles(files, where) {
   where = scanWhere = where || "inv";
   const vids = files.filter(isVideo), imgs = files.filter(f => !isVideo(f));
   scanPut(where, { busy: true, msg: vids.length ? "Opening the video…" : "Reading your screenshots…" });
-  if (where === "inv") { if (document.body.dataset.tab !== "inv") tab("inv"); else renderInv(); } else { closeDrop(); renderItemsScan(); }
+  if (where === "inv") { if (document.body.dataset.tab !== "inv") tab("inv"); else renderInv(); } else if (where === "order") renderOrderScan(); else { closeDrop(); renderItemsScan(); }
   try {
     const found = [], warn = [];
     for (const [k, f] of imgs.entries()) {
@@ -5486,8 +5492,8 @@ async function scanFiles(files, where) {
 }
 function scanCard(where) {
   where = where || "inv";
-  const S = scanGet(where), redraw = () => scanDraw(where), post = where === "post";
-  const c = h("div", { class: "card fieldset scan" }, h("div", { class: "ch" }, h("h2", null, post ? "Add from screenshots" : "Check what was read")));
+  const S = scanGet(where), redraw = () => scanDraw(where), ord = where === "order", post = where === "post" || ord;
+  const c = h("div", { class: "card fieldset scan" }, h("div", { class: "ch" }, h("h2", null, ord ? "Their barn → the order" : post ? "Add from screenshots" : "Check what was read")));
   if (S.busy) { c.append(h("div", { class: "scanbusy" }, h("span", { class: "spin" }), h("span", { id: "scanMsg" }, S.msg), h("button", { class: "btn sm", onclick: () => { SCN.stop = true; scanPut(where, null); redraw(); } }, "Stop"))); return c; }
   if (S.err) { c.append(h("p", { class: "owarn" }, S.err), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "OK")); return c; }
   const R = S.rows, noQ = R.filter(r => r.on && isNaN(r.q)).length;
@@ -5521,7 +5527,8 @@ function scanCard(where) {
   if (!S.txt) c.append(h("p", { class: "hint stot" }, h("b", null, "Total: " + tot), " — the same number as at the top of your " + (stores.length > 1 ? "Barn and Silo windows" : (stores[0] || "barn") === "silo" ? "Silo window" : "Barn window") + " in the game? Then everything was read right."));
   const n = R.filter(r => r.on && r.ref && r.q >= 0).length;
   c.append(list);
-  if (post) c.append(h("p", { class: "hint" }, "Added to " + (targetList() === st.have ? "“" + (st.haveTitle || "I have") + "”" : "your list") + " of “" + (st.name || "this post") + "”, with these quantities. Items already in the list get the new quantity."),
+  if (ord) c.append(h("p", { class: "hint" }, "Every ticked item goes in the order with this quantity (an item already in the order gets the new one). Items that aren't in your post are listed apart. Your inventory doesn't change."));
+  else if (post) c.append(h("p", { class: "hint" }, "Added to " + (targetList() === st.have ? "“" + (st.haveTitle || "I have") + "”" : "your list") + " of “" + (st.name || "this post") + "”, with these quantities. Items already in the list get the new quantity."),
     h("label", { class: "switch sm" }, "Also update my inventory", h("input", { type: "checkbox", checked: S.alsoInv !== false, onchange: e => { S.alsoInv = e.target.checked; } })));
   else c.append(h("div", { class: "seg" }, h("button", { class: S.mode !== "rep" ? "on" : "", onclick: () => { S.mode = "upd"; redraw(); } }, "Update these items"),
       h("button", { class: S.mode === "rep" ? "on" : "", onclick: () => { S.mode = "rep"; redraw(); } }, "Replace my " + (stores.length === 1 ? stores[0] : "barn & silo"))),
@@ -5542,8 +5549,21 @@ function scanPick(r, where) {
     h("button", { class: "btn dashed", style: "margin-top:10px", onclick: () => { r.on = false; closeSheet(); redraw(); } }, "Skip this one")]);
 }
 function scanSave(where) {
-  const post = where === "post", S = scanGet(where), R = S.rows.filter(r => r.on && r.ref && r.q >= 0 && (r.q > 0 || !post));
+  const ord = where === "order", post = where === "post" || ord, S = scanGet(where), R = S.rows.filter(r => r.on && r.ref && r.q >= 0 && (r.q > 0 || !post));
   if (new Set(R.map(r => r.ref)).size < R.length) return toast("Two lines are the same item: fix or untick one first");
+  if (ord) {
+    // their barn → one line per item ("655 Blanket"); a line already naming the item gets the new quantity
+    const name = r => CAT.byId[r.ref].en, lines = String(ORDER.text || "").split(/\r?\n/), done = new Set();
+    const same = (l, p) => { const t = norm(l.replace(/^\s*\d[\d,.]*\s*[x×]?\s*|\s*[x×]\s*\d[\d,.]*\s*$|\s+\d[\d,.]*\s*$/gi, "")); return t && (t === norm(p.en) || t === norm(p.en).replace(/s$/, "")); };
+    const out = lines.map(l => { const r = R.find(x => !done.has(x.ref) && same(l, CAT.byId[x.ref])); if (!r) return l; done.add(r.ref); return r.q + " " + name(r); });
+    R.filter(r => !done.has(r.ref)).forEach(r => out.push(r.q + " " + name(r)));
+    ORDER.text = out.filter((l, i) => l.trim() || i < out.length - 1).join("\n").replace(/^\n+/, ""); $("#orderIn").value = ORDER.text; ORDER.prev = []; ORDER.done = null;
+    R.filter(r => (r.fixed || r.unsure0) && r.learn).forEach(r => LEARN.push({ ref: r.ref, url: r.learn }));
+    if (LEARN.length > 150) LEARN = LEARN.slice(-150);
+    store.set("hd5_scanlearn", LEARN);
+    scanPut(where, null); scanDraw(where); renderOrder(true);
+    return toast(plural(R.length, "item") + " added to the order ✔");
+  }
   if (post) {
     const list = targetList(); let added = 0;
     R.forEach(r => {
