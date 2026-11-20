@@ -692,6 +692,9 @@ body[data-tab=prev] #editor{display:none}
 .qcparts span{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
 .qcparts b{font-weight:700;white-space:nowrap}
 .hsw{margin-bottom:2px}
+.pchip .pdel{margin:0 -6px 0 2px;width:22px;height:22px;display:inline-grid;place-items:center;border-radius:50%;font:600 17px/1 var(--sans);color:var(--mut);opacity:.7}
+.pchip .pdel:hover{opacity:1;background:var(--line)}
+#undoBtn:disabled{opacity:.35}
 .ib.idel{color:var(--mut);font-size:22px;font-weight:500;width:30px!important}
 .ib.idel:hover{color:var(--red,#c0392b)}
 .clrall{margin-top:6px;color:var(--mut)}
@@ -1038,7 +1041,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 <body data-tab="items">
 <div id="meMenu" class="mepop" hidden role="menu" aria-label="Menu"></div>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn" id="calcBtn" aria-label="Quick calc" title="Quick calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 15.5h.01M12 15.5h.01M15.5 15.5v2"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn" id="undoBtn" aria-label="Undo" title="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button class="hbtn" id="calcBtn" aria-label="Quick calc" title="Quick calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 15.5h.01M12 15.5h.01M15.5 15.5v2"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -1569,23 +1572,21 @@ const fmtP = n => Math.abs(n - Math.round(n)) < 1e-9 ? fmt(n) : (Math.round(n * 
 const fmtR = n => (Math.abs(n) < 100 ? Math.round(n * 10) / 10 : Math.round(n)).toLocaleString("en-US", { maximumFractionDigits: 1 });
 // ?demo = read-only copy used by guide.html: never reads or writes the visitor's posts (only shared caches)
 const DEMO = /[?&]demo\b/.test(location.search), CACHE_KEY = /^hd5_(urls|wiki|maxp|maxp10)$/;
+var UND = null;   // the global undo (set up at the end, once everything is loaded)
 const store = {
   get(k, d) { if (DEMO && !CACHE_KEY.test(k)) return d; try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { if (DEMO && !CACHE_KEY.test(k)) return true; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  set(k, v) { if (DEMO && !CACHE_KEY.test(k)) return true; try { const j = JSON.stringify(v); localStorage.setItem(k, j); if (UND) undoSeen(k, j); return true; } catch (e) { return false; } }
 };
 let toastT = 0;
 function toast(t) { const m = $("#toast"); m.textContent = t; m.classList.remove("act"); m.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show"), 2600); }
 /** A toast with an Undo button (6 s). */
-function toastUndo(t, undo) {
-  const m = $("#toast"); m.textContent = "";
-  m.append(h("span", null, t), h("button", { type: "button", class: "tundo", onclick: () => { m.classList.remove("show", "act"); clearTimeout(toastT); undo(); } }, "Undo"));
-  m.classList.add("show", "act"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show", "act"), 6000);
-}
+function toastUndo(t) { if (!UND) return toast(t); undoFlush(); toastAct(t, "Undo", undoLast); }
 /** Remove an item right from its card (Undo in the toast). */
 function removeItem(it, list) {
   const i = list.indexOf(it); if (i < 0) return;
+  undoHint((itemName(it) || "Item") + " removed");
   list.splice(i, 1); renderLists(); if (st.type === "trade") renderTarget(); changed();
-  toastUndo((itemName(it) || "Item") + " removed", () => { list.splice(Math.min(i, list.length), 0, it); renderLists(); if (st.type === "trade") renderTarget(); changed(); });
+  toastUndo((itemName(it) || "Item") + " removed");
 }
 const itemName = it => (it.ref && CAT.byId[it.ref] ? CAT.byId[it.ref].en : (it.name || "").trim());
 const delBtn = (it, list) => h("button", { class: "ib idel", "aria-label": "Remove", title: "Remove", onclick: () => removeItem(it, list) }, "×");
@@ -2899,7 +2900,8 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Profile (top right):"), " your pseudo, your Inventory (read from a screen recording of your barn / silo, from screenshots, or by hand — it follows your deals) and your Stats."),
     h("li", null, h("b", null, "Inventory in one go:"), " record your screen while you scroll your Barn slowly from top to bottom (then the Silo), then Inventory → 📷 Screenshots / video → pick the video. Every square is read many times; the total at the top lets you check it matches the game."),
     h("li", null, h("b", null, "Style"), " (in the ☰ menu): title, username, paper colour and layout. “Custom” lets you pick rows or cards, the columns, the text size and what each item shows."),
-    h("li", null, h("b", null, "Remove:"), " the × on a card removes that item, “Remove all” at the bottom of the list clears it. Undo is in the message that appears."),
+    h("li", null, h("b", null, "Remove:"), " the × on a card removes that item, “Remove all” at the bottom of the list clears it, the × on a post tab deletes that post."),
+    h("li", null, h("b", null, "↶ Undo"), " (top right): takes back the last change, wherever it was: a post, your inventory, a deal, your History. Tap it again to go further back (up to 40 steps); “Redo” in the message puts it back."),
     h("li", null, h("b", null, "Preview:"), " Download, Share or Copy the picture and post it on Discord.")),
   h("a", { class: "btn full guide", href: "guide.html", target: "_blank", rel: "noopener" }, "📖 Full guide"),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
@@ -2914,10 +2916,20 @@ function convEls(v) { const out = []; convs().forEach((k, i) => out.push(h("smal
 /* ---------- profiles ---------- */
 function renderProfiles() {
   const f = $("#profiles"); f.textContent = "";
-  STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), "data-type": p.type, title: (TYPES[p.type] || {}).name + " post", onclick: () => selectProfile(p.id) }, h("span", { class: "ptd", "aria-hidden": "true" }), p.name || "Profile", typeof postShort === "function" && postShort(p) ? h("i", { class: "pdot", title: "Some items are short in your inventory" }) : null)));
+  STATE.list.forEach(p => f.append(h("button", { class: "pchip" + (p.id === st.id ? " on" : ""), "data-type": p.type, title: (TYPES[p.type] || {}).name + " post", onclick: e => { if (e.target.closest(".pdel")) return; selectProfile(p.id); } }, h("span", { class: "ptd", "aria-hidden": "true" }), p.name || "Profile", typeof postShort === "function" && postShort(p) ? h("i", { class: "pdot", title: "Some items are short in your inventory" }) : null, STATE.list.length > 1 ? h("span", { class: "pdel", role: "button", tabindex: 0, "aria-label": "Delete this post", title: "Delete this post", onclick: e => { e.stopPropagation(); deletePost(p); } }, "×") : null)));
   f.append(h("button", { class: "pchip add", title: "New profile", "aria-label": "New profile", onclick: newProfileSheet }, "＋"));
   // the open post is always in sight (a new or imported post is at the end of the list)
   requestAnimationFrame(() => { const on = f.querySelector(".pchip.on"); if (on && (on.offsetLeft < f.scrollLeft || on.offsetLeft + on.offsetWidth > f.scrollLeft + f.clientWidth)) f.scrollLeft = Math.max(0, on.offsetLeft - (f.clientWidth - on.offsetWidth) / 2); });
+}
+/** Delete a post right from its tab (Undo in the message, or ↶). */
+function deletePost(p) {
+  if (STATE.list.length < 2) return toast("Keep at least one post.");
+  const i = STATE.list.indexOf(p); if (i < 0) return;
+  undoHint("Post “" + (p.name || "Post") + "” deleted");
+  STATE.list.splice(i, 1);
+  if (st === p) st = STATE.list[Math.max(0, i - 1)];
+  STATE.active = st.id; renderAll(); changed();
+  toastUndo("Post “" + (p.name || "Post") + "” deleted");
 }
 function newProfileSheet() {
   // a new empty post, or an old one rebuilt from its screenshot / text (Import)
@@ -3118,8 +3130,8 @@ let clrArm = 0;
 function clearAllBtn() {
   const n = st.wants.length, b = h("button", { class: "btn dashed clrall", onclick: () => {
     if (!clrArm) { clrArm = 1; b.textContent = "Tap again to remove all " + n + " items"; b.classList.add("arm"); setTimeout(() => { if (clrArm) { clrArm = 0; renderLists(); } }, 3500); return; }
-    clrArm = 0; const old = st.wants.slice(), pid = st.id; st.wants = []; renderLists(); if (st.type === "trade") renderTarget(); changed();
-    toastUndo(plural(n, "item") + " removed", () => { if (st.id !== pid) return toast("That post is no longer open"); st.wants = old.concat(st.wants); renderLists(); if (st.type === "trade") renderTarget(); changed(); });
+    clrArm = 0; undoHint(plural(n, "item") + " removed"); st.wants = []; renderLists(); if (st.type === "trade") renderTarget(); changed();
+    toastUndo(plural(n, "item") + " removed");
   } }, "🗑 Remove all " + n + " items");
   return b;
 }
@@ -3532,13 +3544,13 @@ $("#delP").onclick = function () {
   if (STATE.list.length < 2) return toast("Keep at least one profile.");
   if (!delArm) { delArm = 1; this.textContent = "Tap again to confirm"; setTimeout(() => { delArm = 0; this.textContent = "Delete"; }, 3000); return; }
   delArm = 0; this.textContent = "Delete";
-  const i = STATE.list.indexOf(st); STATE.list.splice(i, 1); selectProfile(STATE.list[Math.max(0, i - 1)].id); toast("Profile deleted");
+  deletePost(st);
 };
 let rstArm = 0;
 $("#resetP").onclick = function () {
   if (!rstArm) { rstArm = 1; this.textContent = "Tap again to confirm"; setTimeout(() => { rstArm = 0; this.textContent = "Reset this profile"; }, 3000); return; }
   rstArm = 0; this.textContent = "Reset this profile";
-  Object.assign(st, defaults(st.type), { id: st.id, name: st.name, user: st.user }); renderAll(); changed(); toast("Post reset");
+  undoHint("Post “" + (st.name || "") + "” reset"); Object.assign(st, defaults(st.type), { id: st.id, name: st.name, user: st.user }); renderAll(); changed(); toastUndo("Post reset");
 };
 
 /* ---------- export ---------- */
@@ -4570,7 +4582,7 @@ function renderHist() {
   });
   out.append(h("div", { class: "two", style: "margin-top:6px" },
     h("button", { class: "btn", onclick: exportHistCsv }, "Export (CSV)"),
-    h("button", { class: "btn danger", onclick: () => { if (!confirm("Delete your whole History?")) return; HIST = []; saveHist(); renderHist(); } }, "Clear History")));
+    h("button", { class: "btn danger", onclick: () => { if (!confirm("Delete your whole History?")) return; undoHint("History cleared"); HIST = []; saveHist(); renderHist(); toastUndo("History cleared"); } }, "Clear History")));
 }
 function histCard(e) {
   const open = HV.open === e.id, trade = e.type === "trade";
@@ -7853,6 +7865,84 @@ function impCreate() {
 }
 $("#impBtn").onclick = () => tab("imp");
 
+
+/* =====================================================================
+   UNDO — anything you change (posts, inventory, history, deals) can be taken back, wherever you are.
+   Every save is compared with the last state; a change becomes one step (changes within 1.5 s make one step,
+   e.g. "Deal done" = stock + inventory + history). ↶ takes the last step back, "Redo" in the message puts it again.
+   Switching between posts is not a step.
+   ===================================================================== */
+const UNDO_KEYS = { hd5_state: "state", hd5_inv: "inv", hd5_hist: "hist", hd5_deals: "deals" };
+const UNDO_WHAT = { state: "your post", inv: "your inventory", hist: "your history", deals: "your deals" };
+const undoCmp = (key, j) => key === "state" ? j.replace(/"active":"[^"]*",?/, "") : key === "inv" ? j.replace(/"t":\d+,?/, "") : j;
+function undoSeen(k, j) {
+  const key = UNDO_KEYS[k]; if (!key || UND.busy) return;
+  const ch = [];
+  if (undoCmp(key, UND.base[key]) !== undoCmp(key, j)) ch.push([key, j]); else UND.base[key] = j;
+  // a post change still waiting to be saved goes in the same step (e.g. "Deal done": stock + inventory + history)
+  if (ch.length && key !== "state" && STATE) { const js = JSON.stringify(STATE); if (undoCmp("state", js) !== undoCmp("state", UND.base.state)) { try { localStorage.setItem("hd5_state", js); } catch (e) { } ch.push(["state", js]); } }
+  if (!ch.length) return;
+  const now = Date.now(), top = UND.stack[UND.stack.length - 1];
+  // one step = one action: the same kind of change within 1.5 s (typing), or several kinds at once
+  const merge = top && !UND.cut && (top.keys.length === 1 && top.keys[0] === key && ch.length === 1 ? now - UND.lastT < 1500 : now - UND.lastT < 250);
+  if (!merge) {
+    UND.stack.push({ base: Object.assign({}, UND.base), keys: [], label: UND.hint || "", tab: document.body.dataset.tab, t: now });
+    if (UND.stack.length > 40) UND.stack.shift();
+    UND.redo = []; UND.cut = false;
+  }
+  const cur = UND.stack[UND.stack.length - 1];
+  ch.forEach(([kk, jj]) => { if (!cur.keys.includes(kk)) cur.keys.push(kk); UND.base[kk] = jj; });
+  if (UND.hint && !cur.label) cur.label = UND.hint;
+  UND.hint = ""; UND.lastT = now; undoPaint();
+}
+/** Name the next step ("Post “Trade” deleted") — call it right before the change. */
+function undoHint(t) { if (!UND) return; UND.hint = t; UND.cut = true; }
+const undoLabel = S => S.label || "Change to " + S.keys.map(k => UNDO_WHAT[k]).join(" + ");
+function undoPaint() { const b = $("#undoBtn"); if (!b || !UND) return; const S = UND.stack[UND.stack.length - 1]; b.disabled = !S; b.title = S ? "Undo: " + undoLabel(S) : "Nothing to undo"; }
+/** Save now what is waiting to be saved, so the very last change can be undone too. */
+function undoFlush() { if (STATE && UND) store.set("hd5_state", STATE); }
+function undoApply(base, keys) {
+  UND.busy = true;
+  keys.forEach(key => {
+    const k = Object.keys(UNDO_KEYS).find(x => UNDO_KEYS[x] === key), j = base[key];
+    try { localStorage.setItem(k, j); } catch (e) { }
+    const v = JSON.parse(j);
+    if (key === "state") { STATE = v; st = STATE.list.find(p => p.id === STATE.active) || STATE.list[0]; if (st) STATE.active = st.id; }
+    else if (key === "inv") INV = v;
+    else if (key === "hist") HIST = v;
+    else if (key === "deals") DEALS = v;
+    UND.base[key] = j;
+  });
+  UND.busy = false; UND.cut = true;
+  // everything shown again from the restored data
+  ORDER.prev = []; ORDER.done = null;
+  renderAll(); renderInv(); renderHist(); renderStats(); renderOngoing(); dealBadge(); renderTarget();
+  const t = document.body.dataset.tab; if (t === "search" || t === "inv") renderSearch();
+  undoPaint();
+}
+function undoLast() {
+  if (!UND) return; undoFlush();
+  const S = UND.stack.pop(); if (!S) { undoPaint(); return toast("Nothing to undo"); }
+  UND.redo.push({ base: Object.assign({}, UND.base), keys: S.keys, label: S.label, tab: S.tab });
+  undoApply(S.base, S.keys);
+  toastAct("Undone: " + undoLabel(S), "Redo", redoLast);
+}
+function redoLast() {
+  const R = UND.redo.pop(); if (!R) return;
+  UND.stack.push({ base: Object.assign({}, UND.base), keys: R.keys, label: R.label, tab: R.tab, t: Date.now() });
+  undoApply(R.base, R.keys);
+  toastAct("Redone: " + undoLabel(R), "Undo", undoLast);
+}
+/** A message with one button (Undo / Redo). */
+function toastAct(t, label, fn) {
+  const m = $("#toast"); m.textContent = "";
+  m.append(h("span", null, t), h("button", { type: "button", class: "tundo", onclick: () => { m.classList.remove("show", "act"); clearTimeout(toastT); fn(); } }, label));
+  m.classList.add("show", "act"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show", "act"), 6000);
+}
+$("#undoBtn").onclick = undoLast;
+// starts once your posts are loaded (the app starts asynchronously)
+function undoInit() { if (UND || !STATE) return; UND = { base: { state: JSON.stringify(STATE), inv: JSON.stringify(INV), hist: JSON.stringify(HIST), deals: JSON.stringify(DEALS) }, stack: [], redo: [], lastT: 0, cut: true, hint: "", busy: false }; undoPaint(); }
+if (window.hdReady) undoInit(); else addEventListener("hdready", undoInit, { once: true });
 </script>
 <!-- Images des produits : wiki communautaire Hay Day (hayday.fandom.com). Hay Day et ses visuels appartiennent à Supercell. -->
 </body>
