@@ -2287,7 +2287,7 @@ function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
   for (let x = nx + nw + 14; x < maxN; x += 10 * z) { ctx.beginPath(); ctx.arc(x, ny + 11 * z, 1.7 * z, 0, 7); ctx.fill(); }
   // the quantity under the name (the line's total isn't shown: the post's Total has it)
   let dx = nx0;
-  if (q > 0) dx += txt("×" + fmt(q), dx, dy, { f: "700", s: 38 * z, c: T.ink });
+  if (q > 0) dx += txt("×" + fmt(q), dx, dy, { f: "700", s: 40 * z, c: T.ink });
   if (typeof nl === "string" && nl && maxN - dx > 80) txt("· " + nl, dx + 14, dy + 1, { f: "500i", s: 25 * z, c: T.mut, maxW: maxN - dx - 14 });
   else if (Array.isArray(nl)) nl.forEach((l, i) => txt(l, nx0, mb + 66 * z + i * 30 * z, { f: "500i", s: 25 * z, c: T.mut }));
   if (w.oos) oosMark(x0 - 16, top + 4, x1 - x0 + 32, rh - 8, nx, x1, ny, T);
@@ -2374,13 +2374,25 @@ function draw() {
   const TT = totals();
   // Auto: past 12 items, switch to compact rows spread over several columns (the image grows wider, not longer)
   let lay = st.layout || "auto";
-  if (lay === "auto") lay = trade ? "groups" : wants.length > 10 ? "compact" : "list";
+  if (lay === "auto") lay = trade ? "groups" : "list";
   // safety: very long lists in List / Grid would make an image too tall to export on iPhone
-  if ((lay === "list" && wants.length > 45) || (lay === "grid2" && wants.length > 24) || (lay === "grid3" && wants.length > 36)) lay = trade ? "groups" : "compact";
+  if ((lay === "list" && trade && wants.length > 45) || (lay === "grid2" && wants.length > 24) || (lay === "grid3" && wants.length > 36)) lay = trade ? "groups" : "compact";
   const grid = lay === "grid2" || lay === "grid3", C = lay === "grid3" ? 3 : 2, compact = lay === "compact", grouped = lay === "groups";
   // cards: Grid, and the many-items list of sell / buy posts (4–6 cards a row: stays narrow, so readable in Discord's preview)
-  const cards = grid || (compact && !trade);
+  const cards = grid;
   if (cards) W = cardPlan(wants, lay, W, M, trade).W;
+  // sell / buy list: one column up to ~10 items, then 2, 3, 4 columns of two-line rows — the picture stays about twice as tall as wide
+  // (Discord shrinks a too-long picture to a thin strip, a too-wide one to tiny text)
+  let SL = null;
+  if (!trade && (lay === "list" || compact)) {
+    const n = wants.length, CWs = 600, GS = 44;
+    for (let lc = compact ? 2 : 1; lc <= 4; lc++) {
+      const Wc = lc === 1 ? 1080 : 2 * M + lc * CWs + (lc - 1) * GS, z = lc === 1 ? 1 : .82, rh = saleRowH(0, z), per = Math.ceil(n / lc);
+      SL = { lc, W: Wc, cw: lc === 1 ? Wc - 2 * M : CWs, gap: GS, z, rh, per };
+      if (lc === 4 || per * (lc === 1 ? saleRowH(0, 1) : rh) + 760 <= Wc * 2.3) break;
+    }
+    W = SL.W;
+  }
   // ratio boxes: widen the image when there are many items so it doesn't get too tall
   const GR = grouped ? ratioGroups(wants) : [], TW = 196, TG = 10, BP = 22, TR = 54;   // tiles: bigger items, fewer per row
   const gPer = w => Math.max(1, Math.floor((w - 2 * M - 2 * BP + TG) / (TW + TG)));
@@ -2432,7 +2444,8 @@ function draw() {
   const rightW = w => trade ? (hasRatio(w) ? ratioW(w, 32) : 0) : (LC.length ? W - M - ledgerL : 0);
   const nameX = M + 100;
   let rows = [];
-  if (lay === "list" && !trade) {
+  if (SL && SL.lc > 1) H += (wants.length && wants.some(w => num(w.p) > 0) ? 40 : 0) + SL.per * SL.rh + 30;
+  else if (lay === "list" && !trade) {
     rows = wants.map(w => { const nl = (w.note || "").trim() ? wrap(w.note.trim(), W - 2 * M - 130, "500i", 25, 3) : []; return { w, nl, h: saleRowH(nl.length, 1) }; });
     H += rows.reduce((a, r) => a + r.h, 0) + 10 + (priced ? 40 : 0);
   } else if (lay === "list") {
@@ -2569,6 +2582,22 @@ function draw() {
   else if (CD) {
     wants.forEach((w, i) => { const c = i % CD.cols, r = (i / CD.cols) | 0; drawCard(w, i, CD, M + c * (CD.cw + CD.gap), y + r * (CD.ch + CD.gap), T, trade, mainK); });
     y += CD.h + 30;
+  }
+  else if (SL && SL.lc > 1) {
+    const { lc, cw, gap, z, rh, per } = SL, hdr = priced ? 40 : 0;
+    for (let c = 0; c < lc; c++) {
+      const x0 = M + c * (cw + gap);
+      if (hdr && c * per < wants.length) txt("PRICE / EA", x0 + cw, y + 12, { f: "700", s: 20, c: T.mut, sp: 2, al: "right" });
+      if (c > 0) { ctx.fillStyle = hair; ctx.fillRect(Math.round(x0 - gap / 2), y, 1, hdr + per * rh); }
+    }
+    if (hdr) rule(M, W - M, y + 30, 1, hair);
+    y += hdr;
+    wants.forEach((w, i) => {
+      const c = Math.floor(i / per), r = i % per, x0 = M + c * (cw + gap), ry = y + r * rh;
+      saleRow(w, x0, x0 + cw, ry, rh, T, z, (w.note || "").trim().replace(/\n/g, " · "), mainK, hair);
+      if (r < per - 1 && i < wants.length - 1) rule(x0 + 100 * z + 16, x0 + cw, ry + rh, 1, hair);
+    });
+    y += per * rh + 30;
   }
   else if (compact) {
     const hdr = LCc.length ? 40 : 0, colsPos = [];
