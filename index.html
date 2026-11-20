@@ -674,6 +674,7 @@ body[data-tab=prev] #editor{display:none}
 .i1,.gi1,.haveitem .i1{grid-template-columns:auto minmax(0,1fr);grid-auto-flow:column;grid-auto-columns:auto}
 .haveitem .i1{grid-template-columns:auto minmax(0,1fr) 112px}
 .i1 .ib,.gi1 .ib{width:34px;height:34px}
+.hsw{margin-bottom:2px}
 .ib.idel{color:var(--mut);font-size:22px;font-weight:500;width:30px!important}
 .ib.idel:hover{color:var(--red,#c0392b)}
 .clrall{margin-top:6px;color:var(--mut)}
@@ -2839,7 +2840,7 @@ function tab(t) {
   closeMe();
   if (t === "inv") { renderInv(); renderSearch(); }
   if (t === "deals") renderOngoing();
-  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist", "imp", "style"].includes(t));
+  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist", "style", "imp"].includes(t));
   $("#impBtn").classList.toggle("on", t === "imp");
   if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
@@ -2902,7 +2903,9 @@ function renderProfiles() {
   requestAnimationFrame(() => { const on = f.querySelector(".pchip.on"); if (on && (on.offsetLeft < f.scrollLeft || on.offsetLeft + on.offsetWidth > f.scrollLeft + f.clientWidth)) f.scrollLeft = Math.max(0, on.offsetLeft - (f.clientWidth - on.offsetWidth) / 2); });
 }
 function newProfileSheet() {
-  openSheet("New post", h("div", { class: "menu" }, Object.keys(TYPES).map(t => h("button", { onclick: () => { const p = mkProfile(t); STATE.list.push(p); closeSheet(); selectProfile(p.id); toast("“" + p.name + "” created"); } }, h("i", null, "＋"), TYPES[t].name + " post"))));
+  // a new empty post, or an old one rebuilt from its screenshot / text (Import)
+  openSheet("New post", h("div", { class: "menu" }, Object.keys(TYPES).map(t => h("button", { onclick: () => { const p = mkProfile(t); STATE.list.push(p); closeSheet(); selectProfile(p.id); toast("“" + p.name + "” created"); } }, h("i", null, "＋"), TYPES[t].name + " post")),
+    h("button", { onclick: () => { closeSheet(); tab("imp"); } }, h("i", null, "📥"), "From an old post (screenshot or text)")));
 }
 function selectProfile(id) { st = STATE.list.find(p => p.id === id) || STATE.list[0]; STATE.active = st.id; renderAll(); changed(); }
 function renderAll() { renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); if (typeof renderOrder === "function") renderOrder(); }
@@ -4529,6 +4532,7 @@ const short = v => v >= 1e6 ? (Math.round(v / 1e5) / 10) + "M" : v >= 1e5 ? Math
 const hm = t => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 function renderHist() {
   const out = $("#histOut"); out.textContent = "";
+  out.append(histSwitch("hist"));
   const since = HV.per === "all" ? 0 : Date.now() - num(HV.per) * 864e5;
   const inPer = HIST.filter(e => e.t >= since);
   const sum = k => inPer.filter(e => e.type === k).reduce((a, e) => a + (e.total || 0), 0), cnt = k => inPer.filter(e => e.type === k).length;
@@ -4726,7 +4730,7 @@ const whenWho = e => [e && e.who ? e.who : null, e ? dayLabel(e.t) : null].filte
 /* ---------- the tab ---------- */
 function renderStats() {
   const out = $("#statsOut"); out.textContent = "";
-  out.append(backTo("me", "Menu"));
+  out.append(histSwitch("stats"));
   const per = h("div", { class: "seg" }, SV_PER.map(([v, l]) => h("button", { class: SV.per === v ? "on" : "", onclick: () => { SV.per = v; renderStats(); } }, l)));
   out.append(h("div", { class: "card fieldset" }, h("div", { class: "ch" }, h("h2", null, "Stats")), per,
     h("p", { class: "hint" }, "From your History — all your posts. A deal counts once you tap “✓ Mark as done” in Order.")));
@@ -5059,6 +5063,8 @@ const invLive = () => SETTINGS.invLive !== false && invAny();
 const invUnits = (s, scope) => invList(scope || "all").filter(i => !s || i.s === s).reduce((a, i) => a + i.q, 0);
 const invCount = (s, scope) => invList(scope || "all").filter(i => !s || i.s === s).length;
 const agoTxt = t => { if (!t) return "never"; const m = Math.round((Date.now() - t) / 6e4); return m < 1 ? "just now" : m < 60 ? m + " min ago" : dayLabel(t) + " " + hm(t); };
+/** History and Stats are one place: a switch at the top of both. */
+const histSwitch = cur => h("div", { class: "seg hsw" }, h("button", { class: cur === "hist" ? "on" : "", onclick: () => cur !== "hist" && tab("hist") }, "🕘 History"), h("button", { class: cur === "stats" ? "on" : "", onclick: () => cur !== "stats" && tab("stats") }, "📊 Stats"));
 const backTo = (t, label) => h("button", { class: "back", onclick: () => t === "me" ? openMe() : tab(t) }, "‹ " + label);
 
 /* ---------- profile ---------- */
@@ -5107,7 +5113,6 @@ function farmMenu(f) {
 }
 function renderInv() {
   const out = $("#invOut"); out.textContent = "";
-  out.append(backTo("me", "Menu"));
   if (IV.view !== "all" && !INV.farms.some(f => f.id === IV.view)) IV.view = "all";
   const all = IV.view === "all", F = all ? curFarm() : farmOf(IV.view), many = INV.farms.length > 1;
   if (!all) INV.cur = F.id;
@@ -5218,13 +5223,9 @@ function renderMeMenu() {
     h("div", { class: "mehead" }, h("span", { class: "meav" }, (SETTINGS.pseudo || "").trim() ? [...SETTINGS.pseudo.trim()][0].toUpperCase() : "👤"),
       h("div", { class: "mps" }, h("label", null, "Your pseudo · on your pictures"), ps)),
     go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
-    go("📊", "Stats", S ? fmt(HIST.length) + " deals · " + short(Math.round(S.in)) + " coins in" : "Your sales, purchases and trades in numbers", () => tab("stats")),
-    go("🕘", "History", HIST.length ? fmt(HIST.length) + " deals" : "Deals marked as done", () => tab("hist")),
-    go("🎨", "Style", "Post type, paper, layout (Custom too), texts", () => tab("style")),
-    go("📥", "Import a post", "An old post, from a screenshot or its text", () => tab("imp")),
-    go("💾", "Backup", "Save or restore everything (posts, history, inventory)", () => { tab("style"); setTimeout(() => { const b = $("#bkOut"); b && b.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); }),
-    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
-    go("❔", "Quick help", "The main things on one page", () => $("#helpBtn").click()));
+    go("🕘", "History & stats", HIST.length ? fmt(HIST.length) + " deals" + (S ? " · " + short(Math.round(S.in)) + " coins in" : "") : "Your deals, and what they add up to", () => tab("hist")),
+    go("🎨", "Style & backup", "Paper, layout, texts · backup of everything", () => tab("style")),
+    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")));
 }
 $("#meBtn").setAttribute("aria-haspopup", "menu"); $("#meBtn").setAttribute("aria-expanded", "false");
 $("#meBtn").onclick = e => { e.stopPropagation(); if ($("#meMenu").hidden) openMe(); else closeMe(); };
