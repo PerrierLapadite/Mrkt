@@ -724,6 +724,10 @@ body[data-tab=prev] #editor{display:none}
 .owarnc b{font:700 16px var(--slab)}
 /* stats */
 .scard h2{font-size:19px}
+.isets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.iset{border:1px solid var(--line2);border-radius:12px;padding:8px 10px;display:grid;gap:2px;min-width:0}
+.isn{display:flex;align-items:baseline;gap:6px}.isn b{font:700 14px var(--sans);color:var(--mut)}.isn strong{font:800 22px/1 var(--sans);margin-left:auto}.isu{font-size:12px;color:var(--mut)}
+.iset small{color:var(--mut);font-size:11.5px;line-height:1.3}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .kpis.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
@@ -5330,6 +5334,7 @@ function renderInv() {
     h("div", { class: "kpis" },
       kpi("Barn", fmt(invUnits("barn", scope)), plural(invCount("barn", scope), "item")),
       kpi("Silo", fmt(invUnits("silo", scope)), plural(invCount("silo", scope), "item"))),
+    invSets(scope),
     h("p", { class: "hint" }, (all && many ? "All your farms added up. " : "") + "Updated " + agoTxt(INV.t) + ". Saved on this device only."),
     h("label", { class: "lbl", style: "margin:4px 0 -4px" }, "Update it from"),
     h("div", { class: "upsrc" },
@@ -5371,6 +5376,26 @@ function renderInv() {
     h("div", { class: "two" },
       h("button", { class: "btn", onclick: async () => { const t = invList(scope).slice().sort((a, b) => a.name.localeCompare(b.name)).map(i => i.name + " x" + i.q).join("\n"); try { await navigator.clipboard.writeText(t); toast("List copied ✔"); } catch (e) { openSheet("My inventory", h("textarea", { class: "ta", rows: 12, value: t, readOnly: true })); } } }, "Copy the list"),
       ro ? h("span") : h("button", { class: "btn danger", onclick: () => { if (!confirm("Empty “" + F.name + "”?")) return; F.items = []; saveInv(); renderInv(); } }, "Empty it"))));
+}
+/** Sets you could make from your materials: 89 materials = 1 set (BEM, SEM, LEM, TEM, Tools). */
+function invSetsOf(scope) {
+  return PACKS.map(pk => CAT.byId[slug(pk.en)]).filter(Boolean).map(p => {
+    const st0 = p.parts.map(id => Math.max(0, Math.round(invQty({ ref: id }, scope) || 0))), tot = st0.reduce((a, b) => a + b, 0);
+    if (!tot) return null;
+    const sets = Math.floor(tot / SET_N), rest = tot - sets * SET_N;
+    // a fair mix (about 30 · 30 · 29 per set, 10% leeway): how many sets the smallest stock allows
+    let even = sets; while (even > 0 && st0.some(n => n < Math.floor(even * SET_N / p.parts.length * .9))) even--;
+    return { p, st: st0, tot, sets, rest, even };
+  }).filter(Boolean);
+}
+function invSets(scope) {
+  const S = invSetsOf(scope); if (!S.length) return null;
+  const box = h("div", { class: "isets" });
+  S.forEach(x => box.append(h("div", { class: "iset" },
+    h("div", { class: "isn" }, h("span", null, x.p.e), h("b", null, x.p.en.replace(/ Set$/, "")), h("strong", null, fmt(x.sets)), h("span", { class: "isu" }, x.sets === 1 ? "set" : "sets")),
+    h("small", null, x.p.parts.map((id, i) => fmt(x.st[i]) + " " + CAT.byId[id].en).join(" · ")),
+    h("small", null, fmt(x.tot) + " materials" + (x.rest ? " · " + fmt(x.rest) + "/" + SET_N + " to the next" : "") + (x.even < x.sets ? " · " + fmt(x.even) + " with a fair mix" : "")))));
+  return box;
 }
 /** Add by hand: search + quantity, or a typed list ("carrot pie 26, bolt 30"). */
 function addInvSheet() {
