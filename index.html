@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Zilla+Slab:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Zilla+Slab:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Inter:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f3ecdf;--surface:#fffcf5;--surface2:#f7f1e4;--ink:#241a12;--mut:#7a6a58;--line:#e3d8c4;--line2:#cdbfa6;
@@ -2088,16 +2088,17 @@ const THEMES = {
   rose:   { name: "Berry",  paper: "#f3e1de", card: "#faf0ee", ink: "#33171c", mut: "#84606a", acc: "#a12e4c", tile: "rgba(161,46,76,.08)" },
   nuit:   { name: "Ink",    paper: "#1c1a17", card: "#25221e", ink: "#f0e5cf", mut: "#a59985", acc: "#e3a63a", tile: "rgba(240,229,207,.06)", dark: 1 }
 };
-const SERIF = "'Zilla Slab', Georgia, 'Times New Roman', serif", SLAB = "'Alfa Slab One', 'Zilla Slab', Georgia, serif";
+// the pictures: a plain sans (Inter), easy to read from afar once Discord shrinks them; the display size is just its heaviest weight
+const SANS = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 const EMOJI_F = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
 const cv = $("#cv"), ctx = cv.getContext("2d");
 let drawRq = 0;
 function scheduleDraw() { if (drawRq) return; drawRq = requestAnimationFrame(() => { drawRq = 0; draw(); }); }
 
 /* ---------- text ---------- */
-/** f: "D" = display slab, otherwise Zilla weight, add "i" for italic (e.g. "600i"). */
+/** f: "D" = display (heaviest weight), otherwise a weight, add "i" for italic (e.g. "600i"). */
 const SITE_URL = "perrierlapadite.github.io/Mrkt"; // printed small at the bottom of every picture
-function font(f, s) { ctx.font = f === "D" ? `${s}px ${SLAB}` : `${f.endsWith("i") ? "italic " : ""}${parseInt(f) || 600} ${s}px ${SERIF}`; }
+function font(f, s) { ctx.font = f === "D" ? `800 ${s}px ${SANS}` : `${f.endsWith("i") ? "italic " : ""}${parseInt(f) || 600} ${s}px ${SANS}`; }
 function ls(v) { if ("letterSpacing" in ctx) ctx.letterSpacing = (v || 0) + "px"; }
 function ellipsis(t, maxW) { if (ctx.measureText(t).width <= maxW) return t; while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1); return t.trimEnd() + "…"; }
 function measure(t, f, s, sp) { font(f, s); ls(sp); const m = ctx.measureText(t).width; ls(0); return m; }
@@ -2232,7 +2233,7 @@ function ledgerVal(w, k) {
   if (k === "r") return v ? { t: fmtR(v / RING_RATE), ic: "ring", acc: 1 } : null;
   if (k === "b") return v ? { t: fmtR(v / BLANKET_RATE), ic: "blanket", acc: 1 } : null;
 }
-// the price per item first (biggest), the line's total smaller — in Zilla (finer than the heavy display slab), so the row doesn't turn into a blob
+// the price per item first (biggest), the line's total smaller — not the heaviest weight, so the row doesn't turn into a blob
 const LED_S = { p: 40, q: 36, t: 33, r: 30, b: 30 }, LED_F = { p: "700", q: "700", t: "600", r: "600", b: "600" };
 /** Ledger columns (width + header) of a sell / buy row; compact rows keep the main total only (the ≈ conversions stay in the Total). */
 const LED_W = { p: 236, q: 112, t: 214, r: 150, b: 170 }, LED_L = { p: "PRICE / EA", q: "QTY", t: "TOTAL", r: "RINGS", b: "BLANKETS" };
@@ -2338,7 +2339,15 @@ function drawCard(w, i, CD, x, ty, T, trade, mainK) {
   yy += CD.NL * 29 * z;
   if (CD.hasP) {
     if (trade) { if (hasRatio(w)) { let s = 27 * z; while (s > 12 && ratioW(w, s) > cw - 14) s -= .5; drawRatio(w, cx - ratioW(w, s) / 2, yy + 24 * z, s, T); } }
-    else { const v = ledgerVal(w, "p"); if (v) centerLine([v.ic ? { ic: v.ic, r: 13 * z } : null, { t: v.t, f: "700", s: 34 * z, c: T.ink }, v.sub ? { t: v.sub, f: "600i", s: 19 * z, c: T.mut, gap: 8 * z } : null].filter(Boolean), cx, yy + 23 * z, cw - 14); }
+    else {
+      const v = ledgerVal(w, "p");
+      if (v) {
+        // the price stays big: "1,500 ea" next to a ×MP price only when it fits without shrinking it
+        const P = [v.ic ? { ic: v.ic, r: 13 * z } : null, { t: v.t, f: "700", s: 34 * z, c: T.ink }].filter(Boolean), sub = v.sub ? { t: v.sub, f: "600i", s: 19 * z, c: T.mut, gap: 8 * z } : null;
+        const fits = sub && measure(v.t, "700", 34 * z) + measure(sub.t, "600i", sub.s) + sub.gap <= cw - 18;
+        centerLine(fits ? P.concat(sub) : P, cx, yy + 23 * z, cw - 14);
+      }
+    }
     yy += 46 * z;
   }
   if (CD.hasD) {
@@ -3477,7 +3486,7 @@ async function loadLocalManifest() {
   await loadLocalManifest();
   renderAll(); tab("items");
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
-  if (document.fonts && document.fonts.load) Promise.all([document.fonts.load("40px 'Alfa Slab One'"), document.fonts.load("700 30px 'Zilla Slab'"), document.fonts.load("600 30px 'Zilla Slab'"), document.fonts.load("500 30px 'Zilla Slab'"), document.fonts.load("italic 500 30px 'Zilla Slab'"), document.fonts.load("italic 600 30px 'Zilla Slab'"), document.fonts.load("italic 700 30px 'Zilla Slab'")]).then(scheduleDraw).catch(() => {});
+  if (document.fonts && document.fonts.load) Promise.all(["500", "600", "700", "800", "italic 500", "italic 600"].map(w => document.fonts.load(w + " 30px Inter"))).then(scheduleDraw).catch(() => {});
   if (!DEMO) setTimeout(() => refreshWikiList(false), 1500);
   window.addEventListener("pagehide", () => store.set("hd5_state", STATE));
   window.hdReady = true; dispatchEvent(new Event("hdready"));
