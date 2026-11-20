@@ -1342,6 +1342,11 @@ drinks|Tomato Juice|Jus de tomate|🧃
 drinks|Berry Juice|Jus de baies|🧃
 drinks|Pineapple Juice|Jus d’ananas|🍍
 drinks|Orange Juice|Jus d’orange|🍊
+drinks|Grape Juice|Jus de raisin|🍇
+drinks|Passion Fruit Juice|Jus de fruit de la passion|🧃
+drinks|Watermelon Juice|Jus de pastèque|🍉
+drinks|Guava Juice|Jus de goyave|🧃
+drinks|Mango Juice|Jus de mangue|🥭
 drinks|Espresso|Expresso ~ café|☕
 drinks|Caffè Latte|Café latte|☕|Caffe_Latte
 drinks|Caffè Mocha|Café moka|☕|Caffe_Mocha
@@ -1409,27 +1414,30 @@ const PACKS = [
   {en:"Tool Set", fr:"Lot outils · Axe Saw Shovel · déblayage", parts:["axe","saw","shovel"], e:"🧰"}
 ];
 
-/* "Mixes": one item made of several that players trade as one — any of them counts (Jam Maker pages: 5 jams a page, as in the game;
+/* "Mixes": one item made of several that players trade as one — any of them counts (Jam Maker and Juice Press pages, as in the game;
    all the bars of the Smelter). In your inventory they are their items: you have = the sum, a deal takes them from what you have most of. */
 const MIXES = [
   { en: "First Page Jams", fr: "Confitures page 1 · fp jams · 1st page jams · page 1", e: "🫙", cat: "jams", badge: "1", mix: ["apple-jam", "raspberry-jam", "blackberry-jam", "cherry-jam", "strawberry-jam"] },
   { en: "Second Page Jams", fr: "Confitures page 2 · sp jams · 2nd page jams · page 2", e: "🫙", cat: "jams", badge: "2", mix: ["peach-jam", "grape-jam", "marmalade", "blueberry-chutney", "plum-jam"] },
   { en: "Third Page Jams", fr: "Confitures page 3 · tp jams · 3rd page jams · page 3", e: "🫙", cat: "jams", badge: "3", mix: ["passion-fruit-jam"] },
+  { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "drinks", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
+  { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "drinks", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
+  { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "drinks", badge: "3", mix: ["guava-juice", "mango-juice"] },
   { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
 ];
 const mixOf = x => { const p = x && (typeof x === "string" ? CAT.byId[x] : x.mix ? x : x.ref ? CAT.byId[x.ref] : null); return p && p.mix ? p : null; };
 const isVirt = p => !!(p && (p.parts || p.mix));            // a set or a mix: not an item of the barn itself
-/** "fp jams", "1st page jams", "jams page 2", "all bars", "mixed bars" → the mix (not when it says "up to …": then it's a part of a page). */
+/** "fp jams", "1st page jams", "jams page 2", "2nd page juices", "all bars", "mixed bars" → the mix (not when it says "up to …": then it's a part of a page). */
 function mixFromText(s) {
   const n = " " + norm(s).replace(/[^a-z0-9]+/g, " ").trim() + " ";
   if (/ up ?to /.test(n)) return null;
-  const jam = /\b(?:jams?|jelly|jellies|jam maker|confitures?|confs?)\b/.test(n), short = n.match(/ (fp|sp|tp)j /);
-  if (jam || short) {
+  const jam = /\b(?:jams?|jelly|jellies|jam maker|confitures?|confs?)\b/.test(n), juice = /\b(?:juices?|jus|juice press)\b/.test(n), short = n.match(/ (fp|sp|tp)j /);
+  if (jam || juice || short) {
     const pg = short ? { fp: 1, sp: 2, tp: 3 }[short[1]]
       : / (?:fp|1st|first|frst|p ?1|pg ?1|page ?1|page one|premiere|1ere) /.test(n) ? 1
       : / (?:sp|2nd|second|scnd|p ?2|pg ?2|page ?2|page two|deuxieme|2eme) /.test(n) ? 2
       : / (?:tp|3rd|third|p ?3|pg ?3|page ?3|page three|last page|troisieme|3eme) /.test(n) ? 3 : 0;
-    return pg ? CAT.byId[["first", "second", "third"][pg - 1] + "-page-jams"] || null : null;
+    return pg ? CAT.byId[["first", "second", "third"][pg - 1] + "-page-" + (juice && !jam && !short ? "juices" : "jams")] || null : null;
   }
   if (/ (?:all|mix|mixed|any|every|assorted|random|tous les|toutes les) (?:the |of |kinds? of |types? of )?(?:bars?|lingots?) | bars? (?:mix|mixed) |^ (?:bars|lingots) $/.test(n)) return CAT.byId["all-bars"] || null;
   return null;
@@ -2691,7 +2699,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Search:"), " paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
     h("li", null, h("b", null, "Ratios (trade):"), " written as on Discord — 60 : 89 = 60 of the item for 89 of yours (the 89 is on the side of what you give, with its picture). Order gives 89 BEM for 60, 45 for 30."),
-    h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams (the Jam Maker's pages, 5 jams a page) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
+    h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams and Juices (the Jam Maker's and Juice Press's pages, as in the game) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
     h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
     h("li", null, h("b", null, "Import (⤓, top right):"), " an old post → a new post here: a screenshot of your Discord message or of a picture made by another post maker, or the copied text. Struck items come in as “out of stock”."),
     h("li", null, h("b", null, "Out of stock:"), " ⋯ on an item → “Out of stock”: it stays on the picture, faded and struck through, and isn't counted or sold in Order."),
