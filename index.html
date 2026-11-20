@@ -2259,6 +2259,99 @@ function ledgerLine(w, c, xl, xr, cy, T, small) {
   if (v.ic === "coin") coin(xr - tw - ir - 8, cy, ir); else if (v.ic) curIcon(v.ic, xr - tw - ir * 1.2 - 8, cy, ir * 1.2);
 }
 
+/* ---------- sell / buy row on two lines: readable in Discord's preview, without opening the picture ----------
+   [icon]  Name ...................  price / ea (big)
+           ×100  ·  ● 30,000          (2,400 ea)
+   z: size (1 = list, less in compact columns); nl: the note's lines (list), or the note written after the total (compact). */
+const SROW_H = 136;
+function saleRowH(nl, z) { return Math.round((SROW_H + nl * 30) * z); }
+function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
+  const mb = top + 68 * z, iz = 100 * z;
+  if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x0 - 16, top + 4, x1 - x0 + 32, rh - 8); ctx.fillStyle = T.acc; ctx.fillRect(x0 - 16, top + 4, 5, rh - 8); }
+  icon(itemState(w), w.e, x0 + iz / 2 + 2, nl && nl.length ? mb : top + rh / 2, iz);
+  // right: the price per item, the biggest number of the row
+  let pw = 0; const v = ledgerVal(w, "p");
+  if (v) {
+    const s = 50 * z, ir = s * .36, py = v.sub ? mb - 16 * z : mb;
+    const tw = txt(v.t, x1, py + 1, { f: "700", s, c: T.ink, al: "right", maxW: (x1 - x0) * .38, min: 26 });
+    if (v.ic === "coin") { coin(x1 - tw - ir - 10, py, ir); pw = tw + ir * 2 + 10; } else if (v.ic) { curIcon(v.ic, x1 - tw - ir * 1.2 - 10, py, ir * 1.2); pw = tw + ir * 2.4 + 10; } else pw = tw;
+    if (v.sub) pw = Math.max(pw, txt(v.sub, x1, mb + 28 * z, { f: "600i", s: 25 * z, c: T.mut, al: "right" }));
+  }
+  // left: the name, then quantity · total
+  let nx = x0 + iz + 22 * z; const nx0 = nx, ny = mb - 22 * z, dy = mb + 27 * z, maxN = x1 - pw - 30 * z;
+  if (w.hot) { starShape(nx + 13 * z, ny - 2, 14 * z, T.acc); nx += 34 * z; }
+  const nw = txt(w.name || "", nx, ny, { f: "700", s: 44 * z, c: T.ink, maxW: maxN - nx, min: 22 });
+  ctx.fillStyle = T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.32)";
+  for (let x = nx + nw + 14; x < maxN; x += 10 * z) { ctx.beginPath(); ctx.arc(x, ny + 11 * z, 1.7 * z, 0, 7); ctx.fill(); }
+  let dx = nx0; const q = num(w.q);
+  if (q > 0) dx += txt("×" + fmt(q), dx, dy, { f: "700", s: 38 * z, c: T.ink }) + 22 * z;
+  const tv = ledgerVal(w, mainK);
+  if (tv) {
+    if (q > 0) { txt("=", dx, dy, { f: "600", s: 30 * z, c: T.mut }); dx += 30 * z; }
+    const ir = 12 * z; if (tv.ic === "coin") coin(dx + ir, dy, ir); else curIcon(tv.ic, dx + ir, dy, ir * 1.2);
+    dx += ir * 2 + 8; dx += txt(tv.t, dx, dy + 1, { f: "600", s: 31 * z, c: T.mut, maxW: maxN - dx });
+  }
+  if (typeof nl === "string" && nl && maxN - dx > 80) txt("· " + nl, dx + 14, dy + 1, { f: "500i", s: 25 * z, c: T.mut, maxW: maxN - dx - 14 });
+  else if (Array.isArray(nl)) nl.forEach((l, i) => txt(l, nx0, mb + 66 * z + i * 30 * z, { f: "500i", s: 25 * z, c: T.mut }));
+  if (w.oos) oosMark(x0 - 16, top + 4, x1 - x0 + 32, rh - 8, nx, x1, ny, T);
+}
+
+/** A line of pieces centred at cx ({ t, f, s, c } text or { ic, r } icon), shrunk together to fit maxW. Returns its width. */
+function centerLine(P, cx, cy, maxW) {
+  const wOf = (p, k) => p.ic ? p.r * k * 2.2 + 6 : measure(p.t, p.f, p.s * k) + (p.gap || 0) * k;
+  let k = 1, tot = P.reduce((a, p) => a + wOf(p, 1), 0);
+  if (tot > maxW) { k = Math.max(.55, maxW / tot); tot = P.reduce((a, p) => a + wOf(p, k), 0); }
+  let x = cx - tot / 2;
+  P.forEach(p => {
+    if (p.ic) { if (p.ic === "coin") coin(x + p.r * k, cy, p.r * k); else curIcon(p.ic, x + p.r * k * 1.1, cy, p.r * k * 1.15); }
+    else txt(p.t, x + (p.gap || 0) * k, cy + 1, { f: p.f, s: p.s * k, c: p.c });
+    x += wOf(p, k);
+  });
+  return tot;
+}
+/* ---------- cards (Grid, and lists with many items): plain cards, no tag decoration — the item takes the space ---------- */
+function cardPlan(wants, lay, W, M, trade) {
+  const n = wants.length, cols = lay === "grid2" ? 2 : lay === "grid3" ? 3 : n > 70 ? 6 : n > 40 ? 5 : 4;
+  return { cols, W: lay === "grid2" || lay === "grid3" ? W : Math.max(W, Math.round(1080 * cols / 4)) };
+}
+function cardMeasure(wants, cols, W, M, trade) {
+  const gap = 14, cw = (W - 2 * M - gap * (cols - 1)) / cols, z = Math.min(1.6, cw / 224);
+  const nameL = wants.map(w => wrap(w.name || "", cw - 20 * z, "700", 25 * z, 2));
+  const NL = Math.max(1, ...nameL.map(l => l.length));
+  const anyN = wants.some(w => (w.note || "").trim());
+  const hasP = trade ? wants.some(hasRatio) : wants.some(w => num(w.p) > 0);
+  const hasD = !trade && wants.some(w => num(w.q) > 0);
+  const ch = (14 + 84 + 8 + NL * 29 + (hasP ? 46 : 0) + (hasD ? 34 : 0) + (anyN ? 26 : 0) + 12) * z;
+  const rows = Math.ceil(wants.length / cols);
+  return { cols, gap, cw, z, nameL, NL, anyN, hasP, hasD, ch, rows, h: rows * ch + Math.max(0, rows - 1) * gap };
+}
+function drawCard(w, i, CD, x, ty, T, trade, mainK) {
+  const { cw, ch, z } = CD, cx = x + cw / 2;
+  rr(x, ty, cw, ch, 12 * z); ctx.fillStyle = T.card; ctx.fill();
+  if (w.hot) { ctx.fillStyle = T.tile; ctx.fill(); }
+  ctx.lineWidth = w.hot ? 3 : 1.5; ctx.strokeStyle = w.hot ? T.acc : T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.28)"; ctx.stroke();
+  if (w.hot) starShape(x + cw - 18 * z, ty + 18 * z, 11 * z, T.acc);
+  let yy = ty + 14 * z;
+  icon(itemState(w), w.e, cx, yy + 42 * z, 84 * z); yy += 92 * z;
+  const L = CD.nameL[i], nTop = yy + (CD.NL - L.length) * 29 * z / 2; let nw = 0;
+  L.forEach((l, k) => { nw = Math.max(nw, txt(l, cx, nTop + 14 * z + k * 29 * z, { f: "700", s: 25 * z, c: T.ink, al: "center" })); });
+  yy += CD.NL * 29 * z;
+  if (CD.hasP) {
+    if (trade) { if (hasRatio(w)) { let s = 27 * z; while (s > 12 && ratioW(w, s) > cw - 14) s -= .5; drawRatio(w, cx - ratioW(w, s) / 2, yy + 24 * z, s, T); } }
+    else { const v = ledgerVal(w, "p"); if (v) centerLine([v.ic ? { ic: v.ic, r: 13 * z } : null, { t: v.t, f: "700", s: 34 * z, c: T.ink }, v.sub ? { t: v.sub, f: "600i", s: 19 * z, c: T.mut, gap: 8 * z } : null].filter(Boolean), cx, yy + 23 * z, cw - 14); }
+    yy += 46 * z;
+  }
+  if (CD.hasD) {
+    const q = num(w.q), tv = ledgerVal(w, mainK), P = [];
+    if (q > 0) P.push({ t: "×" + fmt(q), f: "700", s: 25 * z, c: T.ink });
+    if (q > 0 && tv) { P.push({ t: "=", f: "600", s: 21 * z, c: T.mut, gap: 10 * z }); P.push({ t: "", f: "600", s: 21 * z, c: T.mut, gap: 4 * z }); P.push({ ic: tv.ic, r: 9 * z }); P.push({ t: tv.t, f: "600", s: 22 * z, c: T.mut }); }
+    if (P.length) centerLine(P, cx, yy + 16 * z, cw - 14);
+    yy += 34 * z;
+  }
+  if (CD.anyN && (w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, yy + 12 * z, { f: "500i", s: 19 * z, c: T.mut, al: "center", maxW: cw - 16 });
+  if (w.oos) oosMark(x + 2, ty + 2, cw - 4, ch - 4, cx - nw / 2 - 6, cx + nw / 2 + 6, nTop + 14 * z, T);
+}
+
 /* ---------- paper texture ---------- */
 const GRAIN = {};
 function grain(T) {
@@ -2278,15 +2371,19 @@ function draw() {
   const TT = totals();
   // Auto: past 12 items, switch to compact rows spread over several columns (the image grows wider, not longer)
   let lay = st.layout || "auto";
-  if (lay === "auto") lay = trade ? "groups" : wants.length > 12 ? "compact" : "list";
+  if (lay === "auto") lay = trade ? "groups" : wants.length > 10 ? "compact" : "list";
   // safety: very long lists in List / Grid would make an image too tall to export on iPhone
   if ((lay === "list" && wants.length > 45) || (lay === "grid2" && wants.length > 24) || (lay === "grid3" && wants.length > 36)) lay = trade ? "groups" : "compact";
   const grid = lay === "grid2" || lay === "grid3", C = lay === "grid3" ? 3 : 2, compact = lay === "compact", grouped = lay === "groups";
+  // cards: Grid, and the many-items list of sell / buy posts (4–6 cards a row: stays narrow, so readable in Discord's preview)
+  const cards = grid || (compact && !trade);
+  if (cards) W = cardPlan(wants, lay, W, M, trade).W;
   // ratio boxes: widen the image when there are many items so it doesn't get too tall
-  const GR = grouped ? ratioGroups(wants) : [], TW = 158, TG = 10, BP = 22;
+  const GR = grouped ? ratioGroups(wants) : [], TW = 196, TG = 10, BP = 22, TR = 54;   // tiles: bigger items, fewer per row
   const gPer = w => Math.max(1, Math.floor((w - 2 * M - 2 * BP + TG) / (TW + TG)));
   const gRows = w => GR.reduce((a, g) => a + Math.ceil(g.items.length / gPer(w)), 0);
-  if (grouped) for (const Wc of [1080, 1400, 1720, 2040]) { W = Wc; if (gRows(Wc) * 150 + GR.length * 110 <= Wc * 1.25) break; }
+  // a tall picture reads better on a phone than a wide one: widen only for really long lists
+  if (grouped) for (const Wc of [1080, 1400, 1720]) { W = Wc; if (gRows(Wc) * 184 + GR.length * 110 <= Wc * 2.2) break; }
   // totals: main unit (coins / rings / blankets) + the ≈ conversions switched on for this post
   const unit = st.totUnit === "rings" || st.totUnit === "blankets" ? st.totUnit : "coins";
   const mainK = unit === "rings" ? "r" : unit === "blankets" ? "b" : "t";
@@ -2295,13 +2392,13 @@ function draw() {
   const priced = !trade && wants.some(w => num(w.p) > 0);
   // rings / blankets aren't repeated on every row: only in the Total — more room for quantity and price
   const LC = priced ? ledCols(["p", "q", mainK]) : [], LCc = LC.map(c => ({ ...c }));
-  if (lay === "list" && LC.length) W = Math.max(W, Math.round(2 * M + 100 + 280 + 40 + ledWidth(LC)));
-  const CW = trade ? 580 : 72 + 14 + 280 + 24 + (LCc.length ? ledWidth(LCc) : 160), CG = 48, RH = trade ? 78 : 100;
+  // sell / buy rows are two lines (name · price, then quantity · total): the picture stays 1080 wide, the text big
+  const SZ = .9, CW = trade ? 580 : 840, CG = 48, RH = trade ? 78 : saleRowH(0, SZ);
   let cc = 1, colW = 0;
-  if (compact) {
+  if (compact && trade) {
     // fewer, longer columns: a tall picture stays readable on a phone, a very wide one gets tiny
     const maxC = trade ? 4 : 3;
-    for (cc = 1; cc < maxC; cc++) { const Wc = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); if (Math.ceil(wants.length / cc) * RH <= Wc * 1.6) break; }
+    for (cc = 1; cc < maxC; cc++) { const Wc = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); if (Math.ceil(wants.length / cc) * RH <= Wc * (trade ? 1.6 : 2)) break; }
     W = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); colW = (W - 2 * M - (cc - 1) * CG) / cc;
   }
   const hair = T.dark ? "rgba(240,229,207,.13)" : "rgba(42,29,20,.13)";
@@ -2332,7 +2429,10 @@ function draw() {
   const rightW = w => trade ? (hasRatio(w) ? ratioW(w, 32) : 0) : (LC.length ? W - M - ledgerL : 0);
   const nameX = M + 100;
   let rows = [];
-  if (lay === "list") {
+  if (lay === "list" && !trade) {
+    rows = wants.map(w => { const nl = (w.note || "").trim() ? wrap(w.note.trim(), W - 2 * M - 130, "500i", 25, 3) : []; return { w, nl, h: saleRowH(nl.length, 1) }; });
+    H += rows.reduce((a, r) => a + r.h, 0) + 10 + (priced ? 40 : 0);
+  } else if (lay === "list") {
     rows = wants.map(w => {
       const rw = rightW(w), nameMax = W - M - nameX - (rw ? rw + 40 : 0);
       const nl = (w.note || "").trim() ? wrap(w.note.trim(), nameMax, "500i", 23, 3) : [];
@@ -2340,17 +2440,13 @@ function draw() {
     });
     H += rows.reduce((a, r) => a + r.h, 0) + 10 + (LC.length ? 46 : 0);
   }
-  const tagW = (W - 2 * M - 28 * (C - 1)) / C, imgH = C === 2 ? 190 : 138;
-  const anyNote = wants.some(w => (w.note || "").trim());
-  const anyPrice = trade ? wants.some(hasRatio) : wants.some(w => amounts(w));
-  const nLed = LC.length;
-  const tagH = 50 + imgH + 18 + 40 + (anyNote ? 54 : 0) + (anyPrice ? 26 + (trade ? 50 : nLed * 42) : 0) + 20;
-  if (grid) H += wants.length ? Math.ceil(wants.length / C) * (tagH + 34) - 34 + 30 : 0;
+  const CD = cards && wants.length ? cardMeasure(wants, cardPlan(wants, lay, W, M, trade).cols, W, M, trade) : null;
+  if (CD) H += CD.h + 30;
   if (!wants.length) H += 80;
   const per = compact ? Math.ceil(wants.length / cc) : 0;
-  const tileH = g => 12 + 86 + 10 + 28 + (g.items.some(w => (w.note || "").trim()) ? 22 : 0) + 12;
+  const tileH = g => 12 + 2 * TR + 10 + 34 + (g.items.some(w => (w.note || "").trim()) ? 26 : 0) + 12;
   if (grouped && wants.length) H += GR.reduce((a, g) => a + 84 + Math.ceil(g.items.length / gPer(W)) * tileH(g) + 14 + 26, 0) + 4;
-  if (compact && wants.length) H += (LCc.length ? 40 : 0) + per * RH + 30;
+  if (compact && trade && wants.length) H += per * RH + 30;
 
   const showTot = !trade && st.showTotal !== false && TT.sub > 0;
   // the total grows with the picture, so it stays readable when the image gets wide (many items)
@@ -2457,15 +2553,19 @@ function draw() {
       g.items.forEach((w, i) => {
         const c = i % pr, r = (i / pr) | 0, x = M + BP + c * (tw + TG), ty = y + 84 + 6 + r * th, cx = x + tw / 2;
         if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x, ty + 2, tw, th - 4); starShape(x + tw - 16, ty + 18, 11, T.acc); }
-        ctx.beginPath(); ctx.arc(cx, ty + 12 + 43, 43, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
-        icon(itemState(w), w.e, cx, ty + 12 + 43, 78);
-        const tnw = txt(w.name || "", cx, ty + 12 + 86 + 10 + 14, { f: "700", s: 24, c: T.ink, al: "center", maxW: tw - 6, min: 15 });
-        if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 86 + 10 + 28 + 10, { f: "500i", s: 16, c: T.mut, al: "center", maxW: tw - 6 });
-        if (w.oos) oosMark(x, ty + 2, tw, th - 4, cx - tnw / 2 - 6, cx + tnw / 2 + 6, ty + 12 + 86 + 10 + 14, T);
+        ctx.beginPath(); ctx.arc(cx, ty + 12 + TR, TR, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
+        icon(itemState(w), w.e, cx, ty + 12 + TR, TR * 1.8);
+        const tnw = txt(w.name || "", cx, ty + 12 + 2 * TR + 10 + 17, { f: "700", s: 29, c: T.ink, al: "center", maxW: tw - 6, min: 17 });
+        if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 2 * TR + 10 + 34 + 12, { f: "500i", s: 20, c: T.mut, al: "center", maxW: tw - 6 });
+        if (w.oos) oosMark(x, ty + 2, tw, th - 4, cx - tnw / 2 - 6, cx + tnw / 2 + 6, ty + 12 + 2 * TR + 10 + 17, T);
       });
       y += bh + 26;
     });
     y += 4;
+  }
+  else if (CD) {
+    wants.forEach((w, i) => { const c = i % CD.cols, r = (i / CD.cols) | 0; drawCard(w, i, CD, M + c * (CD.cw + CD.gap), y + r * (CD.ch + CD.gap), T, trade, mainK); });
+    y += CD.h + 30;
   }
   else if (compact) {
     const hdr = LCc.length ? 40 : 0, colsPos = [];
@@ -2500,6 +2600,15 @@ function draw() {
     });
     y += per * RH + 30;
   }
+  else if (!grid && !trade) {
+    if (priced) { txt("PRICE / EA", W - M, y + 14, { f: "700", s: 20, c: T.mut, sp: 3, al: "right" }); rule(M, W - M, y + 34, 1, T.dark ? "rgba(240,229,207,.2)" : "rgba(42,29,20,.2)"); y += 40; }
+    rows.forEach(({ w, nl, h: rh }, idx) => {
+      saleRow(w, M, W - M, y, rh, T, 1, nl, mainK, hair);
+      y += rh;
+      if (idx < rows.length - 1) rule(M + 120, W - M, y, 1, T.dark ? "rgba(240,229,207,.12)" : "rgba(42,29,20,.12)");
+    });
+    y += 10;
+  }
   else if (!grid) {
     if (LC.length) {
       LC.forEach(c => txt(c.l, c.xr, y + 14, { f: "700", s: 19, c: T.mut, sp: 3, al: "right" }));
@@ -2527,34 +2636,6 @@ function draw() {
       if (idx < rows.length - 1) rule(nameX, W - M, y, 1, T.dark ? "rgba(240,229,207,.12)" : "rgba(42,29,20,.12)");
     });
     y += 10;
-  } else {
-    wants.forEach((w, i) => {
-      const c = i % C, r = (i / C) | 0, x = M + c * (tagW + 28), ty = y + r * (tagH + 34), cx = x + tagW / 2;
-      // price tag: chamfered top, punched hole, string
-      const ch = 30;
-      ctx.save(); ctx.shadowColor = "rgba(40,25,10,.16)"; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
-      ctx.beginPath(); ctx.moveTo(x + ch, ty); ctx.lineTo(x + tagW - ch, ty); ctx.lineTo(x + tagW, ty + ch); ctx.lineTo(x + tagW, ty + tagH - 10); ctx.arcTo(x + tagW, ty + tagH, x + tagW - 10, ty + tagH, 10); ctx.lineTo(x + 10, ty + tagH); ctx.arcTo(x, ty + tagH, x, ty + tagH - 10, 10); ctx.lineTo(x, ty + ch); ctx.closePath();
-      ctx.fillStyle = w.hot ? T.card : T.card; ctx.fill(); ctx.restore();
-      ctx.lineWidth = w.hot ? 3.5 : 2; ctx.strokeStyle = w.hot ? T.acc : T.ink; ctx.stroke();
-      if (w.hot) { ctx.save(); ctx.clip(); ctx.fillStyle = T.tile; ctx.fillRect(x, ty, tagW, tagH); ctx.restore(); }
-      ctx.beginPath(); ctx.arc(cx, ty + 24, 9, 0, 7); ctx.fillStyle = T.paper; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = T.ink; ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx, ty + 15); ctx.bezierCurveTo(cx + 10, ty - 4, cx - 14, ty - 10, cx - 4, ty - 26); ctx.lineWidth = 1.5; ctx.strokeStyle = T.mut; ctx.stroke();
-      if (w.hot) starShape(x + tagW - 30, ty + 40, 15, T.acc);
-      icon(itemState(w), w.e, cx, ty + 50 + imgH / 2, imgH * .86);
-      let yy = ty + 50 + imgH + 18 + 18;
-      const gnw = txt(w.name || "", cx, yy, { f: "700", s: C === 2 ? 33 : 27, c: T.ink, al: "center", maxW: tagW - 30, min: 18 });
-      if (w.oos) { ctx.fillStyle = T.acc; ctx.fillRect(cx - gnw / 2 - 6, yy - 2, gnw + 12, 4); }
-      yy += 22;
-      if (anyNote) { wrap((w.note || "").trim(), tagW - 36, "500i", C === 2 ? 21 : 18, 2).forEach((l, k) => l && txt(l, cx, yy + 12 + k * 23, { f: "500i", s: C === 2 ? 21 : 18, c: T.mut, al: "center" })); yy += 54; }
-      if (anyPrice) {
-        ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(x + 16, yy + 8); ctx.lineTo(x + tagW - 16, yy + 8); ctx.lineWidth = 1.5; ctx.strokeStyle = T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.3)"; ctx.stroke(); ctx.setLineDash([]);
-        yy += 26;
-        const s = C === 2 ? 32 : 26;
-        if (trade && hasRatio(w)) drawRatio(w, cx - ratioW(w, s) / 2, yy + 22, s, T);
-        else if (!trade && num(w.p) > 0) LC.forEach((c, k) => ledgerLine(w, c, x + 22, x + tagW - 22, yy + 16 + k * 42, T, C === 3));
-      }
-    });
-    y += Math.ceil(wants.length / C) * (tagH + 34) - 34 + 30;
   }
 
   /* ---------- total (sell / buy) — coins first ---------- */
