@@ -2262,7 +2262,7 @@ function ledgerLine(w, c, xl, xr, cy, T, small) {
 
 /* ---------- sell / buy row on two lines: readable in Discord's preview, without opening the picture ----------
    [icon]  Name ...................  price / ea (big)
-           ×100  ·  ● 30,000          (2,400 ea)
+           ×100                         (2,400 ea)
    z: size (1 = list, less in compact columns); nl: the note's lines (list), or the note written after the total (compact). */
 const SROW_H = 136;
 function saleRowH(nl, z) { return Math.round((SROW_H + nl * 30) * z); }
@@ -2279,19 +2279,15 @@ function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
     if (v.sub) pw = Math.max(pw, txt(v.sub, x1, mb + 28 * z, { f: "600i", s: 25 * z, c: T.mut, al: "right" }));
   }
   // left: the name, then quantity · total
-  let nx = x0 + iz + 22 * z; const nx0 = nx, ny = mb - 22 * z, dy = mb + 27 * z, maxN = x1 - pw - 30 * z;
+  const q = num(w.q);
+  let nx = x0 + iz + 22 * z; const nx0 = nx, ny = q > 0 ? mb - 22 * z : mb, dy = mb + 27 * z, maxN = x1 - pw - 30 * z;
   if (w.hot) { starShape(nx + 13 * z, ny - 2, 14 * z, T.acc); nx += 34 * z; }
   const nw = txt(w.name || "", nx, ny, { f: "700", s: 44 * z, c: T.ink, maxW: maxN - nx, min: 22 });
   ctx.fillStyle = T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.32)";
   for (let x = nx + nw + 14; x < maxN; x += 10 * z) { ctx.beginPath(); ctx.arc(x, ny + 11 * z, 1.7 * z, 0, 7); ctx.fill(); }
-  let dx = nx0; const q = num(w.q);
-  if (q > 0) dx += txt("×" + fmt(q), dx, dy, { f: "700", s: 38 * z, c: T.ink }) + 22 * z;
-  const tv = ledgerVal(w, mainK);
-  if (tv) {
-    if (q > 0) { txt("=", dx, dy, { f: "600", s: 30 * z, c: T.mut }); dx += 30 * z; }
-    const ir = 12 * z; if (tv.ic === "coin") coin(dx + ir, dy, ir); else curIcon(tv.ic, dx + ir, dy, ir * 1.2);
-    dx += ir * 2 + 8; dx += txt(tv.t, dx, dy + 1, { f: "600", s: 31 * z, c: T.mut, maxW: maxN - dx });
-  }
+  // the quantity under the name (the line's total isn't shown: the post's Total has it)
+  let dx = nx0;
+  if (q > 0) dx += txt("×" + fmt(q), dx, dy, { f: "700", s: 38 * z, c: T.ink });
   if (typeof nl === "string" && nl && maxN - dx > 80) txt("· " + nl, dx + 14, dy + 1, { f: "500i", s: 25 * z, c: T.mut, maxW: maxN - dx - 14 });
   else if (Array.isArray(nl)) nl.forEach((l, i) => txt(l, nx0, mb + 66 * z + i * 30 * z, { f: "500i", s: 25 * z, c: T.mut }));
   if (w.oos) oosMark(x0 - 16, top + 4, x1 - x0 + 32, rh - 8, nx, x1, ny, T);
@@ -2351,10 +2347,8 @@ function drawCard(w, i, CD, x, ty, T, trade, mainK) {
     yy += 46 * z;
   }
   if (CD.hasD) {
-    const q = num(w.q), tv = ledgerVal(w, mainK), P = [];
-    if (q > 0) P.push({ t: "×" + fmt(q), f: "700", s: 25 * z, c: T.ink });
-    if (q > 0 && tv) { P.push({ t: "=", f: "600", s: 21 * z, c: T.mut, gap: 10 * z }); P.push({ t: "", f: "600", s: 21 * z, c: T.mut, gap: 4 * z }); P.push({ ic: tv.ic, r: 9 * z }); P.push({ t: tv.t, f: "600", s: 22 * z, c: T.mut }); }
-    if (P.length) centerLine(P, cx, yy + 16 * z, cw - 14);
+    const q = num(w.q);
+    if (q > 0) centerLine([{ t: "×" + fmt(q), f: "700", s: 30 * z, c: T.ink }], cx, yy + 16 * z, cw - 14);
     yy += 34 * z;
   }
   if (CD.anyN && (w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, yy + 12 * z, { f: "500i", s: 19 * z, c: T.mut, al: "center", maxW: cw - 16 });
