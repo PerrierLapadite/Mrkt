@@ -641,6 +641,11 @@ body[data-tab=prev] #editor{display:none}
 .oline.srl .omid small{white-space:normal}
 .srinv{margin:-4px 2px 0}
 .omix{display:block;color:var(--ink2);font-style:normal;white-space:normal}
+.ointent{display:grid;gap:6px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--line);font-size:14px}
+.ointent .oi1{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ointent .oi1 small{color:var(--mut)}
+.ointent .oi2.warn{color:var(--acc)}
+.ointent .hint{margin:0}
 .omixb{display:block;margin-top:3px;padding:0;border:0;background:none;font:inherit;color:var(--acc);text-align:left;text-decoration:underline dotted;cursor:pointer;white-space:normal}
 .omixb.on{color:var(--ink)}
 .omixe{grid-column:1/-1;display:block;padding:8px 0 2px}
@@ -3600,9 +3605,66 @@ function orderGroup(L, post) {
   // "fp jams 2nd page" style pages inside a family, and mixes of the post that belong to it ("all jams" takes "First Page Jams" too)
   return take(post.filter(w => ids.has(w.ref) || (mixOf(w) && mixOf(w).mix.some(id => ids.has(id)))));
 }
+/** Trade: what the message sets for the whole deal — "ratio … to 45:89" (for this order only), "if I buy 8 sets together" —
+    and its text without those words, for the items. */
+function orderIntent(text) {
+  let t = emoNames(String(text || "")).replace(/[*_`~>#]/g, " "), ratio = null, sets = null, m;
+  const N = "(\\d+(?:[.,]\\d+)?)";
+  // the ratio: "to 45:89", "at 45:89", "45/89" (as on Discord: what you get : what you give; the 89 goes with the set)
+  const rre = new RegExp("(?:\\b(?:to|at|for|on|with|of|@|=)\\s*)?(?:a\\s+)?(?:ratio\\s*(?:of\\s*)?)?" + N + "\\s*[:/]\\s*" + N + "(?:\\s*ratio)?", "i");
+  if ((m = t.match(rre))) { let g = num(m[1]), v = num(m[2]); if (g % SET_N === 0 && v % SET_N) [g, v] = [v, g]; if (g > 0 && v > 0) ratio = { rb: g, ra: v, txt: fmtR(g) + ":" + fmtR(v) }; t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length); }
+  // the size: "8 sets", "8 bem sets", "8 bem", "for 8 sets together"
+  const sre = /\b(?:if\s+i\s+(?:buy|take|get|grab|order|do)\s+|i'?(?:ll|\s+will)\s+(?:buy|take|get)\s+|for\s+|buying\s+|take\s+)?(\d+)\s*(?:x\s*)?(?:full\s+)?(?:(?:bem|sem|lem|tem|tool)\s*(?:sets?|lots?)?|sets?|lots?)\b(?:\s+(?:all\s+)?together|\s+in\s+total|\s+total)?/i;
+  if ((m = t.match(sre))) { sets = num(m[1]); t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length); }
+  // the words around them aren't items
+  t = t.replace(/\b(?:can|could|would|will|do)\s+(?:you|u|ya)\s+(?:do|make|give|sell|trade|offer|accept|go)\b/gi, " ")
+    .replace(/\bis\s+it\s+(?:possible|ok|okay)\b/gi, " ").replace(/\b(?:the\s+|a\s+|your\s+|ur\s+)?(?:ratio|rate|deal|price)s?\b/gi, " ")
+    .replace(/\b(?:for|per|on|with|in|of)\s+(?:a\s+|the\s+|your\s+|ur\s+|my\s+)?(?:bem|sem|lem|tem|tool)\s*(?:sets?|lots?)?\b/gi, " ")
+    .replace(/\b(?:for|per|on)\s+(?:a\s+|the\s+)?(?:sets?|lots?)\b/gi, " ").replace(/\b(?:if\s+i\s+(?:buy|take|get|do)|(?:all\s+)?together|in\s+total|bulk|instead)\b/gi, " ")
+    .replace(/\b(?:to|at)\s*(?=$|[\n,.;!?])/gim, " ");
+  return { ratio, sets: sets > 0 ? sets : null, clean: t, any: !!(ratio || sets) };
+}
+/** The ratio a line uses: the message's ("for this order") unless you switched back to your post's. */
+const orderTmp = () => st.type === "trade" && ORDER.intent && ORDER.intent.ratio && !ORDER.tmpOff ? ORDER.intent.ratio : null;
+/** "8 sets" → the quantity of each item without one: the sets' materials shared evenly between them, at their ratio. */
+function orderBySets(lines) {
+  const I = ORDER.intent; if (!I || !I.sets) return;
+  const rows = lines.map(L => ({ L, R: resolveLine(L) })).filter(x => x.R.w && !x.R.ignored);
+  const g0 = rows.length ? giveItem(rows[0].R.w) : null; if (!packOf(g0)) return;            // "sets" = sets of what you give
+  const T = orderTmp(), rat = w => T ? { a: T.ra, b: T.rb } : { a: num(w.ra), b: num(w.rb) };
+  let G = I.sets * SET_N;
+  // a quantity written in the message or typed on a line is kept; the others share what's left
+  rows.filter(x => !x.L.qGuess || x.L.qEdit).forEach(x => { const r = rat(x.R.w); if (r.a > 0 && r.b > 0) G -= (x.L.q || 0) * r.a / r.b; });
+  const auto = rows.filter(x => x.L.qGuess && !x.L.qEdit && (r => r.a > 0 && r.b > 0)(rat(x.R.w))); if (!auto.length || G <= 0) return;
+  const r0 = rat(auto[0].R.w), same = auto.every(x => { const r = rat(x.R.w); return r.a === r0.a && r.b === r0.b; });
+  // the same ratio: the items in all (8 × 45 = 360), shared evenly (180 + 180); otherwise the materials shared evenly, each at its ratio
+  const q = same ? evenSplit(auto.length, Math.round(G * r0.b / r0.a)) : auto.map(x => { const r = rat(x.R.w); return Math.round(G / auto.length * r.b / r.a); });
+  auto.forEach((x, i) => { x.L.q = q[i]; x.L.qGuess = false; x.L._sets = I.sets; });
+}
+/** What the message asked for the whole deal, checked: the ratio (this order only, or back to your post's) and the sets. */
+function intentBar(rows) {
+  const I = ORDER.intent, T = orderTmp(), live = rows.filter(L => L.r.w && !L.r.ignored && L.r.ratio);
+  const posts = [...new Set(live.map(L => ratioLabel(L.r.w.ra, L.r.w.rb)))];
+  const box = h("div", { class: "ointent" });
+  if (I.ratio) box.append(h("div", { class: "oi1" }, h("span", null, T ? h("b", null, "Ratio " + fmtR(I.ratio.rb) + " : " + fmtR(I.ratio.ra) + " for this order") : "Your post's ratios (the message asks " + fmtR(I.ratio.rb) + " : " + fmtR(I.ratio.ra) + ")",
+      T && posts.length ? h("small", null, " · your post: " + posts.join(", ")) : null),
+    h("button", { class: "btn sm", onclick: () => { ORDER.tmpOff = !ORDER.tmpOff; renderOrder(); } }, T ? "Use my post's" : "Use " + fmtR(I.ratio.rb) + ":" + fmtR(I.ratio.ra))));
+  if (I.sets) {
+    const g = live.length ? live[0].r.ratio.g : null, pk = packOf(g), give = live.reduce((a, L) => a + (L.r.ratio.give || 0), 0), want = I.sets * SET_N, items = live.reduce((a, L) => a + (L.q || 0), 0);
+    const ok = pk && Math.abs(give - want) < .5;
+    box.append(h("div", { class: "oi2" + (pk && !ok ? " warn" : "") }, pk
+      ? [h("b", null, setsTxt(I.sets) + " = " + fmt(want) + " " + giveName(g)), " → " + fmt(items) + " items: " + live.map(L => fmt(L.q) + " " + pName(L.r.w)).join(" · "),
+         ok ? " ✓" : h("span", null, " — the lines give " + fmt(Math.round(give)) + " " + giveName(g) + (live.some(L => L.qEdit) ? " (you changed a quantity)" : ""))]
+      : "“" + setsTxt(I.sets) + "” — what you give in this post isn't a set."));
+    if (live.length > 1) box.append(h("p", { class: "hint" }, "Shared evenly between the items — type a quantity on a line to change the split."));
+  }
+  return box;
+}
 /** The message's lines, with families / pages / "everything" opened into the items of your post. */
 function orderLines(text) {
   const post = postItems(), out = [];
+  ORDER.intent = st.type === "trade" ? orderIntent(text) : null;
+  if (ORDER.intent && ORDER.intent.any) text = ORDER.intent.clean;
   parseOrder(text).forEach(L => {
     const G = orderGroup(L, post);
     if (!G) return out.push(L);
@@ -3628,9 +3690,10 @@ function priceLine(L) {
   const R = resolveLine(L), q = L.q || 0;
   if (!R.w) return Object.assign(R, { v: 0 });
   if (st.type === "trade") {
-    let a = num(R.w.ra), b = num(R.w.rb); const g = giveItem(R.w), tb = ORDER.tb && ORDER.tb.get(ratioKey(R.w));
-    const bulk = !!(tb && tb.on); if (bulk) { a = num(tb.g.bulk.ra); b = num(tb.g.bulk.rb); }
-    return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b, bulk } : null, v: 0 });
+    let a = num(R.w.ra), b = num(R.w.rb); const g = giveItem(R.w), tb = ORDER.tb && ORDER.tb.get(ratioKey(R.w)), T = orderTmp();
+    const bulk = !T && !!(tb && tb.on); if (bulk) { a = num(tb.g.bulk.ra); b = num(tb.g.bulk.rb); }
+    if (T) { a = T.ra; b = T.rb; }                                         // "45:89" from the message, for this order only
+    return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b, bulk, tmp: !!T, post: T ? ratioLabel(R.w.ra, R.w.rb) : null } : null, v: 0 });
   }
   const pw = dealItem(R.w, L); let u = unitPrice(pw);
   // stock: selling → what's left in your post, buying → what you still want (the rest isn't counted)
@@ -3659,6 +3722,7 @@ function wholeShares(vals, keys, roundTot) {
 /** Trade bulk ratios: a group's better ratio is used once the deal reaches its size (sets or items you give, at the normal ratio). */
 function tradeBulk() {
   ORDER.tb = new Map();
+  if (orderTmp()) return;                                                // the message's ratio replaces the post's (and its bulk)
   ratioGroups(st.wants).filter(g => g.bulk).forEach(g => ORDER.tb.set(g.key, { g, give: 0, on: false }));
   if (!ORDER.tb.size) return;
   // "40:89 for 10 sets +": the deal counts at the bulk ratio (480 items → 10 sets)
@@ -3699,6 +3763,7 @@ function renderOrder(force) {
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
   ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
   ORDER.prev = ORDER.lines;
+  if (trade) orderBySets(ORDER.lines);                                    // "if I buy 8 sets": the quantities from the sets
   adv();
   const out = $("#orderOut"); out.textContent = "";
   if (ORDER.deal) out.append(dealBar());
@@ -3729,6 +3794,7 @@ function renderOrder(force) {
   if (trade) { const R = rows.map(L => L.r.ratio), n = wholeShares(R.map(x => x ? x.give : 0), R.map(x => x && x.g ? x.g.uid : "-"), giveWhole); R.forEach((x, i) => { if (x) x.n = n[i]; }); }
   else { const n = wholeShares(rows.map(L => L.r.v || 0), null, Math.round); rows.forEach((L, i) => { L.r.vs = n[i]; }); }
   const list = h("div", { class: "card olist" });
+  if (trade && ORDER.intent && ORDER.intent.any) list.append(intentBar(rows));
   const U = ORDER.undoEdit;
   if (U && U.after === ORDER.text) list.append(h("div", { class: "oundo" }, h("span", null, U.what), h("button", { class: "btn sm", onclick: () => orderSet(U.prev, U.text) }, "Undo")));
   else ORDER.undoEdit = null;
@@ -3754,7 +3820,8 @@ function renderOrder(force) {
       // "89 BEM for 50" — what you give for how many of this item
       const tb = ORDER.tb && ORDER.tb.get(ratioKey(w));
       const mw = mixOf(w), MI = mw ? mixIn(L, mw) : null;
-      sub = [autoTag(L), R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) : "No ratio in your post",
+      sub = [autoTag(L), L._sets && !L.qEdit ? h("b", { class: "autot" }, "from " + plural(L._sets, "set") + " · ") : null,
+        R ? "You give " + fmtR(R.a) + " " + giveName(R.g) + " for " + fmtR(R.b) + (R.tmp ? " (this order)" : "") : "No ratio in your post",
         tb ? h("b", { class: "bulkt" }, R && R.bulk ? " · bulk ratio (" + fmtR(num(tb.g.bulk.at)) + "+ " + bulkUnit(tb.g) + ")" : " · bulk ratio from " + fmtR(num(tb.g.bulk.at)) + " " + bulkUnit(tb.g)) : null,
         // "35 First Page Jams" = 35 jams of that page, any of them: say which ones you got (or they're shared evenly)
         mw ? h("span", { class: "omix" }, "Any mix of: " + mixShort(mw)) : null,
@@ -3979,7 +4046,8 @@ const cleanLine = s => String(s).replace(/[;|•·\r\n]/g, " ").replace(/\s+/g, 
 function lineRaw(L, q) { const w = L.r && L.r.w; return cleanLine(w ? pName(w) : L.name) + (q == null ? "" : " x" + q); }
 /** Replace the order lines (keeps the picks, typed quantities and special prices of each line). */
 function orderSet(lines, text) {
-  ORDER.text = text != null ? text : lines.map(L => L.raw).join("\n");
+  const I = ORDER.intent, keep = I && I.any && text == null ? "\n" + [I.ratio ? "ratio " + I.ratio.txt : "", I.sets ? I.sets + " sets" : ""].filter(Boolean).join(", ") : "";
+  ORDER.text = text != null ? text : lines.map(L => L.raw).join("\n") + keep;
   ORDER.prev = lines; $("#orderIn").value = ORDER.text; renderOrder();
 }
 function editOrder(what, lines) {
@@ -4028,7 +4096,9 @@ function replyText() {
   } else {
     foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(ORDER.sub - ORDER.bonus)}\nBulk bonus${(ORDER.reached || []).length ? " (" + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% " + bulkTxt(t).replace(" at once", "")).join(", ") + ")" : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
   }
-  return lines.join("\n") + "\n" + foot;
+  const T = trade && orderTmp(), I = trade && ORDER.intent;
+  const head = T ? "Ratio " + fmtR(T.rb) + ":" + fmtR(T.ra) + (I && I.sets ? " for " + setsTxt(I.sets) : "") + "\n" : "";
+  return head + lines.join("\n") + "\n" + foot;
 }
 async function copyReply() {
   if (ORDER.mpWait) return toast("Max prices are still loading — one moment");
@@ -4050,8 +4120,8 @@ function pickSheet(L) {
   ]);
 }
 $("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; renderOrderSoon(); });
-$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
-$("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; renderOrder(); };
+$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
+$("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
 
 /* =====================================================================
    ORDER · ADVANCED — add a group of post items to the order by rules
@@ -5638,7 +5708,7 @@ async function scanVideo(file, pool, say, shot) {
    a post-maker picture) or its screenshot, checked against your inventory
    → what you can sell or give them, at their prices or ratios, with a reply ready
    ===================================================================== */
-const SR = { author: "", shot: false, text: "", defQ: "", picks: {}, ed: {}, who: "", done: null, scope: "all", tiles: [], pics: [], adds: {}, busy: null, stop: false, err: "" };
+const SR = { flip: {}, author: "", shot: false, text: "", defQ: "", picks: {}, ed: {}, who: "", done: null, scope: "all", tiles: [], pics: [], adds: {}, busy: null, stop: false, err: "" };
 /** Farm chips: all farms, or some of them (tap several). */
 function farmChips(get, set, label) {
   if (INV.farms.length < 2) return null;
@@ -5751,10 +5821,100 @@ function srGroup(name) {
 const srPic = x => { const s = x && (x.src || x.unknown); const k = s && s.ename && /^pic(\d+)$/.exec(s.ename); return k ? SR.pics[+k[1]] || null : s && s.view ? s : null; };
 const giveOf = (have, i) => { const c = have.filter((x, k) => k >= i && (x.ref || x.name || x.unknown)); const g = c[0] || have.find(x => x.ref || x.name) || null; if (!g) return { name: "their items" };
   const p = g.ref && CAT.byId[g.ref]; return { ref: g.ref || null, name: p ? p.en : g.name && g.name !== "My items" ? g.name : "their items", e: p ? p.e : "", q: g.q ? num(g.q) : null, pack: !!(p && p.parts) }; };
+/* ---------- trade orders written simply, one a line:
+   "Mussel meat for LEM Set 135:89" · "135 mussel meat for 1 LEM set" · "270 lobster tail = 2 bem" · "need mussel meat 135:89, have LEM"
+   · "have LEM need mussel meat 135:89" · "trade mussel meat → LEM 135:89" · "lobster, olive oil for BEM 60:89".
+   Read as Discord does: "X for Y a:b" = a of X for b of Y (a set counts its 89 materials) — they need X and give Y, so you give X and get Y.
+   "⇄" turns one round if it was meant the other way. ---------- */
+const SR_CONN = /\s+(?:for|=|=>|->|→|⇒|<->|⇄|↔|vs\.?|against|pour|contre|in exchange (?:for|of)|in return for|swap(?:ped)? (?:for|with))\s+/i;
+const SR_LEAD = /^(?:(?:wtt|wts|wtb|lf|looking for|trade|trading|trades|swap|swapping|exchange|exchanging|offering|offer|selling|sell|i(?:'| a)?m|i|we|will|would|can|could|want|wanna|to|give|giving|my|your|ur|the|some|pls|please|hi|hey|ok|so)\b[\s:,-]*)+/i;
+/** A side of the order: "135 mussel meat", "mussel meat x135", "1 LEM set", "LEM 89", "2 bem sets" → { name, q, sets } */
+function srSide(s) {
+  s = s.replace(SR_LEAD, "").replace(/[\s,.;:!?-]+$/, "").replace(/^[\s,.;:!?-]+/, "").trim();
+  let q = null, m;
+  if ((m = s.match(/^(\d+(?:[.,]\d+)?)\s*(?:x|×|pcs?)?\s+(?=[a-z])/i))) { q = num(m[1]); s = s.slice(m[0].length); }
+  else if ((m = s.match(/\s*(?:x|×)\s*(\d+(?:[.,]\d+)?)$|\s+(\d+(?:[.,]\d+)?)\s*(?:x|×|pcs?)?$/i))) { q = num(m[1] || m[2]); s = s.slice(0, m.index); }
+  s = s.replace(/\b(?:each|ea|only|pls|please|thanks|thx|needed|wanted)\b/gi, " ").replace(/\s+/g, " ").trim();
+  return { name: s, q };
+}
+/** One item of the order → its product (a mix, a set "lem", the library; a guess is flagged). */
+function srCmdItem(name) {
+  if (!name) return null;
+  const mx = mixFromText(name); if (mx) return { p: mx, sure: true };
+  const k = norm(name).replace(/\b(?:sets?|lots?)\b/g, "").replace(/[^a-z]/g, "");
+  const pk = CAT.list.find(p => p.parts && slug(p.en).split("-")[0] === k); if (pk) return { p: pk, sure: true };
+  const m = matchProduct(name); if (m.p && m.sure) return { p: m.p, sure: true };
+  if (srGroup(name)) return null;                                          // "all jams for BEM 45:89": a family, opened below
+  if (m.p) return { p: m.p, sure: false };
+  const r = findMatches(name, CAT.list.filter(p => !p.custom), p => p.en, 2)[0]; return r ? { p: r.x, sure: false } : { p: null, name };
+}
+/** The text → { asks, gives, used: lines read as orders, rest: the other lines }. */
+function srCommands(text) {
+  const out = { asks: [], gives: [], rest: [] };
+  String(text || "").split(/\r?\n/).forEach((raw, li) => {
+    const line = emoNames(raw).replace(/[*_`~>#|]/g, " ").replace(/\s+/g, " ").trim();
+    // not an order: empty, or a post's ratio line ("45:89 // 40:89 for 10 sets +")
+    if (!line || (line.match(/\d\s*[:/]\s*\d/g) || []).length > 1 || /\/\/|\bbulk\b/i.test(line)) return out.rest.push(raw);
+    // the ratio, anywhere: "135:89", "135/89"
+    const rm = line.match(/(?:^|[\s(])(\d+(?:[.,]\d+)?)\s*[:/]\s*(\d+(?:[.,]\d+)?)(?=$|[\s),.;])/);
+    let s = rm ? (line.slice(0, rm.index) + " " + line.slice(rm.index + rm[0].length)).trim() : line, X = null, Y = null;
+    // "need X …, have Y" / "have Y …, need X"
+    const nd = s.match(/\bneed(?:ed|ing|s)?\b/i), hv = s.match(/\b(?:have|having|has|giving|give|offer(?:ing)?|paying|pay)\b/i);
+    if (nd && hv) {
+      const a = nd.index < hv.index ? s.slice(nd.index + nd[0].length, hv.index) : s.slice(nd.index + nd[0].length);
+      const b = nd.index < hv.index ? s.slice(hv.index + hv[0].length) : s.slice(hv.index + hv[0].length, nd.index);
+      X = srSide(a.replace(/[,;]\s*$/, "")); Y = srSide(b.replace(/[,;]\s*$/, ""));
+    } else {
+      const c = s.match(SR_CONN); if (!c) return out.rest.push(raw);
+      X = srSide(s.slice(0, c.index).replace(/^\s*need(?:ed|ing|s)?\b/i, "")); Y = srSide(s.slice(c.index + c[0].length));
+    }
+    // both sides must name something ("10 sets +", "// 40:89" don't)
+    const named = v => v && /[a-z]{2}/i.test(v.name.replace(/\b(?:sets?|lots?|items?|materials?|mats?)\b/gi, "").replace(/[^a-z\s]/gi, " "));
+    if (!named(X) || !named(Y)) return out.rest.push(raw);
+    const yi = srCmdItem(Y.name);
+    // what they give must be an item, recognised for sure ("for 5k" is a price, "for truck orders" isn't an item)
+    if (!yi || !yi.p || !yi.sure) return out.rest.push(raw);
+    const give = { ref: yi.p.id, name: yi.p.en, e: yi.p.e || "", pack: !!yi.p.parts, sure: yi.sure, q: null };
+    // the ratio: written, or from the two quantities ("135 mussel meat for 1 LEM set" = 135 : 89). A set counts in materials (1 set = 89).
+    const ySide = q => give.pack ? (q <= 20 && !/\bmat/i.test(Y.name) ? q * SET_N : q) : q;
+    if (!out.gives.some(g => g.name === give.name)) out.gives.push(give);
+    // several items for the same ("lobster, olive oil for BEM 60:89")
+    const names = X.name.split(/\s*(?:,|&|\+|\/|\band\b)\s*/i).filter(Boolean);
+    names.forEach((nm, k) => {
+      const key = "k" + li + "." + k, xi = srCmdItem(nm), xp = xi && xi.p, xpack = !!(xp && xp.parts);
+      const xSide = q => xpack ? (q <= 20 && !/\bmat/i.test(nm) ? q * SET_N : q) : q;
+      let need = 0, have = 0, ask = null;
+      if (rm) { need = num(rm[1]); have = num(rm[2]);
+        // the 89 goes with the set: "mussel for LEM 89:135" / "LEM for mussel 135:89" were written the other way round
+        if (give.pack && !xpack && have % SET_N && need % SET_N === 0) [need, have] = [have, need];
+        else if (xpack && !give.pack && need % SET_N && have % SET_N === 0) [need, have] = [have, need];
+        if (X.q && names.length === 1) ask = xSide(X.q); }
+      else if (X.q) { need = xSide(X.q); have = Y.q ? ySide(Y.q) : give.pack ? SET_N : xpack ? 0 : 0; ask = need;
+        if (!have && Y.q === null) need = 0;                                   // "135 mussel for saw": how many saws? → ask the ratio
+        // 270 for 2 sets → 135 : 89
+        if (give.pack && have > SET_N && have % SET_N === 0) { const f = have / SET_N; if (need % f === 0) { need /= f; have = SET_N; } } }
+      else if (Y.q) { have = ySide(Y.q); need = xpack ? SET_N : 0; }                // "LEM for 135 mussel" = one set for 135
+      const ok = need > 0 && have > 0, flip = !!SR.flip[key];
+      if (!flip || !xp) {
+        // a set you give is counted in sets on its line: 89 materials of it = 1 set
+        const rate = ok ? { need: xpack ? need / SET_N : need, have, give, gk: "k" + li } : { need: 0, have: 0, give, gk: "k" + li, none: true };
+        out.asks.push({ key, kind: "rate", cmd: true, canFlip: !!xp, line: raw.trim(), ref: xp ? xp.id : null, name: nm, sure: xi ? xi.sure : false, q: ask != null ? (xpack ? ask / SET_N : ask) : null, rate });
+      } else {
+        // the other way round: you give Y, you get X
+        const gx = { ref: xp.id, name: xp.en, e: xp.e || "", pack: xpack };
+        const rate = ok ? { need: give.pack ? have / SET_N : have, have: need, give: gx, gk: "k" + li } : { need: 0, have: 0, give: gx, gk: "k" + li, none: true };
+        out.asks.push({ key, kind: "rate", cmd: true, canFlip: true, flip: true, line: raw.trim(), ref: give.ref, name: give.name, sure: give.sure, q: null, rate });
+        if (!out.gives.some(g => g.name === gx.name)) out.gives.push(gx);
+      }
+    });
+  });
+  return out;
+}
+
 /** The post → info (kind, author, notes, what they give) + the asks: coins (price each), ratios (need:have), picture tiles. */
 function srParse() {
-  const text = SR.text || "", R = impParse(textLines(text), [], [], text), asks = [];
-  const info = { kind: R.kind, author: R.author || SR.author, notes: R.notes.slice(0, 6), gives: [], offer: [] };
+  const C = srCommands(SR.text || ""), text = C.rest.join("\n"), R = impParse(textLines(text), [], [], text), asks = C.asks.slice();
+  const info = { kind: C.asks.length ? "trade" : R.kind, author: R.author || SR.author, notes: R.notes.slice(0, 6), gives: C.gives.slice(), offer: [], cmd: C.asks.length > 0 };
   // trade groups: "Need 🫙🫙 45:89 // 40:89 for 10 sets+" — you give 45, you get 89 (materials of a set)
   R.groups.forEach((g, gi) => {
     if (g.oos) return;                                                   // struck: they don't need it any more
@@ -5792,6 +5952,7 @@ function srItem(a) {
   if (pk === "-") return { ignored: true };
   if (pk && CAT.byId[pk]) return { p: CAT.byId[pk], sure: true };
   if (!a.ref && a.name) { const mx = mixFromText(a.name); if (mx) return { p: mx, sure: true }; }
+  if (a.cmd && a.ref && CAT.byId[a.ref]) return { p: CAT.byId[a.ref], sure: a.sure !== false };
   if (a.kind === "coin" && a.it) { const m = srMatch(a.it); if (m.p && (m.sure || !srGroup(a.name))) return m; const gr = srGroup(a.name); return gr ? { group: gr } : m; }
   if (a.ref && CAT.byId[a.ref]) return { p: CAT.byId[a.ref], sure: !a.pic || !a.pic.m || !a.pic.m[0] || a.pic.m[0].c < .28 };
   // a name the post didn't match for sure: a family of items, or the library's sure match only (no wild guess)
@@ -5808,7 +5969,7 @@ function srRows() {
     if (a.kind === "rate") {
       const r = E.rate || a.rate;
       // a ratio: whole lots when you have enough (45:89 → 45, 90, 135…)
-      if (E.q == null && ask == null && r.need >= 1 && q >= r.need && Number.isInteger(r.need)) q = Math.floor(q / r.need) * r.need;
+      if (E.q == null && ask == null && r.need >= 1 && r.have > 0 && q >= r.need && Number.isInteger(r.need)) q = Math.floor(q / r.need) * r.need;
       rows.push({ a, key, p, sure, have, ask, q, from, rate: r, off: !!E.off });
     } else {
       const xmp = E.p == null && a.xmp ? a.xmp : 0, price = E.p != null ? E.p : xmp ? xmp * maxPrice(p && p.id) : a.p || 0;
@@ -5825,7 +5986,7 @@ function srRows() {
   const byG = new Map(); rows.filter(r => r.rate && !r.off && r.p && r.have > 0).forEach(r => { const k = r.rate.gk || r.key; if (!byG.has(k)) byG.set(k, []); byG.get(k).push(r); });
   byG.forEach(L => { const r0 = L[0].rate, units = L.reduce((s, r) => s + r.q * r.rate.have / r.rate.need, 0), size = r0.give && r0.give.pack ? units / SET_N : units;
     const B = r0.bulk && !(SR.ed[L[0].key] || {}).rate ? r0.bulk : null; L.forEach(r => { r.bulkOn = !!(B && size >= B.at); }); });
-  rows.forEach(r => { if (r.rate) { const R2 = r.bulkOn ? r.rate.bulk : r.rate; r.ratio = R2; r.units = r.q * R2.have / R2.need; } });
+  rows.forEach(r => { if (r.rate) { const R2 = r.bulkOn ? r.rate.bulk : r.rate; r.ratio = R2; r.units = R2.need > 0 && R2.have > 0 ? r.q * R2.have / R2.need : 0; } });
   return { info, dq, rows, groups };
 }
 /** What you get, in the post's money: "2 sets + 12 materials", "6 foods". */
@@ -5836,7 +5997,7 @@ const unitsTxt = (g, n) => {
 };
 /** The same, short, for the line's value column: "2.5 sets", "70 mat.", "12 Saw". */
 const unitsShort = (g, n) => g && g.pack ? (n >= SET_N - .5 ? fmtP(Math.round(n / SET_N * 10) / 10) + " set" + (Math.round(n / SET_N * 10) === 10 ? "" : "s") : Math.round(n) + " mat.") : fmtP(Math.round(n * 10) / 10) + " " + String(g ? g.name : "").split(" ")[0].slice(0, 10);
-const ratioTxt = r => fmtP(r.need) + ":" + fmtP(r.have);
+const ratioTxt = r => r && r.need > 0 && r.have > 0 ? fmtP(r.need) + ":" + fmtP(r.have) : "ratio?";
 
 /* ---------- screenshots → the text of the post (corrected by you if needed) + the picture tiles ---------- */
 /** A screenshot's lines → text, the way Discord's "Copy Text" gives it (:item: for a picture, ~~struck~~). */
@@ -5903,7 +6064,7 @@ async function srImages(files) {
 }
 
 /* ---------- the page ---------- */
-function srReset() { SR.author = ""; SR.shot = false; SR.text = ""; SR.ed = {}; SR.picks = {}; SR.adds = {}; SR.tiles = []; SR.pics = []; SR.err = ""; SR.done = null; $("#srIn").value = ""; }
+function srReset() { SR.flip = {}; SR.author = ""; SR.shot = false; SR.text = ""; SR.ed = {}; SR.picks = {}; SR.adds = {}; SR.tiles = []; SR.pics = []; SR.err = ""; SR.done = null; $("#srIn").value = ""; }
 function renderSearch() {
   const out = $("#srOut"); out.textContent = "";
   if (SR.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "srMsg" }, SR.busy), h("button", { class: "btn sm", onclick: () => { SR.stop = true; SR.busy = null; IMP.say = null; renderSearch(); } }, "Stop"))); return; }
@@ -5939,7 +6100,9 @@ function renderSearch() {
     list.append(h("div", { class: "oline srl" + (short ? " short" : "") + (!r.sure ? " warn" : "") },
       thumb(prodState(r.p.id), r.p.e, "oth"),
       h("div", { class: "omid" }, h("button", { class: "oname", onclick: () => srPick(r) }, r.p.en, !r.sure ? h("span", { class: "flag" }, "?") : null),
-        h("small", null, pb, " · " + (r.ask != null ? "asks " + fmt(r.ask) + " · " : "") + "you have " + fmt(r.have) + (r.from ? " · from “" + r.from + "”" : ""), short ? h("b", { class: "shortt" }, "only " + fmt(r.have) + " — " + fmt(r.ask - r.have) + " missing") : null)),
+        h("small", null, pb, " · " + (r.ask != null ? "asks " + fmt(r.ask) + " · " : "") + "you have " + fmt(r.have) + (r.from ? " · from “" + r.from + "”" : ""), short ? h("b", { class: "shortt" }, "only " + fmt(r.have) + " — " + fmt(r.ask - r.have) + " missing") : null,
+          r.a.cmd ? h("span", { class: "omix" }, "You give " + (r.p.parts ? setsTxt(r.q) + " (" + fmt(r.q * SET_N) + " materials)" : fmt(r.q) + " " + r.p.en) + " → you get " + (r.units ? unitsTxt(r.rate.give, r.units) : "? (set the ratio)"),
+            r.a.canFlip ? h("button", { class: "omixb", onclick: () => { SR.flip[r.a.key] = !SR.flip[r.a.key]; SR.ed = {}; renderSearch(); } }, " ⇄ the other way round") : null) : null)),
       h("div", { class: "oq" }, h("span", null, "×"), qi),
       r.rate ? h("span", { class: "ov" }, r.units ? unitsShort(r.rate.give, r.units) : "—") : r.v ? h("span", { class: "ov" }, h("i", { class: "coin" }), fmt(r.v)) : h("span", { class: "miss" }, "—"),
       h("button", { class: "odel", "aria-label": "Remove", onclick: () => { E.off = true; renderSearch(); } }, "×")));
