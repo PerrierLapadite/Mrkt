@@ -206,7 +206,7 @@ body[data-tab=prev] #editor{display:none}
 .theme i{display:block;height:46px;border-radius:6px;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .theme i::before{content:"";position:absolute;left:8px;right:8px;top:9px;height:3px;background:var(--k)}
 .theme i::after{content:"";position:absolute;left:8px;width:44%;bottom:9px;height:12px;border-radius:2px;background:var(--a)}
-.layouts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.layouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .lay{padding:8px 2px 6px!important;font-size:12.5px!important}
 .addnote{justify-self:start;border:0;background:none;padding:2px 2px;color:var(--mut);font:italic 600 14px var(--slab)}
 .notebox{display:grid}
@@ -670,6 +670,16 @@ body[data-tab=prev] #editor{display:none}
 .srpic{width:28px;height:24px;object-fit:contain;border-radius:4px;background:#fff9db}
 .srinv a{color:var(--ink);font-weight:700}
 .smiss summary{cursor:pointer}
+/* card head: picture, name, then the buttons on the same line (★ ⋯ ×), whatever their number */
+.i1,.gi1,.haveitem .i1{grid-template-columns:auto minmax(0,1fr);grid-auto-flow:column;grid-auto-columns:auto}
+.haveitem .i1{grid-template-columns:auto minmax(0,1fr) 112px}
+.i1 .ib,.gi1 .ib{width:34px;height:34px}
+.ib.idel{color:var(--mut);font-size:22px;font-weight:500;width:30px!important}
+.ib.idel:hover{color:var(--red,#c0392b)}
+.clrall{margin-top:6px;color:var(--mut)}
+.clrall.arm{color:#fff;background:#b8412e;border-color:#b8412e;border-style:solid}
+#toast.act{pointer-events:auto;display:flex;align-items:center;gap:14px}
+#toast .tundo{background:transparent;border:0;color:inherit;font:800 14px var(--sans);text-decoration:underline;text-underline-offset:3px;padding:4px 2px;cursor:pointer}
 .srcard>summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:2px;padding-right:28px;position:relative;margin:0}
 .srcard>summary::-webkit-details-marker{display:none}
 .srcard>summary span{font:700 17px/1.25 var(--slab);color:var(--ink)}
@@ -1017,7 +1027,6 @@ details summary{-webkit-tap-highlight-color:transparent}
 <main class="app">
   <nav class="tabbar" id="tabbar" aria-label="Sections">
     <button data-t="items"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5h17l-1.7 9.1a2 2 0 0 1-2 1.6H7.2a2 2 0 0 1-2-1.6z"/><path d="m8 9.5 3-5.5M16 9.5 13 4"/><path d="M9.5 13.5v3M14.5 13.5v3"/></svg><span class="tbl">Items</span></button>
-    <button data-t="style"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.2-2.6 1.6-2.6h1.9a3.9 3.9 0 0 0 3.9-3.9c0-5-4-9.1-8.8-9.1z"/><circle cx="7.6" cy="11.2" r="1.1"/><circle cx="10.4" cy="7.4" r="1.1"/><circle cx="15" cy="7.8" r="1.1"/></svg><span class="tbl">Style</span></button>
     <button data-t="order"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6L6 20.5z"/><path d="M9.2 8.5h5.6M9.2 12h5.6M9.2 15.5h3"/></svg><span class="tbl">Order</span></button>
     <button data-t="deals"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13.5"/><path d="m14.5 5 3.5 3.5-3.5 3.5"/><path d="M19.5 15.5H6"/><path d="M9.5 12 6 15.5 9.5 19"/></svg><span class="tbl">Deals</span></button>
     <button data-t="prev"><svg class="tbi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="9" cy="9.5" r="1.6"/><path d="m20.5 15.5-4.6-4.6L6 20"/></svg><span class="tbl">Preview</span></button>
@@ -1152,6 +1161,7 @@ details summary{-webkit-tap-highlight-color:transparent}
       <div class="card fieldset">
         <div class="ch"><h2>Layout</h2></div>
         <div class="layouts" id="layouts"></div>
+        <div id="custBox" class="stack" hidden></div>
         <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="manual">Manual</button><button data-s="qty">Qty</button><button data-s="value">Value</button><button data-s="name">A–Z</button></div></div>
       </div>
       <div class="card fieldset">
@@ -1546,7 +1556,21 @@ const store = {
   set(k, v) { if (DEMO && !CACHE_KEY.test(k)) return true; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 };
 let toastT = 0;
-function toast(t) { const m = $("#toast"); m.textContent = t; m.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show"), 2600); }
+function toast(t) { const m = $("#toast"); m.textContent = t; m.classList.remove("act"); m.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show"), 2600); }
+/** A toast with an Undo button (6 s). */
+function toastUndo(t, undo) {
+  const m = $("#toast"); m.textContent = "";
+  m.append(h("span", null, t), h("button", { type: "button", class: "tundo", onclick: () => { m.classList.remove("show", "act"); clearTimeout(toastT); undo(); } }, "Undo"));
+  m.classList.add("show", "act"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show", "act"), 6000);
+}
+/** Remove an item right from its card (Undo in the toast). */
+function removeItem(it, list) {
+  const i = list.indexOf(it); if (i < 0) return;
+  list.splice(i, 1); renderLists(); if (st.type === "trade") renderTarget(); changed();
+  toastUndo((itemName(it) || "Item") + " removed", () => { list.splice(Math.min(i, list.length), 0, it); renderLists(); if (st.type === "trade") renderTarget(); changed(); });
+}
+const itemName = it => (it.ref && CAT.byId[it.ref] ? CAT.byId[it.ref].en : (it.name || "").trim());
+const delBtn = (it, list) => h("button", { class: "ib idel", "aria-label": "Remove", title: "Remove", onclick: () => removeItem(it, list) }, "×");
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
 /* ---------- IndexedDB (images personnalisées) ---------- */
@@ -2271,6 +2295,9 @@ function ledgerLine(w, c, xl, xr, cy, T, small) {
            ×100                         (2,400 ea)
    z: size (1 = list, less in compact columns); nl: the note's lines (list), or the note written after the total (compact). */
 const SROW_H = 136;
+/** Custom layout of a post: shape (rows, cards, groups), columns (0 = auto), text size, what each item shows. Set while drawing. */
+let DRAW_CU = null;
+const custOf = p => Object.assign({ shape: "rows", cols: 0, size: 1, qty: 1, ea: 1 }, p.cust || {});
 function saleRowH(nl, z) { return Math.round((SROW_H + nl * 30) * z); }
 function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
   const mb = top + 68 * z, iz = 100 * z;
@@ -2278,6 +2305,7 @@ function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
   icon(itemState(w), w.e, x0 + iz / 2 + 2, nl && nl.length ? mb : top + rh / 2, iz);
   // right: the price per item, the biggest number of the row
   let pw = 0; const v = ledgerVal(w, "p");
+  if (v && DRAW_CU && !DRAW_CU.ea) v.sub = null;
   if (v) {
     const s = 50 * z, ir = s * .36, py = v.sub ? mb - 16 * z : mb;
     const tw = txt(v.t, x1, py + 1, { f: "700", s, c: T.ink, al: "right", maxW: (x1 - x0) * .38, min: 26 });
@@ -2285,7 +2313,7 @@ function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
     if (v.sub) pw = Math.max(pw, txt(v.sub, x1, mb + 28 * z, { f: "600i", s: 25 * z, c: T.mut, al: "right" }));
   }
   // left: the name, then quantity · total
-  const q = num(w.q);
+  const q = DRAW_CU && !DRAW_CU.qty ? 0 : num(w.q);
   let nx = x0 + iz + 22 * z; const nx0 = nx, ny = q > 0 ? mb - 22 * z : mb, dy = mb + 27 * z, maxN = x1 - pw - 30 * z;
   if (w.hot) { starShape(nx + 13 * z, ny - 2, 14 * z, T.acc); nx += 34 * z; }
   const nw = txt(w.name || "", nx, ny, { f: "700", s: 44 * z, c: T.ink, maxW: maxN - nx, min: 22 });
@@ -2314,16 +2342,17 @@ function centerLine(P, cx, cy, maxW) {
 }
 /* ---------- cards (Grid, and lists with many items): plain cards, no tag decoration — the item takes the space ---------- */
 function cardPlan(wants, lay, W, M, trade) {
-  const n = wants.length, cols = lay === "grid2" ? 2 : lay === "grid3" ? 3 : n > 70 ? 6 : n > 40 ? 5 : 4;
+  const n = wants.length, cu = DRAW_CU && DRAW_CU.cols, cols = cu || (lay === "grid2" ? 2 : lay === "grid3" ? 3 : n > 70 ? 6 : n > 40 ? 5 : 4);
+  if (cu) return { cols, W: cols <= 3 ? W : Math.round(1080 * cols / 4) };
   return { cols, W: lay === "grid2" || lay === "grid3" ? W : Math.max(W, Math.round(1080 * cols / 4)) };
 }
 function cardMeasure(wants, cols, W, M, trade) {
-  const gap = 14, cw = (W - 2 * M - gap * (cols - 1)) / cols, z = Math.min(1.6, cw / 224);
+  const gap = 14, cw = (W - 2 * M - gap * (cols - 1)) / cols, z = Math.min(1.6, cw / 224) * (DRAW_CU ? DRAW_CU.size : 1);
   const nameL = wants.map(w => wrap(w.name || "", cw - 20 * z, "700", 25 * z, 2));
   const NL = Math.max(1, ...nameL.map(l => l.length));
   const anyN = wants.some(w => (w.note || "").trim());
   const hasP = trade ? wants.some(hasRatio) : wants.some(w => num(w.p) > 0);
-  const hasD = !trade && wants.some(w => num(w.q) > 0);
+  const hasD = !trade && wants.some(w => num(w.q) > 0) && !(DRAW_CU && !DRAW_CU.qty);
   const ch = (14 + 84 + 8 + NL * 29 + (hasP ? 46 : 0) + (hasD ? 34 : 0) + (anyN ? 26 : 0) + 12) * z;
   const rows = Math.ceil(wants.length / cols);
   return { cols, gap, cw, z, nameL, NL, anyN, hasP, hasD, ch, rows, h: rows * ch + Math.max(0, rows - 1) * gap };
@@ -2346,7 +2375,7 @@ function drawCard(w, i, CD, x, ty, T, trade, mainK) {
       if (v) {
         // the price stays big: "1,500 ea" next to a ×MP price only when it fits without shrinking it
         const P = [v.ic ? { ic: v.ic, r: 13 * z } : null, { t: v.t, f: "700", s: 34 * z, c: T.ink }].filter(Boolean), sub = v.sub ? { t: v.sub, f: "600i", s: 19 * z, c: T.mut, gap: 8 * z } : null;
-        const fits = sub && measure(v.t, "700", 34 * z) + measure(sub.t, "600i", sub.s) + sub.gap <= cw - 18;
+        const fits = sub && !(DRAW_CU && !DRAW_CU.ea) && measure(v.t, "700", 34 * z) + measure(sub.t, "600i", sub.s) + sub.gap <= cw - 18;
         centerLine(fits ? P.concat(sub) : P, cx, yy + 23 * z, cw - 14);
       }
     }
@@ -2381,21 +2410,25 @@ function draw() {
   // Auto: past 12 items, switch to compact rows spread over several columns (the image grows wider, not longer)
   let lay = st.layout || "auto";
   if (lay === "auto") lay = trade ? "groups" : "list";
+  // Custom: you choose rows / cards / groups, the columns, the text size and what each item shows
+  const CU = DRAW_CU = lay === "custom" ? custOf(st) : null;
+  if (CU) lay = CU.shape === "cards" ? "cardsC" : CU.shape === "groups" && trade ? "groups" : trade ? (CU.cols === 1 ? "list" : "compact") : "list";
   // safety: very long lists in List / Grid would make an image too tall to export on iPhone
   if ((lay === "list" && trade && wants.length > 45) || (lay === "grid2" && wants.length > 24) || (lay === "grid3" && wants.length > 36)) lay = trade ? "groups" : "compact";
   const grid = lay === "grid2" || lay === "grid3", C = lay === "grid3" ? 3 : 2, compact = lay === "compact", grouped = lay === "groups";
   // cards: Grid, and the many-items list of sell / buy posts (4–6 cards a row: stays narrow, so readable in Discord's preview)
-  const cards = grid;
+  const cards = grid || lay === "cardsC";
   if (cards) W = cardPlan(wants, lay, W, M, trade).W;
   // sell / buy list: one column up to ~10 items, then 2, 3, 4 columns of two-line rows — the picture stays about twice as tall as wide
   // (Discord shrinks a too-long picture to a thin strip, a too-wide one to tiny text)
   let SL = null;
   if (!trade && (lay === "list" || compact)) {
     const n = wants.length, CWs = 600, GS = 44;
-    for (let lc = compact ? 2 : 1; lc <= 4; lc++) {
-      const Wc = lc === 1 ? 1080 : 2 * M + lc * CWs + (lc - 1) * GS, z = lc === 1 ? 1 : .82, rh = saleRowH(0, z), per = Math.ceil(n / lc);
+    const k = CU ? CU.size : 1;
+    for (let lc = CU && CU.cols ? CU.cols : compact ? 2 : 1; lc <= 5; lc++) {
+      const Wc = lc === 1 ? 1080 : 2 * M + lc * CWs + (lc - 1) * GS, z = (lc === 1 ? 1 : .82) * k, rh = saleRowH(0, z), per = Math.ceil(n / lc);
       SL = { lc, W: Wc, cw: lc === 1 ? Wc - 2 * M : CWs, gap: GS, z, rh, per };
-      if (lc === 4 || per * (lc === 1 ? saleRowH(0, 1) : rh) + 760 <= Wc * 2.3) break;
+      if ((CU && CU.cols) || lc >= 4 || per * rh + 760 <= Wc * 2.3) break;
     }
     W = SL.W;
   }
@@ -2416,7 +2449,8 @@ function draw() {
   // sell / buy rows are two lines (name · price, then quantity · total): the picture stays 1080 wide, the text big
   const SZ = .9, CW = trade ? 580 : 840, CG = 48, RH = trade ? 78 : saleRowH(0, SZ);
   let cc = 1, colW = 0;
-  if (compact && trade) {
+  if (compact && trade && CU && CU.cols) { cc = Math.min(4, CU.cols); W = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); colW = (W - 2 * M - (cc - 1) * CG) / cc; }
+  else if (compact && trade) {
     // fewer, longer columns: a tall picture stays readable on a phone, a very wide one gets tiny
     const maxC = trade ? 4 : 3;
     for (cc = 1; cc < maxC; cc++) { const Wc = Math.max(1080, 2 * M + cc * CW + (cc - 1) * CG); if (Math.ceil(wants.length / cc) * RH <= Wc * (trade ? 1.6 : 2)) break; }
@@ -2452,7 +2486,7 @@ function draw() {
   let rows = [];
   if (SL && SL.lc > 1) H += (wants.length && wants.some(w => num(w.p) > 0) ? 40 : 0) + SL.per * SL.rh + 30;
   else if (lay === "list" && !trade) {
-    rows = wants.map(w => { const nl = (w.note || "").trim() ? wrap(w.note.trim(), W - 2 * M - 130, "500i", 25, 3) : []; return { w, nl, h: saleRowH(nl.length, 1) }; });
+    rows = wants.map(w => { const nl = (w.note || "").trim() ? wrap(w.note.trim(), W - 2 * M - 130, "500i", 25, 3) : []; return { w, nl, h: saleRowH(nl.length, SL ? SL.z : 1) }; });
     H += rows.reduce((a, r) => a + r.h, 0) + 10 + (priced ? 40 : 0);
   } else if (lay === "list") {
     rows = wants.map(w => {
@@ -2641,7 +2675,7 @@ function draw() {
   else if (!grid && !trade) {
     if (priced) { txt("PRICE / EA", W - M, y + 14, { f: "700", s: 20, c: T.mut, sp: 3, al: "right" }); rule(M, W - M, y + 34, 1, T.dark ? "rgba(240,229,207,.2)" : "rgba(42,29,20,.2)"); y += 40; }
     rows.forEach(({ w, nl, h: rh }, idx) => {
-      saleRow(w, M, W - M, y, rh, T, 1, nl, mainK, hair);
+      saleRow(w, M, W - M, y, rh, T, SL ? SL.z : 1, nl, mainK, hair);
       y += rh;
       if (idx < rows.length - 1) rule(M + 120, W - M, y, 1, T.dark ? "rgba(240,229,207,.12)" : "rgba(42,29,20,.12)");
     });
@@ -2805,7 +2839,7 @@ function tab(t) {
   closeMe();
   if (t === "inv") { renderInv(); renderSearch(); }
   if (t === "deals") renderOngoing();
-  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist", "imp"].includes(t));
+  $("#meBtn").classList.toggle("on", ["inv", "stats", "hist", "imp", "style"].includes(t));
   $("#impBtn").classList.toggle("on", t === "imp");
   if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
@@ -2846,7 +2880,8 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Out of stock:"), " ⋯ on an item → “Out of stock”: it stays on the picture, faded and struck through, and isn't counted or sold in Order."),
     h("li", null, h("b", null, "Profile (top right):"), " your pseudo, your Inventory (read from a screen recording of your barn / silo, from screenshots, or by hand — it follows your deals) and your Stats."),
     h("li", null, h("b", null, "Inventory in one go:"), " record your screen while you scroll your Barn slowly from top to bottom (then the Silo), then Inventory → 📷 Screenshots / video → pick the video. Every square is read many times; the total at the top lets you check it matches the game."),
-    h("li", null, h("b", null, "Style:"), " title, username, paper colour and layout."),
+    h("li", null, h("b", null, "Style"), " (in the ☰ menu): title, username, paper colour and layout. “Custom” lets you pick rows or cards, the columns, the text size and what each item shows."),
+    h("li", null, h("b", null, "Remove:"), " the × on a card removes that item, “Remove all” at the bottom of the list clears it. Undo is in the message that appears."),
     h("li", null, h("b", null, "Preview:"), " Download, Share or Copy the picture and post it on Discord.")),
   h("a", { class: "btn full guide", href: "guide.html", target: "_blank", rel: "noopener" }, "📖 Full guide"),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
@@ -3053,9 +3088,20 @@ function renderLists() {
     markTargetGroup();
   } else { if (st.wants.length > 1) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
   if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
+  if (st.wants.length > 1) wl.append(clearAllBtn());
   $("#lfilter").hidden = st.wants.length + st.have.length < 7;
   if ($("#lfilter").hidden) $("#lf").value = ""; else applyListFilter();
   renderSummary(); requestAnimationFrame(updJump);
+}
+/** "Remove all N items": two taps (the second confirms), then Undo in the toast. */
+let clrArm = 0;
+function clearAllBtn() {
+  const n = st.wants.length, b = h("button", { class: "btn dashed clrall", onclick: () => {
+    if (!clrArm) { clrArm = 1; b.textContent = "Tap again to remove all " + n + " items"; b.classList.add("arm"); setTimeout(() => { if (clrArm) { clrArm = 0; renderLists(); } }, 3500); return; }
+    clrArm = 0; const old = st.wants.slice(), pid = st.id; st.wants = []; renderLists(); if (st.type === "trade") renderTarget(); changed();
+    toastUndo(plural(n, "item") + " removed", () => { if (st.id !== pid) return toast("That post is no longer open"); st.wants = old.concat(st.wants); renderLists(); if (st.type === "trade") renderTarget(); changed(); });
+  } }, "🗑 Remove all " + n + " items");
+  return b;
 }
 /* ---------- prices by group, one rule a line: "all jams 5x", "mussel products 6k", "all bars 800", "everything 4x"
    (trade posts: "all jams 45:89"). Checked before anything changes; later lines win; Undo. ---------- */
@@ -3278,7 +3324,7 @@ function groupRow(it) {
   const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); row.classList.toggle("hot", !!it.hot); changed(); } }, "★");
   row.append(h("div", { class: "gi1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, starB,
-    h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯")));
+    h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"), delBtn(it, st.wants)));
   if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); row.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const ta = n.querySelector("textarea") || n.querySelector("button"); ta && (ta.click ? (ta.tagName === "BUTTON" ? ta.click() : ta.focus()) : 0); }); } }
   return row;
 }
@@ -3310,14 +3356,14 @@ function haveCard(it) {
   card.append(h("div", { class: "i1" },
     thumbEl(it),
     name, stepper(it, () => {}),
-    h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.have) }, "⋯")),
+    h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.have) }, "⋯"), delBtn(it, st.have)),
     noteArea(it, "Note (optional)"));
   return card;
 }
 function cardHead(it, card) {
   const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), title: "Highlight", "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); card.classList.toggle("hot", !!it.hot); changed(); } }, "★");
-  return h("div", { class: "i1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, starB, h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"));
+  return h("div", { class: "i1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, starB, h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"), delBtn(it, st.wants));
 }
 function itemCard(it) {
   const card = h("div", { class: "item" + (it.hot ? " hot" : "") + (it.oos ? " oos" : ""), "data-uid": it.uid });
@@ -3432,8 +3478,23 @@ const LAYOUTS = [
   { id: "compact", fr: "Compact", svg: '<svg viewBox="0 0 46 34" fill="currentColor"><rect x="1" y="2" width="21" height="5" rx="2"/><rect x="24" y="2" width="21" height="5" rx="2"/><rect x="1" y="10" width="21" height="5" rx="2"/><rect x="24" y="10" width="21" height="5" rx="2"/><rect x="1" y="18" width="21" height="5" rx="2"/><rect x="24" y="18" width="21" height="5" rx="2"/><rect x="1" y="26" width="21" height="5" rx="2"/><rect x="24" y="26" width="21" height="5" rx="2"/></svg>' },
   { id: "list", fr: "List", svg: '<svg viewBox="0 0 46 34" fill="currentColor"><rect x="1" y="2" width="44" height="8" rx="3"/><rect x="1" y="13" width="44" height="8" rx="3"/><rect x="1" y="24" width="44" height="8" rx="3"/></svg>' },
   { id: "grid2", fr: "Grid ×2", svg: '<svg viewBox="0 0 46 34" fill="currentColor"><rect x="1" y="2" width="21" height="14" rx="3"/><rect x="24" y="2" width="21" height="14" rx="3"/><rect x="1" y="18" width="21" height="14" rx="3"/><rect x="24" y="18" width="21" height="14" rx="3"/></svg>' },
-  { id: "grid3", fr: "Grid ×3", svg: '<svg viewBox="0 0 46 34" fill="currentColor"><rect x="1" y="2" width="13" height="14" rx="3"/><rect x="16.5" y="2" width="13" height="14" rx="3"/><rect x="32" y="2" width="13" height="14" rx="3"/><rect x="1" y="18" width="13" height="14" rx="3"/><rect x="16.5" y="18" width="13" height="14" rx="3"/><rect x="32" y="18" width="13" height="14" rx="3"/></svg>' }
+  { id: "grid3", fr: "Grid ×3", svg: '<svg viewBox="0 0 46 34" fill="currentColor"><rect x="1" y="2" width="13" height="14" rx="3"/><rect x="16.5" y="2" width="13" height="14" rx="3"/><rect x="32" y="2" width="13" height="14" rx="3"/><rect x="1" y="18" width="13" height="14" rx="3"/><rect x="16.5" y="18" width="13" height="14" rx="3"/><rect x="32" y="18" width="13" height="14" rx="3"/></svg>' },
+  { id: "custom", fr: "Custom", svg: '<svg viewBox="0 0 46 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 8h22M34 8h8M4 17h8M20 17h22M4 26h16M28 26h14"/><circle cx="30" cy="8" r="3.5" fill="currentColor"/><circle cx="16" cy="17" r="3.5" fill="currentColor"/><circle cx="24" cy="26" r="3.5" fill="currentColor"/></svg>' },
 ];
+/** Custom layout: your own mix of shape, columns, size and what each item shows. */
+function renderCustom() {
+  const box = $("#custBox"); box.hidden = st.layout !== "custom"; box.textContent = ""; if (box.hidden) return;
+  const C = custOf(st), trade = st.type === "trade";
+  const set = (k, v) => { st.cust = Object.assign(custOf(st), { [k]: v }); renderCustom(); changed(); };
+  const seg = (lab, k, opts) => h("div", null, h("label", { class: "lbl" }, lab), h("div", { class: "seg" }, ...opts.map(([v, t]) => h("button", { type: "button", class: C[k] === v ? "on" : "", onclick: () => set(k, v) }, t))));
+  box.append(...[
+    seg("Shape", "shape", trade ? [["groups", "Ratio groups"], ["rows", "Rows"], ["cards", "Cards"]] : [["rows", "Rows"], ["cards", "Cards"]]),
+    C.shape === "groups" && trade ? null : seg("Columns", "cols", [[0, "Auto"], [1, "1"], [2, "2"], [3, "3"], [4, "4"], ...(C.shape === "cards" ? [[5, "5"]] : [])]),
+    seg("Text size", "size", [[.85, "Small"], [1, "Normal"], [1.15, "Big"], [1.3, "Huge"]]),
+    trade ? null : seg("Quantity", "qty", [[1, "Shown"], [0, "Hidden"]]),
+    trade ? null : seg("“1,500 ea” under ×MP prices", "ea", [[1, "Shown"], [0, "Hidden"]]),
+    h("p", { class: "hint" }, "Changes show right away in Preview. “Auto” columns keep the picture about twice as tall as wide, the size Discord shows best.")].filter(Boolean));
+}
 function renderStyle() {
   $$("[data-k]").forEach(i => { i.value = st[i.dataset.k] || ""; i.oninput = () => { st[i.dataset.k] = i.value; if (i.dataset.k === "name") renderProfiles(); changed(); }; });
   $$("#typeSeg button").forEach(b => { b.classList.toggle("on", b.dataset.y === st.type); b.onclick = () => { st.type = b.dataset.y; renderAll(); changed(); }; });
@@ -3441,6 +3502,7 @@ function renderStyle() {
   Object.entries(THEMES).forEach(([k, T]) => th.append(h("button", { class: "theme" + (st.theme === k ? " on" : ""), onclick: () => { st.theme = k; renderStyle(); changed(); } }, h("i", { style: `background:${T.paper};--a:${T.acc};--k:${T.ink}` }), T.name)));
   const ly = $("#layouts"); ly.textContent = "";
   LAYOUTS.forEach(l => { const b = h("button", { class: "lay" + (st.layout === l.id ? " on" : ""), onclick: () => { st.layout = l.id; renderStyle(); changed(); } }); b.innerHTML = l.svg; b.append(l.fr); ly.append(b); });
+  renderCustom();
   $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === (st.sort || "manual")); b.onclick = () => { st.sort = b.dataset.s; renderStyle(); changed(); }; });
   $("#haveTitleF").hidden = st.type !== "trade";
 }
@@ -5158,6 +5220,7 @@ function renderMeMenu() {
     go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
     go("📊", "Stats", S ? fmt(HIST.length) + " deals · " + short(Math.round(S.in)) + " coins in" : "Your sales, purchases and trades in numbers", () => tab("stats")),
     go("🕘", "History", HIST.length ? fmt(HIST.length) + " deals" : "Deals marked as done", () => tab("hist")),
+    go("🎨", "Style", "Post type, paper, layout (Custom too), texts", () => tab("style")),
     go("📥", "Import a post", "An old post, from a screenshot or its text", () => tab("imp")),
     go("💾", "Backup", "Save or restore everything (posts, history, inventory)", () => { tab("style"); setTimeout(() => { const b = $("#bkOut"); b && b.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); }),
     h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
