@@ -692,6 +692,11 @@ body[data-tab=prev] #editor{display:none}
 .qcparts span{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
 .qcparts b{font-weight:700;white-space:nowrap}
 .hsw{margin-bottom:2px}
+.gi1 .gq{width:58px;height:34px;padding:0 6px;text-align:center;font-size:14px}
+.ti.multi{display:inline-flex;align-items:center}
+.ti.multi .th,.ti.multi img{margin-left:-10px}
+.ti.multi .th:first-child,.ti.multi img:first-child{margin-left:0}
+.gsel button.on{border-color:var(--acc);background:var(--acc-soft)}
 .pchip .pdel{margin:0 -6px 0 2px;width:22px;height:22px;display:inline-grid;place-items:center;border-radius:50%;font:600 17px/1 var(--sans);color:var(--mut);opacity:.7}
 .pchip .pdel:hover{opacity:1;background:var(--line)}
 #undoBtn:disabled{opacity:.35}
@@ -2204,14 +2209,35 @@ function icon(s, emoji, cx, cy, z, flat) {
 function starShape(cx, cy, r, c) { ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? r * .45 : r; ctx.lineTo(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad); } ctx.closePath(); ctx.fillStyle = c; ctx.fill(); }
 
 /* ---------- data helpers ---------- */
-function giveItem(w) { const hv = st.have.filter(x => (x.name || "").trim() || x.ref); return hv.find(x => x.uid === w.give) || hv[0] || null; }
+/** What you give for an item: one of your "I have" items, or several of them (give = "uid1,uid2": e.g. 220 of Shovel / TNT / Dynamite / Axe for a BEM set). */
+const haveList = () => st.have.filter(x => (x.name || "").trim() || x.ref);
+const giveUids = give => String(give || "").split(",").filter(Boolean);
+function giveItem(w) {
+  const hv = haveList(), ids = giveUids(w.give);
+  if (ids.length > 1) { const L = ids.map(u => hv.find(x => x.uid === u)).filter(Boolean); if (L.length > 1) return multiGive(L); if (L.length) return L[0]; }
+  return hv.find(x => x.uid === w.give) || hv[0] || null;
+}
+/** Several of your items given together: one "give" (counted as a mix of them, like the page jams). */
+const MG_CACHE = new Map();
+function multiGive(L) {
+  const k = L.map(x => x.uid + ":" + (x.ref || x.name) + ":" + x.q).join("|");
+  if (MG_CACHE.has(k)) return MG_CACHE.get(k);
+  const refs = L.map(x => x.ref).filter(Boolean);
+  const g = { uid: L.map(x => x.uid).join(","), multi: L, name: L.map(pName).join(" / "), e: L[0].e, q: String(L.reduce((a, x) => a + num(x.q), 0)), mix: refs.length === L.length ? refs : undefined };
+  MG_CACHE.set(k, g); return g;
+}
+const giveParts = g => g ? g.multi || [g] : [];
 const hasRatio = w => num(w.ra) > 0 && num(w.rb) > 0;
 /* ratio groups (trade): items sharing the same "give : get" ratio */
 function firstHave() { return st.have.find(x => (x.name || "").trim() || x.ref) || null; }
-function normGive(uid) { const g = st.have.find(x => x.uid === uid && ((x.name || "").trim() || x.ref)) || firstHave(); return g ? g.uid : ""; }
+function normGive(uid) {
+  const hv = haveList(), ids = giveUids(uid).filter(u => hv.some(x => x.uid === u));
+  if (ids.length) return ids.join(",");
+  const g = firstHave(); return g ? g.uid : "";
+}
 // a group = same ratio, same item given, same bulk ratio
 const bulkSfx = b => b && num(b.at) > 0 && num(b.ra) > 0 && num(b.rb) > 0 ? "|" + fmtR(num(b.at)) + ":" + fmtR(num(b.ra)) + ":" + fmtR(num(b.rb)) : "";
-function ratioKeyOf(ra, rb, give, bulk) { return num(ra) > 0 && num(rb) > 0 ? fmtR(num(ra)) + ":" + fmtR(num(rb)) + ":" + normGive(give) + bulkSfx(bulk) : "none"; }
+function ratioKeyOf(ra, rb, give, bulk) { return num(ra) > 0 && num(rb) > 0 ? fmtRt(num(ra)) + ":" + fmtRt(num(rb)) + ":" + normGive(give) + bulkSfx(bulk) : "none"; }
 const ratioKey = w => ratioKeyOf(w.ra, w.rb, w.give, { at: w.bat, ra: w.bra, rb: w.brb });
 function ratioGroups(list) {
   const m = new Map();
@@ -2242,15 +2268,18 @@ function oosMark(x, y, w, h, sx0, sx1, sy, T) {
   ctx.save(); ctx.globalAlpha = .62; ctx.fillStyle = T.paper; ctx.fillRect(x, y, w, h); ctx.restore();
   ctx.fillStyle = T.acc; ctx.fillRect(sx0, Math.round(sy) - 2, Math.max(0, sx1 - sx0), 4);
 }
-function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtR(num(w.rb)), "D", z) + 8 + iz + 20 + measure(":", "D", z) + 20 + measure(fmtR(num(w.ra)), "D", z) + (g ? 8 + iz : 0); }
+const fmtRt = n => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });   // a ratio: 1.25 stays 1.25
+const giveIconsW = (g, iz) => { const n = giveParts(g).length; return n ? 8 + iz + (n - 1) * iz * .72 : 0; };
+function drawGiveIcons(g, x, cy, iz) { giveParts(g).forEach((it, i) => icon(itemState(it), it.e, x + 8 + iz / 2 + i * iz * .72, cy, iz, 1)); }
+function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtRt(num(w.rb)), "D", z) + 8 + iz + 20 + measure(":", "D", z) + 20 + measure(fmtRt(num(w.ra)), "D", z) + giveIconsW(g, iz); }
 /** "60 [their item] : 89 [my item]" — what you get : what you give, as on Discord. */
 function drawRatio(w, x, cy, s, T) {
   const iz = s * 1.3, g = giveItem(w), z = s * .86;
-  x += txt(fmtR(num(w.rb)), x, cy + 1, { f: "D", s: z, c: T.ink });
+  x += txt(fmtRt(num(w.rb)), x, cy + 1, { f: "D", s: z, c: T.ink });
   icon(itemState(w), w.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz;
   x += 20; x += txt(":", x, cy, { f: "D", s: z, c: T.mut }) + 20;
-  x += txt(fmtR(num(w.ra)), x, cy + 1, { f: "D", s: z, c: T.acc });
-  if (g) icon(itemState(g), g.e, x + 8 + iz / 2, cy, iz, 1);
+  x += txt(fmtRt(num(w.ra)), x, cy + 1, { f: "D", s: z, c: T.acc });
+  if (g) drawGiveIcons(g, x, cy, iz);
 }
 /** Sell / buy amounts: main line = total in coins, second line = "20 × 1,500". */
 function amounts(w) {
@@ -2519,7 +2548,7 @@ function draw() {
   if (CD) H += CD.h + 30;
   if (!wants.length) H += 80;
   const per = compact ? Math.ceil(wants.length / cc) : 0;
-  const tileH = g => 12 + 2 * TR + 10 + 34 + (g.items.some(w => (w.note || "").trim()) ? 26 : 0) + 12;
+  const tileH = g => 12 + 2 * TR + 10 + 34 + (g.items.some(w => num(w.q) > 0) ? 28 : 0) + (g.items.some(w => (w.note || "").trim()) ? 26 : 0) + 12;
   if (grouped && wants.length) H += GR.reduce((a, g) => a + 84 + Math.ceil(g.items.length / gPer(W)) * tileH(g) + 14 + 26, 0) + 4;
   if (compact && trade && wants.length) H += per * RH + 30;
 
@@ -2615,11 +2644,11 @@ function draw() {
       const hy = y + 44;
       if (g.none) txt("Make an offer", M + BP + 6, hy, { f: "D", s: 34, c: T.mut });
       else {
-        let x = M + BP + 6; const s = 46, gi = st.have.find(h => h.uid === g.give);
-        x += txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.ink });
+        let x = M + BP + 6; const s = 46, gi = giveItem({ give: g.give });
+        x += txt(fmtRt(num(g.rb)), x, hy + 2, { f: "D", s, c: T.ink });
         x += 18; x += txt(":", x, hy, { f: "D", s, c: T.mut }) + 18;
-        x += txt(fmtR(num(g.ra)), x, hy + 2, { f: "D", s, c: T.acc });
-        if (gi) { icon(itemState(gi), gi.e, x + 12 + 26, hy, 52, 1); x += 12 + 52; }
+        x += txt(fmtRt(num(g.ra)), x, hy + 2, { f: "D", s, c: T.acc });
+        if (gi) { drawGiveIcons(gi, x + 4, hy, 52); x += 4 + giveIconsW(gi, 52); }
         const rbw = 0;
         if (g.bulk) txt(bulkLabel(g), W - M - BP - 6, hy + 2, { f: "700", s: 26, c: T.acc, al: "right", maxW: W - 2 * M - 2 * BP - (x + rbw - M) - 40 });
         if (g.items.length && g.items.every(w => w.oos)) { ctx.fillStyle = T.ink; ctx.fillRect(M + BP, Math.round(hy) - 2, x + rbw + 6 - M - BP, 5); } // whole ratio out of stock
@@ -2631,7 +2660,9 @@ function draw() {
         ctx.beginPath(); ctx.arc(cx, ty + 12 + TR, TR, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
         icon(itemState(w), w.e, cx, ty + 12 + TR, TR * 1.8);
         const tnw = txt(w.name || "", cx, ty + 12 + 2 * TR + 10 + 17, { f: "700", s: 29, c: T.ink, al: "center", maxW: tw - 6, min: 17 });
-        if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 2 * TR + 10 + 34 + 12, { f: "500i", s: 20, c: T.mut, al: "center", maxW: tw - 6 });
+        // "Want 150": how many you want of it
+        const qOff = g.items.some(x => num(x.q) > 0) ? 28 : 0; if (num(w.q) > 0) txt("×" + fmt(num(w.q)), cx, ty + 12 + 2 * TR + 10 + 17 + 30, { f: "700", s: 24, c: T.acc, al: "center", maxW: tw - 6 });
+        if ((w.note || "").trim()) txt(w.note.trim().replace(/\n/g, " · "), cx, ty + 12 + 2 * TR + 10 + 34 + 12 + qOff, { f: "500i", s: 20, c: T.mut, al: "center", maxW: tw - 6 });
         if (w.oos) oosMark(x, ty + 2, tw, th - 4, cx - tnw / 2 - 6, cx + tnw / 2 + 6, ty + 12 + 2 * TR + 10 + 17, T);
       });
       y += bh + 26;
@@ -2679,7 +2710,7 @@ function draw() {
       const rw = trade ? (hasRatio(w) ? ratioW(w, 34) : 0) : (LCc.length ? P0.xr - P0.left : 0);
       const maxN = P0.xr - nx - (rw ? rw + 24 : 0);
       let nw = txt(w.name || "", nx, cy, { f: "700", s: big ? 36 : 30, c: T.ink, maxW: maxN, min: 19 });
-      const note = (w.note || "").trim().replace(/\n/g, " · ");
+      const note = [trade && num(w.q) > 0 ? "×" + fmt(num(w.q)) : "", (w.note || "").trim().replace(/\n/g, " · ")].filter(Boolean).join(" · ");
       if (note && maxN - nw > 60) nw += txt("  " + note, nx + nw, cy + 1, { f: "500i", s: 21, c: T.mut, maxW: maxN - nw });
       if (rw) {
         ctx.fillStyle = T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.32)";
@@ -2892,6 +2923,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Check a post"), " (in Inventory): paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
     h("li", null, h("b", null, "How the trade goes:"), " under a trade order — how many of their accounts, the crates in the right order (7×10 = 70, then 9 = 79, then 10 = 89: an account buys while it's under 80), what you buy at their shop. Copy it for Discord."),
+    h("li", null, h("b", null, "Several posts in one (trade):"), " put all you offer under “I have” (with quantities), then on each ratio tap the picture of what you give: one item, or several ticked together (e.g. 220 of Shovel / TNT / Dynamite / Axe for 89 BEM). A ratio can have decimals (1.25 : 1), and each wanted item a quantity (“Want 150”). Import reads such posts too, “(me:you)” included."),
     h("li", null, h("b", null, "Ratios (trade):"), " written as on Discord — 60 : 89 = 60 of the item for 89 of yours (the 89 is on the side of what you give, with its picture). Order gives 89 BEM for 60, 45 for 30."),
     h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams and Juices (the Jam Maker's and Juice Press's pages, as in the game) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
     h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or “Check a post” (Inventory), or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
@@ -2957,7 +2989,7 @@ const curAddKey = () => st.addR ? ratioKeyOf(st.addR.ra, st.addR.rb, st.addR.giv
 /** What a new "I want" item gets in a trade post: the ratio (and bulk ratio) of the group you add to. */
 const addRF = () => { const r = st.addR; return Object.assign({ ra: r.ra, rb: r.rb, give: r.give }, r.bat ? { bat: r.bat, bra: r.bra, brb: r.brb } : {}); };
 /** A ratio as written on Discord: what you get : what you give — "60 : 89" = 60 items for 89 BEM materials (ra = you give, rb = you get). */
-function ratioLabel(ra, rb) { return fmtR(num(rb)) + " : " + fmtR(num(ra)); }
+function ratioLabel(ra, rb) { return fmtRt(num(rb)) + " : " + fmtRt(num(ra)); }
 function setAddR(r) { const b = r && (r.bulk || (r.bat ? { at: r.bat, ra: r.bra, rb: r.brb } : null)); st.addR = r ? Object.assign({ ra: r.ra, rb: r.rb, give: normGive(r.give) }, b ? { bat: b.at, bra: b.ra, brb: b.rb } : {}) : null; SETTINGS.to = "wants"; saveSettings(); saveSoon(); renderTarget(); renderResults(); markTargetGroup(); }
 function renderTarget() {
   const trade = st.type === "trade";
@@ -2969,8 +3001,8 @@ function renderTarget() {
   const seen = new Set();
   groups.forEach(g => {
     seen.add(g.key);
-    const gi = multi && !g.none ? st.have.find(x => x.uid === g.give) : null;
-    tc.append(h("button", { class: "chip r" + (!toHave && k === g.key ? " on" : ""), onclick: () => setAddR(g.none ? null : g) }, gi ? thumb(itemState(gi), gi.e) : null, g.none ? "No ratio" : ratioLabel(g.ra, g.rb), g.bulk ? h("small", { class: "cbulk" }, " · " + fmtR(num(g.bulk.rb)) + " bulk") : null));
+    const gi = multi && !g.none ? giveItem({ give: g.give }) : null;
+    tc.append(h("button", { class: "chip r" + (!toHave && k === g.key ? " on" : ""), onclick: () => setAddR(g.none ? null : g) }, gi ? giveParts(gi).slice(0, 3).map(x => thumb(itemState(x), x.e)) : null, g.none ? "No ratio" : ratioLabel(g.ra, g.rb), g.bulk ? h("small", { class: "cbulk" }, " · " + fmtR(num(g.bulk.rb)) + " bulk") : null));
   });
   if (!toHave && !seen.has(k)) tc.append(h("button", { class: "chip r on" }, k === "none" ? "No ratio" : ratioLabel(st.addR.ra, st.addR.rb)));
   tc.append(h("button", { class: "chip plus", onclick: newRatioSheet }, "+ Ratio"));
@@ -3273,6 +3305,16 @@ function spUndoBar() {
     h("button", { class: "btn sm", "aria-label": "Hide", onclick: () => { spUndo = null; renderLists(); } }, "✕"));
 }
 /* ---------- trade: one card per ratio ---------- */
+/** Which of your "I have" items you give for a ratio: one, or several together (a mix of them). */
+function giveSheet(cur, done) {
+  const hv = haveList(); let sel = new Set(giveUids(normGive(cur)));
+  const list = h("div", { class: "menu gsel" });
+  const paint = () => { list.textContent = ""; hv.forEach(x => list.append(h("button", { class: sel.has(x.uid) ? "on" : "", onclick: () => { if (sel.has(x.uid)) { if (sel.size > 1) sel.delete(x.uid); } else sel.add(x.uid); paint(); } },
+    h("i", null, sel.has(x.uid) ? "☑" : "☐"), thumb(itemState(x), x.e), pName(x) + (num(x.q) > 0 ? " ×" + fmt(num(x.q)) : "")))); };
+  paint();
+  openSheet("You give", h("div", { class: "stack" }, h("p", { class: "hint" }, "Tick one of your items, or several: then they are given together, as a mix (e.g. 220 of Shovel / TNT / Dynamite / Axe for 89 BEM)."), list,
+    h("button", { class: "btn pri full", onclick: () => { closeSheet(); done(hv.filter(x => sel.has(x.uid)).map(x => x.uid).join(",")); } }, "Done")));
+}
 function groupCard(g) {
   const card = h("div", { class: "grp", "data-key": g.key });
   const hv = st.have.filter(x => (x.name || "").trim() || x.ref);
@@ -3282,14 +3324,12 @@ function groupCard(g) {
   const apply = () => { const t = wasTarget(); g.items.forEach(w => { w.ra = a.value.trim(); w.rb = b.value.trim(); w.give = g.give; }); if (t) st.addR = Object.assign({ ra: a.value.trim(), rb: b.value.trim(), give: g.give }, g.bulk ? { bat: g.bulk.at, bra: g.bulk.ra, brb: g.bulk.rb } : {}); g.key = ratioKeyOf(a.value, b.value, g.give, g.bulk); changed(); renderSummary(); };
   a.oninput = apply; b.oninput = apply;
   a.onchange = b.onchange = () => { renderLists(); renderTarget(); };
-  const giveBtn = h("button", { type: "button", class: "ti", title: "Which of your items you give" });
-  const gi = hv.find(x => x.uid === g.give);
-  giveBtn.append(gi ? thumb(itemState(gi), gi.e) : h("span", { class: "th" }, "📦")); if (hv.length > 1) giveBtn.append(h("small", null, "⇄"));
+  const giveBtn = h("button", { type: "button", class: "ti" + (giveUids(g.give).length > 1 ? " multi" : ""), title: "Which of your items you give" });
+  const gi = giveItem({ give: g.give });
+  if (gi) giveParts(gi).slice(0, 4).forEach(x => giveBtn.append(thumb(itemState(x), x.e))); else giveBtn.append(h("span", { class: "th" }, "📦")); if (hv.length > 1) giveBtn.append(h("small", null, "⇄"));
   giveBtn.onclick = () => {
     if (hv.length < 2) return toast(hv.length ? "Add more items under “I have” to choose between them" : "Add what you offer under “I have” first");
-    const i = hv.findIndex(x => x.uid === g.give), nx = hv[(i + 1) % hv.length].uid, t = wasTarget();
-    g.items.forEach(w => w.give = nx); if (t && st.addR) st.addR.give = nx;
-    renderLists(); renderTarget(); changed();
+    giveSheet(g.give, nx => { const t = wasTarget(); g.items.forEach(w => w.give = nx); if (t && st.addR) st.addR.give = nx; renderLists(); renderTarget(); changed(); });
   };
   const menu = h("button", { class: "ib", "aria-label": "Group actions", onclick: () => openSheet(g.none ? "Items without ratio" : "Ratio " + ratioLabel(g.ra, g.rb), h("div", { class: "menu" },
     h("button", { onclick: () => { closeSheet(); addHere(); } }, h("i", null, "＋"), "Add items to this group"),
@@ -3355,7 +3395,9 @@ function groupRow(it) {
   const row = h("div", { class: "gi" + (it.hot ? " hot" : "") + (it.oos ? " oos" : ""), "data-uid": it.uid });
   const name = nameEl(it);
   const starB = h("button", { class: "ib star" + (it.hot ? " on" : ""), "aria-label": "Highlight", onclick: () => { it.hot = it.hot ? 0 : 1; starB.classList.toggle("on", !!it.hot); row.classList.toggle("hot", !!it.hot); changed(); } }, "★");
-  row.append(h("div", { class: "gi1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, starB,
+  // how many you want ("Want 150 feathers") — empty = any quantity
+  const gq = h("input", { class: "inp gq", value: it.q || "", inputMode: "numeric", placeholder: "qty", title: "How many you want (optional)", "aria-label": "Quantity wanted", oninput: () => { it.q = gq.value.trim(); changed(); } });
+  row.append(h("div", { class: "gi1" }, thumbEl(it), name, it.oos ? h("button", { class: "oostag", title: "Out of stock — tap to put it back", onclick: () => { it.oos = 0; renderLists(); changed(); } }, "out of stock") : null, gq, starB,
     h("button", { class: "ib", "aria-label": "More actions", onclick: () => itemMenu(it, st.wants) }, "⋯"), delBtn(it, st.wants)));
   if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); row.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const ta = n.querySelector("textarea") || n.querySelector("button"); ta && (ta.click ? (ta.tagName === "BUTTON" ? ta.click() : ta.focus()) : 0); }); } }
   return row;
@@ -3404,8 +3446,8 @@ function itemCard(it) {
     // I get B [their item]  :  A [my item] I give — "60 : 89" as on Discord
     const hv = st.have.filter(x => (x.name || "").trim() || x.ref);
     const giveBtn = h("button", { type: "button", class: "ti", title: hv.length > 1 ? "Tap to change which of your items you give" : "Your item" });
-    const paintGive = () => { const g = giveItem(it); giveBtn.textContent = ""; giveBtn.append(g ? thumb(itemState(g), g.e) : h("span", { class: "th" }, "📦")); if (hv.length > 1) giveBtn.append(h("small", null, "⇄")); };
-    giveBtn.onclick = () => { if (hv.length < 2) return toast(hv.length ? "Add more items under “I have” to choose between them" : "Add what you offer under “I have” first"); const g = giveItem(it), i = hv.indexOf(g); it.give = hv[(i + 1) % hv.length].uid; paintGive(); changed(); };
+    const paintGive = () => { const g = giveItem(it); giveBtn.textContent = ""; if (g) giveParts(g).slice(0, 4).forEach(x => giveBtn.append(thumb(itemState(x), x.e))); else giveBtn.append(h("span", { class: "th" }, "📦")); if (hv.length > 1) giveBtn.append(h("small", null, "⇄")); };
+    giveBtn.onclick = () => { if (hv.length < 2) return toast(hv.length ? "Add more items under “I have” to choose between them" : "Add what you offer under “I have” first"); giveSheet(it.give, nx => { it.give = nx; paintGive(); hint(); changed(); }); };
     paintGive();
     const a = h("input", { value: it.ra || "", inputMode: "decimal", placeholder: "89", "aria-label": "I give", oninput: () => { it.ra = a.value; hint(); changed(); renderSummary(); } });
     const b = h("input", { value: it.rb || "", inputMode: "decimal", placeholder: "60", "aria-label": "I get", oninput: () => { it.rb = b.value; hint(); changed(); renderSummary(); } });
@@ -3836,14 +3878,16 @@ function orderIntent(text) {
   if ((m = t.match(rre))) { let g = num(m[1]), v = num(m[2]); if (g % SET_N === 0 && v % SET_N) [g, v] = [v, g]; if (g > 0 && v > 0) ratio = { rb: g, ra: v, txt: fmtR(g) + ":" + fmtR(v) }; t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length); }
   // the size: "8 sets", "8 bem sets", "8 bem", "for 8 sets together"
   const sre = /\b(?:if\s+i\s+(?:buy|take|get|grab|order|do)\s+|i'?(?:ll|\s+will)\s+(?:buy|take|get)\s+|for\s+|buying\s+|take\s+)?(\d+)\s*(?:x\s*)?(?:full\s+)?(?:(?:bem|sem|lem|tem|tool)\s*(?:sets?|lots?)?|sets?|lots?)\b(?:\s+(?:all\s+)?together|\s+in\s+total|\s+total)?/i;
-  if ((m = t.match(sre))) {
+  // "1 bem set" is a count of sets only when you give the set; when the set is what you get, it's an item of the order
+  const givesSet = st.type !== "trade" || st.have.some(x => isPackRef(x.ref)) || !st.wants.some(w => isPackRef(w.ref));
+  if (givesSet && (m = t.match(sre))) {
     const n = num(m[1]), word = /(?:sets?|lots?)\b/i.test(m[0].slice(m[0].indexOf(m[1]) + m[1].length));
     // "89 bem" / "178 bem" = materials (1 / 2 sets); "8 bem" = 8 sets
     sets = word || n < SET_N ? n : n % SET_N === 0 ? n / SET_N : null;
     if (sets) t = t.slice(0, m.index) + " " + t.slice(m.index + m[0].length);
   }
   // "for bem set", "for a set", "per set", "one bem set": 1 set (not "sets")
-  if (!sets && (m = t.match(/(^|[^a-z])(?:(?:for|per|each|every)\s+|x\s*)?(?:(?:a|one|the)\s+)?(?:full\s+)?(?:(?:bem|sem|lem|tem|tool)\s*set|set)(?![a-z])/i))) { sets = 1; t = t.slice(0, m.index + m[1].length) + " " + t.slice(m.index + m[0].length); }
+  if (givesSet && !sets && (m = t.match(/(^|[^a-z])(?:(?:for|per|each|every)\s+|x\s*)?(?:(?:a|one|the)\s+)?(?:full\s+)?(?:(?:bem|sem|lem|tem|tool)\s*set|set)(?![a-z])/i))) { sets = 1; t = t.slice(0, m.index + m[1].length) + " " + t.slice(m.index + m[0].length); }
   // the words around them aren't items
   t = t.replace(/\b(?:can|could|would|will|do)\s+(?:you|u|ya)\s+(?:do|make|give|sell|trade|offer|accept|go)\b/gi, " ")
     .replace(/\bis\s+it\s+(?:possible|ok|okay)\b/gi, " ").replace(/\b(?:the\s+|a\s+|your\s+|ur\s+)?(?:ratio|rate|deal|price)s?\b/gi, " ")
@@ -3883,7 +3927,7 @@ function tradeStepsText(rows) {
   const by = new Map(); live.forEach(L => { const g = L.r.ratio.g, k = g ? g.uid : "-"; const o = by.get(k) || { g, n: 0 }; o.n += L.r.ratio.give; by.set(k, o); });
   const out = [];
   by.forEach(o => {
-    const p = packOf(o.g), n = p ? Math.round(o.n) : giveWhole(o.n); if (!n) return;
+    const p = packOf(o.g), n = p ? Math.round(o.n) : giveWhole(o.n); if (!n || !p) return;   // the 70 → 79 → 89 buying is for a set's materials
     // one account of theirs takes 89 at most → the accounts and what each takes
     const per = [], left0 = n; let left = left0;
     while (left > 0) { const k = Math.min(TR_MAX, left); per.push(k); left -= k; }
@@ -3897,6 +3941,7 @@ function tradeStepsText(rows) {
     out.push((per.length > 1 ? "Each account" : "The account") + (per.length > 1 && per[per.length - 1] !== per[0] ? " (the last one: " + fmt(per[per.length - 1]) + ")" : "") + " buys in this order: " + grp.map(g => g.n + " " + name(g.id) + (g.k > 1 ? " ×" + g.k : "") + " (" + g.tot + ")").join(" → ") + ".");
     if (seq.some(c => c.n < TR_CR)) { const nine = steps.find(s => s.c.n < TR_CR); out.push("The " + nine.c.n + " comes before the last 10: at " + (nine.tot - nine.c.n) + " they can still buy, at " + nine.tot + " too (under " + TR_LIM + "), then the last 10 → " + steps[steps.length - 1].tot + ". With 10s only they'd stop at " + TR_LIM + "."); }
   });
+  if (!out.length) return null;   // no set given: no account rule to explain
   // what you buy at their shop
   const get = live.map(L => fmt(L.q) + " " + pName(L.r.w) + " (" + plural(Math.ceil(L.q / TR_CR), "crate") + ")");
   out.push("Then you buy at their shop: " + get.join(" + ") + ".");
@@ -3933,11 +3978,24 @@ function orderLines(text) {
   const post = postItems(), out = [];
   const I = ORDER.intent = st.type === "trade" ? orderIntent(text) : null;
   if (I && I.any) text = I.clean;
-  parseOrder(text).forEach(L => {
+  // "Give me all" above a list = "all of these" (a lead-in), not every item of your post;
+  // "… and all the rest / the others / everything else" = the post's items the message doesn't name
+  const lnm = L => norm(L.name || "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const isAll = L => /^(?:everything|every thing|all|all of it|all of them|all items?|all things|the whole (?:post|list|shop)|whole (?:post|list|shop)|full (?:post|list)|tout)$/.test(lnm(L));
+  const isRest = L => /^(?:(?:all )?(?:the )?(?:rest|remaining|remainder|others?|other ones|other items?)(?: of (?:it|them|the items?))?|everything else|all else|(?:all )?the rest of (?:it|them|the (?:post|list|items?)))$/.test(lnm(L));
+  let P = parseOrder(text);
+  const named = P.filter(L => !isAll(L) && !isRest(L));
+  if (named.length) P = P.filter(L => !isAll(L) || !L.qGuess);
+  const rests = P.filter(isRest); P = P.filter(L => !isRest(L));
+  P.forEach(L => {
     const G = orderGroup(L, post);
     if (!G) return out.push(L);
     G.items.forEach((w, k) => out.push(Object.assign({}, L, { name: pName(w), gpick: w.uid, grp: (L.all && !/^(?:all|every)/i.test(L.name) && L.name !== "everything" ? "all " : "") + L.name, q: G.q ? G.q[k] : 1, qGuess: !G.q })));
   });
+  if (rests.length) {
+    const used = new Set(out.map(L => resolveLine(L).w).filter(Boolean));
+    post.filter(w => !used.has(w) && !w.oos).forEach(w => out.push(Object.assign({}, rests[0], { name: pName(w), gpick: w.uid, grp: "the rest", q: 1, qGuess: true })));
+  }
   // "55 olive oil for 1 bem set": the quantities written with the sets ARE the ratio of this order (55 : 89), not the post's
   if (I && I.sets && !I.ratio) {
     const rs = out.map(L => ({ L, R: resolveLine(L) })).filter(x => x.R.w && !x.R.ignored), pk = x => (packOf(giveItem(x.R.w)) || {}).id;
@@ -3976,7 +4034,8 @@ function priceLine(L) {
     let a = num(R.w.ra), b = num(R.w.rb); const g = giveItem(R.w), tb = ORDER.tb && ORDER.tb.get(ratioKey(R.w)), T = orderTmp();
     const bulk = !T && !!(tb && tb.on); if (bulk) { a = num(tb.g.bulk.ra); b = num(tb.g.bulk.rb); }
     if (T) { a = T.ra; b = T.rb; }                                         // "45:89" from the message, for this order only
-    return Object.assign(R, { ratio: a && b ? { give: q / b * a, g, a, b, bulk, tmp: !!T, post: T ? ratioLabel(R.w.ra, R.w.rb) : null } : null, v: 0 });
+    const qm = isPackRef(R.w.ref) && b % SET_N === 0 ? q * SET_N : q;   // a set you get, ratio in its materials (89 : 220 = 220 of mine for 1 set); "1 : 40" = per set
+    return Object.assign(R, { ratio: a && b ? { give: qm / b * a, g, a, b, bulk, tmp: !!T, post: T ? ratioLabel(R.w.ra, R.w.rb) : null } : null, v: 0 });
   }
   const pw = dealItem(R.w, L); let u = unitPrice(pw);
   // stock: selling → what's left in your post, buying → what you still want (the rest isn't counted)
@@ -4177,7 +4236,7 @@ function renderOrder(force) {
         h("p", { class: "hint osh" }, "= " + fmt(n) + " materials, split evenly between the " + p.parts.length + "."));
       const mg = mixOf(o.g);
       if (mg) tot.append(h("div", { class: "osplit" }, mixSplit(mg, n, dealScope()).filter(x => x.n).map(x => h("span", null, thumb(prodState(x.id), x.e, "mini"), h("b", null, fmt(x.n)), " " + x.name))),
-        h("p", { class: "hint osh" }, "= " + fmt(n) + " " + giveName(o.g) + ", taken from what you have most of."));
+        h("p", { class: "hint osh" }, "= " + fmt(n) + " " + giveName(o.g) + ", taken from what you have most of" + (o.g.multi ? " (your “I have” quantities)." : ".")));
     });
     // your "I have" stock: sets for a set (×89 materials)
     by.forEach(o => { const s = o.g ? Math.floor(asMat(o.g, num(o.g.q)) + 1e-9) : 0, need = giveWhole(o.n); if (s > 0 && need > s) tot.append(h("p", { class: "owarn" }, "⚠ You only have " + fmt(s) + " " + giveName(o.g) + (packOf(o.g) ? " (" + setsTxt(num(o.g.q)) + ")" : "") + " — " + fmt(need - s) + " missing")); });
@@ -5063,7 +5122,9 @@ function levelTake(stocks, n) {
 function mixSplit(p, n, scope, adding) {
   const ids = p.mix || [], k = ids.length; n = Math.max(0, Math.round(n || 0)); if (!k) return [];
   let out = ids.map(() => 0);
-  if (!adding) { out = levelTake(ids.map(id => invQty({ ref: id }, scope)), n); const rest = n - out.reduce((a, b) => a + b, 0); if (rest > 0) evenSplit(k, rest).forEach((v, i) => out[i] += v); }
+  // your "I have" items given together: taken from what the post offers (its quantities), else from your inventory
+  const stock = p.multi ? p.multi.map(x => num(x.q) > 0 ? num(x.q) : invQty({ ref: x.ref }, scope)) : ids.map(id => invQty({ ref: id }, scope));
+  if (!adding) { out = levelTake(stock, n); const rest = n - out.reduce((a, b) => a + b, 0); if (rest > 0) evenSplit(k, rest).forEach((v, i) => out[i] += v); }
   else out = evenSplit(k, n);
   return ids.map((id, i) => ({ id, n: out[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" }));
 }
@@ -6267,7 +6328,10 @@ function srGroup(name) {
 
 /* ---------- what the post asks for ---------- */
 const srPic = x => { const s = x && (x.src || x.unknown); const k = s && s.ename && /^pic(\d+)$/.exec(s.ename); return k ? SR.pics[+k[1]] || null : s && s.view ? s : null; };
-const giveOf = (have, i) => { const c = have.filter((x, k) => k >= i && (x.ref || x.name || x.unknown)); const g = c[0] || have.find(x => x.ref || x.name) || null; if (!g) return { name: "their items" };
+const giveOf = (have, i, n) => { const c = have.filter((x, k) => k >= i && (x.ref || x.name || x.unknown)); const g = c[0] || have.find(x => x.ref || x.name) || null; if (!g) return { name: "their items" };
+  // several items on their "Have" line for this ratio: given together
+  const L = have.slice(i, i + (n || 1)).filter(x => x.ref || x.name);
+  if (L.length > 1) { const nm = x => x.ref && CAT.byId[x.ref] ? CAT.byId[x.ref].en : x.name; return { ref: null, name: L.map(nm).join(" / "), e: (CAT.byId[L[0].ref] || {}).e || "", q: L.every(x => x.q) ? L.reduce((a, x) => a + num(x.q), 0) : null, pack: false, multi: L.map(x => ({ ref: x.ref || null, name: nm(x), q: x.q ? num(x.q) : null })) }; }
   const p = g.ref && CAT.byId[g.ref]; return { ref: g.ref || null, name: p ? p.en : g.name && g.name !== "My items" ? g.name : "their items", e: p ? p.e : "", q: g.q ? num(g.q) : null, pack: !!(p && p.parts) }; };
 /* ---------- trade orders written simply, one a line:
    "Mussel meat for LEM Set 135:89" · "135 mussel meat for 1 LEM set" · "270 lobster tail = 2 bem" · "need mussel meat 135:89, have LEM"
@@ -6366,7 +6430,7 @@ function srParse() {
   // trade groups: "Need 🫙🫙 45:89 // 40:89 for 10 sets+" — you give 45, you get 89 (materials of a set)
   R.groups.forEach((g, gi) => {
     if (g.oos) return;                                                   // struck: they don't need it any more
-    const give = giveOf(R.have, g.give);
+    const give = giveOf(R.have, g.give, g.giveN);
     if (!info.gives.some(x => x.name === give.name)) info.gives.push(give);
     // "Need 🔩🪵🩹 set" = the set, not its three materials
     let items = g.items.slice(); const refs = new Set(items.filter(x => x.ref).map(x => x.ref)), pk = CAT.list.find(p => p.parts && p.parts.filter(r => refs.has(r)).length >= 2);
@@ -6374,9 +6438,11 @@ function srParse() {
     items.forEach((x, k) => {
       const xp = x.ref && CAT.byId[x.ref];
       // they need a set and give something else: "60:89" = 60 of theirs for the 89 materials of one set
-      const swap = xp && xp.parts && !give.pack && g.have === SET_N, sw = r => r && { need: 1, have: r.need, at: r.at };
-      asks.push({ key: "g" + gi + "." + k, kind: "rate", ref: x.ref || null, name: x.name || "", pic: srPic(x), q: null,
-      rate: swap ? { need: 1, have: g.need, bulk: sw(g.bulk), give, gk: "g" + gi } : { need: g.need, have: g.have, bulk: g.bulk, give, gk: "g" + gi }, note: [x.note, g.note].filter(Boolean).join(" · ") });
+      // a set they need: the ratio counts its 89 materials → per set ("89:220" = 220 of theirs for 1 set)
+      const perSet = xp && xp.parts && !give.pack && g.need > 0 && g.need % SET_N === 0, swap = xp && xp.parts && !give.pack && !perSet && g.have === SET_N, sw = r => r && { need: 1, have: r.need, at: r.at };
+      const ps = r => r && { need: r.need % SET_N === 0 ? r.need / SET_N : r.need, have: r.have, at: r.at };
+      asks.push({ key: "g" + gi + "." + k, kind: "rate", ref: x.ref || null, name: x.name || "", pic: srPic(x), q: x.q ? num(x.q) : null,
+      rate: perSet ? { need: g.need / SET_N, have: g.have, bulk: ps(g.bulk), give, gk: "g" + gi } : swap ? { need: 1, have: g.need, bulk: sw(g.bulk), give, gk: "g" + gi } : { need: g.need, have: g.have, bulk: g.bulk, give, gk: "g" + gi }, note: [x.note, g.note].filter(Boolean).join(" · ") });
     });
   });
   // coins: a buying list ("(10) nachos 4k each") — the whole text when it's not a trade post
@@ -7655,10 +7721,29 @@ const cleanNote = s => String(s || "").replace(/[~]+/g, " ").replace(/^[\s\/|\\�
 /** An emoji read on the screenshot → the item (keeps the picture, to check it and to learn from a correction). */
 const eItem = t => t.emo ? { ref: t.emo, src: t } : { unknown: t, src: t };
 /** The post: trade groups (ratio + items, struck = out of stock), priced lists, picture tiles, notes. */
+/** "120 💍" → the quantity written just before an item picture. */
+function emoQ(L, t, it) { const i = L.toks.indexOf(t), pv = i > 0 ? L.toks[i - 1] : null; if (pv && pv.w && /^\d+(?:[.,]\d+)?k?$/i.test(pv.w)) it.q = String(num(pv.w)); return it; }
+/** "🔩 🪵 🩹 set" / "bolt plank duct tape set" → the set (its materials named or pictured are just its description). */
+function packify(items, text) {
+  let pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
+  if (!pk) { const refs = new Set(items.filter(x => x.ref).map(x => x.ref)), pack = CAT.list.find(p => p.parts && p.parts.filter(r => refs.has(r)).length >= 2);
+    if (pack && (/\bsets?\b/i.test(text || "") || pack.parts.every(r => refs.has(r)))) {
+      const named = items.find(x => !x.ref && x.name && /\bsets?\b/i.test(x.name)) || items.find(x => !x.ref && x.name && x.q);
+      pk = Object.assign({ ref: pack.id }, named && named.q ? { q: named.q } : {}, named && named.note ? { note: named.note } : {});
+      items = [pk].concat(items.filter(x => x !== named && !(x.ref && pack.parts.includes(x.ref)) && !(!x.ref && x.name && /^[:\s]*sets?$/i.test(x.name)))); }
+    else if (!pack) {
+      // "bolt plank duct tape set" read as one name
+      const one = items.find(x => !x.ref && x.name && /\bsets?\b/i.test(x.name));
+      if (one) { const words = norm(one.name); const pk2 = CAT.list.find(p => p.parts && p.parts.filter(r => words.includes(norm((CAT.byId[r] || {}).en || "~~"))).length >= 2);
+        if (pk2) { pk = Object.assign({ ref: pk2.id }, one.q ? { q: one.q } : {}); items = items.map(x => x === one ? pk : x); } }
+    }
+  }
+  return { items, pk };
+}
 function impParse(lines, tiles, picNotes, text) {
   lines = lines.slice();
   const R = { have: [], groups: [], priced: [], tiles: tiles || [], notes: [], kind: null, author: "" };
-  let sec = null, pend = [], buying = false, selling = false, needSeen = false, giveIdx = 0, lastNote = null;
+  let sec = null, pend = [], buying = false, selling = false, needSeen = false, giveIdx = 0, giveCnt = 1, lastNote = null;
   const txt = L => L.toks.filter(t => t.w).map(t => t.w).join(" ").trim();
   // a line starting with a bullet (read as • ¢ e * ©) starts an item; others continue the line above
   const BUL = /^(?:[•¢©®*·-]|e|o)$/i;
@@ -7683,21 +7768,19 @@ function impParse(lines, tiles, picNotes, text) {
     // "10% off everything", "+10% for 100+ items": discounts and bonuses → notes (read when the post is made)
     if (!RAT.test(s) && /\d\s*%/.test(s) && /off|discount|disc\b|bonus|extra|bulk|r[ée]duc|\+\s*\d+(?:[.,]\d+)?\s*%/i.test(s)) { R.notes.push(cleanNote(s)); lastNote = null; return; }
     if (HAVE_RE.test(s)) {
-      sec = "have"; const rest = s.replace(HAVE_RE, "");
-      let items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
+      sec = "have"; const rest = s.replace(HAVE_RE, "").replace(/^\s*[:\-–=]\s*/, "");
+      let items = [...emos.map(t => emoQ(L, t, eItem(t))), ...namedItems(rest.split(/\s+/))];
       // "Have BEM Sets 🩹🪵🔩" → the set (its material pictures, recognised or not, are just decoration)
-      let pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
-      if (!pk) { const refs = new Set(items.filter(x => x.ref).map(x => x.ref)), pack = CAT.list.find(p => p.parts && p.parts.filter(r => refs.has(r)).length >= 2);
-        if (pack) { const named = items.find(x => !x.ref && x.name && /\bsets?\b/i.test(x.name)) || items.find(x => !x.ref && x.name && x.q);
-          pk = Object.assign({ ref: pack.id }, named && named.q ? { q: named.q } : {}, named && named.note ? { note: named.note } : {});
-          items = [pk].concat(items.filter(x => x !== named && !(x.ref && pack.parts.includes(x.ref)))); } }
+      const PK = packify(items, rest); items = PK.items; let pk = PK.pk;
       if (pk) items = items.filter(x => x === pk || (x.ref && !CAT.byId[pk.ref].parts.includes(x.ref) && !(CAT.byId[x.ref] || {}).parts) || (x.ref && CAT.byId[x.ref].parts) || (!x.ref && !x.unknown && x.name));
       if (!items.length) items = [{ unknown: { view: null }, name: "" }];          // "Have [picture not recognised]" → to pick
-      giveIdx = R.have.length; R.have.push(...items); lastNote = null; return;
+      // "30 shovel, 50 TNT and 80 axe" = given together; "BEM / SEM sets", "rings or blankets" = one or the other
+      giveIdx = R.have.length; giveCnt = items.some(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts) || /\bor\b|\//i.test(rest) ? 1 : items.length; R.have.push(...items); lastNote = null; return;
     }
     if (NEED_RE.test(s)) needSeen = true;
     if (NEED_RE.test(s) && !RAT.test(s)) {
-      const rest = s.replace(NEED_RE, "").trim(), items = [...emos.map(eItem), ...namedItems(rest.split(/\s+/))];
+      const rest = s.replace(NEED_RE, "").replace(/^\s*[:\-–=]\s*/, "").trim(); let items = [...emos.map(t => emoQ(L, t, eItem(t))), ...namedItems(rest.split(/\s+/))];
+      items = packify(items, rest).items;
       // "Need 10 or 20 of each item, partials 50+" (no item, a sentence) → a note
       if (!emos.length && !items.some(x => x.ref) && /\d/.test(rest)) { R.notes.push(s); lastNote = { s, li }; return; }
       const named = namedItems(rest.split(/\s+/));
@@ -7712,7 +7795,7 @@ function impParse(lines, tiles, picNotes, text) {
     }
     const rm = s.match(RAT);
     if (rm && (sec || R.have.length || emos.length)) {
-      const before = s.slice(0, rm.index).replace(NEED_RE, ""), ratioTok = L.toks.find(t => t.w && RAT.test(t.w)) || L.toks.find(t => t.w && /\d/.test(t.w));
+      const before = s.slice(0, rm.index).replace(NEED_RE, "").replace(/\b(?:ratios?|rate|rates)\b\s*[:=]?/gi, " "), ratioTok = L.toks.find(t => t.w && RAT.test(t.w)) || L.toks.find(t => t.w && /\d/.test(t.w));
       // "Bulk 10+ sets 55:89" on its own line → the better ratio of the group just above
       if (!emos.length && !pend.length && R.groups.length && /^[\s\w:+()\-–]*$/.test(before) && /bulk|\d\s*\+|or more|\bsets?\b/i.test(before) && !/[a-z]{3}/i.test(before.replace(/\b(?:bulk|for|from|over|sets?|or|more|if|you|take|bem|sem|lem|tem)\b/gi, ""))) {
         const B2 = bulkOf(s); if (B2.bulk) { const pg = R.groups[R.groups.length - 1]; pg.bulk = B2.bulk; lastNote = null; return; }
@@ -7725,8 +7808,15 @@ function impParse(lines, tiles, picNotes, text) {
       lastNote = null;
       const B = bulkOf(s.slice(rm.index + rm[0].length).replace(/~+/g, " "));
       if (B.bulk) { const k = (B.bulk.need / B.bulk.have) / (+rm[1].replace(",", ".") / +rm[2].replace(",", ".")); if (!(k > .5 && k < 1.6)) { B.note = s.slice(rm.index + rm[0].length); B.bulk = null; } }
-      const rest = cleanNote(B.note);
-      R.groups.push({ give: giveIdx, need: +rm[1].replace(",", "."), have: +rm[2].replace(",", "."), items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "", bulk: B.bulk || null });
+      const rest0 = cleanNote(B.note), rest = rest0.replace(/\(?\s*\b(?:me|my|mine|i|you|u|yours?|them|they|their)\s*[:\/]\s*(?:me|my|mine|i|you|u|yours?|them|they|their)\b\s*\)?/gi, " ").trim();
+      let need = +rm[1].replace(",", "."), hv = +rm[2].replace(",", ".");
+      // "1:1.25 (me:you)": the first number is what the poster gives
+      if (/\b(?:me|my|mine|i)\s*[:\/]\s*(?:you|u|yours?|them|they|their)\b/i.test(s)) [need, hv] = [hv, need];
+      // the 89 (or 178…) goes with the set, whichever side it's written on
+      const isPk = x => x && x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts, m89 = n => n > 0 && n % SET_N === 0;
+      const wantPk = items.some(isPk), givePk = isPk(R.have[giveIdx]);
+      if ((wantPk && !givePk && m89(hv) && !m89(need)) || (givePk && !wantPk && m89(need) && !m89(hv))) [need, hv] = [hv, need];
+      R.groups.push({ give: giveIdx, giveN: giveCnt, need, have: hv, items, oos: !!(ratioTok && ratioTok.strike) || L.toks.filter(t => t.w).every(t => t.strike), note: rest && /[a-z]{3}/i.test(rest) ? rest.replace(/[()]/g, "").trim() : "", bulk: B.bulk || null });
       return;
     }
     if (!rm && emos.length && !/\d+\s*k\b|\d{3,}/i.test(s)) { pend.push(...emos.map(eItem), ...namedItems(s.split(/\s+/))); return; }
@@ -7755,9 +7845,11 @@ function impPosts(R) {
     if (!have.length) have = [{ name: "My items" }];
     const seen = new Set(); have = have.filter(x => { const k = x.ref || x.name || "u" + x._i; if (seen.has(k)) return false; seen.add(k); return true; });
     const giveOf = g => { const c = have.filter(x => x._i >= g.give); return c.length ? have.indexOf(c[0]) : 0; };
+    // several items on the "Have" line of this ratio → given together
+    const givesOf = g => { const c = have.filter(x => x._i >= g.give && x._i < g.give + (g.giveN || 1)).map(x => have.indexOf(x)); return c.length ? c : [giveOf(g)]; };
     posts.push({ type: "trade", on: true, name: nm("trade"), have: have.map(x => ({ ...x, q: x.q || "" })),
       wants: R.groups.flatMap(g => g.items.filter(x => x.ref || x.name || x.unknown).map(x => ({ ref: x.ref || null, name: x.name || "", unknown: x.unknown || null, src: x.src || null, ra: String(g.have), rb: String(g.need),
-        bulk: g.bulk ? { ra: String(g.bulk.have), rb: String(g.bulk.need), at: String(g.bulk.at) } : null, oos: g.oos, note: [x.note, g.note].filter(Boolean).join(" · "), gi: giveOf(g) }))), notes });
+        bulk: g.bulk ? { ra: String(g.bulk.have), rb: String(g.bulk.need), at: String(g.bulk.at) } : null, oos: g.oos, note: [x.note, g.note].filter(Boolean).join(" · "), gi: giveOf(g), gis: givesOf(g), q: x.q || "" }))), notes });
   }
   const sell = R.kind === "achat" ? "achat" : "vente", items = [];
   R.tiles.forEach(t => items.push({ ref: t.ref, unknown: t.ref ? null : t, src: t, view: t.view, m: t.m, q: t.q, p: t.px, pu: t.coin ? "coin" : t.px ? "xmp" : "coin" }));
@@ -7841,8 +7933,9 @@ function impCreate() {
     if (P.type === "trade") {
       p.have = (P.have || []).map(x => mk(x, Object.assign(x.q ? { q: x.q } : {}, x.note ? { note: x.note } : {}))).filter(Boolean);
       const hv = (P.have || []).map((x, i) => [x, p.have[(P.have || []).filter((y, j) => j < i && (y.ref || y.name || y.unknown)).length]]);
-      const giveFor = x => { const src = (P.have || [])[x.gi || 0]; const pair = hv.find(([a]) => a === src); return (pair && pair[1]) || p.have[0]; };
-      p.wants = (P.wants || []).map(x => { const g = giveFor(x); return mk(x, Object.assign({ ra: x.ra, rb: x.rb }, x.bulk ? { bra: x.bulk.ra, brb: x.bulk.rb, bat: x.bulk.at } : {}, g ? { give: g.uid } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {})); }).filter(Boolean);
+      const giveFor = i => { const src = (P.have || [])[i || 0]; const pair = hv.find(([a]) => a === src); return (pair && pair[1]) || p.have[0]; };
+      const giveUid = x => [...new Set((x.gis && x.gis.length ? x.gis : [x.gi || 0]).map(giveFor).filter(Boolean).map(g => g.uid))].join(",");
+      p.wants = (P.wants || []).map(x => { const g = giveUid(x); return mk(x, Object.assign({ ra: x.ra, rb: x.rb }, x.bulk ? { bra: x.bulk.ra, brb: x.bulk.rb, bat: x.bulk.at } : {}, g ? { give: g } : {}, x.q ? { q: x.q } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {})); }).filter(Boolean);
       // new items you add go to the first ratio of the post, not to a default one
       const w0 = p.wants.find(w => num(w.ra) > 0 && num(w.rb) > 0); p.addR = w0 ? Object.assign({ ra: w0.ra, rb: w0.rb, give: w0.give }, w0.bat ? { bat: w0.bat, bra: w0.bra, brb: w0.brb } : {}) : null;
     } else p.wants = (P.wants || []).map(x => mk(x, Object.assign({}, x.q ? { q: x.q } : {}, x.p ? { p: x.p, pu: x.pu || "coin" } : {}, x.oos ? { oos: 1 } : {}, x.note ? { note: x.note } : {}))).filter(Boolean);
