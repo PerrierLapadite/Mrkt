@@ -691,6 +691,8 @@ body[data-tab=prev] #editor{display:none}
 .qcparts{display:grid;gap:2px;margin-top:4px;padding-top:6px;border-top:1px dashed var(--line)}
 .qcparts span{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink)}
 .qcparts b{font-weight:700;white-space:nowrap}
+.setpick h3{margin:0 0 2px}.sprow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;width:100%;padding:10px 4px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.sprow b{font-weight:700}.sprow span{font:800 18px var(--sans)}.sprow small{color:var(--mut);min-width:44px;text-align:right}
 .paybox{margin:10px 0 4px;border:1px dashed var(--line2);border-radius:12px;padding:10px 12px;display:grid;gap:8px}
 .paybox summary{cursor:pointer;font-weight:600;color:var(--mut)}
 .paybox.on{border-style:solid;border-color:var(--acc)}
@@ -3775,7 +3777,9 @@ function parseOrder(text) {
   T = T.replace(/\s*\([^)\n]*\d[^)\n]*\b(?:ea|each|k|coins?|apiece|per)\b[^)\n]*\)/gi, " ")
     .replace(new RegExp("\\s*(?:@|\\bat\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?" + END, "gi"), " ")
     .replace(new RegExp("\\s+\\bfor\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)" + END, "gi"), " ")
-    .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), " ");
+    .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), " ")
+    // "2 bem set 4k", "10 olive oil 2.5k": a price after the name, the quantity already in front
+    .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+\d[\d.,]*\s*(?:k|coins?)(?=\s*(?:$|[,;\n|]))/gim, "$1");
   T.split(/\r?\n|;|•|·|\|/).forEach(line => {
     // pieces: commas (not "1,500"), then "and" / "&" / "+" unless it's one name of your post ("bacon and eggs")
     line.split(/,(?!\d{3}\b)|\s+\/\s+/).forEach(chunk => {
@@ -3988,6 +3992,21 @@ function tradeSteps(rows) {
   return h("div", { class: "osteps" }, h("b", null, "How the trade goes"), h("ol", null, T.map(t => h("li", null, t))),
     h("button", { class: "btn sm", onclick: async () => { const t = "How we do it:\n" + T.map((x, i) => (i + 1) + ". " + x).join("\n"); try { await navigator.clipboard.writeText(t); toast("Steps copied ✔"); } catch (e) { openSheet("Steps", h("textarea", { class: "ta", rows: 8, value: t, readOnly: true })); } } }, "Copy the steps for Discord"));
 }
+/** "2 bem sets", no item named: each item of your post with what they'd give for them — tap one to price the order with it. */
+function setPickCard(opts, I) {
+  const T = orderTmp(), G = I.sets * SET_N, g = giveItem(opts[0]);
+  const card = h("div", { class: "card setpick" }, h("h3", null, setsTxt(I.sets) + " = " + fmt(G) + " " + giveName(g)),
+    h("p", { class: "hint" }, "The message doesn't say what they give. For " + setsTxt(I.sets) + ", one of these:"));
+  opts.forEach(w => {
+    const tb = num(w.bat) > 0 && I.sets * SET_N >= num(w.bat) * SET_N && num(w.bra) > 0 && num(w.brb) > 0, ra = T ? T.ra : tb ? num(w.bra) : num(w.ra), rb = T ? T.rb : tb ? num(w.brb) : num(w.rb);
+    const gw = giveItem(w); if (!packOf(gw)) return;
+    const q = Math.round(G / ra * rb);
+    card.append(h("button", { class: "sprow", onclick: () => { const t = ($("#orderIn").value || "").replace(/\s+$/, "") + "\n" + q + " " + pName(w); ORDER.text = t; $("#orderIn").value = t; renderOrder(true); } },
+      thumb(itemState(w), w.e, "mini"), h("b", null, pName(w)), h("span", null, fmt(q)), h("small", null, fmtR(rb) + ":" + fmtR(ra) + (tb && !T ? " bulk" : ""))));
+  });
+  card.append(h("p", { class: "hint" }, "Tap one: it's added to the message and the order is counted."));
+  return card;
+}
 /** What the message asked for the whole deal, checked: the ratio (this order only, or back to your post's) and the sets. */
 function intentBar(rows) {
   const I = ORDER.intent, T = orderTmp(), live = rows.filter(L => L.r.w && !L.r.ignored && L.r.ratio);
@@ -4040,6 +4059,13 @@ function orderLines(text) {
       const one = Q % I.sets === 0, rb = one ? Q / I.sets : Q, ra = one ? SET_N : I.sets * SET_N;
       I.ratio = { rb, ra, txt: fmtR(rb) + ":" + fmtR(ra), implied: true };
     }
+  }
+  // "2 bem sets" and no item: what you get for them. One item in your post → that item; several → pick one (all are shown with their quantity)
+  ORDER.setPick = null;
+  if (I && I.sets && !out.some(L => { const R = resolveLine(L); return R.w && !R.ignored; })) {
+    const opts = post.filter(w => !w.oos && num(w.ra) > 0 && num(w.rb) > 0 && packOf(giveItem(w)));
+    if (opts.length === 1) out.splice(0, out.length, { name: pName(opts[0]), gpick: opts[0].uid, q: 1, qGuess: true, raw: "" });
+    else if (opts.length) { out.length = 0; ORDER.setPick = opts; }
   }
   if (I) {
     const uids = out.map(L => resolveLine(L).w).filter(Boolean).map(w => w.uid), LI = ORDER.lastI;
@@ -4150,6 +4176,7 @@ function renderOrder(force) {
   adv();
   const out = $("#orderOut"); out.textContent = "";
   if (ORDER.deal) out.append(dealBar());
+  if (!ORDER.lines.length && ORDER.setPick && ORDER.intent && ORDER.intent.sets) { out.append(setPickCard(ORDER.setPick, ORDER.intent)); return; }
   if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
   // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
   const capOn = ORDER.capStock !== false, avail = new Map(); ORDER.oq = 0;
@@ -7258,7 +7285,9 @@ const cdist = (d, i, c) => Math.abs(d[i] - c[0]) + Math.abs(d[i + 1] - c[1]) + M
 async function impReadImage(img, pool, say) {
   const P = scanPixels(img, 1500), { W, H, d } = P;
   const corners = [[2, 2], [W - 3, 2], [2, H - 3], [W - 3, H - 3]].map(([x, y]) => (y * W + x) * 4);
-  const bg = [0, 1, 2].map(k => corners.reduce((a, i) => a + d[i + k], 0) / 4), dark = (bg[0] + bg[1] + bg[2]) / 3 < 128;
+  // the background: the corners when they agree; else (rounded or cropped corners, white on a dark Discord screenshot) the most common colour
+  const cAgree = corners.every(i => corners.every(j => Math.abs(d[i] - d[j]) + Math.abs(d[i + 1] - d[j + 1]) + Math.abs(d[i + 2] - d[j + 2]) < 40));
+  const bg = cAgree ? [0, 1, 2].map(k => corners.reduce((a, i) => a + d[i + k], 0) / 4) : regBg(P, { x0: 0, y0: 0, x1: W - 1, y1: H - 1 }), dark = (bg[0] + bg[1] + bg[2]) / 3 < 128;
   const textLike = i => sat(d, i) < 48 && (dark ? lum(d, i) > 150 : lum(d, i) < 105);
   // a) pictures inside the message (post generators): big blocks unlike the background
   const CS = 8, GW = Math.ceil(W / CS), GH = Math.ceil(H / CS), busy = new Uint8Array(GW * GH);
@@ -7326,7 +7355,7 @@ async function impReadImage(img, pool, say) {
   // ratios matter most: read each one again alone, bigger, digits only (50:39 → 50:89)
   for (const L of lines) for (const w of L.words) {
     if (!/\d/.test(w.t) || !/[:.;]/.test(w.t) || w.x1 - w.x0 < 10) continue;
-    const x0 = Math.max(0, w.x0 - 4), y0 = Math.max(0, w.y0 - 4), r = await ocrRead(maskCanvas(P, x0, y0, Math.min(W - 1, w.x1 + 4) - x0, Math.min(H - 1, w.y1 + 4) - y0, keepTxt, 3), 7, "0123456789:");
+    const x0 = Math.max(0, w.x0 - 4), y0 = Math.max(0, w.y0 - 4), r = await ocrRead(maskCanvas(P, x0, y0, Math.min(W - 1, w.x1 + 4) - x0, Math.min(H - 1, w.y1 + 4) - y0, keepTxt, 3), 7, "0123456789:.");
     const t = r.map(l => l.words.map(x => x.t).join("")).join(""); if (RAT.test(t)) w.t = t.match(RAT)[0];
   }
   // f) post-generator pictures: tiles with "5x" (price × max price) at the top left and the quantity at the bottom right
@@ -7740,7 +7769,7 @@ function textLines(text) {
       return m;
     });
     return { toks };
-  }).filter(L => L.toks.length);
+  }).reduce((acc, L) => { if (!L.toks.length) { acc.blank = true; return acc; } if (acc.blank) { L.gap = true; acc.blank = false; } acc.push(L); return acc; }, Object.assign([], { blank: false }));
 }
 /** A Discord emoji name (hd_mayo, DiamondRing, bem…) → the game item. */
 function emojiItem(n) {
@@ -7810,7 +7839,11 @@ function emoQ(L, t, it) { const i = L.toks.indexOf(t), pv = i > 0 ? L.toks[i - 1
 /** "🔩 🪵 🩹 set" / "bolt plank duct tape set" → the set (its materials named or pictured are just its description). */
 function packify(items, text) {
   let pk = items.find(x => x.ref && CAT.byId[x.ref] && CAT.byId[x.ref].parts);
-  if (!pk) { const refs = new Set(items.filter(x => x.ref).map(x => x.ref)), pack = CAT.list.find(p => p.parts && p.parts.filter(r => refs.has(r)).length >= 2);
+  if (!pk) { const refs = new Set(items.filter(x => x.ref).map(x => x.ref));
+    // "🔩 ? ? set": one material recognised, the other pictures not → still the set
+    const unk = items.filter(x => x.unknown).length;
+    const pack = CAT.list.find(p => p.parts && p.parts.filter(r => refs.has(r)).length >= 2) || (/\bsets?\b/i.test(text || "") && unk ? CAT.list.find(p => p.parts && p.parts.some(r => refs.has(r)) && p.parts.filter(r => refs.has(r)).length + unk >= p.parts.length) : null);
+    if (pack && /\bsets?\b/i.test(text || "") && !pack.parts.every(r => refs.has(r)) && unk) items = items.filter(x => !x.unknown);
     if (pack && (/\bsets?\b/i.test(text || "") || pack.parts.every(r => refs.has(r)))) {
       const named = items.find(x => !x.ref && x.name && /\bsets?\b/i.test(x.name)) || items.find(x => !x.ref && x.name && x.q);
       pk = Object.assign({ ref: pack.id }, named && named.q ? { q: named.q } : {}, named && named.note ? { note: named.note } : {});
@@ -7831,6 +7864,33 @@ function impParse(lines, tiles, picNotes, text) {
   const txt = L => L.toks.filter(t => t.w).map(t => t.w).join(" ").trim();
   // a line starting with a bullet (read as • ¢ e * ©) starts an item; others continue the line above
   const BUL = /^(?:[•¢©®*·-]|e|o)$/i;
+  // screenshot reading slips: "(50," → 50, "and80" → and 80, "80O" before a picture → 80 (the O is the picture's edge), "~" "@" alone → gone
+  lines = lines.map(L => {
+    const out = [];
+    L.toks.forEach((t, i) => {
+      if (!t.w) { out.push(t); return; }
+      let w = t.w; if (/^[~@'"`^_|°]+$/.test(w)) return;
+      const nx = L.toks[i + 1], sp = w.match(/^(and|or|&|\+)(\d.*)$/i); if (sp) { out.push(Object.assign({}, t, { w: sp[1] })); w = sp[2]; }
+      if (nx && !nx.w && /^\d+[oO]$/.test(w)) w = w.slice(0, -1);
+      const nm = w.match(/^[(\[]?(\d+(?:[.,]\d+)?k?)[,;.)\]]*$/i); if (nm) w = nm[1];
+      out.push(Object.assign({}, t, { w }));
+    });
+    return Object.assign({}, L, { toks: out });
+  }).filter(L => L.toks.length);
+  // a "Have" list that goes on to the next line ("Have: 30 🔨, 50 🧨," / "60 🧨 and 80 🪓"): one line
+  {
+    const KW = x => HAVE_RE.test(x) || NEED_RE.test(x) || RAT.test(x) || BUY_RE.test(x) || SELL_RE.test(x), lt = L => txt(L).replace(/^[^\w(]+/, "");
+    const lh = L => L.y1 != null ? L.y1 - L.y0 : 0;
+    lines = lines.reduce((acc, L) => {
+      const P = acc[acc.length - 1], s = lt(L), ps = P ? lt(P) : "";
+      const gap = L.gap || (P && P.y1 != null && L.y0 != null && L.y0 - P.y1 > Math.max(lh(P), lh(L)) * .9);
+      const items = X => X.toks.some(t => !t.w && t.emo !== undefined) || /\d/.test(txt(X));
+      if (P && P.haveL && !gap && !KW(s) && items(L) && !/\d\s*k\b|\bea(?:ch)?\b|\bxmp\b/i.test(s) && (/(?:,|&|\+|\band|\bor)\s*$/i.test(ps) || /^(?:and|or|&|\+|,)/i.test(s) || /\band\b|,/.test(s))) {
+        const x0 = P.toks.length; P.toks.push(...L.toks.map((t, i) => Object.assign({}, t, { x: (typeof t.x === "number" ? t.x : 0) + 1e5 + x0 + i }))); if (L.y1 != null) P.y1 = L.y1; return acc;
+      }
+      L.haveL = HAVE_RE.test(s); acc.push(L); return acc;
+    }, []);
+  }
   lines.forEach(L => { const f = L.toks.find(t => t.w); L.bullet = !!(f && BUL.test(f.w)); });
   if (lines.filter(L => L.bullet).length >= 3) lines = lines.reduce((acc, L) => { const pv = acc[acc.length - 1];
     if (pv && pv.bullet && !L.bullet && L.toks.length && !L.toks.some(t => t.emo !== undefined) && !/(\d\s*k|each|ea|\d{3,})\s*\.?$/i.test(txt(pv)) && !/^(buying|selling|have|need|i have)\b/i.test(txt(L))) { pv.toks.push(...L.toks.map(t => Object.assign({}, t, { x: t.x + 1e5 }))); return acc; }
@@ -7844,7 +7904,8 @@ function impParse(lines, tiles, picNotes, text) {
     if (li < 3 && !R.author && tm && +tm[1] < 24 && +tm[2] < 60 && (/[a-z]{2}/i.test(s.slice(0, tm.index)) || li <= 1) && !RAT.test(s.slice(0, tm.index)) && !/\b(?:quantit|lvl|level|each|buy|need|have|sell|price|for|ratio|set)\w*|\d\s*k\b/i.test(s)) {
       // "Ladloq ᐠ^._.^ᐟ / 77" → Ladloq (the decorations and the level go)
       const w = s.slice(0, tm.index).replace(/\s*\/.*$/, "").replace(/[^\w .'-]/g, " ").replace(/\s+/g, " ").trim().split(" "), keep = [];
-      for (const x of w) { if (keep.length && (x.length <= 2 || !/[a-z]/.test(x))) break; if (/[a-z0-9]/i.test(x)) keep.push(x); if (keep.length === 3) break; }
+      // the avatar read as "7 ONS" before the name: skipped
+      for (const x of w) { if (!keep.length && !/[a-z]/.test(x) && w.some(y => /[a-z]{3}/.test(y))) continue; if (keep.length && (x.length <= 2 || !/[a-z]/.test(x))) break; if (/[a-z0-9]/i.test(x)) keep.push(x); if (keep.length === 3) break; }
       R.author = keep.join(" "); return;
     }
     s = s.replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "");
@@ -7911,7 +7972,8 @@ function impParse(lines, tiles, picNotes, text) {
   if (pend.length && R.groups.length) R.groups[R.groups.length - 1].items.push(...pend.filter(x => x.ref));
   // priced lines: all of them in a selling / buying post; in a trade post only those naming real items ("Or selling at 180k" stays a note)
   cand.forEach(s => { if (!R.groups.length || parseBuyList(s).items.some(it => { const m = matchProduct(it.name); return m.p && m.sure; })) R.priced.push(s); else R.notes.push(s); });
-  R.notes = R.notes.filter(n => !/\.(com|io|net)\b|github|\(\d+\s*items?\)/i.test(n) && !/^(buying|selling|have|need|i have)\s*$/i.test(n));
+  // and the screen around a Discord message ("Slow mode is enabled", "New messages", the message box)
+  R.notes = R.notes.filter(n => !/\.(com|io|net)\b|github|\(\d+\s*items?\)/i.test(n) && !/^(buying|selling|have|need|i have)\s*$/i.test(n) && !/\b(?:mode lent|slow ?mode|nouveaux messages|new messages|envoyer un message|send a message|message (?:@|#)|jump to present|aller au présent)/i.test(n));
   (picNotes || []).forEach(n => { const t = n.replace(/[^\w ,.+%:/'-]/g, " ").replace(/\s+/g, " ").trim(); if (/[a-z]{4}/i.test(t) && !/\.(com|io|net)\b|github|items?\)?$/i.test(t)) R.notes.push(t); });
   // what the post is: ratios → a trade; "buying / need / looking for / wtb" with prices → buying; else selling
   R.kind = R.groups.length ? "trade" : (buying || BUY_RE.test(text || "") || (needSeen && !selling)) ? "achat" : "vente";
