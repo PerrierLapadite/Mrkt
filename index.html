@@ -5888,7 +5888,7 @@ async function scanVideo(file, pool, say, shot) {
    a post-maker picture) or its screenshot, checked against your inventory
    → what you can sell or give them, at their prices or ratios, with a reply ready
    ===================================================================== */
-const SR = { flip: {}, author: "", shot: false, text: "", defQ: "", picks: {}, ed: {}, who: "", done: null, scope: "all", tiles: [], pics: [], adds: {}, busy: null, stop: false, err: "" };
+const SR = { mode: null, sellPic: false, flip: {}, author: "", shot: false, text: "", defQ: "", picks: {}, ed: {}, who: "", done: null, scope: "all", tiles: [], pics: [], adds: {}, busy: null, stop: false, err: "" };
 /** Farm chips: all farms, or some of them (tap several). */
 function farmChips(get, set, label) {
   if (INV.farms.length < 2) return null;
@@ -5922,8 +5922,8 @@ function parseBuyList(text) {
     if (!s || !/[a-z]/i.test(s)) return;
     const qm = s.match(/quantit(?:y|ies)\D*(\d+)(?:\s*(?:-|–|to)\s*(\d+))?/i);
     if (qm) { defQ = +(qm[2] || qm[1]); if (!/[,/]/.test(s)) return; }
-    if (/^(?:buying|wtb|looking\s+for|lf|need(?:ing)?|want(?:ing)?|paying)\b/i.test(s) && !/[,/]/.test(s)) return; // a title line
-    s = s.replace(/^(?:i\s*am\s*|i'?m\s*)?(?:buying|wtb|looking\s+for|lf|need(?:ing)?|paying)\b\s*:?\s*/i, "");           // "Buying 💍, 🦞 5k" → the items
+    if (/^(?:buying|selling|wtb|wts|for\s+sale|on\s+sale|sale|looking\s+for|lf|need(?:ing)?|want(?:ing)?|paying)\b/i.test(s) && !/[,/]/.test(s)) return; // a title line ("Selling", "WTS:")
+    s = s.replace(/^(?:i\s*am\s*|i'?m\s*)?(?:buying|selling|wtb|wts|for\s+sale|looking\s+for|lf|need(?:ing)?|paying)\b\s*:?\s*/i, "");           // "Buying 💍, 🦞 5k" → the items
     let lineQ = null, lineP = null;
     if ((m = s.match(/^\(\s*(\d+)\s*\+?\s*\)\s*/))) { lineQ = +m[1]; s = s.slice(m[0].length); }
     if ((m = s.match(/^(\d+(?:[.,]\d+)?\s*[km])\s*(?:each|ea|apiece)?\b[\s:,\-–]*/i))) { lineP = num(m[1].replace(/\s/g, "")); s = s.slice(m[0].length); }
@@ -5932,20 +5932,23 @@ function parseBuyList(text) {
     for (let i = 0; i < parts.length; i += 2) if (parts[i] && parts[i].trim()) segs.push({ t: parts[i].trim(), sep: i ? parts[i - 1].trim()[0] || "," : "" });
     let pend = []; const line = [];
     segs.forEach(({ t, sep }) => {
-      let x = t, p = null, q = null;
-      // price at the end ("3k", "4k each", "@ 1.5k", "for 3000 each") — "at" only as a word (not "top hat")
-      if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*([km])\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { p = num(m[1] + m[2]); x = x.slice(0, m.index); }
+      let x = t, p = null, q = null, xm = null;
+      // price at the end ("3k", "4k each", "@ 1.5k", "for 3000 each", "2700ea") — "at" only as a word (not "top hat")
+      // or in max price: "3xmp", "3mxp", "3 x mp", "5x max", "4mp"
+      if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*m\.?\s*p|m\s*[x×]\s*p|[x×]\s*max(?:\s*price)?|m\.?p)\.?\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { xm = num(m[1]); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*([km])\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { p = num(m[1] + m[2]); x = x.slice(0, m.index); }
       else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d{3,6})\s*(?:coins?|c)?\s*(?:each|ea|apiece)\.?\s*$/i))) { p = num(m[1]); x = x.slice(0, m.index); }
       if ((m = x.match(/^\(?\s*(\d+)\s*\+?\s*\)?\s*(?:x|×|pcs?)?\s+(?=[a-z])/i))) { q = +m[1]; x = x.slice(m[0].length); }
       else if ((m = x.match(/\s(?:x|×)\s*(\d+)\s*$|\s(\d+)\s*(?:x|×|pcs?)\s*$/i))) { q = +(m[1] || m[2]); x = x.slice(0, m.index); }
       const cut = x.split(/!+|:|\s[-–]\s|[-–]\s/); x = cut[cut.length - 1];             // "SAUCES!! olive oil", "Salad Bar stuff- BLT"
       x = x.replace(/\b(?:each|ea|also|pls|please|any|some)\b/gi, " ").replace(/[()[\]!?.]/g, " ").replace(/\s+/g, " ").trim();
-      if (!x || !/[a-z]{2}/i.test(x)) { if (p != null) { pend.forEach(o => o.p = p); pend = []; } return; }
+      const setP = () => { if (p != null) pend.forEach(o => o.p = p); else if (xm != null) pend.forEach(o => o.xmp = xm); pend = []; };
+      if (!x || !/[a-z]{2}/i.test(x)) { if (p != null || xm != null) setP(); return; }
       const it = { name: x, q: q != null ? q : lineQ, p: null, li, sep, key: li + ":" + norm(x) };
       line.push(it); pend.push(it);
-      if (p != null) { pend.forEach(o => o.p = p); pend = []; }
+      if (p != null || xm != null) setP();
     });
-    pend.forEach(o => { if (o.p == null) o.p = lineP; });
+    pend.forEach(o => { if (o.p == null && !o.xmp) o.p = lineP; });
     // "egg / lobster / big roll sushi" → egg sushi, lobster sushi
     line.forEach((it, i) => {
       if (words(it.name).length !== 1) return;
@@ -6113,9 +6116,12 @@ function srParse() {
   });
   // coins: a buying list ("(10) nachos 4k each") — the whole text when it's not a trade post
   const trade = R.groups.length || R.have.length, coinTxt = trade ? R.priced.join("\n") : text, pb = parseBuyList(coinTxt);
-  pb.items.forEach(it => { if (!it.p && !SR.picks["c" + it.key] && (SR.shot || words(it.name).length >= 4) && !(srMatch(it).p && srMatch(it).sure) && !srGroup(it.name)) return;
-    asks.push({ key: "c" + it.key, kind: "coin", it, name: it.name, q: it.q, p: it.p || 0 }); });
+  pb.items.forEach(it => { if (!it.p && !it.xmp && !SR.picks["c" + it.key] && (SR.shot || words(it.name).length >= 4) && !(srMatch(it).p && srMatch(it).sure) && !srGroup(it.name)) return;
+    asks.push({ key: "c" + it.key, kind: "coin", it, name: it.name, q: it.q, p: it.p || 0, xmp: it.xmp || 0 }); });
   info.defQ = parseBuyList(text).defQ;
+  // a line read as an item ("10 blanket 3mxp") isn't a note of the post
+  const asItem = new Set(pb.items.filter(it => it.p || it.xmp).map(it => norm(emoNames(coinTxt.split(/\r?\n/)[it.li] || ""))));
+  info.notes = info.notes.filter(n => !asItem.has(norm(emoNames(n))));
   // pictures: a post maker's tiles (price "5x" max price, or coins · quantity), pictures made with this site
   const wanted = !trade || R.kind === "achat";
   SR.tiles.forEach((t, i) => {
@@ -6139,13 +6145,20 @@ function srItem(a) {
   if (a.name) { const gr = srGroup(a.name); if (gr) return { group: gr }; const m = matchProduct(a.name); if (m.p && m.sure) return { p: m.p, sure: exactP(a.name, m.p) }; }
   return {};
 }
+/** They sell → you buy: a "Selling / WTS / For sale" post (or you said so). Then your inventory doesn't limit anything. */
+function srBuy(info) {
+  if (SR.mode) return SR.mode === "buy";
+  if (info.kind === "trade" || info.cmd) return false;
+  return SR.sellPic || info.kind === "vente" || /(?:^|\n)[^\w\n]*(?:selling|wts|for\s+sale|on\s+sale|sale|s\s*>)\b/i.test(SR.text || "");
+}
 const srHave = p => p ? (p.parts ? Math.floor(invQty({ ref: p.id }, SR.scope) / SET_N) : invQty({ ref: p.id }, SR.scope)) : 0;
 /** Rows: one per item (a family adds the members you tapped), with what you have, the quantity and what it brings. */
 function srRows() {
-  const { info, asks } = srParse(), dq = SR.defQ !== "" ? Math.round(num(SR.defQ)) : info.defQ, rows = [], groups = [];
+  const { info, asks } = srParse(), dq = SR.defQ !== "" ? Math.round(num(SR.defQ)) : info.defQ, rows = [], groups = [], buy = srBuy(info);
   const mk = (a, p, sure, key, from) => {
     const E = SR.ed[key] || {}, have = srHave(p), ask = a.q != null ? a.q : dq || null;
-    let q = E.q != null ? E.q : Math.min(ask == null ? have : ask, have);
+    // you buy: what they sell, whatever you have · you sell: no more than you have
+    let q = E.q != null ? E.q : buy && a.kind === "coin" ? (ask == null ? 0 : ask) : Math.min(ask == null ? have : ask, have);
     if (a.kind === "rate") {
       const r = E.rate || a.rate;
       // a ratio: whole lots when you have enough (45:89 → 45, 90, 135…)
@@ -6167,7 +6180,7 @@ function srRows() {
   byG.forEach(L => { const r0 = L[0].rate, units = L.reduce((s, r) => s + r.q * r.rate.have / r.rate.need, 0), size = r0.give && r0.give.pack ? units / SET_N : units;
     const B = r0.bulk && !(SR.ed[L[0].key] || {}).rate ? r0.bulk : null; L.forEach(r => { r.bulkOn = !!(B && size >= B.at); }); });
   rows.forEach(r => { if (r.rate) { const R2 = r.bulkOn ? r.rate.bulk : r.rate; r.ratio = R2; r.units = R2.need > 0 && R2.have > 0 ? r.q * R2.have / R2.need : 0; } });
-  return { info, dq, rows, groups };
+  return { info, dq, rows, groups, buy };
 }
 /** What you get, in the post's money: "2 sets + 12 materials", "6 foods". */
 const unitsTxt = (g, n) => {
@@ -6217,7 +6230,8 @@ function srOwn(O) {
     if (P.type === "trade") { const g = (P.have || [])[0], p = g && g.ref && CAT.byId[g.ref], give = { ref: g && g.ref || null, name: p ? p.en : "their items", e: p ? p.e : "", pack: !!(p && p.parts) };
       (P.wants || []).filter(w => num(w.ra) > 0 && num(w.rb) > 0).forEach(w => out.push({ own: true, ref: w.ref, name: w.name || "", q: w.q || "", rate: { need: num(w.rb), have: num(w.ra), give, bulk: w.bulk ? { need: num(w.bulk.rb), have: num(w.bulk.ra), at: num(w.bulk.at) } : null } })); }
     else if (P.type === "achat") (P.wants || []).forEach(w => out.push({ own: true, ref: w.ref, name: w.name || "", q: w.q, px: w.p, pu: w.pu || "coin", view: w.src && w.src.view }));
-    else SR.err = "This picture is a selling post: they sell, they don't buy.";
+    // a selling post: they sell, you buy (Search turns to "you buy")
+    else { SR.sellPic = true; (P.wants || []).forEach(w => out.push({ own: true, ref: w.ref, name: w.name || "", q: w.q, px: w.p, pu: w.pu || "coin", view: w.src && w.src.view })); }
   });
   return out;
 }
@@ -6244,43 +6258,50 @@ async function srImages(files) {
 }
 
 /* ---------- the page ---------- */
-function srReset() { SR.flip = {}; SR.author = ""; SR.shot = false; SR.text = ""; SR.ed = {}; SR.picks = {}; SR.adds = {}; SR.tiles = []; SR.pics = []; SR.err = ""; SR.done = null; $("#srIn").value = ""; }
+function srReset() { SR.mode = null; SR.sellPic = false; SR.flip = {}; SR.author = ""; SR.shot = false; SR.text = ""; SR.ed = {}; SR.picks = {}; SR.adds = {}; SR.tiles = []; SR.pics = []; SR.err = ""; SR.done = null; $("#srIn").value = ""; }
 function renderSearch() {
   const out = $("#srOut"); out.textContent = "";
   if (SR.busy) { out.append(h("div", { class: "card scanbusy" }, h("span", { class: "spin" }), h("span", { id: "srMsg" }, SR.busy), h("button", { class: "btn sm", onclick: () => { SR.stop = true; SR.busy = null; IMP.say = null; renderSearch(); } }, "Stop"))); return; }
   if (SR.err) out.append(h("div", { class: "card" }, h("p", { class: "owarn" }, SR.err)));
   if (SR.done) return srDone(out);
-  const { rows, groups, info, dq } = srRows();
-  if (!rows.length && !groups.length) { if (!SR.err) out.append(h("div", { class: "empty card" }, SR.text.trim() || SR.tiles.length ? (info.kind === "vente" && !SR.tiles.length ? "This looks like a selling post: they sell, they don't ask for anything." : "No item found in this post. Tap an item name in the text, or paste the text of the post (Discord: long-press → Copy Text).") : "Paste any post — a buying list “(10) nachos 4k each”, a trade “Need 🫙 45:89”… — or add its screenshot. You'll see right away what you have, at their prices or ratios.")); return; }
+  const { rows, groups, info, dq, buy } = srRows(); SR.buyNow = buy;
+  if (!rows.length && !groups.length) { if (!SR.err) out.append(h("div", { class: "empty card" }, SR.text.trim() || SR.tiles.length ? ("No item found in this post. Tap an item name in the text, or paste the text of the post (Discord: long-press → Copy Text).") : "Paste any post — a buying list “(10) nachos 4k each”, a trade “Need 🫙 45:89”… — or add its screenshot. You'll see right away what you have, at their prices or ratios.")); return; }
   if (invAny()) out.append(h("p", { class: "hint srinv" }, "Your inventory: " + plural(invCount(null, SR.scope), "item") + " · updated " + agoTxt(INV.t) + " · ", h("a", { href: "#", onclick: e => { e.preventDefault(); tab("inv"); } }, "open")), farmChips(() => SR.scope, v => { SR.scope = v; SR.ed = {}; renderSearch(); }, "Look in") || "");
-  if (!invAny()) out.append(h("div", { class: "card owarnc" }, h("b", null, "Your inventory is empty"), h("p", { class: "hint" }, "Add your barn and silo first (screenshots or by hand) — then the search knows what you have."), h("button", { class: "btn pri", onclick: () => tab("inv") }, "Open my inventory")));
+  if (!invAny() && !buy) out.append(h("div", { class: "card owarnc" }, h("b", null, "Your inventory is empty"), h("p", { class: "hint" }, "Add your barn and silo first (screenshots or by hand) — then the search knows what you have."), h("button", { class: "btn pri", onclick: () => tab("inv") }, "Open my inventory")));
   // what the post is
-  const kindT = info.kind === "trade" ? "🔁 Trade post" : info.kind === "achat" ? "🛒 Buying post" : "📋 Post";
+  const kindT = info.kind === "trade" || info.cmd ? "🔁 Trade post" : buy ? "💰 Selling post — you buy" : info.kind === "achat" ? "🛒 Buying post — you sell" : "📋 Post — you sell";
+  // which way: they sell (you buy, your inventory doesn't matter) or they buy (you sell what you have)
+  const coinAny = rows.some(r => !r.rate);
+  const dirChips = coinAny && !(info.kind === "trade" || info.cmd) ? h("div", { class: "fchips" }, h("span", { class: "lbl" }, "They"),
+    h("button", { class: "chip" + (!buy ? " on" : ""), onclick: () => { SR.mode = "sell"; SR.ed = {}; renderSearch(); } }, "buy → I sell"),
+    h("button", { class: "chip" + (buy ? " on" : ""), onclick: () => { SR.mode = "buy"; SR.ed = {}; renderSearch(); } }, "sell → I buy")) : null;
   const gv = info.gives.filter(g => g.name !== "their items");
   out.append(h("div", { class: "card srinfo" }, h("b", null, kindT + (info.author ? " · " + info.author : "")),
     gv.length ? h("p", { class: "hint" }, "They give: " + gv.map(g => g.name + (g.q ? " (they have " + fmtP(g.q) + ")" : "")).join(" · ")) : null,
     info.offer.length ? h("div", { class: "mchips" }, h("small", { class: "lbl" }, "They offer:"), info.offer.map(t => h("span", { class: "mchip" }, t.ref && CAT.byId[t.ref] ? [thumb(prodState(t.ref), CAT.byId[t.ref].e, "mini"), CAT.byId[t.ref].en] : t.view ? h("img", { src: t.view, alt: "", class: "srpic" }) : "?", t.q ? h("small", null, " ×" + t.q) : null))) : null,
-    info.notes.length ? h("p", { class: "hint srnotes" }, info.notes.map(n => "“" + n + "”").join(" · ")) : null));
-  const live = rows.filter(r => r.p && !r.off && r.have > 0), miss = rows.filter(r => !r.off && (!r.p || r.have <= 0)), offs = rows.filter(r => r.off);
+    info.notes.length ? h("p", { class: "hint srnotes" }, info.notes.map(n => "“" + n + "”").join(" · ")) : null, dirChips));
+  // you buy: every item they sell counts (not only the ones you have)
+  const can = r => r.p && !r.off && (buy && !r.rate ? true : r.have > 0);
+  const live = rows.filter(can), miss = rows.filter(r => !r.off && !can(r)), offs = rows.filter(r => r.off);
   const coinL = live.filter(r => !r.rate), rateL = live.filter(r => r.rate);
   const total = coinL.reduce((a, r) => a + r.q * r.price, 0), noPrice = coinL.filter(r => !r.price).length;
   const byGive = new Map(); rateL.forEach(r => { const g = r.rate.give || { name: "their items" }, k = g.ref || g.name; const o = byGive.get(k) || { g, n: 0 }; o.n += r.units; byGive.set(k, o); });
   // what you can sell / give
   const list = h("div", { class: "card olist" });
-  list.append(h("div", { class: "obar sh" }, h("span", { class: "ol" }, "You have " + fmt(live.length) + " of " + plural(rows.length - offs.length, "item")),
+  list.append(h("div", { class: "obar sh" }, h("span", { class: "ol" }, buy ? "You buy " + plural(live.length, "item") : "You have " + fmt(live.length) + " of " + plural(rows.length - offs.length, "item")),
     h("span", { class: "dq" }, "No quantity →", h("input", { value: SR.defQ !== "" ? SR.defQ : dq || "", placeholder: "all", inputMode: "numeric", "aria-label": "Quantity when none is given", onchange: e => { SR.defQ = e.target.value.trim(); SR.ed = {}; renderSearch(); } }))));
-  if (!live.length) list.append(h("p", { class: "hint", style: "padding:12px" }, invAny() ? "None of these items is in your inventory." : "Nothing yet — your inventory is empty."));
+  if (!live.length) list.append(h("p", { class: "hint", style: "padding:12px" }, buy ? "No item recognised yet — tap the “?” below." : invAny() ? "None of these items is in your inventory." : "Nothing yet — your inventory is empty."));
   live.forEach(r => {
     const E = SR.ed[r.key] || (SR.ed[r.key] = {});
     const qi = h("input", { value: r.q, inputMode: "numeric", "aria-label": "Quantity", onchange: () => { E.q = Math.max(0, Math.round(num(qi.value))); renderSearch(); } });
     const pb = r.rate
       ? h("button", { class: "opb", onclick: () => { const v = prompt("Ratio for " + r.p.en + " — what you give : what you get (e.g. 45:89)", ratioTxt(r.ratio)); if (v == null) return; const m = v.match(RAT); if (!m) return toast("Write it like 45:89"); E.rate = Object.assign({}, r.rate, { need: num(m[1]), have: num(m[2]), bulk: null }); renderSearch(); } }, ratioTxt(r.ratio) + (r.bulkOn ? " bulk" : ""), h("i", null, " ✎"))
       : h("button", { class: "opb", onclick: () => { const v = prompt("Price each for " + r.p.en + " (e.g. 3k)", r.price || ""); if (v == null) return; E.p = num(v); renderSearch(); } }, r.price ? fmt(r.price) + " ea" + (r.xmp ? " (" + fmtP(r.xmp) + "× max)" : "") : r.xmp ? fmtP(r.xmp) + "× max price" : "no price", h("i", null, " ✎"));
-    const short = r.ask != null && r.have < r.ask;
+    const short = !(buy && !r.rate) && r.ask != null && r.have < r.ask;
     list.append(h("div", { class: "oline srl" + (short ? " short" : "") + (!r.sure ? " warn" : "") },
       thumb(prodState(r.p.id), r.p.e, "oth"),
       h("div", { class: "omid" }, h("button", { class: "oname", onclick: () => srPick(r) }, r.p.en, !r.sure ? h("span", { class: "flag" }, "?") : null),
-        h("small", null, pb, " · " + (r.ask != null ? "asks " + fmt(r.ask) + " · " : "") + "you have " + fmt(r.have) + (r.from ? " · from “" + r.from + "”" : ""), short ? h("b", { class: "shortt" }, "only " + fmt(r.have) + " — " + fmt(r.ask - r.have) + " missing") : null,
+        h("small", null, pb, " · " + (r.ask != null ? (buy && !r.rate ? "they sell " : "asks ") + fmt(r.ask) + " · " : buy && !r.rate ? "how many? · " : "") + "you have " + fmt(r.have) + (r.from ? " · from “" + r.from + "”" : ""), short ? h("b", { class: "shortt" }, "only " + fmt(r.have) + " — " + fmt(r.ask - r.have) + " missing") : null,
           r.a.cmd ? h("span", { class: "omix" }, "You give " + (r.p.parts ? setsTxt(r.q) + " (" + fmt(r.q * SET_N) + " materials)" : fmt(r.q) + " " + r.p.en) + " → you get " + (r.units ? unitsTxt(r.rate.give, r.units) : "? (set the ratio)"),
             r.a.canFlip ? h("button", { class: "omixb", onclick: () => { SR.flip[r.a.key] = !SR.flip[r.a.key]; SR.ed = {}; renderSearch(); } }, " ⇄ the other way round") : null) : null)),
       h("div", { class: "oq" }, h("span", null, "×"), qi),
@@ -6297,15 +6318,15 @@ function renderSearch() {
   if (miss.length || offs.length) {
     const chip = (r, cls, fn) => h("button", { class: "mchip " + (cls || ""), onclick: fn }, r.p ? thumb(prodState(r.p.id), r.p.e, "mini") : r.a.pic && r.a.pic.view ? h("img", { src: r.a.pic.view, alt: "", class: "srpic" }) : h("span", { class: "flag" }, "?"), r.p ? r.p.en : r.a.name ? "“" + r.a.name + "”" : "Which item?", r.ask ? h("small", null, " ×" + fmt(r.ask)) : null);
     out.append(h("div", { class: "card fieldset" },
-      miss.length ? h("details", { class: "smiss", open: miss.length <= 8 || miss.some(r => !r.p) }, h("summary", { class: "sh3" }, "Not in your inventory (" + miss.length + ")"), h("div", { class: "mchips" }, miss.map(r => chip(r, r.p ? "" : "unk", () => srPick(r)))),
+      miss.length ? h("details", { class: "smiss", open: miss.length <= 8 || miss.some(r => !r.p) }, h("summary", { class: "sh3" }, buy && miss.every(r => !r.p) ? "Not recognised (" + miss.length + ")" : "Not in your inventory (" + miss.length + ")"), h("div", { class: "mchips" }, miss.map(r => chip(r, r.p ? "" : "unk", () => srPick(r)))),
         miss.some(r => !r.p) ? h("p", { class: "hint", style: "margin-top:6px" }, "“?” = not recognised — tap to pick the item.") : null) : null,
       offs.length ? h("div", null, h("h3", { class: "sh3" }, "Removed (" + offs.length + ")"), h("div", { class: "mchips" }, offs.map(r => chip(r, "off", () => { SR.ed[r.key].off = false; renderSearch(); })))) : null));
   }
   // total
-  const who = h("input", { class: "inp who", placeholder: "Buyer (optional)", value: SR.who, oninput: () => { SR.who = who.value; } });
+  const who = h("input", { class: "inp who", placeholder: buy ? "Seller (optional)" : "Buyer (optional)", value: SR.who, oninput: () => { SR.who = who.value; } });
   const any = live.some(r => r.q > 0);
   out.append(h("div", { class: "card ototal" },
-    h("div", { class: "k" }, rateL.length && !coinL.length ? "You get" : "Total to receive"),
+    h("div", { class: "k" }, rateL.length && !coinL.length ? "You get" : buy ? "Total to pay" : "Total to receive"),
     coinL.length || !rateL.length ? h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(total)) : null,
     [...byGive.values()].map(o => h("div", { class: "v" + (coinL.length || byGive.size > 1 ? "" : " big") }, (coinL.length ? "+ " : "") + unitsTxt(o.g, o.n), o.g.q != null && (o.g.pack ? o.n / SET_N : o.n) > o.g.q + 1e-9 ? h("small", { class: "owarn" }, " — they only have " + fmtP(o.g.q)) : null)),
     convs().length && total ? h("div", { class: "conv" }, sConv(total)) : null,
@@ -6316,7 +6337,7 @@ function renderSearch() {
 }
 function srReply(live, total, byGive) {
   const C = live.filter(r => !r.rate && r.q > 0), T = live.filter(r => r.rate && r.q > 0), out = [];
-  if (C.length) out.push("I can sell you:\n" + C.map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmtP(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`).join("\n") + `\n**Total: ${fmt(total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, total / CUR[k].rate)}`).join(" ·") + "**");
+  if (C.length) out.push((SR.buyNow ? "I'll buy:\n" : "I can sell you:\n") + C.map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmtP(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`).join("\n") + `\n**Total: ${fmt(total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, total / CUR[k].rate)}`).join(" ·") + "**");
   if (T.length) out.push("I can give you:\n" + T.map(r => `${fmt(r.q)}× ${r.p.en} (${ratioTxt(r.ratio)})`).join("\n") + "\n**For: " + [...(byGive || new Map()).values()].map(o => unitsTxt(o.g, o.n)).join(" + ") + "**");
   return out.join("\n\n");
 }
@@ -6324,7 +6345,8 @@ function srReply(live, total, byGive) {
 function srEntries(live) {
   const who = SR.who.trim(), es = [], C = live.filter(r => !r.rate && r.q > 0), byG = new Map();
   live.filter(r => r.rate && r.q > 0).forEach(r => { const g = r.rate.give || {}, k = g.ref || g.name || "?"; if (!byG.has(k)) byG.set(k, { g, rows: [] }); byG.get(k).rows.push(r); });
-  if (C.length) { const t = C.reduce((a, r) => a + r.q * r.price, 0); es.push({ id: uid(), t: Date.now(), type: "vente", post: "Search", who, lines: C.map(r => ({ ref: r.p.id, e: r.p.e || "", name: r.p.en, q: r.q, v: Math.round(r.q * r.price), bulk: 0, give: 0 })), gives: [], total: Math.round(t), bonus: 0, disc: 0, reply: srReply(C, t) }); }
+  // you buy (they sell): a purchase — what you buy goes into your inventory
+  if (C.length) { const t = C.reduce((a, r) => a + r.q * r.price, 0); es.push({ id: uid(), t: Date.now(), type: SR.buyNow ? "achat" : "vente", post: "Search", who, lines: C.map(r => ({ ref: r.p.id, e: r.p.e || "", name: r.p.en, q: r.q, v: Math.round(r.q * r.price), bulk: 0, give: 0 })), gives: [], total: Math.round(t), bonus: 0, disc: 0, reply: srReply(C, t) }); }
   byG.forEach(({ g, rows }) => {
     const n = rows.reduce((a, r) => a + r.units, 0), m = new Map([[g.ref || g.name, { g, n }]]);
     // what you get goes in your inventory only when it's a real item (a set → its materials)
