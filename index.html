@@ -1957,7 +1957,7 @@ function mkItem(ref, extra) {
 }
 const frName = p => { const f = (p.fr || "").split("~")[0].trim(); return f ? f.charAt(0).toUpperCase() + f.slice(1) : p.en; };
 function defaults(type) {
-  const base = { defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "coins", showR: true, showB: true, v15: 1, bulk: [], disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
+  const base = { rv2: 1, defRa: "1", defRb: "", type, theme: { trade: "grange", vente: "verger", achat: "lagon" }[type], layout: "auto", sort: "manual", showTotal: true, totUnit: "coins", showR: true, showB: true, v15: 1, bulk: [], disc: "", discLabel: "", details: "", user: "", have: [], wants: [], ctaE: "", ctaRef: null, haveTitle: "I have", kicker: "", sub: "" };
   if (type === "vente") return { ...base, title: "Shop open", wantTitle: "Available now", cta: "DM to buy",
     wants: [mkItem("lobster-tail", { q: "20", p: "1500" }), mkItem("blanket", { q: "10", p: "1", pu: "ring", hot: 1 }), mkItem("olive-oil", { q: "50", p: "900" })] };
   if (type === "achat") return { ...base, title: "Wanted", wantTitle: "Looking for", cta: "Sell me yours",
@@ -1970,6 +1970,16 @@ function defaults(type) {
 }
 const mkProfile = (type, name) => ({ ...defaults(type), id: uid(), name: name || TYPES[type].name, user: (typeof st !== "undefined" && st && st.user) || "" });
 const OLD_DEFAULTS = { kicker: ["TRADE ALERT", "FOR SALE", "BUYING"], sub: ["DM me to trade", "Prices per unit · DM me", "DM me your offer", "Prix en pièces • MP pour échanger", "Prix en pièces • quantité et total indiqués", "DM me your offer"], details: ["- Bulk orders welcome\n- Paid in diamond rings"] };
+/** Ratios from before: written "60 : 89" (as on Discord: 60 items for 89 BEM) in boxes that read "I give : I get" — turned around,
+    so the post still shows "60 : 89" and now means 89 BEM given for 60. Set ratios already right ("89 : 60" — the 89 on the side you give) stay. */
+function ratioFix(p) {
+  const hv = (p.have || []).filter(x => x && ((x.name || "").trim() || x.ref));
+  const pack = uid => { const g = hv.find(x => x.uid === uid) || hv[0]; const q = g && g.ref && CAT.byId[g.ref]; return !!(q && q.parts); };
+  const turn = (A, B, pk) => { A = num(A); B = num(B); if (!(A > 0 && B > 0)) return false; return !(pk && A % SET_N === 0 && B % SET_N !== 0); };
+  const fix = (o, give) => { if (!o || !turn(o.ra, o.rb, pack(give))) return; [o.ra, o.rb] = [o.rb, o.ra]; if (num(o.bra) > 0 && num(o.brb) > 0) [o.bra, o.brb] = [o.brb, o.bra]; };
+  (p.wants || []).forEach(w => fix(w, w.give));
+  if (p.addR) fix(p.addR, p.addR.give);
+}
 function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
   if (!Array.isArray(p.bulk)) p.bulk = [];
@@ -1979,6 +1989,7 @@ function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.v15) { const u = p.totUnit || "both"; p.showR = u !== "coins"; p.showB = u !== "coins"; p.totUnit = u === "rings" ? "rings" : "coins"; p.v15 = 1; }
   if (!p.v13) { [...(p.have || []), ...(p.wants || [])].forEach(w => { if (w && w.note === "1st page · no bb") w.note = ""; }); p.v13 = 1; }
   if (!p.addR && num(p.defRa) > 0 && num(p.defRb) > 0) p.addR = { ra: p.defRa, rb: p.defRb, give: "" };
+  if (!p.rv2) { ratioFix(p); p.rv2 = 1; }
   if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "showR", "showB", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
 let CUSTOM = store.get("hd5_custom", []);
@@ -2132,7 +2143,7 @@ function ratioGroups(list) {
 }
 /** "10+ sets" / "10+ rings": the size a bulk ratio starts at, in what you give. */
 function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; if (p && p.parts) return "sets"; const n = gi ? (gi.name || "items").toLowerCase() : "items"; return /s$/.test(n) ? n : n + "s"; }
-const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.ra)) + " : " + fmtR(num(g.bulk.rb));
+const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra));
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
   const by = { qty: (x, y) => num(y.q) - num(x.q), value: (x, y) => itemValue(y) - itemValue(x), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[st.sort];
@@ -2151,14 +2162,15 @@ function oosMark(x, y, w, h, sx0, sx1, sy, T) {
   ctx.save(); ctx.globalAlpha = .62; ctx.fillStyle = T.paper; ctx.fillRect(x, y, w, h); ctx.restore();
   ctx.fillStyle = T.acc; ctx.fillRect(sx0, Math.round(sy) - 2, Math.max(0, sx1 - sx0), 4);
 }
-function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtR(num(w.ra)), "D", z) + (g ? 8 + iz : 0) + 20 + measure(":", "D", z) + 20 + measure(fmtR(num(w.rb)), "D", z) + 8 + iz; }
+function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtR(num(w.rb)), "D", z) + 8 + iz + 20 + measure(":", "D", z) + 20 + measure(fmtR(num(w.ra)), "D", z) + (g ? 8 + iz : 0); }
+/** "60 [their item] : 89 [my item]" — what you get : what you give, as on Discord. */
 function drawRatio(w, x, cy, s, T) {
   const iz = s * 1.3, g = giveItem(w), z = s * .86;
-  x += txt(fmtR(num(w.ra)), x, cy + 1, { f: "D", s: z, c: T.ink });
-  if (g) { icon(itemState(g), g.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz; }
+  x += txt(fmtR(num(w.rb)), x, cy + 1, { f: "D", s: z, c: T.ink });
+  icon(itemState(w), w.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz;
   x += 20; x += txt(":", x, cy, { f: "D", s: z, c: T.mut }) + 20;
-  x += txt(fmtR(num(w.rb)), x, cy + 1, { f: "D", s: z, c: T.acc });
-  icon(itemState(w), w.e, x + 8 + iz / 2, cy, iz, 1);
+  x += txt(fmtR(num(w.ra)), x, cy + 1, { f: "D", s: z, c: T.acc });
+  if (g) icon(itemState(g), g.e, x + 8 + iz / 2, cy, iz, 1);
 }
 /** Sell / buy amounts: main line = total in coins, second line = "20 × 1,500". */
 function amounts(w) {
@@ -2399,15 +2411,16 @@ function draw() {
       ctx.fillStyle = T.card; ctx.fillRect(M, y, W - 2 * M, bh);
       ctx.lineWidth = 2; ctx.strokeStyle = T.ink; ctx.strokeRect(M + 1, y + 1, W - 2 * M - 2, bh - 2);
       ctx.lineWidth = 1; ctx.strokeRect(M + 7, y + 7, W - 2 * M - 14, bh - 14);
-      // header: "50 [my item] : 89"
+      // header: "60 : 89 [my item]" — 60 of these items for 89 of mine
       const hy = y + 44;
       if (g.none) txt("Make an offer", M + BP + 6, hy, { f: "D", s: 34, c: T.mut });
       else {
         let x = M + BP + 6; const s = 46, gi = st.have.find(h => h.uid === g.give);
-        x += txt(fmtR(num(g.ra)), x, hy + 2, { f: "D", s, c: T.ink });
-        if (gi) { icon(itemState(gi), gi.e, x + 12 + 26, hy, 52, 1); x += 12 + 52; }
+        x += txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.ink });
         x += 18; x += txt(":", x, hy, { f: "D", s, c: T.mut }) + 18;
-        const rbw = txt(fmtR(num(g.rb)), x, hy + 2, { f: "D", s, c: T.acc });
+        x += txt(fmtR(num(g.ra)), x, hy + 2, { f: "D", s, c: T.acc });
+        if (gi) { icon(itemState(gi), gi.e, x + 12 + 26, hy, 52, 1); x += 12 + 52; }
+        const rbw = 0;
         if (g.bulk) txt(bulkLabel(g), W - M - BP - 6, hy + 2, { f: "700", s: 26, c: T.acc, al: "right", maxW: W - 2 * M - 2 * BP - (x + rbw - M) - 40 });
         if (g.items.length && g.items.every(w => w.oos)) { ctx.fillStyle = T.ink; ctx.fillRect(M + BP, Math.round(hy) - 2, x + rbw + 6 - M - BP, 5); } // whole ratio out of stock
       }
@@ -2677,6 +2690,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Long lists:"), " “Filter my items” finds an item in your post, and the ↑ ↓ buttons jump to the top or the bottom of the page."),
     h("li", null, h("b", null, "History:"), " every deal marked as done, with your totals for 7 days, 30 days or all time."),
     h("li", null, h("b", null, "Search:"), " paste any post (a “buying” list, a trade “Have … / Need … 45:89”) or add its screenshot — it checks your inventory and makes the order at their prices or ratios. Groups like “mussel foods”: tap the items they mean."),
+    h("li", null, h("b", null, "Ratios (trade):"), " written as on Discord — 60 : 89 = 60 of the item for 89 of yours (the 89 is on the side of what you give, with its picture). Order gives 89 BEM for 60, 45 for 30."),
     h("li", null, h("b", null, "Mixes:"), " First / Second / Third Page Jams (the Jam Maker's pages, 5 jams a page) and All Bars are items of their own: you have = all their items, a deal takes them from what you have most of, ×MP is counted item by item. Buyers can write “fp jams”, “2nd page jams”, “all bars”."),
     h("li", null, h("b", null, "Deals:"), " several deals at once — save one for later from Order or Search, or add one (also every-day trades, e.g. 89 BEM a day). Confirm it when it's done: History, Stats and inventory follow."),
     h("li", null, h("b", null, "Import (⤓, top right):"), " an old post → a new post here: a screenshot of your Discord message or of a picture made by another post maker, or the copied text. Struck items come in as “out of stock”."),
@@ -2726,7 +2740,8 @@ function renderCats() {
 const curAddKey = () => st.addR ? ratioKeyOf(st.addR.ra, st.addR.rb, st.addR.give, { at: st.addR.bat, ra: st.addR.bra, rb: st.addR.brb }) : "none";
 /** What a new "I want" item gets in a trade post: the ratio (and bulk ratio) of the group you add to. */
 const addRF = () => { const r = st.addR; return Object.assign({ ra: r.ra, rb: r.rb, give: r.give }, r.bat ? { bat: r.bat, bra: r.bra, brb: r.brb } : {}); };
-function ratioLabel(ra, rb) { return fmtR(num(ra)) + " : " + fmtR(num(rb)); }
+/** A ratio as written on Discord: what you get : what you give — "60 : 89" = 60 items for 89 BEM materials (ra = you give, rb = you get). */
+function ratioLabel(ra, rb) { return fmtR(num(rb)) + " : " + fmtR(num(ra)); }
 function setAddR(r) { const b = r && (r.bulk || (r.bat ? { at: r.bat, ra: r.bra, rb: r.brb } : null)); st.addR = r ? Object.assign({ ra: r.ra, rb: r.rb, give: normGive(r.give) }, b ? { bat: b.at, bra: b.ra, brb: b.rb } : {}) : null; SETTINGS.to = "wants"; saveSettings(); saveSoon(); renderTarget(); renderResults(); markTargetGroup(); }
 function renderTarget() {
   const trade = st.type === "trade";
@@ -2747,7 +2762,7 @@ function renderTarget() {
   const on = tc.querySelector(".on"); if (on) requestAnimationFrame(() => { const a = tc.getBoundingClientRect(), b = on.getBoundingClientRect(); if (b.right > a.right - 28) tc.scrollLeft += b.right - a.right + 40; else if (b.left < a.left) tc.scrollLeft -= a.left - b.left + 12; });
 }
 function newRatioSheet(it) {
-  const a = h("input", { inputMode: "decimal", placeholder: "50" }), b = h("input", { inputMode: "decimal", placeholder: "89", class: "b" });
+  const a = h("input", { inputMode: "decimal", placeholder: "89", class: "b", "aria-label": "You give" }), b = h("input", { inputMode: "decimal", placeholder: "60", "aria-label": "You get" });
   const hv = st.have.filter(x => (x.name || "").trim() || x.ref); let give = normGive("");
   const gw = h("div", { class: "row", style: "flex-wrap:wrap" });
   const paintG = () => { gw.textContent = ""; if (hv.length > 1) hv.forEach(x => gw.append(h("button", { class: "chip r" + (x.uid === give ? " on" : ""), onclick: () => { give = x.uid; paintG(); } }, thumb(itemState(x), x.e), x.name || "item"))); };
@@ -2763,11 +2778,11 @@ function newRatioSheet(it) {
   const existing = it && it.uid ? ratioGroups(st.wants.filter(w => (w.name || "").trim() || w.ref)).filter(g => !g.none && g.key !== ratioKey(it)) : [];
   openSheet(it && it.uid ? "Ratio for " + (it.name || "item") : "New ratio", [
     existing.length ? h("div", null, h("label", { class: "lbl" }, "Move to"), h("div", { class: "row", style: "flex-wrap:wrap" }, existing.map(g => h("button", { class: "chip r", onclick: () => { it.ra = g.ra; it.rb = g.rb; it.give = g.give; closeSheet(); renderLists(); renderTarget(); changed(); toast(it.name + " → " + ratioLabel(g.ra, g.rb)); } }, ratioLabel(g.ra, g.rb))))) : null,
-    h("div", null, h("label", { class: "lbl" }, existing.length ? "Or a new ratio" : "Ratio (I give : I get)"), h("div", { class: "grp-h", style: "grid-template-columns:1fr;border:0;padding:0;background:none" }, h("div", { class: "rin" }, a, h("span", { class: "colon" }, ":"), b))),
+    h("div", null, h("label", { class: "lbl" }, existing.length ? "Or a new ratio" : "Ratio — items you get : what you give (60 : 89 = 60 for 89 BEM)"), h("div", { class: "grp-h", style: "grid-template-columns:1fr;border:0;padding:0;background:none" }, h("div", { class: "rin" }, b, h("span", { class: "colon" }, ":"), a))),
     hv.length > 1 ? h("div", null, h("label", { class: "lbl" }, "I give"), gw) : null,
     h("button", { class: "btn pri full", onclick: go }, it && it.uid ? "Apply" : "Use this ratio")
   ]);
-  setTimeout(() => a.focus(), 250);
+  setTimeout(() => b.focus(), 250);
 }
 function markTargetGroup() { $$(".grp").forEach(g => g.classList.toggle("target", SETTINGS.to !== "have" && g.dataset.key === curAddKey())); }
 const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have : st.wants;
@@ -2905,8 +2920,8 @@ function samePriceBar() {
 function groupCard(g) {
   const card = h("div", { class: "grp", "data-key": g.key });
   const hv = st.have.filter(x => (x.name || "").trim() || x.ref);
-  const a = h("input", { value: g.none ? "" : g.ra, inputMode: "decimal", placeholder: "50", "aria-label": "I give" });
-  const b = h("input", { value: g.none ? "" : g.rb, inputMode: "decimal", placeholder: "89", class: "b", "aria-label": "I get" });
+  const a = h("input", { value: g.none ? "" : g.ra, inputMode: "decimal", placeholder: "89", class: "b", "aria-label": "You give (your item)" });
+  const b = h("input", { value: g.none ? "" : g.rb, inputMode: "decimal", placeholder: "60", "aria-label": "You get (these items)" });
   const wasTarget = () => SETTINGS.to !== "have" && curAddKey() === g.key;
   const apply = () => { const t = wasTarget(); g.items.forEach(w => { w.ra = a.value.trim(); w.rb = b.value.trim(); w.give = g.give; }); if (t) st.addR = Object.assign({ ra: a.value.trim(), rb: b.value.trim(), give: g.give }, g.bulk ? { bat: g.bulk.at, bra: g.bulk.ra, brb: g.bulk.rb } : {}); g.key = ratioKeyOf(a.value, b.value, g.give, g.bulk); changed(); renderSummary(); };
   a.oninput = apply; b.oninput = apply;
@@ -2926,7 +2941,7 @@ function groupCard(g) {
     h("button", { class: "danger", onclick: () => { if (!confirm("Remove the " + g.items.length + " items of this group?")) return; st.wants = st.wants.filter(w => !g.items.includes(w)); closeSheet(); renderLists(); renderTarget(); renderResults(); changed(); } }, h("i", null, "×"), "Remove this group and its items"))) }, "⋯");
   const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give, bulk: g.bulk }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(() => $("#q").focus({ preventScroll: true }), 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
   put(card,
-    h("div", { class: "grp-h" }, h("div", { class: "rin" }, giveBtn, a, h("span", { class: "colon" }, ":"), b), menu),
+    h("div", { class: "grp-h" }, h("div", { class: "rin" }, b, h("span", { class: "colon" }, ":"), a, giveBtn), menu),
     g.bulk ? h("button", { class: "bulkr", title: "Bulk ratio — tap to change", onclick: () => bulkSheet(g) }, h("b", null, "Bulk"), " " + bulkLabel(g)) : null,
     h("div", null, g.items.map(groupRow)),
     h("div", { class: "grp-f" }, h("button", { type: "button", class: "addhere", onclick: addHere }, "+ Add items here")));
@@ -2937,14 +2952,14 @@ function bulkSheet(g) {
   const b0 = g.bulk || {}, unit = bulkUnit(g);
   const at = h("input", { class: "inp", value: b0.at || "", inputMode: "numeric", placeholder: "10", "aria-label": "From how many" });
   const ra = h("input", { class: "inp", value: b0.ra || g.ra || "", inputMode: "decimal", placeholder: g.ra || "89", "aria-label": "You give" });
-  const rb = h("input", { class: "inp", value: b0.rb || "", inputMode: "decimal", placeholder: g.rb || "40", "aria-label": "You get" });
+  const rb = h("input", { class: "inp", value: b0.rb || "", inputMode: "decimal", placeholder: g.rb || "40", "aria-label": "You get (items)" });
   const keep = (A, B, C) => { const tgt = SETTINGS.to !== "have" && curAddKey() === g.key;
     g.items.forEach(w => { if (A) { w.bat = A; w.bra = B; w.brb = C; } else { delete w.bat; delete w.bra; delete w.brb; } });
     if (tgt) setAddR({ ra: g.ra, rb: g.rb, give: g.give, bulk: A ? { at: A, ra: B, rb: C } : null });
     closeSheet(); renderLists(); renderTarget(); changed(); };
   openSheet("Bulk ratio", [
     h("p", { class: "hint" }, "For big deals: once someone takes this many, this ratio is used instead of " + ratioLabel(g.ra, g.rb) + ". It shows on the picture and Order uses it."),
-    h("div", { class: "bulkf" }, h("span", null, "From"), at, h("span", null, unit), h("span", null, "→"), ra, h("span", { class: "colon" }, ":"), rb),
+    h("div", { class: "bulkf" }, h("span", null, "From"), at, h("span", null, unit), h("span", null, "→"), rb, h("span", { class: "colon" }, ":"), ra),
     h("div", { class: "two", style: "margin-top:12px" },
       g.bulk ? h("button", { class: "btn", onclick: () => keep(null) }, "Remove") : h("button", { class: "btn", onclick: closeSheet }, "Cancel"),
       h("button", { class: "btn pri", onclick: () => { if (!(num(at.value) > 0 && num(ra.value) > 0 && num(rb.value) > 0)) return toast("Fill the 3 numbers"); keep(at.value.trim(), ra.value.trim(), rb.value.trim()); } }, "Save"))]);
@@ -3030,21 +3045,21 @@ function itemCard(it) {
   const card = h("div", { class: "item" + (it.hot ? " hot" : "") + (it.oos ? " oos" : ""), "data-uid": it.uid });
   card.append(cardHead(it, card));
   if (st.type === "trade") {
-    // I give [my item] A  :  B [their item] I get
+    // I get B [their item]  :  A [my item] I give — "60 : 89" as on Discord
     const hv = st.have.filter(x => (x.name || "").trim() || x.ref);
     const giveBtn = h("button", { type: "button", class: "ti", title: hv.length > 1 ? "Tap to change which of your items you give" : "Your item" });
     const paintGive = () => { const g = giveItem(it); giveBtn.textContent = ""; giveBtn.append(g ? thumb(itemState(g), g.e) : h("span", { class: "th" }, "📦")); if (hv.length > 1) giveBtn.append(h("small", null, "⇄")); };
     giveBtn.onclick = () => { if (hv.length < 2) return toast(hv.length ? "Add more items under “I have” to choose between them" : "Add what you offer under “I have” first"); const g = giveItem(it), i = hv.indexOf(g); it.give = hv[(i + 1) % hv.length].uid; paintGive(); changed(); };
     paintGive();
-    const a = h("input", { value: it.ra || "", inputMode: "decimal", placeholder: "1", "aria-label": "I give", oninput: () => { it.ra = a.value; hint(); changed(); renderSummary(); } });
-    const b = h("input", { value: it.rb || "", inputMode: "decimal", placeholder: "40", "aria-label": "I get", oninput: () => { it.rb = b.value; hint(); changed(); renderSummary(); } });
+    const a = h("input", { value: it.ra || "", inputMode: "decimal", placeholder: "89", "aria-label": "I give", oninput: () => { it.ra = a.value; hint(); changed(); renderSummary(); } });
+    const b = h("input", { value: it.rb || "", inputMode: "decimal", placeholder: "60", "aria-label": "I get", oninput: () => { it.rb = b.value; hint(); changed(); renderSummary(); } });
     const hn = h("div", { class: "rhint" });
     const hint = () => { const g = giveItem(it); hn.textContent = hasRatio(it) ? fmtR(num(it.ra)) + " " + (g ? g.name || "of mine" : "of mine") + " for " + fmtR(num(it.rb)) + " " + (it.name || "of yours") : ""; };
     hint();
     card.append(h("div", { class: "rbox" },
-      h("div", { class: "side" }, h("span", null, "I give"), h("div", { class: "rin" }, giveBtn, a)),
+      h("div", { class: "side get" }, h("span", null, "I get"), h("div", { class: "rin" }, b, h("span", { class: "ti" }, thumb(itemState(it), it.e)))),
       h("div", { class: "colon" }, ":"),
-      h("div", { class: "side get" }, h("span", null, "I get"), h("div", { class: "rin" }, b, h("span", { class: "ti" }, thumb(itemState(it), it.e))))), hn,
+      h("div", { class: "side" }, h("span", null, "I give"), h("div", { class: "rin" }, a, giveBtn))), hn,
       noteArea(it, "Note (optional)"));
     return card;
   }
@@ -4324,7 +4339,7 @@ function parseListLine(raw, sec) {
   const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], " "); return true; } return false; };
   take(/^\s*(?:i\s*have|have|offer(?:ing)?|giving)\s*[:\-–]\s*/i, () => { o.have = true; });
   take(/\s(?:i\s*want|want|wtb|looking\s*for)\s*[:\-–]\s*/i, () => { o.have = false; });
-  take(/(\d+(?:[.,]\d+)?)\s*[:/]\s*(\d+(?:[.,]\d+)?)/, m => { o.ra = m[1]; o.rb = m[2]; });
+  take(/(\d+(?:[.,]\d+)?)\s*[:/]\s*(\d+(?:[.,]\d+)?)/, m => { o.rb = m[1]; o.ra = m[2]; });     // "50:89" = 50 of it for 89 of yours
   take(new RegExp("\\s" + NUM + "\\s*(?:x|×)?\\s*mp\\b", "i"), m => { o.p = m[1]; o.pu = "xmp"; });
   take(new RegExp("\\s" + NUM + "\\s*(?:r|rings?|dr|diamond\\s*rings?)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; o.pu = "ring"; });
   take(new RegExp("\\s" + NUM + "\\s*(?:b|bl|blankets?)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; o.pu = "blanket"; });
@@ -4396,7 +4411,7 @@ function renderPaste() {
     const nameBtn = h("button", { class: "oname", onclick: () => pastePick(x) }, m.custom ? x.name : p ? p.en : x.name, !m.ignored && !m.custom && (!p || !m.sure) ? h("span", { class: "flag" }, p ? "?" : "!") : null);
     const sub = m.ignored ? "Ignored — tap to pick" : m.custom ? "Custom item" : !p ? "Not found — tap to pick" : x.name.toLowerCase() !== p.en.toLowerCase() ? "from “" + x.name + "”" : "";
     let val;
-    if (trade) val = s2 === "have" ? (x.q ? "×" + fmt(num(x.q)) : "") : x.ra ? fmtR(num(x.ra)) + " : " + fmtR(num(x.rb)) : h("small", null, "no ratio");
+    if (trade) val = s2 === "have" ? (x.q ? "×" + fmt(num(x.q)) : "") : x.ra ? fmtR(num(x.rb)) + " : " + fmtR(num(x.ra)) : h("small", null, "no ratio");
     else val = [x.q ? "×" + fmt(num(x.q)) : h("small", null, "no qty"), x.p ? h("small", null, x.pu === "xmp" ? fmtR(num(x.p)) + "×MP" : x.pu === "ring" ? curTxt("ring", num(x.p)) : x.pu === "blanket" ? curTxt("blanket", num(x.p)) : fmt(num(x.p)) + " ea") : h("small", null, "no price")];
     list.append(h("div", { class: "pline" + (m.ignored ? " ign" : !p && !m.custom ? " bad" : "") },
       thumb(p ? prodState(p.id) : null, p ? p.e : m.custom ? "📦" : "❔", "oth"),
@@ -6087,7 +6102,7 @@ function dealCard(d, res) {
 function trAddSheet(tr, done) {
   const res = h("div", { class: "menu pick" });
   const fill = q => { res.textContent = ""; (q ? search(q, "all") : (STATE.list.find(x => x.id === tr.pid) || { wants: [] }).wants.map(w => w.ref && CAT.byId[w.ref]).filter(Boolean)).filter(p => !p.parts).slice(0, 14)
-    .forEach(p => { const r = postRatio(STATE.list.find(x => x.id === tr.pid), p.id); res.append(h("button", { onclick: () => { trPush(tr, p); closeSheet(); done(); } }, thumb(prodState(p.id), p.e, "mini"), p.en, r ? h("small", null, " · " + fmtR(r.ra) + " : " + fmtR(r.rb)) : null)); }); };
+    .forEach(p => { const r = postRatio(STATE.list.find(x => x.id === tr.pid), p.id); res.append(h("button", { onclick: () => { trPush(tr, p); closeSheet(); done(); } }, thumb(prodState(p.id), p.e, "mini"), p.en, r ? h("small", null, " · " + fmtR(r.rb) + " : " + fmtR(r.ra)) : null)); }); };
   const sq = h("input", { class: "inp", type: "search", placeholder: "Search the item", autocapitalize: "off", oninput: e => fill(e.target.value) });
   fill("");
   openSheet("Add an item", [sq, h("p", { class: "hint" }, tr.pid ? "Items of your trade post first, with their ratio." : "Pick the item; set its ratio after."), res]);
@@ -6135,7 +6150,7 @@ function dealForm(d) {
       const ch = full => { if (full) draw(); else { tot.textContent = ""; tot.append(trTotal(T, null, null)); } };
       T.lines.forEach(l => wrap.append(trRow(T, l, ch)));
       const res = h("div", { class: "dres" });
-      const q = h("input", { class: "inp", type: "search", placeholder: "＋ Add an item they give you", autocapitalize: "off", oninput: e => { res.textContent = ""; const v = e.target.value.trim(); const pool = v ? search(v, "all") : []; pool.filter(p => !p.parts).slice(0, 6).forEach(p => { const r = postRatio(STATE.list.find(x => x.id === T.pid), p.id); res.append(h("button", { class: "mchip", onclick: () => { trPush(T, p); draw(); } }, thumb(prodState(p.id), p.e, "mini"), p.en, r ? h("small", null, " " + fmtR(r.ra) + ":" + fmtR(r.rb)) : null)); }); } });
+      const q = h("input", { class: "inp", type: "search", placeholder: "＋ Add an item they give you", autocapitalize: "off", oninput: e => { res.textContent = ""; const v = e.target.value.trim(); const pool = v ? search(v, "all") : []; pool.filter(p => !p.parts).slice(0, 6).forEach(p => { const r = postRatio(STATE.list.find(x => x.id === T.pid), p.id); res.append(h("button", { class: "mchip", onclick: () => { trPush(T, p); draw(); } }, thumb(prodState(p.id), p.e, "mini"), p.en, r ? h("small", null, " " + fmtR(r.rb) + ":" + fmtR(r.ra)) : null)); }); } });
       tot.append(trTotal(T, null, null));
       wrap.append(q, res, tot, h("p", { class: "hint" }, "What you give is calculated from each ratio: change a quantity or a ratio, the total follows."));
       return wrap;
