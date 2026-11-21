@@ -1203,7 +1203,7 @@ details summary{-webkit-tap-highlight-color:transparent}
         <div class="ch"><h2>Layout</h2></div>
         <div class="layouts" id="layouts"></div>
         <div id="custBox" class="stack" hidden></div>
-        <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="qty">Qty</button><button data-s="price">Price</button><button data-s="value">Value</button><button data-s="name">A–Z</button><button data-s="manual">Mine</button></div></div>
+        <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="qty">Quantity</button><button data-s="price">Price</button></div></div>
       </div>
       <div class="card fieldset">
         <div class="ch"><h2>Texts</h2></div>
@@ -2292,8 +2292,12 @@ function btTile(w, x, y, S, T, kind) {
     }
     ctx.restore();
   }
+  // sets, page mixes and Help: the name under the band, so nobody wonders what it is
+  const P0 = w.ref && CAT.byId[w.ref], named = P0 && (P0.parts || P0.mix || P0.id === "help");
+  const capS = S * .09, capH = named ? capS * 1.5 : 0;
+  if (named) txt(pName(w), x + S / 2, y + (top ? bandH : 0) + capH * .58, { f: "800", s: capS, c: oos ? T.mut : T.ink, al: "center", maxW: S * .9 });
   // the picture, in the room left under the band
-  const t0 = top ? bandH : 0, q = num(w.q), qS = S * .2;
+  const t0 = (top ? bandH : 0) + capH, q = num(w.q), qS = S * .2;
   ctx.save(); rr(x, y, S, S, r); ctx.clip(); if (oos) ctx.globalAlpha = .25;
   const room = S - t0, iz = Math.min(S * .74, room * .86);
   icon(itemState(w), w.e, x + S * .5, y + t0 + room * .46, iz, 1);
@@ -2360,7 +2364,9 @@ function drawBeta() {
   // title on the left, your name on the right of it; the type label under the title
   const uS = pS * 1.1, uW = user ? measure(user, "700", uS) : 0;
   const tS2 = title ? fit(title, "800", tS, IW - (user ? uW + U * .2 : 0), U * .14) : 0, ph = pS * 1.8;
-  let H = M + (title ? tS * 1.12 : 0) + (kick ? kS * 1.5 : 0) + ph + U * .15;
+  // a title says it already ("Shop open"): no SELLING label under it
+  const showType = !title;
+  let H = M + (title ? tS * 1.12 : 0) + (kick ? kS * 1.5 : 0) + (showType ? ph : 0) + U * .15;
   const secS = U * .11, secH = secS * 2.3;
   if (have.length) H += secH + Math.ceil(have.length / C) * (S + G) + U * .06;
   if (trade && (!grouped || !have.length)) H += secH;
@@ -2393,7 +2399,8 @@ function drawBeta() {
   let y = M;
   if (title) { const cy = y + tS * .55; txt(title, M, cy, { f: "800", s: tS2, c: T.ink }); if (user) txt(user, W - M, cy, { f: "700", s: uS, c: T.mut, al: "right" }); y += tS * 1.12; }
   if (kick) { txt(kick, M, y + kS * .6, { f: "600", s: kS, c: T.mut, maxW: IW }); y += kS * 1.5; }
-  {
+  if (!showType) y += U * .15;
+  else {
     const tw = measure(typeLabel, "700", pS), cy = y + ph / 2;
     rr(M, y, tw + pS * 1.6, ph, ph * .28); ctx.fillStyle = trade ? (T.dark ? T.acc : T.ink) : type === "achat" ? "#2f6fd0" : "#2f8f46"; ctx.fill();
     txt(typeLabel, M + pS * .8, cy + 1, { f: "700", s: pS, c: "#fff", sp: 1 });
@@ -2473,7 +2480,7 @@ function betaBar() {
   const bar = $("#betaBar"); if (!bar) return; bar.textContent = "";
   const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); } }, l)));
   bar.append(seg([["new", "New look"], ["old", "Classic"]], st.betaOff ? "old" : "new", v => { st.betaOff = v === "old"; }));
-  if (!st.betaOff) bar.append(h("div", { class: "lbl" }, "Sort the items by"), seg([["qty", "Qty"], ["price", "Price"], ["value", "Total"], ["manual", "Mine"]], sortKey(), v => { st.sort = v; st.sortV = 1; }));
+  if (!st.betaOff) bar.append(h("div", { class: "lbl" }, "Sort the items by"), seg([["qty", "Quantity"], ["price", "Price"]], sortKey(), v => { st.sort = v; st.sortV = 1; }));
   if (!st.betaOff) bar.append(seg(Object.entries(BT_THEMES).map(([k, t]) => [k, t.name]), st.bTheme && BT_THEMES[st.bTheme] ? st.bTheme : "cream", v => { st.bTheme = v; }));
 }
 
@@ -2520,7 +2527,7 @@ function ratioGroups(list) {
 function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; if (p && p.parts) return "sets"; const n = gi ? (gi.name || "items").toLowerCase() : "items"; return /s$/.test(n) ? n : n + "s"; }
 const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra));
 // how the picture is sorted: most items by default; "Manual" saved before the automatic sort counts as unset
-const sortKey = () => st.sortV ? (st.sort || "qty") : (st.sort && st.sort !== "manual" ? st.sort : "qty");
+const sortKey = () => st.sort === "price" ? "price" : "qty";    // the picture: by quantity (default) or by price
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
   // sorted by itself: most items first unless you chose otherwise; sold out / not needed always at the end
@@ -5738,7 +5745,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 05:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 05:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
