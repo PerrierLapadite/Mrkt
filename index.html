@@ -1058,6 +1058,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .betabar{display:grid;gap:8px;margin-bottom:10px}.betabar .seg{display:flex;flex-wrap:wrap;gap:6px}.betabar .seg button{flex:1;min-width:0;padding:9px 10px;border-radius:999px;border:1px solid var(--line2);background:none;color:var(--ink);font:700 14px var(--sans)}.betabar .seg button.on{background:var(--ink);color:var(--bg)}
 .mever{margin:6px 4px 2px;color:var(--mut);font-size:12px;text-align:center}
+.impchk{grid-column:1/-1;font-size:13px;font-weight:700;color:#c0392b;padding:6px 0 0}.impchk.ok{color:#2f8f46}
 </style>
 </head>
 <body data-tab="items">
@@ -5841,7 +5842,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 12:55";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 22:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -7794,7 +7795,7 @@ async function impReadImage(img, pool, say) {
   }
   // f) post-generator pictures: tiles with "5x" (price × max price) at the top left and the quantity at the bottom right
   say("Reading the picture…");
-  const tiles = await impGrid(P, lines, regs);
+  const tiles = await impGrid(P, lines, regs, img);
   const inTile = (x, y) => tiles.some(t => x >= t.box.x0 && x <= t.box.x1 && y >= t.box.y0 && y <= t.box.y1);
   // g) which item each emoji is (emojis inside the tiles belong to the tiles)
   say("Finding the items…");
@@ -7850,8 +7851,8 @@ function cropView(P, c) {
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = ((y + c.y0) * P.W + x + c.x0) * 4, j = (y * w + x) * 4; D.data[j] = P.d[i]; D.data[j + 1] = P.d[i + 1]; D.data[j + 2] = P.d[i + 2]; D.data[j + 3] = 255; }
   g.putImageData(D, 0, 0); const k = 56 / h, o = mkCanvas(w * k, 56); o.getContext("2d").drawImage(s, 0, 0, o.width, o.height); const u = o.toDataURL("image/jpeg", .85); s.width = s.height = o.width = o.height = 0; return u;
 }
-/** Tiles of a post-generator picture, found from their labels: "5x" top left, the quantity bottom right (white, outlined). */
-async function impGrid(P, lines, regs) {
+/** The first way (kept as a second opinion): tiles from their labels, read at once. */
+async function impGridLabels(P, lines, regs) {
   const { W, H, d } = P;
   const white = i => d[i] > 210 && d[i + 1] > 210 && d[i + 2] > 210 && sat(d, i) < 35;
   // real text lines (words with letters) are not labels
@@ -7891,6 +7892,219 @@ async function impGrid(P, lines, regs) {
     if (!t.coin && (!t.px || !+t.px)) { const v = (await rd(b.x0, b.y0, b.x0 + p * .6, b.y0 + p * .34, "0123456789x.")).match(/(\d+(?:\.\d+)?)x/i); if (v && +v[1]) t.px = v[1]; }
   }
   return tiles.sort((a, b) => Math.round(a.box.y0 / p) - Math.round(b.box.y0 / p) || a.box.x0 - b.box.x0);
+}
+/** Both ways, put together: the squares read one by one, and the labels read at once.
+    When they disagree on a square, the other reading is kept aside: the picture's total (if it shows one) decides. */
+async function impGrid(P, lines, regs, img) {
+  const A = await impGridCells(P, lines, regs, img), B = await impGridLabels(P, lines, regs);
+  const ctr = t => [(t.box.x0 + t.box.x1) / 2, (t.box.y0 + t.box.y1) / 2];
+  const same = (a, b) => { const [ax, ay] = ctr(a), [bx, by] = ctr(b), s = Math.min(a.box.x1 - a.box.x0, b.box.x1 - b.box.x0) * .5; return Math.abs(ax - bx) < s && Math.abs(ay - by) < s; };
+  const good = T => T.filter(t => t.px && t.q).length;
+  if (!A.length) return B;
+  if (!B.length) return A;
+  // the one that found more complete squares leads; the other one's readings become alternatives
+  const [M, O] = good(B) > good(A) || (A.weak && good(B) >= good(A)) ? [B, A] : [A, B];
+  M.forEach(t => { t.altQ = t.altQ || []; t.altP = t.altP || []; });
+  O.forEach(o => {
+    const t = M.find(x => same(x, o));
+    if (!t) { if (o.px && o.q) M.push(Object.assign(o, { altQ: [], altP: [] })); return; }
+    if (o.q && o.q !== t.q && !t.altQ.includes(o.q)) { if (!t.q) t.q = o.q; else t.altQ.push(o.q); }
+    if (o.px && o.coin === t.coin && o.px !== t.px && !t.altP.includes(o.px)) { if (!t.px) t.px = o.px; else t.altP.push(o.px); }
+  });
+  const p = M[0].box.y1 - M[0].box.y0;
+  return M.sort((a, b) => Math.round(a.box.y0 / p) - Math.round(b.box.y0 / p) || a.box.x0 - b.box.x0);
+}
+/** Tiles of a post-generator picture (jjcuber and the like): a grid of squares, the price at the top left
+    ("5x", or "2.9k" + a coin), the quantity at the bottom right (white, outlined).
+    1. a first read of the white labels finds the grid (its step and where it starts);
+    2. every square of the grid is then read on its own, bigger: price band and quantity corner. */
+async function impGridCells(P, lines, regs, img) {
+  const { W, H, d } = P;
+  const white = i => d[i] > 205 && d[i + 1] > 205 && d[i + 2] > 205 && sat(d, i) < 38;
+  // real text lines (words with letters) are not labels
+  const txtBoxes = lines.filter(L => L.words.filter(w => /[a-z]{3}/i.test(w.t) && (w.conf == null || w.conf >= 70)).length >= 2);
+  const inTxt = (x, y) => txtBoxes.some(L => x >= L.x0 - 4 && x <= L.x1 + 4 && y >= L.y0 - 3 && y <= L.y1 + 3);
+  const L = await ocrRead(maskCanvas(P, 0, 0, W, H, (i, x, y) => white(i) && !inTxt(x, y), 2), 11, "0123456789xk.,");
+  // labels inside the picture of the message when there is one (not the name, level or time above it)
+  const inPic = w => !(regs || []).length || regs.some(r => w.x0 >= r.x0 - 2 && w.x1 <= r.x1 + 2 && w.y0 >= r.y0 - 2 && w.y1 <= r.y1 + 2);
+  const words = L.flatMap(l => l.words).map(w => ({ t: w.t.replace(/,/g, "."), x0: w.x0 / 2, y0: w.y0 / 2, x1: w.x1 / 2, y1: w.y1 / 2 })).filter(inPic);
+  // a coin (yellow) just after a number
+  const coinAt = (x0, y0, x1, y1) => { let n = 0, t = 0; for (let y = Math.max(0, Math.round(y0)); y <= Math.min(H - 1, y1); y += 2) for (let x = Math.max(0, Math.round(x0)); x <= Math.min(W - 1, x1); x += 2) { t++; const i = (y * W + x) * 4; if (d[i] > 185 && d[i + 1] > 135 && d[i + 2] < 140 && d[i] - d[i + 2] > 75) n++; } return t > 0 && n / t > .08; };
+  const coinAfter = w => coinAt(w.x1 + 1, w.y0, w.x1 + (w.y1 - w.y0) * 1.5, w.y1);
+  const PRICE = /^\d+(?:\.\d+)?k?$/i;
+  let A = words.filter(w => /^\d+(?:\.\d+)?x$/i.test(w.t));
+  if (!A.length) A = words.filter(w => PRICE.test(w.t) && w.t !== "0" && coinAfter(w)).map(w => Object.assign(w, { coin: true }));
+  const N = words.filter(w => /^\d{1,4}$/.test(w.t) && !A.includes(w));
+  if (!A.length) return [];
+  // the labels read again one by one, from the picture at full size, cropped tight around their digits
+  const Q = img && (img.naturalWidth || img.width) > W * 1.05 ? scanPixels(img, Math.min(3200, img.naturalWidth || img.width)) : P, f = Q.W / W;
+  const whiteQ = i => Q.d[i] > 205 && Q.d[i + 1] > 205 && Q.d[i + 2] > 205 && sat(Q.d, i) < 38;
+  const tight = async (x0, y0, x1, y1, side, wl, hMin, hMax) => {
+    const X0 = Math.max(0, Math.round(x0 * f)), Y0 = Math.max(0, Math.round(y0 * f)), X1 = Math.min(Q.W - 1, Math.round(x1 * f)), Y1 = Math.min(Q.H - 1, Math.round(y1 * f)), w = X1 - X0 + 1, h = Y1 - Y0 + 1;
+    if (w < 8 || h < 8) return null;
+    const m = new Uint8Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) m[y * w + x] = whiteQ(((y + Y0) * Q.W + x + X0) * 4) ? 1 : 0;
+    const SL = scanLabel(m, w, h, 2), all = SL.comps, scanLabelId = (x, y) => SL.lab[y * w + x], tall = all.filter(c => { const ch = c.y1 - c.y0 + 1; return ch >= hMin * f && ch <= hMax * f && c.x1 - c.x0 + 1 <= ch * 1.3; });
+    if (!tall.length) return null;
+    // the label: from its corner digit, the digits next to it on the same line
+    // (the corner one: a white part of the picture lower down is not the label)
+    const a = side === "right" ? tall.reduce((p, c) => c.x1 + c.y1 > p.x1 + p.y1 ? c : p) : tall.reduce((p, c) => c.x0 + c.y0 * 2 < p.x0 + p.y0 * 2 ? c : p);
+    const bh = a.y1 - a.y0 + 1, same = c => Math.abs(c.y1 - a.y1) <= Math.max(2, bh * .14) && (c.y1 - c.y0 + 1) > bh * .55 && (c.y1 - c.y0 + 1) < bh * 1.3;   // same baseline
+    const row = tall.filter(same).sort((u, v) => u.x0 - v.x0);
+    let i = row.indexOf(a), lo = i, hi = i;
+    // next to each other: a small gap, or a wider one with the dot in it ("2.9k") — a piece of the picture further away is not part of it
+    const dotIn = (l, r) => all.some(c => c.x0 >= l.x1 - 1 && c.x1 <= r.x0 + 1 && (c.y1 - c.y0 + 1) < bh * .4 && c.y1 > a.y1 - bh * .45);
+    const near = (l, r) => r.x0 - l.x1 < bh * .45 || (r.x0 - l.x1 < bh * 1.05 && dotIn(l, r));
+    while (lo > 0 && near(row[lo - 1], row[lo])) lo--;
+    while (hi < row.length - 1 && near(row[hi], row[hi + 1])) hi++;
+    const g = row.slice(lo, hi + 1), bx0 = Math.min(...g.map(c => c.x0)), bx1 = Math.max(...g.map(c => c.x1)), by0 = Math.min(...g.map(c => c.y0)), by1 = Math.max(...g.map(c => c.y1));
+    // dots and the "k" join if they sit on that line
+    const ex = all.filter(c => c.x0 >= bx0 - bh * .4 && c.x1 <= bx1 + bh * .9 && c.y1 <= by1 + bh * .15 && c.y0 >= by0 - bh * .15 && !g.includes(c));
+    const cx0 = Math.min(bx0, ...ex.map(c => c.x0)), cx1 = Math.max(bx1, ...ex.map(c => c.x1));
+    // each character alone (the labels' digits never touch): a narrow one is a "1"; a small blob low between two is the dot
+    const chars = [];
+    for (const c of g) {
+      const cw = c.x1 - c.x0 + 1, ch = c.y1 - c.y0 + 1, pd = Math.round(ch * .25), k = Math.max(1, Math.min(8, 72 / ch));
+      const sx = Math.max(0, X0 + c.x0 - pd), sy = Math.max(0, Y0 + c.y0 - pd), sw = Math.min(Q.W - 1, X0 + c.x1 + pd) - sx, sh = Math.min(Q.H - 1, Y0 + c.y1 + pd) - sy;
+      // only this character's own pixels
+      const own = (i, x, y) => { const lx = x - X0, ly = y - Y0; return lx >= 0 && ly >= 0 && lx < w && ly < h && all.some(o => o.id === c.id) && m[ly * w + lx] && scanLabelId(lx, ly) === c.id; };
+      const ws = (await ocrRead(maskCanvas(Q, sx, sy, sw, sh, (i, x, y) => own(i, x, y), k), 10, wl)).flatMap(l => l.words);
+      let t = (ws.map(w => w.t).join("") || "").replace(/[^0-9kx]/gi, ""), conf = ws.length ? Math.min(...ws.map(w => w.conf)) : 0;
+      if (cw / ch < .5 && /^[1247]?$/.test(t)) t = "1";            // a narrow one is a "1" (never a 4 or a 7)
+      if (/x/i.test(wl) && ch < bh * .84 && c.y1 >= by1 - bh * .15) t = "x";   // the "x" of "10x" is shorter than the digits
+      chars.push({ c, t: t.slice(0, 1) || "?", conf });
+    }
+
+    let out = "";
+    chars.forEach((o, i) => { out += o.t; const nx = chars[i + 1]; if (nx && ex.some(e => e.x0 >= o.c.x1 - 1 && e.x1 <= nx.c.x0 + 1 && (e.y0 + e.y1) / 2 > by0 + (by1 - by0) * .55 && (e.y1 - e.y0 + 1) < bh * .4)) out += "."; });
+    if (!out.includes("?")) return out;
+    // a character not read: the whole label at once
+    const pad = Math.round(bh * .3), k = Math.max(1, Math.min(6, 64 / bh));
+    const sx = Math.max(0, X0 + cx0 - pad), sy = Math.max(0, Y0 + by0 - pad), ex1 = Math.min(Q.W - 1, X0 + cx1 + pad), ey1 = Math.min(Q.H - 1, Y0 + by1 + pad);
+    const r = await ocrRead(maskCanvas(Q, sx, sy, ex1 - sx, ey1 - sy, whiteQ, k), 7, wl);
+    const t = r.flatMap(l => l.words).map(w => w.t).join("").replace(/,/g, ".");
+    // the whole read only fills the characters not read one by one (the ones read alone are surer)
+    const tc = t.replace(/\./g, "");
+    if (tc.length === chars.length) { let o2 = ""; chars.forEach((o, i) => { o2 += o.t === "?" ? tc[i] : o.t; const nx = chars[i + 1]; if (nx && ex.some(e => e.x0 >= o.c.x1 - 1 && e.x1 <= nx.c.x0 + 1 && (e.y0 + e.y1) / 2 > by0 + (by1 - by0) * .55 && (e.y1 - e.y0 + 1) < bh * .4)) o2 += "."; }); return o2; }
+    return t || null;
+  };
+  const med = a => { a = a.slice().sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; };
+  const hh = med(A.map(w => w.y1 - w.y0));
+  // the step of the grid, across and down (squares: the same, unless the picture says otherwise)
+  const step = (axis) => {
+    const g = [];
+    A.forEach(a => A.forEach(b => { const dd = axis === "x" ? b.x0 - a.x0 : b.y0 - a.y0, other = axis === "x" ? Math.abs(a.y0 - b.y0) : Math.abs(a.x0 - b.x0); if (dd > hh * 2.2 && other < hh * .7) g.push(dd); }));
+    if (!g.length) return 0;
+    const p0 = Math.min(...g); return med(g.map(x => x / Math.max(1, Math.round(x / p0))));
+  };
+  let px = step("x"), py = step("y"); const fromLabels = !!px;
+  // one label per row: the step from the picture itself (its squares repeat: the strongest repeat of the edges)
+  const period = (y0, y1, x0, x1, lo, hi) => {
+    y0 = Math.max(0, Math.round(y0)); y1 = Math.min(H - 1, Math.round(y1)); x0 = Math.max(1, Math.round(x0)); x1 = Math.min(W - 1, Math.round(x1));
+    const n = x1 - x0 + 1, G = new Float32Array(n);
+    for (let y = y0; y <= y1; y += 2) for (let x = x0; x <= x1; x++) { const i = (y * W + x) * 4, j = i - 4; G[x - x0] += Math.abs(d[i] - d[j]) + Math.abs(d[i + 1] - d[j + 1]) + Math.abs(d[i + 2] - d[j + 2]); }
+    const m = G.reduce((a, b) => a + b, 0) / n; for (let i = 0; i < n; i++) G[i] -= m;
+    const sc = []; for (let L = Math.round(lo); L <= Math.min(hi, n / 2); L++) { let s = 0; for (let i = 0; i + L < n; i++) s += G[i] * G[i + L]; sc.push([L, s / (n - L)]); }
+    if (!sc.length) return 0; const mx = Math.max(...sc.map(x => x[1])); if (mx <= 0) return 0;
+    for (let k = 1; k < sc.length - 1; k++) if (sc[k][1] >= mx * .7 && sc[k][1] >= sc[k - 1][1] && sc[k][1] >= sc[k + 1][1]) return sc[k][0];
+    return 0;
+  };
+  // …or from the squares' own borders: straight vertical lines crossing the whole row of squares
+  let bordX = null;
+  if (!px) { const a0 = A.reduce((p, c) => c.y0 < p.y0 ? c : p), reg = (regs || []).find(r => a0.x0 >= r.x0 && a0.x1 <= r.x1 && a0.y0 >= r.y0 && a0.y1 <= r.y1) || { x0: 0, y0: 0, x1: W - 1, y1: H - 1 };
+    const rb = regBg(P, reg), y0 = Math.max(0, Math.round(a0.y0 - hh * .2)), y1 = Math.min(H - 1, Math.round(a0.y0 + hh * 3)), xs = [];
+    for (let x = reg.x0 + 1; x < reg.x1; x++) { let run = 0, best = 0; for (let y = y0; y <= y1; y++) { if (cdist(d, (y * W + x) * 4, rb) > 30) { run++; if (run > best) best = run; } else run = 0; } if (best >= (y1 - y0) * .92) xs.push(x); }
+    const cl = []; xs.forEach(x => { if (cl.length && x - cl[cl.length - 1][1] <= 3) cl[cl.length - 1][1] = x; else cl.push([x, x]); });
+    // a border is thin; the pictures make wide blocks
+    const bx = cl.filter(c => c[1] - c[0] <= Math.max(4, hh * .12)).map(c => (c[0] + c[1]) / 2), gaps = []; for (let i = 1; i < bx.length; i++) if (bx[i] - bx[i - 1] > hh * 2.2) gaps.push(bx[i] - bx[i - 1]);
+    if (gaps.length >= 2) { const g0 = Math.min(...gaps); px = med(gaps.map(g => g / Math.max(1, Math.round(g / g0)))); bordX = bx.filter(x => x <= a0.x0 && a0.x0 - x < px * .2).pop(); if (bordX == null) bordX = null; }
+    // …or from the square's own quantity: it ends at the bottom-right corner of the square the price starts
+    if (!px) {
+      const X0 = Math.round(a0.x0 * f), Y0 = Math.round((a0.y0 + hh * 1.2) * f), X1 = Math.min(Q.W - 1, Math.round((a0.x0 + hh * 9) * f)), Y1 = Math.min(Q.H - 1, Math.round((a0.y0 + hh * 9) * f)), w = X1 - X0 + 1, h2 = Y1 - Y0 + 1;
+      if (w > 10 && h2 > 10) {
+        const m = new Uint8Array(w * h2); for (let y = 0; y < h2; y++) for (let x = 0; x < w; x++) m[y * w + x] = whiteQ(((y + Y0) * Q.W + x + X0) * 4) ? 1 : 0;
+        const big = scanLabel(m, w, h2, 4).comps.filter(c => { const ch = c.y1 - c.y0 + 1; return ch >= hh * f * .8 && ch <= hh * f * 2.8 && c.x1 - c.x0 + 1 <= ch * 1.3; });
+        // the first quantity to the right: the leftmost group of tall glyphs on one line
+        big.sort((u, v) => u.x1 - v.x1);
+        const g0 = big[0];
+        if (g0) { const line = big.filter(c => Math.abs(c.y1 - g0.y1) < (g0.y1 - g0.y0) * .15); let end = g0.x1; line.sort((u, v) => u.x0 - v.x0).forEach(c => { if (c.x0 - end < (g0.y1 - g0.y0) * .8 && c.x0 >= g0.x0) end = Math.max(end, c.x1); });
+          const span = (X0 + end) / f - a0.x0, spanY = (Y0 + g0.y1) / f - a0.y0;
+          if (span > hh * 2.2) { px = span / .9; py = spanY > hh * 2.2 ? spanY / .9 : px; } }
+      }
+    }
+    if (!px) px = period(a0.y0 + hh * .2, a0.y0 + hh * 4, reg.x0, reg.x1, hh * 2.5, hh * 9); }
+  if (!px && !py) px = py = hh * 3.6; else if (!px) px = py; else if (!py) py = px;
+  // where the grid starts (labels sit just inside the top-left corner of their square)
+  const inset = px * .05;
+  const circ = (vals, p) => { const r0 = vals[0], res = vals.map(v => { let k = (v - r0) % p; if (k > p / 2) k -= p; if (k < -p / 2) k += p; return k; }); return r0 + med(res); };
+  let ox = bordX != null ? bordX : circ(A.map(a => a.x0 - inset), px), oy = circ(A.map(a => a.y0 - inset), py);
+  while (ox - px > -px * .3) ox -= px; while (oy - py > -py * .3) oy -= py;
+  const colOf = x => Math.floor((x - ox) / px), rowOf = y => Math.floor((y - oy) / py);
+  const cells = new Map(), key = (r, c) => r + ":" + c;
+  const cell = (r, c) => { const k = key(r, c); if (!cells.has(k)) cells.set(k, { r, c, a: null, n: null }); return cells.get(k); };
+  A.forEach(a => { const C = cell(rowOf(a.y0 + 2), colOf(a.x0 + 2)); if (!C.a) C.a = a; });
+  N.forEach(n => { const r = rowOf(n.y1 - 2), c = colOf(n.x1 - 2); const C = cells.get(key(r, c)); if (C && !C.n) C.n = n; else if (!C) { const D = cell(r, c); D.n = n; D.loose = true; } });
+  const boxOf = (r, c) => ({ x0: Math.max(0, Math.round(ox + c * px)), y0: Math.max(0, Math.round(oy + r * py)), x1: Math.min(W - 1, Math.round(ox + (c + 1) * px - 2)), y1: Math.min(H - 1, Math.round(oy + (r + 1) * py - 2)) });
+  const gbg = regBg(P, { x0: 0, y0: 0, x1: W - 1, y1: H - 1 });
+  const filled = b => { const bg = gbg; let n = 0, t = 0;
+    for (let y = b.y0 + (b.y1 - b.y0) * .3; y < b.y1 - (b.y1 - b.y0) * .2; y += 3) for (let x = b.x0 + (b.x1 - b.x0) * .2; x < b.x1 - (b.x1 - b.x0) * .2; x += 3) { t++; if (cdist(d, (Math.round(y) * W + Math.round(x)) * 4, bg) > 45) n++; }
+    return t && n / t > .12; };
+  // the rows and columns the labels span: every square inside them that holds a picture is an item
+  // (quantities count too: a column whose prices were all missed by the first read is still a column)
+  const known = [...cells.values()].filter(C => C.a || (C.n && filled(boxOf(C.r, C.c))));
+  const rs = known.map(C => C.r), cs = known.map(C => C.c);
+  const r0 = Math.min(...rs), r1 = Math.max(...rs), c0 = Math.min(...cs), c1 = Math.max(...cs);
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) { const C = cells.get(key(r, c)); if (!C && filled(boxOf(r, c))) cell(r, c).pic = true; }
+  // squares next to the known ones (their labels missed by the first read): one with a price is an item too
+  const coinMode = A[0].coin === true, PRx = coinMode ? /^\d+(?:\.\d+)?k?$/i : /^\d+(?:\.\d+)?x$/i;
+  const inside = (r, c) => { const rx0 = ox + c * px, ry0 = oy + r * py; return rx0 >= -px * .15 && ry0 >= -py * .15 && rx0 + px <= W + px * .15 && ry0 + py <= H + py * .15; };
+  const hasPrice = async (r, c) => { if (!inside(r, c) || !filled(boxOf(r, c))) return false; const b = boxOf(r, c); const t = await tight(b.x0, b.y0, b.x0 + px * .85, b.y0 + py * .32, "left", coinMode ? "0123456789k." : "0123456789x.", py * .07, py * .3); return !!(t && PRx.test(t)); };
+  let R0 = r0, R1 = r1, C0 = c0, C1 = c1;
+  for (let r = R0; r <= R1; r++) {
+    for (let c = C0 - 1, k = 0; k < 12 && await hasPrice(r, c); c--, k++) { cell(r, c).pic = true; if (c < C0) C0 = c; }
+    for (let c = C1 + 1, k = 0; k < 12 && await hasPrice(r, c); c++, k++) { cell(r, c).pic = true; if (c > C1) C1 = c; }
+  }
+  for (const dir of [1, -1]) for (let r = dir > 0 ? R1 + 1 : R0 - 1, k = 0; k < 12; r += dir, k++) {
+    let any = false; for (let c = C0; c <= C1; c++) if (await hasPrice(r, c)) { cell(r, c).pic = true; any = true; }
+    if (!any) break; if (r > R1) R1 = r; if (r < R0) R0 = r;
+  }
+  // read each square on its own, bigger
+  // the words read in a part of a square (each with its place), bigger
+  const rd = async (x0, y0, x1, y1, wl) => { x0 = Math.max(0, Math.round(x0)); y0 = Math.max(0, Math.round(y0)); x1 = Math.min(W - 1, Math.round(x1)); y1 = Math.min(H - 1, Math.round(y1)); if (x1 - x0 < 6 || y1 - y0 < 6) return []; const r = await ocrRead(maskCanvas(P, x0, y0, x1 - x0, y1 - y0, white, 4), 11, wl); return r.flatMap(l => l.words).map(w => ({ t: w.t.replace(/,/g, "."), x0: w.x0, x1: w.x1, y1: w.y1, conf: w.conf })).filter(w => w.t); };
+  const toPrice = (t, coin) => { if (!t) return ""; const m = t.match(/(\d+(?:\.\d+)?)(k?)/i); if (!m) return ""; const v = num(m[1]) * (m[2] ? 1000 : 1); return v > 0 ? String(Math.round(v * 1000) / 1000) : ""; };
+  const tiles = [];
+  for (const C of [...cells.values()].sort((a, b) => a.r - b.r || a.c - b.c)) {
+    if (C.r < R0 || C.r > R1 + 1 || C.c < C0 - 1 || C.c > C1 + 1) continue;
+    if (C.loose && !C.a && !filled(boxOf(C.r, C.c))) continue;
+    // a square cut off by the edge of the picture is not one (text above or below the grid)
+    { const rx0 = ox + C.c * px, ry0 = oy + C.r * py; if (rx0 < -px * .15 || ry0 < -py * .15 || rx0 + px > W + px * .15 || ry0 + py > H + py * .15) continue; }
+    const b = boxOf(C.r, C.c), coin = A[0].coin === true;
+    // price band: the top third, left part
+    // (the first read wins; the closer read fills a gap, or adds the "k" / decimals the first one lost)
+    let pt = C.a ? C.a.t : ""; const altP = [];
+    const PR = coin ? /^\d+(?:\.\d+)?k?$/i : /^\d+(?:\.\d+)?x$/i;
+    const tp = await tight(b.x0, b.y0, b.x0 + px * .85, b.y0 + py * .32, "left", coin ? "0123456789k." : "0123456789x.", py * .07, py * .3);
+    if (tp && PR.test(tp)) { if (pt && pt !== tp) altP.push(pt); pt = tp; }
+    else { const pw = (await rd(b.x0, b.y0, b.x0 + px * .82, b.y0 + py * .3, coin ? "0123456789k." : "0123456789x.")).sort((u, v) => u.x0 - v.x0);
+      const pm = pw.map(w => w.t.match(PR)).find(Boolean);
+      if (pm) { const t = pm[0], digits = x => x.replace(/\D/g, ""); if (!pt || (digits(t).startsWith(digits(pt)) && t.length > pt.length) || (/k/i.test(t) && !/k/i.test(pt) && digits(t) === digits(pt))) pt = t; } }
+    // quantity: the bottom-right corner
+    let qt = C.n ? C.n.t : ""; const altQ = [];
+    const tq = await tight(b.x0 + px * .25, b.y0 + py * .45, b.x1 + 1, b.y1 + 1, "right", "0123456789", py * .12, py * .5);
+    if (tq && /^\d{1,5}$/.test(tq) && +tq) { if (qt && qt !== tq) altQ.push(qt); qt = tq; }
+    if (!qt) { const old = (await rd(b.x0 + px * .2, b.y0 + py * .52, b.x1, b.y1, "0123456789")).map(w => w.t).join("").replace(/\D/g, ""); if (old && +old && old.length <= 4) qt = old; }
+    if (!qt) { const qw = (await rd(b.x0 + px * .3, b.y0 + py * .55, b.x1 + 1, b.y1 + 1, "0123456789")).filter(w => /^\d{1,4}$/.test(w.t)).sort((u, v) => v.x1 - u.x1 || v.y1 - u.y1); if (qw[0] && +qw[0].t) qt = qw[0].t; }
+    const occ = [C.a, C.n].filter(Boolean).map(w => ({ x0: w.x0 - 3, y0: w.y0 - 3, x1: w.x1 + 3, y1: w.y1 + 3 }));
+    occ.push({ x0: b.x0, y0: b.y0, x1: b.x0 + px * .82, y1: b.y0 + py * .27 });                 // the price band is never part of the picture
+    const pv = t => coin ? toPrice(t) : (t.match(/[\d.]+/) || [""])[0];
+    if (!pt && !qt) continue;                                      // nothing written on it: not an item square
+    if (!C.a && !qt) continue;                                     // found by the grid only: it needs its quantity
+    tiles.push({ box: b, px: pv(pt), coin, q: qt ? String(+qt) : "", altP: altP.map(pv).filter(Boolean), altQ: altQ.map(x => String(+x)).filter(x => +x), occ, bg: regBg(P, { x0: b.x0 + 3, y0: b.y0 + 3, x1: b.x1 - 3, y1: b.y1 - 3 }) });
+  }
+  // a real grid: most squares have both their price and their quantity (an app screenshot with numbers and coins does not)
+  const both = tiles.filter(t => t.px && t.q).length;
+  if (tiles.length >= 2 && both < tiles.length * .6) return [];
+  tiles.weak = !fromLabels;
+  return tiles;
 }
 /* ---------- 1b. a picture made by this site (any paper, List / Compact / Auto / trade boxes) ----------
    Read as a table, from the full-size picture: the paper tells the theme, so only its ink, muted
@@ -8456,6 +8670,26 @@ async function impRun(files, text) {
       }
     }
     if (text && text.trim()) lines.push(...textLines(text));
+    // the picture's own total ("648.300 · 786,77 (555 items)"): what was read must give the same.
+    // When it doesn't, the other readings of a label are tried, one change at a time, while it gets closer.
+    IMP.check = null;
+    { const all = lines.map(L => (L.toks || []).map(t => t.w || "").join(" ")).concat(picNotes);
+      const T = all.map(t => t.match(/(\d{1,3}(?:[.,\s]\d{3})+|\d{4,})\D[^()]*\(\s*(\d[\d,.\s]*)\s*items?\s*\)/i)).find(Boolean);
+      if (T && tiles.length) {
+        const coins = +T[1].replace(/\D/g, ""), items = +T[2].replace(/\D/g, ""), allCoin = tiles.every(t => t.coin);
+        const sumI = () => tiles.reduce((a, t) => a + (+t.q || 0), 0), sumC = () => allCoin ? Math.round(tiles.reduce((a, t) => a + (+t.q || 0) * (+t.px || 0), 0)) : null;
+        const off = () => Math.abs(sumI() - items) * 1e9 + (allCoin ? Math.abs(sumC() - coins) : 0);
+        for (let pass = 0; pass < 6 && off() > 0; pass++) {
+          let best = null, bo = off();
+          tiles.forEach(t => {
+            (t.altQ || []).forEach(v => { const o = t.q; t.q = v; const x = off(); if (x < bo) { bo = x; best = [t, "q", v]; } t.q = o; });
+            (t.altP || []).forEach(v => { const o = t.px; t.px = v; const x = off(); if (x < bo) { bo = x; best = [t, "px", v]; } t.px = o; });
+          });
+          if (!best) break;
+          const [t, k, v] = best, o = t[k]; t[k] = v; (k === "q" ? t.altQ : t.altP).splice((k === "q" ? t.altQ : t.altP).indexOf(v), 1, o);
+        }
+        IMP.check = { items, coins, gotI: sumI(), gotC: sumC(), ok: sumI() === items && (!allCoin || sumC() === coins) };
+      } }
     const R = impParse(lines, tiles, picNotes, text);
     IMP.res = { R, posts: owns.length ? ownPosts(owns).concat(lines.length || tiles.length ? impPosts(R).filter(p => (p.wants || []).length) : []) : impPosts(R) };
     if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
@@ -8492,6 +8726,9 @@ function renderImpNote() {
   box.append(h("div", { class: "impn" }, h("span", { class: "ic" }, "📥"),
     h("div", null, h("b", null, "New post: " + (st.name || TYPES[st.type].name)), h("span", null, "A " + TYPES[st.type].name + " post made from your import" + (chk ? " — " + plural(chk, "item") + " to pick (orange ?)" : " — check it, then share the picture") + ".")),
     h("button", { class: "x", "aria-label": "Close", onclick: () => { IMP_FRESH = null; renderImpNote(); } }, "×"),
+    F.check ? h("div", { class: "impchk" + (F.check.ok ? " ok" : "") }, F.check.ok
+      ? (F.check.gotC != null ? "✓ Checked: the picture says " + fmt(F.check.items) + " items · " + fmt(F.check.coins) + " coins — same as what was read." : "✓ Checked: the picture says " + fmt(F.check.items) + " items — same as what was read.")
+      : "⚠ The picture says " + fmt(F.check.items) + " items · " + fmt(F.check.coins) + " coins, but " + fmt(F.check.gotI) + " items" + (F.check.gotC != null ? " · " + fmt(F.check.gotC) + " coins" : "") + " were read. Check the prices and quantities against the picture.") : null,
     h("div", { class: "pv" }, h("button", { onclick: () => tab("prev") }, "See the picture"), ...others.map(p => h("button", { onclick: () => selectProfile(p.id) }, "Open “" + p.name + "”")))));
 }
 /** Make the post(s) from what was read and open the first one. */
@@ -8532,7 +8769,7 @@ function impCreate() {
   });
   saveCrops();
   if (!first) return;
-  IMP_FRESH = { ids: STATE.list.slice(-made).map(p => p.id) };
+  IMP_FRESH = { ids: STATE.list.slice(-made).map(p => p.id), check: IMP.check };
   IMP.res = null; IMP.text = ""; selectProfile(first.id); tab("items");
   requestAnimationFrame(() => { const on = document.querySelector("#profiles .pchip.on"); if (on) on.classList.add("fresh"); });
   toast((made > 1 ? made + " posts imported ✔" : "Post imported ✔") + (chk ? " — " + plural(chk, "item") + " to pick (?)" : ""));
