@@ -2357,7 +2357,7 @@ function drawBeta() {
   const nS = U * .135, nl = notes ? notes.split("\n").map(l => l.trim()).filter(Boolean).flatMap(l => wrap(l.replace(/^[-•*]\s+/, "• "), IW, "600", nS)).slice(0, 12) : [];
   if (nl.length) H += U * .14 + nl.length * nS * 1.32;
   if (sub) H += U * .14;
-  const urlS = Math.max(18, U * .075);
+  const urlS = Math.max(26, U * .115);
   H += U * .14 + urlS + M * .75;
   if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
 
