@@ -2270,45 +2270,54 @@ function btPrice(w) {
 /** a rounded label: { x, y (top), h, w } → background + edge */
 function btChip(x, y, w, hh, bg, edge) { rr(x, y, w, hh, hh / 2); ctx.fillStyle = bg; ctx.fill(); if (edge) { ctx.lineWidth = Math.max(1.5, hh * .045); ctx.strokeStyle = edge; ctx.stroke(); } }
 function btTile(w, x, y, S, T, kind) {
-  const oos = !!w.oos, pad = S * .05, r = S * .07;
-  // the square: flat, a thin edge
+  const oos = !!w.oos, r = S * .07, bandH = S * .22;
+  const top = kind === "sale" ? btPrice(w) : kind === "trade" && hasRatio(w) ? { ratio: 1 } : null;
+  // the square
   rr(x, y, S, S, r); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = Math.max(2, S * .007); ctx.strokeStyle = T.line; ctx.stroke();
-  // the picture, centred, with room for the two labels in the corners
-  ctx.save(); rr(x, y, S, S, r); ctx.clip(); if (oos) ctx.globalAlpha = .28;
-  icon(itemState(w), w.e, x + S * .5, y + S * .5, S * .7, 1);
-  ctx.restore();
-  ctx.save(); if (oos) ctx.globalAlpha = .45;
-  // top-left label: the price (sell / buy) or the ratio (trade)
-  const ph = S * .2, ps = S * .125;
-  if (kind === "sale") {
-    const P = btPrice(w);
-    if (P) {
-      const t = P.unit === "mp" ? P.t + "MP" : P.t, tw = measure(t, "700", ps), iw = P.unit === "mp" ? 0 : ph * .78, cw = tw + iw + ph * .62;
-      btChip(x + pad, y + pad, cw, ph, T.chip, T.line);
-      txt(t, x + pad + ph * .31, y + pad + ph / 2 + 1, { f: "700", s: ps, c: T.ink });
-      const cx = x + pad + ph * .31 + tw + iw * .55, cy = y + pad + ph / 2;
-      if (P.unit === "coin") coin(cx, cy, ph * .27); else if (P.unit === "ring") ringIcon(cx, cy, ph * .3); else if (P.unit === "blanket") blanketIcon(cx, cy, ph * .28);
+  // top band: the price (or the ratio), white on dark, across the whole square
+  if (top) {
+    ctx.save(); rr(x, y, S, S, r); ctx.clip();
+    ctx.fillStyle = oos ? T.mut : T.ink; ctx.fillRect(x, y, S, bandH);
+    const fg = T.dark ? T.bg : "#ffffff", cy = y + bandH / 2 + 1, ps = S * .155;
+    if (top.ratio) {
+      const t = fmtRt(num(w.rb)) + " : " + fmtRt(num(w.ra)), g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = bandH * .78;
+      const iw = parts.length ? iz * (1 + (parts.length - 1) * .62) + S * .03 : 0, tw = Math.min(measure(t, "800", ps), S * .92 - iw), x0 = x + (S - tw - iw) / 2;
+      txt(t, x0, cy, { f: "800", s: ps, c: fg, maxW: S * .92 - iw });
+      parts.forEach((it, k) => icon(itemState(it), it.e, x0 + tw + S * .03 + iz / 2 + k * iz * .62, y + bandH / 2, iz, 1));
+    } else {
+      const t = top.unit === "mp" ? top.t + "MP" : top.t, iw = top.unit === "mp" ? 0 : bandH * .7, tw = Math.min(measure(t, "800", ps), S * .9 - iw), x0 = x + (S - tw - iw) / 2;
+      txt(t, x0, cy, { f: "800", s: ps, c: fg, maxW: S * .9 - iw });
+      const cx = x0 + tw + iw * .58, ccy = y + bandH / 2;
+      if (top.unit === "coin") coin(cx, ccy, bandH * .25); else if (top.unit === "ring") ringIcon(cx, ccy, bandH * .29); else if (top.unit === "blanket") blanketIcon(cx, ccy, bandH * .27);
     }
-  } else if (kind === "trade" && hasRatio(w)) {
-    const t = fmtRt(num(w.rb)) + " : " + fmtRt(num(w.ra)), g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = ph * .8;
-    const tw = measure(t, "700", ps), cw = tw + ph * .62 + (parts.length ? iz * (1 + (parts.length - 1) * .62) + ph * .1 : 0);
-    btChip(x + pad, y + pad, Math.min(cw, S - 2 * pad), ph, T.chip, T.line);
-    txt(t, x + pad + ph * .31, y + pad + ph / 2 + 1, { f: "700", s: ps, c: T.ink });
-    parts.forEach((it, i) => icon(itemState(it), it.e, x + pad + ph * .31 + tw + ph * .1 + iz / 2 + i * iz * .62, y + pad + ph / 2, iz, 1));
+    ctx.restore();
   }
+  // the picture, in the room left under the band
+  const t0 = top ? bandH : 0, q = num(w.q), qS = S * .2;
+  ctx.save(); rr(x, y, S, S, r); ctx.clip(); if (oos) ctx.globalAlpha = .25;
+  const room = S - t0, iz = Math.min(S * .74, room * .86);
+  icon(itemState(w), w.e, x + S * .5, y + t0 + room * .46, iz, 1);
   ctx.restore();
-  // bottom-right label: the quantity (or "Sold out" / "Not needed")
-  const q = num(w.q), qh = S * .25, qs = S * .17;
-  const lab = oos ? (st.type === "achat" || kind === "trade" || kind === "tq" ? "Not needed" : kind === "have" ? "Gone" : "Sold out") : q > 0 ? fmt(q) : "";
-  if (lab) {
-    const f = oos ? "700" : "800", s2 = oos ? qs * .7 : qs, tw = Math.min(measure(lab, f, s2), S - 2 * pad - qh * .6), cw = tw + qh * .6;
-    btChip(x + S - pad - cw, y + S - pad - qh, cw, qh, oos ? T.mut : T.ink, null);
-    txt(lab, x + S - pad - cw / 2, y + S - pad - qh / 2 + 1, { f, s: s2, c: T.dark ? T.bg : "#ffffff", al: "center", maxW: S - 2 * pad - qh * .6 });
+  // quantity: bottom-right, big, dark — a soft light halo keeps it readable over the picture
+  if (q > 0 && !oos) {
+    const t = q < 1e4 ? String(Math.round(q)) : fmt(q), bx = x + S - S * .06, by = y + S - S * .055;
+    ctx.save(); font("800", qS); let z = qS; while (ctx.measureText(t).width > S * .8 && z > qS * .6) { z--; font("800", z); }
+    ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"; ctx.lineJoin = "round";
+    ctx.lineWidth = z * .28; ctx.strokeStyle = T.dark ? "rgba(27,28,34,.9)" : "rgba(255,255,255,.92)"; ctx.strokeText(t, bx, by);
+    ctx.fillStyle = T.ink; ctx.fillText(t, bx, by); ctx.restore();
   }
   // a short note: bottom-left, small
   const note = (w.note || "").trim();
-  if (note && !oos) { const ns = S * .085, nh = S * .15, room = S - 2 * pad - (lab ? measure(lab, "800", qs) + qh * .6 + pad * .6 : 0);
-    if (room > S * .25) { const tw = Math.min(measure(note, "600", ns), room - nh * .6); btChip(x + pad, y + S - pad - nh, tw + nh * .6, nh, T.chip, T.line); txt(note, x + pad + nh * .3, y + S - pad - nh / 2 + 1, { f: "600", s: ns, c: T.mut, maxW: room - nh * .6 }); } }
+  if (note && !oos) txt(note, x + S * .06, y + S - S * .09, { f: "700", s: S * .085, c: T.mut, maxW: S * .42 });
+  // sold out / no longer needed: a full-width band across the middle, strong colour, big letters
+  if (oos) {
+    const lab = st.type === "achat" || kind === "trade" || kind === "tq" ? "NOT NEEDED" : kind === "have" ? "GONE" : "SOLD OUT";
+    const bh = S * .2, by = y + t0 + (S - t0) / 2 - bh / 2;
+    ctx.save(); rr(x, y, S, S, r); ctx.clip();
+    ctx.fillStyle = lab === "NOT NEEDED" ? "#4a5263" : "#c0392b"; ctx.fillRect(x, by, S, bh);
+    txt(lab, x + S / 2, by + bh / 2 + 1, { f: "800", s: S * .12, c: "#ffffff", al: "center", sp: 1, maxW: S * .9 });
+    ctx.restore();
+  }
 }
 /** the whole picture */
 function drawBeta() {
@@ -2386,7 +2395,7 @@ function drawBeta() {
   if (kick) { txt(kick, M, y + kS * .6, { f: "600", s: kS, c: T.mut, maxW: IW }); y += kS * 1.5; }
   {
     const tw = measure(typeLabel, "700", pS), cy = y + ph / 2;
-    rr(M, y, tw + pS * 1.6, ph, ph / 2); ctx.fillStyle = trade ? (T.dark ? T.acc : T.ink) : type === "achat" ? "#2f6fd0" : "#2f8f46"; ctx.fill();
+    rr(M, y, tw + pS * 1.6, ph, ph * .28); ctx.fillStyle = trade ? (T.dark ? T.acc : T.ink) : type === "achat" ? "#2f6fd0" : "#2f8f46"; ctx.fill();
     txt(typeLabel, M + pS * .8, cy + 1, { f: "700", s: pS, c: "#fff", sp: 1 });
     if (user && !title) txt(user, W - M, cy, { f: "700", s: uS, c: T.mut, al: "right", maxW: IW - tw - pS * 3 });
     y += ph + U * .15;
@@ -2406,8 +2415,8 @@ function drawBeta() {
       font("800", gH); const a = fmtRt(num(g.rb)), b = fmtRt(num(g.ra));
       let x = M; ctx.save();
       const bw = measure(a + " : " + b, "800", gH) + iz * (1 + (parts.length - 1) * .62) + gH * 1.6;
-      rr(M, cy - gH * .95, bw, gH * 1.9, gH * .95); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = T.line; ctx.stroke(); ctx.restore();
-      x += gH * .6; x += txt(a + " : " + b, x, cy + 1, { f: "800", s: gH, c: T.ink });
+      rr(M, cy - gH * .95, bw, gH * 1.9, gH * .32); ctx.fillStyle = T.ink; ctx.fill(); ctx.restore();
+      x += gH * .6; x += txt(a + " : " + b, x, cy + 1, { f: "800", s: gH, c: T.dark ? T.bg : "#ffffff" });
       parts.forEach((it, i) => icon(itemState(it), it.e, x + gH * .3 + iz / 2 + i * iz * .62, cy, iz, 1));
       let x2 = M + bw + gH * .5;
       if (g.bulk) txt(fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra)), x2, cy + 1, { f: "700", s: gH * .72, c: T.acc, maxW: W - M - x2 });
@@ -5723,7 +5732,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 04:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 04:55";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
