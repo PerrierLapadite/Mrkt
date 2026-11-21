@@ -2239,6 +2239,8 @@ function btShort(v) {
   if (v < 1e6) return (Math.round(v / 100) / 10).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "k";
   return (Math.round(v / 1e4) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "m";
 }
+/** rings / blankets in the total: rounded to the nearest, except an exact half (624.5 stays 624.5) */
+function btHalf(v) { const f = v - Math.floor(v); return Math.abs(f - .5) < 1e-6 ? fmt(Math.floor(v)) + ".5" : fmt(Math.round(v)); }
 /** Big outlined text (white with a dark edge reads on any picture). Returns its width. */
 function btOut(t, x, y, s, o) {
   o = o || {};
@@ -2350,7 +2352,7 @@ function drawBeta() {
   if (!wants.length) H += S * .5;
   const ctaS = cta ? fit(cta, "800", U * .39, IW, U * .17) : 0; if (cta) H += U * .16 + ctaS * 1.12;
   const showTot = !trade && st.showTotal !== false && TT.sub > 0, totS = U * .16;
-  const sec2 = convs().map(k => ({ t: "≈ " + fmtP(Math.round((k === "ring" ? TT.rings : TT.blankets) * 100) / 100), k })).concat(units ? [{ t: fmt(units) + " items" }] : []);
+  const sec2 = convs().map(k => ({ t: "≈ " + btHalf(k === "ring" ? TT.rings : TT.blankets), k })).concat(units ? [{ t: fmt(units) + " items" }] : []);
   const tot1 = fit(fmt(TT.tot) + "00", "800", U * .23, IW * .9, U * .13), tot2 = U * .125, totPad = 0, totH = tot1 * 1.15 + (sec2.length ? tot2 * 1.5 : 0);
   if (showTot) H += U * .16 + totH + (TT.disc ? totS * 1.25 : 0);
   const bS = U * .115; if (BT.length) H += U * .1 + BT.length * bS * 1.45;
