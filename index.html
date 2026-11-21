@@ -1203,7 +1203,7 @@ details summary{-webkit-tap-highlight-color:transparent}
         <div class="ch"><h2>Layout</h2></div>
         <div class="layouts" id="layouts"></div>
         <div id="custBox" class="stack" hidden></div>
-        <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="manual">Manual</button><button data-s="qty">Qty</button><button data-s="value">Value</button><button data-s="name">A–Z</button></div></div>
+        <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="qty">Qty</button><button data-s="price">Price</button><button data-s="value">Value</button><button data-s="name">A–Z</button><button data-s="manual">Mine</button></div></div>
       </div>
       <div class="card fieldset">
         <div class="ch"><h2>Texts</h2></div>
@@ -2473,6 +2473,7 @@ function betaBar() {
   const bar = $("#betaBar"); if (!bar) return; bar.textContent = "";
   const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); } }, l)));
   bar.append(seg([["new", "New look"], ["old", "Classic"]], st.betaOff ? "old" : "new", v => { st.betaOff = v === "old"; }));
+  if (!st.betaOff) bar.append(h("div", { class: "lbl" }, "Sort the items by"), seg([["qty", "Qty"], ["price", "Price"], ["value", "Total"], ["manual", "Mine"]], sortKey(), v => { st.sort = v; st.sortV = 1; }));
   if (!st.betaOff) bar.append(seg(Object.entries(BT_THEMES).map(([k, t]) => [k, t.name]), st.bTheme && BT_THEMES[st.bTheme] ? st.bTheme : "cream", v => { st.bTheme = v; }));
 }
 
@@ -2518,10 +2519,15 @@ function ratioGroups(list) {
 /** "10+ sets" / "10+ rings": the size a bulk ratio starts at, in what you give. */
 function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; if (p && p.parts) return "sets"; const n = gi ? (gi.name || "items").toLowerCase() : "items"; return /s$/.test(n) ? n : n + "s"; }
 const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra));
+// how the picture is sorted: most items by default; "Manual" saved before the automatic sort counts as unset
+const sortKey = () => st.sortV ? (st.sort || "qty") : (st.sort && st.sort !== "manual" ? st.sort : "qty");
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
-  const by = { qty: (x, y) => num(y.q) - num(x.q), value: (x, y) => itemValue(y) - itemValue(x), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[st.sort];
-  return by ? a.slice().sort(by) : a;
+  // sorted by itself: most items first unless you chose otherwise; sold out / not needed always at the end
+  const k = sortKey(), qd = (x, y) => num(y.q) - num(x.q);
+  const by = { qty: (x, y) => qd(x, y) || unitPrice(y) - unitPrice(x), price: (x, y) => unitPrice(y) - unitPrice(x) || qd(x, y), value: (x, y) => itemValue(y) - itemValue(x) || qd(x, y), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[k];
+  const out = by ? a.slice().sort(by) : a.slice();
+  return out.filter(w => !w.oos).concat(out.filter(w => w.oos));
 }
 function totals() {
   const wants = st.wants.filter(w => ((w.name || "").trim() || w.ref) && !w.oos); // out of stock: not counted
@@ -3845,7 +3851,7 @@ function renderStyle() {
   const ly = $("#layouts"); ly.textContent = "";
   LAYOUTS.forEach(l => { const b = h("button", { class: "lay" + (st.layout === l.id ? " on" : ""), onclick: () => { st.layout = l.id; renderStyle(); changed(); } }); b.innerHTML = l.svg; b.append(l.fr); ly.append(b); });
   renderCustom();
-  $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === (st.sort || "manual")); b.onclick = () => { st.sort = b.dataset.s; renderStyle(); changed(); }; });
+  $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === sortKey()); b.onclick = () => { st.sort = b.dataset.s; st.sortV = 1; renderStyle(); changed(); }; });
   $("#haveTitleF").hidden = st.type !== "trade";
 }
 $("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Profile duplicated"); };
@@ -5732,7 +5738,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 04:55";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 05:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
