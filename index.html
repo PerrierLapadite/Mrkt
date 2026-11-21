@@ -1060,6 +1060,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 .mever{margin:6px 4px 2px;color:var(--mut);font-size:12px;text-align:center}
 .impchk{grid-column:1/-1;font-size:13px;font-weight:700;color:#c0392b;padding:6px 0 0}.impchk.ok{color:#2f8f46}
 .omsg{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 0;padding:7px 10px;border-radius:10px;background:#fff3dc;color:#8a5a00;font-size:13px;line-height:1.3}.omsg b{color:#6b4300}.omsg.ok{background:#e8f5ea;color:#2f6b3a}.omsg.ok b{color:#1f5a2b}.omsg.off{background:var(--soft,#f3efe7);color:var(--mut)}.omsg .btn{flex:none}
+.lvltip{font-size:12.5px;color:var(--mut);padding:0 4px 4px;line-height:1.35}
 </style>
 </head>
 <body data-tab="items">
@@ -3398,17 +3399,72 @@ function loadLevels(onProg) {
   return LVL_ST.p;
 }
 /** "level 30 to 110", "lvl 80+", "from level 80", "niveau 30 à 110", "up to lvl 20" → { lo, hi }; else null */
+/** "level 30 to 110", "lv 69 and lower", "80+", "under 50", "entre 30 et 60", "1-20, 50+", "pies level 30-60":
+    one or more level ranges, and optionally words of a name or a group (pies, juices, crops…). */
+const LVL_CATW = { crop: "crops", crops: "crops", culture: "crops", cultures: "crops", tree: "trees", trees: "trees", bush: "trees", bushes: "trees", fruit: "trees", fruits: "trees", arbre: "trees", arbres: "trees",
+  animal: "animal", animals: "animal", bakery: "bakery", bread: "bakery", breads: "bakery", boulangerie: "bakery", dairy: "dairy", sugar: "dairy", laiterie: "dairy",
+  snack: "snack", snacks: "snack", bbq: "snack", barbecue: "snack", dish: "snack", dishes: "snack", meal: "snack", meals: "snack", plat: "snack", plats: "snack",
+  pie: "pies", pies: "pies", cake: "pies", cakes: "pies", tarte: "pies", tartes: "pies", gateau: "pies", gateaux: "pies", sweet: "sweets", sweets: "sweets", candy: "sweets", candies: "sweets", confiserie: "sweets",
+  drink: "drinks", drinks: "drinks", juice: "drinks", juices: "drinks", jus: "drinks", boisson: "drinks", boissons: "drinks", jam: "jams", jams: "jams", sauce: "jams", sauces: "jams", confiture: "jams", confitures: "jams",
+  textile: "textile", textiles: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", jewels: "mine", bijoux: "mine", fish: "fish", fishing: "fish", peche: "fish", feed: "feed" };
+const LVL_FILL = new Set("level levels lvl lvls lv lev lvs niveau niveaux niv nv all every everything any the a an of at to i me my we want need give show add get list products product items item things thing stuff unlocked unlock unlocks unlocking les le la l des de du d tous tout toute toutes produits produit objets objet items debloques debloque debloquer au aux en for with please pls inclusive included inclus compris".split(" "));
 function lvlQuery(q) {
-  const raw = String(q || "").toLowerCase(), s = norm(q);
-  if (!/\b(?:level|levels|lvl|lvls|lv|niveau|niveaux|niv|nv|lev)\b/.test(s)) return null;
-  const n = (s.match(/\b\d{1,3}\b/g) || []).map(Number).filter(x => x > 0 && x < 1000); if (!n.length) return null;
-  if (n.length >= 2) return { lo: Math.min(n[0], n[1]), hi: Math.max(n[0], n[1]) };
-  if (/\+/.test(raw) || /\b(?:from|since|starting|and up|or more|above|over|after|plus|a partir|des|depuis|apres|et plus|minimum|min)\b/.test(s)) return { lo: n[0], hi: 999 };
-  if (/\b(?:up to|until|upto|below|under|before|max|maximum|jusqu|jusque|avant|moins)\b/.test(s)) return { lo: 1, hi: n[0] };
-  return { lo: n[0], hi: n[0] };
+  let s = norm(q).replace(/≤|=</g, "<=").replace(/≥|=>/g, ">=").replace(/[–—−~→]|\.{2,}/g, "-").replace(/\bjusqu\w*/g, " upto ").replace(/\bjusque\b/g, " upto ");
+  // "lv69", "lvl.30", "niv80", "l69": the number stuck to the word
+  s = s.replace(/\b(lvls?|lv|lev|levels?|niveaux?|niv|nv|l)\.?(?=\d)/g, (m, k) => " level ");
+  const hasK = /\b(?:level|levels|lvl|lvls|lv|lev|niveau|niveaux|niv|nv)\b/.test(s);
+  const nums = s.match(/\d{1,3}/g); if (!nums) return null;
+  // without the word "level", only a pure range: "30-110", "80+", "<= 69", "69 and lower"
+  const rest = s.replace(/\d{1,3}/g, " ").replace(/[-+<>=,;/&()]/g, " ").split(/\s+/).filter(Boolean);
+  const OPW = /^(?:and|or|et|ou|up|upto|until|till|to|a|from|since|starting|start|starts|between|entre|de|des|depuis|partir|apres|after|before|avant|above|over|higher|more|plus|min|minimum|least|au|moins|less|lower|below|under|down|max|maximum|maxi|most|than|que|dessus|dessous|superieur|inferieur|superieurs|inferieurs|sup|inf|onwards|onward|upward|upwards|downward|downwards|beyond|lowest|highest|only|exactly|just|seulement|pile|y|compris)$/;
+  // a typo of a range word ("lowe", "highr", "abov") still counts
+  const KEYW = ["lower", "below", "under", "higher", "above", "over", "less", "more", "until", "between", "starting", "since", "maximum", "minimum", "moins", "plus", "dessous", "dessus", "partir", "entre", "depuis", "jusqu", "onwards", "upwards", "downwards", "level", "levels", "niveau", "niveaux"];
+  rest.forEach(w => { if (w.length < 4 || OPW.test(w) || LVL_FILL.has(w) || LVL_CATW[w]) return; const k = KEYW.find(k => Math.abs(k.length - w.length) <= 2 && editDist(w, k, 1) <= 1 || (w.length >= 4 && k.startsWith(w))); if (k) { s = s.replace(new RegExp("\\b" + w + "\\b"), k); rest[rest.indexOf(w)] = k; } });
+  const names = rest.filter(w => !OPW.test(w) && !LVL_FILL.has(w));
+  if (!hasK && names.length) return null;
+  if (!hasK && nums.length < 2 && !/[-+<>]|\b(?:up|upto|until|till|from|since|above|over|under|below|lower|higher|less|more|plus|moins|between|entre|max|min|dessous|dessus|partir|depuis)\b/.test(s)) return null;
+  const ranges = [];
+  // one range per piece: "1-20, 50+", "30 to 40 / 60 to 70"
+  s.split(/[,;/]|\bthen\b|\bpuis\b/).forEach(seg => {
+    const n = (seg.match(/\d{1,3}/g) || []).map(Number).filter(x => x > 0); if (!n.length) return;
+    if (n.length >= 3) { n.forEach(x => ranges.push({ lo: x, hi: x })); return; }
+    if (n.length === 2) { ranges.push({ lo: Math.min(n[0], n[1]), hi: Math.max(n[0], n[1]) }); return; }
+    const x = n[0], i = seg.search(/\d/), pre = seg.slice(0, i), post = seg.slice(i).replace(/^\d+/, "");
+    // after the number: inclusive ("69 and lower", "80+", "69-", "80 et plus")
+    if (/^\s*(?:\+|(?:and|or|et|ou|&)?\s*(?:up|upward|upwards|onwards?|above|over|higher|more|plus|beyond|after|later|newer|highest|(?:au\s+)?dessus|superieurs?)\b)/.test(post)) { ranges.push({ lo: x, hi: 999 }); return; }
+    if (/^\s*(?:-(?!\s*\d)|(?:and|or|et|ou|&)?\s*(?:down|downwards?|below|under|lower|less|moins|before|earlier|older|lowest|(?:en\s+)?dessous|inferieurs?)\b)/.test(post)) { ranges.push({ lo: 1, hi: x }); return; }
+    // before the number: "<=", "up to", "max", "until" are inclusive; "<", "under", "below", "less than", "before" are not
+    if (/(?:<=|\b(?:upto|up\s+to|until|till|max|maximum|maxi|at\s+most|au\s+plus|no\s+more\s+than|not\s+above))\s*(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: 1, hi: x }); return; }
+    if (/(?:<|\b(?:under|below|before|less\s+than|lower\s+than|moins\s+de|moins\s+que|avant|en\s+dessous\s+de|en\s+dessous\s+du|inferieurs?\s+(?:a|au)|sous)\s*)$/.test(pre.replace(/\s*(?:level|lvl|lv|niveau|niv)\s*$/, " ").trim() + " ") || /(?:<|\b(?:under|below|before|less\s+than|lower\s+than|moins\s+de|moins\s+que|avant|en\s+dessous\s+d\w*|inferieurs?\s+\w*|sous))\s*(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: 1, hi: Math.max(1, x - 1) }); return; }
+    if (/(?:>=|\b(?:from|since|starting(?:\s+(?:at|from))?|starts?\s+at|min|minimum|at\s+least|a\s+partir\s+d\w*|partir\s+d\w*|des|depuis|au\s+moins|not\s+below|no\s+less\s+than)\s*)(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: x, hi: 999 }); return; }
+    if (/(?:>|\b(?:above|over|after|beyond|more\s+than|higher\s+than|plus\s+de|plus\s+que|apres|au\s+dessus\s+d\w*|superieurs?\s+\w*))\s*(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: x + 1, hi: 999 }); return; }
+    ranges.push({ lo: x, hi: x });
+  });
+  if (!ranges.length) return null;
+  ranges.sort((a, b) => a.lo - b.lo);
+  const R = { ranges, lo: Math.min(...ranges.map(r => r.lo)), hi: Math.max(...ranges.map(r => r.hi)), words: names };
+  // a group ("pies", "jus") or the words of a name
+  R.cats = [...new Set(names.map(w => LVL_CATW[w]).filter(Boolean))];
+  R.name = names.filter(w => !LVL_CATW[w]);
+  return R;
 }
-const lvlRangeTxt = R => R.hi >= 999 ? "level " + R.lo + " and up" : R.lo === R.hi ? "level " + R.lo : R.lo <= 1 ? "up to level " + R.hi : "level " + R.lo + " to " + R.hi;
-const lvlProducts = R => lvlCandidates().filter(p => LVL[p.id] >= R.lo && LVL[p.id] <= R.hi).sort((a, b) => LVL[a.id] - LVL[b.id] || a.en.localeCompare(b.en));
+const LVL_CATN = { crops: "Crops", trees: "Fruits & trees", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy", snack: "BBQ & dishes", pies: "Pies & cakes", sweets: "Sweets", drinks: "Drinks & juices", jams: "Jams & sauces", textile: "Textile", mine: "Mine & jewelry", fish: "Fishing", feed: "Feed" };
+const lvlOne = r => r.hi >= 999 ? r.lo + "+" : r.lo === r.hi ? "" + r.lo : r.lo <= 1 ? "≤ " + r.hi : r.lo + "–" + r.hi;
+const lvlRangeTxt = R => {
+  const rs = R.ranges || [R], what = (R.cats && R.cats.length ? R.cats.map(c => LVL_CATN[c] || c).join(", ") + " · " : "") + (R.name && R.name.length && R._nameOk ? "“" + R.name.join(" ") + "” · " : "");
+  if (rs.length > 1) return what + "levels " + rs.map(lvlOne).join(", ");
+  const r = rs[0];
+  return what + (r.hi >= 999 ? "level " + r.lo + " and up" : r.lo === r.hi ? "level " + r.lo : r.lo <= 1 ? "level " + r.hi + " and lower" : "levels " + r.lo + " to " + r.hi);
+};
+const lvlNameOk = (p, R) => R.name.every(w => toks(p.en + " " + (p.fr || "")).some(t => t.startsWith(w) || same(t, w)));
+const lvlProducts = R => {
+  const rs = R.ranges || [R], inR = lv => rs.some(r => lv >= r.lo && lv <= r.hi);
+  let L = lvlCandidates().filter(p => inR(LVL[p.id]) && (!R.cats || !R.cats.length || R.cats.includes(p.cat)));
+  // words of a name: kept only if they name something (a typo of "lower" shouldn't empty the list)
+  R._nameOk = false;
+  if (R.name && R.name.length && lvlCandidates().some(p => lvlNameOk(p, R))) { R._nameOk = true; L = L.filter(p => lvlNameOk(p, R)); }
+  return L.sort((a, b) => LVL[a.id] - LVL[b.id] || a.en.localeCompare(b.en));
+};
 /** the results for a level search: the products, and one button to add them all */
 function renderLvlResults(R, box) {
   const ready = lvlCandidates().every(p => p.id in LVL);
@@ -3423,6 +3479,8 @@ function renderLvlResults(R, box) {
       toast("✓ " + take.length + " products added (" + lvlRangeTxt(R) + ")" + (take.length < add.length ? " · " + (add.length - take.length) + " left out: 150 items max per post" : ""));
     } }, add.length ? "Add all " + add.length : "All added"));
   box.append(head);
+  const one = (R.ranges || [R]).length === 1 && R.lo === R.hi;
+  if (one) box.append(h("div", { class: "lvltip", style: "grid-column:1/-1" }, "Ranges work too: “69 and lower”, “30-110”, “80+”, “under 50”, “1-20, 50+”, “pies 30-60”, “jus niveau 40 à 70”"));
   if (LVL_ST.fail && !LVL_ST.loading && !ready) box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, "The wiki can't be reached right now — try again in a moment."));
   L.slice(0, resLimit).forEach(p => {
     const t = h("button", { class: "tile", title: p.en, onclick: () => addFromCatalog(p) }, thumb(prodState(p.id), p.e), h("b", null, p.en), h("span", { class: "lv" }, "Lv " + LVL[p.id]));
@@ -5877,7 +5935,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 23:58";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "22 Nov 2026 · 00:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
