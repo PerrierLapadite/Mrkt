@@ -2258,11 +2258,14 @@ function btPrice(w) {
   return { t: btShort(p), unit: "coin" };
 }
 function btTile(w, x, y, S, T, kind) {
-  // cell
-  rr(x, y, S, S, S * .05); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = Math.max(2, S * .008); ctx.strokeStyle = T.line; ctx.stroke();
+  // cell: soft shadow, light from the top, thin edge
+  ctx.save(); ctx.shadowColor = T.dark ? "rgba(0,0,0,.45)" : "rgba(90,70,20,.16)"; ctx.shadowBlur = S * .04; ctx.shadowOffsetY = S * .012;
+  rr(x, y, S, S, S * .06); ctx.fillStyle = T.cell; ctx.fill(); ctx.restore();
+  { const g = ctx.createLinearGradient(0, y, 0, y + S); g.addColorStop(0, T.dark ? "rgba(255,255,255,.06)" : "rgba(255,255,255,.55)"); g.addColorStop(1, "rgba(255,255,255,0)"); rr(x, y, S, S, S * .06); ctx.fillStyle = g; ctx.fill(); }
+  rr(x, y, S, S, S * .06); ctx.lineWidth = Math.max(2, S * .007); ctx.strokeStyle = T.line; ctx.stroke();
   // the picture: as big as the square allows
-  ctx.save(); rr(x, y, S, S, S * .05); ctx.clip();
-  icon(itemState(w), w.e, x + S * .5, y + S * .55, S * .84, 1);
+  ctx.save(); rr(x, y, S, S, S * .06); ctx.clip();
+  icon(itemState(w), w.e, x + S * .5, y + S * (kind === "have" || kind === "tq" ? .5 : .56), S * (kind === "have" || kind === "tq" ? .86 : .8), 1);
   ctx.restore();
   const pad = S * .045, oos = !!w.oos;
   // top-left: price (sell / buy) or ratio (trade)
@@ -2290,7 +2293,7 @@ function btTile(w, x, y, S, T, kind) {
   const note = (w.note || "").trim();
   if (note && note.length <= 14) btOut(note, x + pad, y + S - pad * .7, S * .085, { lw: .25, maxW: S * (q > 0 ? .42 : .9) });
   if (oos) {
-    ctx.save(); rr(x, y, S, S, S * .05); ctx.clip();
+    ctx.save(); rr(x, y, S, S, S * .06); ctx.clip();
     ctx.globalAlpha = .62; ctx.fillStyle = T.bg; ctx.fillRect(x, y, S, S); ctx.globalAlpha = 1;
     ctx.translate(x + S / 2, y + S / 2); ctx.rotate(-.42);
     ctx.fillStyle = T.acc; ctx.fillRect(-S, -S * .085, S * 2, S * .17);
@@ -2303,108 +2306,142 @@ function drawBeta() {
   const T = BT_THEMES[st.bTheme] || BT_THEMES.cream;
   const type = st.type || "trade", trade = type === "trade";
   const wants = sortedWants(), have = trade ? haveList() : [];
-  const TT = totals(), n = wants.length + have.length;
-  let S = 300; const G = 12, M = 36;
-  const lines = [];                                   // text under the grid, measured once the width is known
-  const cta = (st.cta || "").trim(), notes = (st.details || "").trim(), sub = (st.sub || "").trim();
+  const TT = totals();
+  let S = 300; const G = 14, M = 40;
+  const cta = (st.cta || "").trim(), notes = (st.details || "").trim(), sub = (st.sub || "").trim(), title = (st.title || "").trim(), kick = (st.kicker || "").trim(), user = (st.user || "").trim();
   const BT = trade ? [] : bulkTiers();
   const units = wants.reduce((a, w) => a + (num(w.q) || 0), 0);
-  // columns: the fewest that keep the picture at most ~1.3× taller than wide (Discord shows it whole)
+  // trade: items with the same ratio together, the ratio written once above them (one per square when every item has its own)
+  let GR = trade ? ratioGroups(wants) : [];
+  const grouped = trade && GR.length <= 4 && wants.length >= GR.length * 2 && !GR.some(g => g.none && GR.length > 1);
+  if (!grouped) GR = [{ items: wants, solo: true }];
+  // columns: the fewest that keep the picture at most ~1.55× taller than wide (Discord shows it whole while scrolling)
+  const rowsOf = c => GR.reduce((a, g) => a + Math.ceil(g.items.length / c), 0);
   const est = c => {
-    const Wc = c * S + (c - 1) * G + 2 * M, rowsW = Math.ceil(wants.length / c), rowsH = have.length ? Math.ceil(have.length / c) : 0;
-    const Uc = Math.max(Math.min(S, (Wc - 2 * M) / 2.6), Wc * .2);       // same text unit as below
-    let Hc = M + ((st.title || "").trim() ? Uc * .35 : 0) + Uc * .34 + (trade ? Uc * .25 * ((have.length ? 1 : 0) + 1) : 0) + (rowsW + rowsH) * (S + G) + (have.length ? Uc * .06 : 0);
-    Hc += (cta ? Uc * .56 : 0) + (!trade && TT.sub > 0 ? Uc * .34 : 0) + BT.length * Uc * .18 + (notes ? Math.min(12, notes.split("\n").length) * Uc * .19 + Uc * .12 : 0) + Uc * .2 + M;
+    const Wc = c * S + (c - 1) * G + 2 * M, Uc = Math.max(Math.min(S, (Wc - 2 * M) / 2.6), Wc * .2);
+    let Hc = M + (title ? Uc * .36 : 0) + (kick ? Uc * .14 : 0) + Uc * .3 + (have.length ? Uc * .3 + Math.ceil(have.length / c) * (S + G) : 0) + (trade ? Uc * .3 : 0);
+    Hc += rowsOf(c) * (S + G) + (grouped ? GR.length * Uc * .3 : 0);
+    Hc += (cta ? Uc * .6 : 0) + (!trade && TT.sub > 0 ? Uc * .42 : 0) + BT.length * Uc * .2 + (notes ? Math.min(12, notes.split("\n").length) * Uc * .19 + Uc * .14 : 0) + Uc * .22 + M;
     return { Wc, Hc };
   };
-  let C = Math.min(Math.max(1, wants.length, have.length), 2);
-  for (; C < 10; C++) { const e = est(C); if (e.Hc / e.Wc <= 1.55 || C >= Math.max(wants.length, have.length)) break; }
+  const most = Math.max(1, have.length, ...GR.map(g => g.items.length));
+  let C = Math.min(most, 2);
+  for (; C < 10; C++) { const e = est(C); if (e.Hc / e.Wc <= 1.55 || C >= most) break; }
   // no lonely square on the last row: one more column if the picture doesn't get too flat
-  if (C >= 2 && wants.length > C && wants.length % C === 1) { const e = est(C + 1); if (e.Hc / e.Wc >= .5) C++; }
+  if (!grouped && C >= 2 && wants.length > C && wants.length % C === 1) { const e = est(C + 1); if (e.Hc / e.Wc >= .5) C++; }
   // few items: bigger squares, so the picture is never small (Discord doesn't enlarge it)
   S = Math.max(300, Math.floor((1040 - 2 * M - (C - 1) * G) / C));
   const W = C * S + (C - 1) * G + 2 * M, IW = W - 2 * M;
-  // text unit: follows the squares; on a wide picture (many columns) it grows with the width, so the total and notes stay readable once Discord shrinks it
+  // text unit: follows the squares; on a wide picture it grows with the width, so the text stays readable once Discord shrinks it
   const U = Math.max(Math.min(S, IW / 2.6), W * .2);
+  const fit = (t, f, s0, max, min) => { let z = s0; font(f, z); while (t && ctx.measureText(t).width > max && z > min) { z -= 1; font(f, z); } return z; };
 
   /* measure */
-  const title = (st.title || "").trim();
-  let tS = U * .3; font("900", tS); while (title && ctx.measureText(title).width > IW && tS > U * .16) { tS -= 2; font("900", tS); }
-  let H = M + (title ? tS * 1.15 : 0) + U * .22 + U * .12;
-  const secH = U * .17;
-  if (trade && have.length) H += secH + U * .08 + Math.ceil(have.length / C) * (S + G) + U * .06;
-  if (trade) H += secH + U * .08;
-  H += Math.ceil(wants.length / C) * (S + G) - G;
+  const typeLabel = { trade: "TRADE", vente: "SELLING", achat: "BUYING" }[type];
+  const pS = U * .115, tS = title ? fit(title, "900", U * .34, IW, U * .17) : 0, kS = U * .12;
+  // "Buying" as title: no "BUYING" label under it, your name goes next to the title
+  const sameType = !!title && /^(?:buying|selling|for sale|trading|trade|shop)\b/i.test(title) && !kick;
+  const tS2 = sameType && user ? fit(title, "900", tS, IW - measure(user, "800", pS * 1.05) - U * .2, U * .17) : tS;
+  let H = M + (title ? tS * 1.08 : 0) + (kick ? kS * 1.5 : 0) + (sameType ? U * .1 : pS * 1.9 + U * .12);
+  const secS = U * .13, secH = secS * 2.1;
+  if (have.length) H += secH + Math.ceil(have.length / C) * (S + G) + U * .06;
+  if (trade && (!grouped || !have.length)) H += secH;
+  else if (trade) H += secH;
+  const gH = U * .2, gHead = gH * 2.05;
+  GR.forEach(g => { if (grouped) H += gHead; H += Math.ceil(g.items.length / C) * (S + G); });
+  H -= G;
   if (!wants.length) H += S * .5;
-  let ctaS = U * .4; if (cta) { font("900", ctaS); while (ctx.measureText(cta).width > IW && ctaS > U * .18) { ctaS -= 2; font("900", ctaS); } H += U * .12 + ctaS * 1.1; }
-  const showTot = !trade && st.showTotal !== false && TT.sub > 0, totS = U * .15;
-  if (showTot) H += U * .14 + totS * 1.3 + (TT.disc ? totS * 1.2 : 0);
-  const bS = U * .13; if (BT.length) H += U * .06 + BT.length * bS * 1.35;
+  const ctaS = cta ? fit(cta, "900", U * .42, IW, U * .18) : 0; if (cta) H += U * .16 + ctaS * 1.12;
+  const showTot = !trade && st.showTotal !== false && TT.sub > 0, totS = U * .16;
+  const sec2 = convs().map(k => ({ t: "≈ " + fmtP(Math.round((k === "ring" ? TT.rings : TT.blankets) * 100) / 100), k })).concat(units ? [{ t: fmt(units) + " items" }] : []);
+  const tot1 = fit(fmt(TT.tot) + "00", "900", U * .27, IW * .9, U * .14), tot2 = U * .135, totPad = U * .07, totH = totPad * 2 + tot1 * 1.1 + (sec2.length ? tot2 * 1.4 : 0);
+  if (showTot) H += U * .16 + totH + (TT.disc ? totS * 1.25 : 0);
+  const bS = U * .125; if (BT.length) H += U * .1 + BT.length * bS * 1.45;
   const nS = U * .14, nl = notes ? notes.split("\n").map(l => l.trim()).filter(Boolean).flatMap(l => wrap(l.replace(/^[-•*]\s+/, "• "), IW, "600", nS)).slice(0, 12) : [];
-  if (nl.length) H += U * .12 + nl.length * nS * 1.3;
+  if (nl.length) H += U * .14 + nl.length * nS * 1.32;
   if (sub) H += U * .14;
-  const urlS = Math.max(18, U * .085);
-  H += U * .12 + urlS + M * .7;
-  W !== cv.width && (cv.width = W); H = Math.round(H); H !== cv.height && (cv.height = H);
+  const urlS = Math.max(18, U * .08);
+  H += U * .14 + urlS + M * .75;
+  if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
 
   /* paper */
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
   ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
 
-  /* head: type + title */
+  /* head: title, then the type and your name */
   let y = M;
-  const typeLabel = { trade: "TRADE", vente: "SELLING", achat: "BUYING" }[type];
-  if (title) { txt(title, M, y + tS * .55, { f: "900", s: tS, c: T.ink }); y += tS * 1.15; }
-  {
-    const s = U * .12, lab = typeLabel + (st.user ? "  ·  " + st.user : "");
-    font("800", s); const tw = ctx.measureText(lab).width;
-    rr(M, y + U * .02, tw + s * 1.4, s * 1.7, s * .85); ctx.fillStyle = T.ink; ctx.fill();
-    txt(lab, M + s * .7, y + U * .02 + s * .88, { f: "800", s, c: T.bg });
-    y += U * .22 + U * .12;
+  if (title) { txt(title, M, y + tS * .52, { f: "900", s: tS2, c: T.ink }); y += tS * 1.08; }
+  if (kick) { txt(kick, M, y + kS * .6, { f: "600", s: kS, c: T.mut, maxW: IW }); y += kS * 1.5; }
+  if (title && sameType) { if (user) { txt(user, W - M, M + tS * .55, { f: "800", s: pS * 1.05, c: T.mut, al: "right" }); } y += U * .1; }
+  else {
+    font("800", pS); const tw = ctx.measureText(typeLabel).width, ph = pS * 1.75, cy = y + ph / 2;
+    rr(M, y, tw + pS * 1.5, ph, ph / 2); ctx.fillStyle = trade ? T.ink : type === "achat" ? "#2f6fd0" : "#2f8f46"; if (T.dark) ctx.fillStyle = trade ? T.acc : ctx.fillStyle; ctx.fill();
+    txt(typeLabel, M + pS * .75, cy + 1, { f: "800", s: pS, c: "#fff", sp: 1 });
+    if (user) txt(user, W - M, cy, { f: "800", s: pS * 1.05, c: T.mut, al: "right", maxW: IW - tw - pS * 3 });
+    y += ph + U * .12;
   }
   const grid = (list, kind) => {
     list.forEach((w, i) => { const r = Math.floor(i / C), c = i % C; btTile(w, M + c * (S + G), y + r * (S + G), S, T, kind); });
-    y += Math.ceil(list.length / C) * (S + G) - G;
+    y += Math.ceil(list.length / C) * (S + G);
   };
-  const sec = t => { txt(t, M, y + secH * .5, { f: "900", s: secH, c: T.mut, sp: 2 }); y += secH + U * .08; };
-  if (trade && have.length) { sec("I HAVE"); grid(have, "have"); y += G + U * .06; }
+  const sec = t => { txt(t, M, y + secH * .45, { f: "900", s: secS, c: T.mut, sp: 3 }); y += secH; };
+  if (have.length) { sec("I HAVE"); grid(have, "have"); y += U * .06 - G; y += G; }
   if (trade) sec("I WANT");
-  if (wants.length) grid(wants, trade ? "trade" : "sale");
-  else { txt("Add items in the Items tab", W / 2, y + S * .25, { f: "600", s: U * .12, c: T.mut, al: "center" }); y += S * .5; }
+  if (!wants.length) { txt("Add items in the Items tab", W / 2, y + S * .25, { f: "600", s: U * .12, c: T.mut, al: "center" }); y += S * .5; }
+  GR.forEach(g => {
+    if (grouped) {
+      // "60 : 89 [BEM]" once for the whole row(s), and the bigger deal ratio next to it
+      const w0 = g.items[0], gi = giveItem(w0), parts = giveParts(gi).slice(0, 4), iz = gH * 1.5, cy = y + gHead * .45;
+      font("900", gH); const a = fmtRt(num(g.rb)), b = fmtRt(num(g.ra));
+      let x = M; ctx.save();
+      const bw = measure(a + " : " + b, "900", gH) + iz * (1 + (parts.length - 1) * .62) + gH * 1.6;
+      rr(M, cy - gH * .95, bw, gH * 1.9, gH * .95); ctx.fillStyle = T.ink; ctx.fill(); ctx.restore();
+      x += gH * .6; x += txt(a + " : " + b, x, cy + 1, { f: "900", s: gH, c: T.bg });
+      parts.forEach((it, i) => icon(itemState(it), it.e, x + gH * .3 + iz / 2 + i * iz * .62, cy, iz, 1));
+      let x2 = M + bw + gH * .5;
+      if (g.bulk) txt(fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra)), x2, cy + 1, { f: "800", s: gH * .72, c: T.acc, maxW: W - M - x2 });
+      y += gHead;
+    }
+    grid(g.items, trade ? (grouped ? "tq" : "trade") : "sale");
+  });
+  y -= G;
 
   /* under the grid: the stamp, the total, bulk, notes */
-  if (cta) { y += U * .12; txt(cta, W / 2, y + ctaS * .55, { f: "900", s: ctaS, c: T.ink, al: "center" }); y += ctaS * 1.1; }
+  if (cta) { y += U * .16; txt(cta, W / 2, y + ctaS * .56, { f: "900", s: ctaS, c: T.ink, al: "center" }); y += ctaS * 1.12; }
   if (showTot) {
-    y += U * .14;
-    const cy = y + totS * .65, parts = [];
-    parts.push({ t: fmt(TT.tot), k: "coin" });
-    convs().forEach(k => parts.push({ t: (k === "ring" ? fmtP(Math.round(TT.rings * 100) / 100) : fmtP(Math.round(TT.blankets * 100) / 100)), k }));
-    parts.push({ t: "(" + fmt(units) + " items)" });
-    // one line, shrunk to fit the width
-    let ts = totS, gap, iw, widths;
-    for (;;) { font("800", ts); gap = ts * .9; iw = ts * 1.1; widths = parts.map(p => ctx.measureText(p.t).width + (p.k ? iw : 0)); if (widths.reduce((a, b) => a + b, 0) + gap * (parts.length - 1) <= IW || ts < totS * .55) break; ts -= 1; }
-    let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (parts.length - 1)) / 2;
-    parts.forEach((p, i) => {
-      const tw = txt(p.t, x, cy, { f: "800", s: ts, c: i ? T.mut : T.ink });
-      if (p.k === "coin") coin(x + tw + iw * .55, cy, ts * .42); else if (p.k === "ring") ringIcon(x + tw + iw * .55, cy, ts * .44); else if (p.k === "blanket") blanketIcon(x + tw + iw * .55, cy, ts * .42);
-      x += widths[i] + gap;
-    });
-    y += totS * 1.3;
-    if (TT.disc) { txt("−" + fmtR(TT.disc) + "% included · was " + fmt(TT.sub), W / 2, y + totS * .5, { f: "700", s: totS * .8, c: T.acc, al: "center" }); y += totS * 1.2; }
+    // the total big on its own line, the conversions and the count under it, in a soft box
+    y += U * .16;
+    const bx = M, bw = IW, cy1 = y + totPad + tot1 * .55, cy2 = cy1 + tot1 * .55 + tot2 * .95;
+    rr(bx, y, bw, totH, U * .08); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = T.line; ctx.stroke();
+    { const t = fmt(TT.tot), tw = measure(t, "900", tot1), cw = tot1 * .9, x = W / 2 - (tw + cw) / 2;
+      txt(t, x, cy1, { f: "900", s: tot1, c: T.ink }); coin(x + tw + cw * .58, cy1, tot1 * .36); }
+    if (sec2.length) {
+      let ts = tot2, gap, iw, widths;
+      for (;;) { gap = ts * 1.2; iw = ts * 1.2; widths = sec2.map(p => measure(p.t, "700", ts) + (p.k ? iw : 0)); if (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1) <= IW - U * .2 || ts < tot2 * .6) break; ts -= 1; }
+      let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1)) / 2;
+      sec2.forEach((p, i) => {
+        const tw = txt(p.t, x, cy2, { f: "700", s: ts, c: T.mut }), ix = x + tw + iw * .55;
+        if (p.k === "ring") ringIcon(ix, cy2, ts * .46); else if (p.k === "blanket") blanketIcon(ix, cy2, ts * .44);
+        if (i < sec2.length - 1) txt("·", x + widths[i] + gap / 2, cy2, { f: "900", s: ts, c: T.line, al: "center" });
+        x += widths[i] + gap;
+      });
+    }
+    y += totH;
+    if (TT.disc) { txt("−" + fmtR(TT.disc) + "% included (was " + fmt(TT.sub) + ")", W / 2, y + totS * .75, { f: "800", s: totS * .78, c: T.acc, al: "center" }); y += totS * 1.25; }
   }
   if (BT.length) {
-    y += U * .06;
-    BT.forEach(t => { txt("+" + fmtR(t.pct) + "% bonus · " + bulkTxt(t), W / 2, y + bS * .65, { f: "800", s: bS, c: T.acc, al: "center", maxW: IW }); y += bS * 1.35; });
+    y += U * .1;
+    BT.forEach(t => { txt("+" + fmtR(t.pct) + "% bonus · " + bulkTxt(t), W / 2, y + bS * .7, { f: "800", s: bS, c: T.acc, al: "center", maxW: IW }); y += bS * 1.45; });
   }
   if (nl.length) {
-    y += U * .12;
-    nl.forEach(l => { txt(l, M, y + nS * .62, { f: "600", s: nS, c: T.ink, maxW: IW }); y += nS * 1.3; });
+    y += U * .14;
+    nl.forEach(l => { txt(l, M, y + nS * .64, { f: "600", s: nS, c: T.ink, maxW: IW }); y += nS * 1.32; });
   }
   if (sub) { txt(sub, W / 2, y + U * .07, { f: "600i", s: U * .1, c: T.mut, al: "center", maxW: IW }); y += U * .14; }
-  txt(SITE_URL, W - M, H - M * .7 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "right" });
+  txt(SITE_URL, W - M, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "right" });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
-  $("#pvSize").textContent = W + " × " + H + " px · " + C + " columns";
+  $("#pvSize").textContent = W + " × " + H + " px · " + C + (C > 1 ? " columns" : " column");
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
 function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
