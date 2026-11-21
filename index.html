@@ -123,6 +123,8 @@ body[data-tab=prev] #editor{display:none}
 .tile:active{background:var(--surface2)}
 .tile .th{width:56px;height:56px;font-size:34px}
 .tile b{font:600 12px/1.15 -apple-system,system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .lv{font:700 11px var(--sans);color:var(--mut)}
+.lvlhead{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 12px;border:1px solid var(--line2);border-radius:12px}.lvlhead>div{display:grid;gap:2px;min-width:0}.lvlhead small{color:var(--mut)}.lvlhead .btn{flex:none}
 .tile .in{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:10px;font-weight:700;display:grid;place-items:center}
 .th{display:grid;place-items:center;line-height:1;overflow:hidden}
 .th img{width:100%;height:100%;object-fit:contain}
@@ -3322,6 +3324,7 @@ const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have
 function renderResults() {
   const q = $("#q").value;
   $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q;
+  const LQ = lvlQuery(q); if (LQ) { const box = $("#results"); box.textContent = ""; renderLvlResults(LQ, box); return; }
   const res = search(q, q ? "all" : curCat), box = $("#results");
   box.textContent = "";
   if (!res.length) { box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, q ? "No product found — add it as a custom item." : "Nothing here yet.")); $("#moreRes").hidden = true; return; }
@@ -3334,6 +3337,99 @@ function renderResults() {
   $("#moreRes").hidden = res.length <= resLimit;
 }
 $("#moreRes").onclick = () => { resLimit += 48; renderResults(); };
+/* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
+let LVL = (() => { try { return store.get("hd5_lvl") || {}; } catch (e) { return {}; } })();   // id → level (0 = none found)
+const LVL_ST = { loading: false, done: 0, total: 0, p: null, fail: false };
+/** the products that have an unlock level: not sets, page mixes, materials & tools, Help or your own items */
+const lvlCandidates = () => CAT.list.filter(p => p.en && !p.parts && !p.mix && !p.custom && !p.nomp && p.cat !== "ext" && p.cat !== "packs");
+function lvlFromText(t) {
+  t = String(t || "").replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1").replace(/'{2,3}/g, "");
+  // the page's own sentence first ("unlocked at experience level 34"), then the infobox field
+  const m = t.match(/(?:unlocked|available|unlocks?)\s+(?:at|from|on)\s+(?:the\s+)?(?:experience\s+|xp\s+)?level\s+(\d{1,3})\b/i)
+    || t.match(/experience\s+level\s+(\d{1,3})\b/i)
+    || t.match(/\|\s*(?:level|lvl|lv|unlock\w*|required\s*level|req\w*level)\s*=\s*(\d{1,3})\b/i)
+    || t.match(/\blevel\s*(?:required)?\s*[:=]\s*(\d{1,3})\b/i);
+  return m ? +m[1] : 0;
+}
+/** Reads the missing levels: first the page sources (50 a time), then the shown pages for those still unknown (20 a time). */
+function loadLevels(onProg) {
+  if (LVL_ST.loading) return LVL_ST.p;
+  const todo = lvlCandidates().filter(p => !(p.id in LVL));
+  if (!todo.length) return Promise.resolve();
+  LVL_ST.loading = true; LVL_ST.fail = false; LVL_ST.total = todo.length; LVL_ST.done = 0;
+  const prog = () => { try { onProg && onProg(); } catch (e) {} };
+  const save = () => { try { store.set("hd5_lvl", LVL); } catch (e) {} };
+  const fwd = j => { const m = new Map(); ((j.query && j.query.normalized) || []).concat((j.query && j.query.redirects) || []).forEach(x => m.set(x.from, x.to)); return t => { for (let i = 0; i < 5 && m.has(t); i++) t = m.get(t); return t; }; };
+  LVL_ST.p = (async () => {
+    const left = [];
+    for (let i = 0; i < todo.length; i += 50) {
+      const chunk = todo.slice(i, i + 50);
+      try {
+        const q = { origin: "*", action: "query", prop: "revisions", rvprop: "content", rvslots: "main", format: "json", formatversion: "2", redirects: "1", titles: chunk.map(p => p.en).join("|") };
+        const j = await (await fetch(WIKI_API + "?" + new URLSearchParams(q))).json(), to = fwd(j), pages = new Map();
+        ((j.query && j.query.pages) || []).forEach(pg => pages.set(pg.title, pg));
+        chunk.forEach(p => {
+          const pg = pages.get(to(p.en));
+          const rv = pg && !pg.missing && pg.revisions && pg.revisions[0];
+          const src = rv ? (rv.slots ? rv.slots.main.content : rv.content) : "";
+          const lv = src ? lvlFromText(src) : 0;
+          if (lv) { LVL[p.id] = lv; LVL_ST.done++; } else if (pg && pg.missing) { LVL[p.id] = 0; LVL_ST.done++; } else left.push(p);
+        });
+      } catch (e) { LVL_ST.fail = true; chunk.forEach(p => left.push(p)); }
+      save(); prog();
+    }
+    // still unknown (the level comes from a template): the shown pages, several in one go
+    for (let i = 0; i < left.length; i += 20) {
+      const chunk = left.slice(i, i + 20);
+      try {
+        const text = chunk.map((p, k) => "\n\nLVLMARK" + k + "LVLMARK\n\n{{:" + p.en + "}}").join("");
+        const fd = new URLSearchParams({ origin: "*", action: "parse", format: "json", prop: "text", contentmodel: "wikitext", disablelimitreport: "1", disableeditsection: "1", text });
+        const j = await (await fetch(WIKI_API, { method: "POST", body: fd })).json();
+        const html = j.parse && j.parse.text && j.parse.text["*"]; if (!html) throw 0;
+        const all = (new DOMParser().parseFromString(html, "text/html").body.textContent || "").replace(/\s+/g, " ").split(/LVLMARK(\d+)LVLMARK/);
+        chunk.forEach((p, k) => { const at = all.indexOf(String(k)); const part = at >= 0 ? all[at + 1] || "" : ""; LVL[p.id] = lvlFromText(part); LVL_ST.done++; });
+      } catch (e) { LVL_ST.fail = true; }
+      save(); prog();
+    }
+    LVL_ST.loading = false; prog();
+  })();
+  return LVL_ST.p;
+}
+/** "level 30 to 110", "lvl 80+", "from level 80", "niveau 30 à 110", "up to lvl 20" → { lo, hi }; else null */
+function lvlQuery(q) {
+  const raw = String(q || "").toLowerCase(), s = norm(q);
+  if (!/\b(?:level|levels|lvl|lvls|lv|niveau|niveaux|niv|nv|lev)\b/.test(s)) return null;
+  const n = (s.match(/\b\d{1,3}\b/g) || []).map(Number).filter(x => x > 0 && x < 1000); if (!n.length) return null;
+  if (n.length >= 2) return { lo: Math.min(n[0], n[1]), hi: Math.max(n[0], n[1]) };
+  if (/\+/.test(raw) || /\b(?:from|since|starting|and up|or more|above|over|after|plus|a partir|des|depuis|apres|et plus|minimum|min)\b/.test(s)) return { lo: n[0], hi: 999 };
+  if (/\b(?:up to|until|upto|below|under|before|max|maximum|jusqu|jusque|avant|moins)\b/.test(s)) return { lo: 1, hi: n[0] };
+  return { lo: n[0], hi: n[0] };
+}
+const lvlRangeTxt = R => R.hi >= 999 ? "level " + R.lo + " and up" : R.lo === R.hi ? "level " + R.lo : R.lo <= 1 ? "up to level " + R.hi : "level " + R.lo + " to " + R.hi;
+const lvlProducts = R => lvlCandidates().filter(p => LVL[p.id] >= R.lo && LVL[p.id] <= R.hi).sort((a, b) => LVL[a.id] - LVL[b.id] || a.en.localeCompare(b.en));
+/** the results for a level search: the products, and one button to add them all */
+function renderLvlResults(R, box) {
+  const ready = lvlCandidates().every(p => p.id in LVL);
+  if (!ready && !LVL_ST.loading) loadLevels(debounce(() => { if (lvlQuery($("#q").value)) renderResults(); }, 150));
+  const L = lvlProducts(R), list = targetList(), inList = new Set(list.map(it => it.ref)), add = L.filter(p => !inList.has(p.id));
+  const head = h("div", { class: "lvlhead", style: "grid-column:1/-1" },
+    h("div", null, h("b", null, "Unlocked at " + lvlRangeTxt(R)), h("small", null, ready ? L.length + " products" + (L.length - add.length ? " · " + (L.length - add.length) + " already in the list" : "") : "Reading the levels from the Hay Day wiki… " + LVL_ST.done + " / " + (LVL_ST.total || "…"))),
+    h("button", { class: "btn pri", disabled: !ready || !add.length, onclick: () => {
+      const room = 150 - list.length, take = add.slice(0, Math.max(0, room));
+      take.forEach(p => { list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : null)); });
+      renderLists(); renderResults(); changed();
+      toast("✓ " + take.length + " products added (" + lvlRangeTxt(R) + ")" + (take.length < add.length ? " · " + (add.length - take.length) + " left out: 150 items max per post" : ""));
+    } }, add.length ? "Add all " + add.length : "All added"));
+  box.append(head);
+  if (LVL_ST.fail && !LVL_ST.loading && !ready) box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, "The wiki can't be reached right now — try again in a moment."));
+  L.slice(0, resLimit).forEach(p => {
+    const t = h("button", { class: "tile", title: p.en, onclick: () => addFromCatalog(p) }, thumb(prodState(p.id), p.e), h("b", null, p.en), h("span", { class: "lv" }, "Lv " + LVL[p.id]));
+    if (inList.has(p.id)) t.append(h("span", { class: "in" }, "✓"));
+    box.append(t);
+  });
+  $("#moreRes").hidden = L.length <= resLimit;
+}
+
 /* drop-down results: open while searching, close with Done / Esc / tap outside */
 function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
 function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
@@ -5745,7 +5841,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 05:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 12:55";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
