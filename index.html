@@ -1055,6 +1055,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .betabar{display:grid;gap:8px;margin-bottom:10px}.betabar .seg{display:flex;flex-wrap:wrap;gap:6px}.betabar .seg button{flex:1;min-width:0;padding:9px 10px;border-radius:999px;border:1px solid var(--line2);background:none;color:var(--ink);font:700 14px var(--sans)}.betabar .seg button.on{background:var(--ink);color:var(--bg)}
+.mever{margin:6px 4px 2px;color:var(--mut);font-size:12px;text-align:center}
 </style>
 </head>
 <body data-tab="items">
@@ -5709,6 +5710,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
+const APP_VER = "21 Nov 2026 · 04:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -5720,7 +5722,8 @@ function renderMeMenu() {
     go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
     go("🕘", "History & stats", HIST.length ? fmt(HIST.length) + " deals" + (S ? " · " + short(Math.round(S.in)) + " coins in" : "") : "Your deals, and what they add up to", () => tab("hist")),
     go("🎨", "Style & backup", "Paper, layout, texts · backup of everything", () => tab("style")),
-    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")));
+    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
+    h("p", { class: "mever" }, "Version " + APP_VER + " · if this isn't the latest, reload the page"));
 }
 
 /* =====================================================================
@@ -5747,6 +5750,8 @@ function qcLine(raw) {
   const m0 = qcMath(t); if (m0 != null) return { math: true, total: m0, txt: t };
   t = t.toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ");
   let q = null, m;
+  // "2x200 feathers": 2 times 200 → 400
+  if ((m = t.match(/^(\d+)\s*[x×]\s*(\d[\d.,]*)\s+(?=[a-z])/))) t = String(num(m[1]) * num(m[2])) + " " + t.slice(m[0].length);
   // quantity: "10 bem set", "x10 bem set", "10x bem set", "bem set x10"
   if ((m = t.match(/^(?:[x×]\s*)?(\d[\d.,]*[km]?)\s*(?:[x×]|pcs|pieces?)?\s+(?=\D)/))) { q = num(m[1]); t = t.slice(m[0].length); }
   else if ((m = t.match(/\s(?:[x×]\s*)(\d[\d.,]*[km]?)\b/))) { q = num(m[1]); t = (t.slice(0, m.index) + " " + t.slice(m.index + m[0].length)).trim(); }
@@ -5847,7 +5852,10 @@ async function copyText(t) { try { await navigator.clipboard.writeText(t); toast
 function qcText(Ls, sum, k) {
   const lines = Ls.filter(L => !L.err).map(L => L.math ? L.txt + " = " + qcExact(L.total) : fmt(L.q) + "× " + (L.p ? L.p.en : L.name || "item") + " — " + (L.q > 1 && !L.mixed ? qcExact(L.each) + " ea = " : "") + qcExact(L.total) + (L.parts ? " (" + L.parts.map(x => fmt(x.n) + " " + x.name).join(" + ") + ")" : ""));
   const fin = Math.round(sum * (1 + k / 100) * 100) / 100;
-  if (lines.length > 1 || k) lines.push((k ? "With " + (k > 0 ? "+" : "−") + fmtR(Math.abs(k)) + "%: " : "Total: ") + qcExact(fin) + " coins");
+  // the total in rings and blankets too (rounded to the nearest, an exact half kept)
+  const conv = fin > 0 ? " ≈ " + btHalf(fin / RING_RATE) + " 💍 · ≈ " + btHalf(fin / BLANKET_RATE) + " blankets" : "";
+  if (lines.length > 1 || k) lines.push("**" + (k ? "With " + (k > 0 ? "+" : "−") + fmtR(Math.abs(k)) + "%: " : "Total: ") + qcExact(fin) + " coins" + conv + "**");
+  else if (lines.length && conv) lines[0] += conv;
   return lines.join("\n");
 }
 $("#calcBtn").onclick = openCalc;
