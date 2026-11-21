@@ -1650,6 +1650,8 @@ let USERIMG = new Map(); // "ov:<id>" remplacement d’un produit · "c:<id>" pr
 const SPECIAL_FILE = { "Tnt_Barrel": "TNT_Barrel", "Blt_Salad": "BLT_Salad", "Bacon_And_Eggs": "Bacon_and_Eggs", "Fish_And_Chips": "Fish_and_Chips", "Peanut_Butter_And_Jelly_Sandwich": "Peanut_Butter_and_Jelly_Sandwich", "Frutti_Di_Mare_Pizza": "Frutti_di_Mare_Pizza" };
 const titleSnake = s => { const t = s.trim().split(/[\s_]+/).map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join("_"); return SPECIAL_FILE[t] || t; };
 const CAT = { list: [], byId: {} };
+// the help sign (a wooden post, a paper with "!"), drawn here: it isn't a game item with a wiki picture
+const HELP_SVG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#8a5a2b"/><stop offset=".5" stop-color="#b07a3f"/><stop offset="1" stop-color="#7a4d22"/></linearGradient><linearGradient id="p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbe6"/><stop offset="1" stop-color="#f1e2a8"/></linearGradient></defs><rect x="56" y="58" width="16" height="66" rx="4" fill="url(#w)" stroke="#5a3715" stroke-width="3"/><path d="M26 10h76l-4 56H30z" fill="url(#p)" stroke="#8a6a2a" stroke-width="4" stroke-linejoin="round"/><path d="M58 20h12l-2 28h-8z" fill="#2b2b2b"/><circle cx="64" cy="56" r="5.5" fill="#2b2b2b"/></svg>');
 function addProduct(p) {
   if (CAT.byId[p.id]) return CAT.byId[p.id];
   p.k = norm(p.en + " " + (p.fr || "").replace(/[~·]/g, " ") + " " + p.id.replace(/-/g, " "));
@@ -1663,6 +1665,8 @@ function buildCatalog() {
     if (!en) return;
     addProduct({ id: slug(en), en, fr, e: e || "📦", cat, file: file || titleSnake(en) });
   });
+  // "Help": a player helping another (usually a tree to bring back to life) — sold like an item, no game max price
+  addProduct({ id: "help", en: "Help", fr: "Aide ~ helps tree help tree helps revive help sign", e: "🪧", cat: "other", src: HELP_SVG, nomp: true });
   (store.get("hd5_wiki", { names: [] }).names || []).forEach(addWikiName);
   CUSTOM.forEach(c => addProduct({ id: c.id, en: c.en, fr: c.fr || "", e: c.e || "⭐", cat: "perso", custom: true }));
   MIXES.forEach(m => { const ids = m.mix.filter(id => CAT.byId[id]); if (ids.length) addProduct({ id: slug(m.en), en: m.en, fr: m.fr, e: m.e, cat: m.cat, mix: ids, badge: m.badge }); });
@@ -1815,6 +1819,7 @@ function prodState(id) {
     const cands = [];
     const ov = null; // game pictures can't be replaced
     if (p.custom) { const c = USERIMG.get("c:" + id); if (c) cands.push(c); }
+    if (p.src) { loadChain(s, [p.src]); return; }
     if (p.parts && !ov) return composePack(s, p);
     if (p.mix) return composeMix(s, p);
     if (LOCAL.has(id)) cands.push("images/" + id + ".png");
@@ -1997,6 +2002,7 @@ function maxPrice(id) {
   // a set = its 89 materials (30 Bolt + 30 Plank + 29 Duct Tape)
   if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? packSplit(p, SET_N).reduce((a, s, i) => a + s.n * v[i], 0) : 0; }
   if (p.mix) { const v = p.mix.map(maxPrice); return v.length && v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
+  if (p.nomp) return 0;                                        // Help: no price in the game
   if (MAXP[id] > 0) return MAXP[id];
   if (!(id in MAXP) && !p.custom) queueMax(id);
   return MAXP_BASE[id] || 0;
@@ -2230,10 +2236,10 @@ function starShape(cx, cy, r, c) { ctx.beginPath(); for (let i = 0; i < 10; i++)
    One square per item, the game picture big, price top-left, quantity big bottom-right.
    Columns are chosen so the picture stays about as tall as wide: Discord shows it whole, readable while scrolling. */
 const BT_THEMES = {
-  cream: { name: "Cream", bg: "#fff6c9", cell: "rgba(255,255,255,.35)", line: "rgba(120,96,40,.28)", ink: "#141414", mut: "#5c5232", acc: "#b5321e", dark: 0 },
-  white: { name: "White", bg: "#ffffff", cell: "#f4f4f2", line: "rgba(0,0,0,.12)", ink: "#111111", mut: "#5d5d5d", acc: "#c0392b", dark: 0 },
-  night: { name: "Night", bg: "#1b1c22", cell: "#262833", line: "rgba(255,255,255,.10)", ink: "#f4f1e8", mut: "#a9a6b8", acc: "#f0b43c", dark: 1 },
-  barn:  { name: "Barn",  bg: "#f4ead7", cell: "#fbf5e8", line: "rgba(42,29,20,.18)", ink: "#2a1d14", mut: "#7c6854", acc: "#b5321e", dark: 0 }
+  cream: { name: "Cream", bg: "#fff6c9", chip: "#ffffff", cell: "rgba(255,255,255,.42)", line: "rgba(120,96,40,.28)", ink: "#141414", mut: "#5c5232", acc: "#b5321e", dark: 0 },
+  white: { name: "White", bg: "#ffffff", chip: "#ffffff", cell: "#f4f4f2", line: "rgba(0,0,0,.12)", ink: "#111111", mut: "#5d5d5d", acc: "#c0392b", dark: 0 },
+  night: { name: "Night", bg: "#1b1c22", chip: "#353847", cell: "#262833", line: "rgba(255,255,255,.10)", ink: "#f4f1e8", mut: "#a9a6b8", acc: "#f0b43c", dark: 1 },
+  barn:  { name: "Barn",  bg: "#f4ead7", chip: "#ffffff", cell: "#fbf5e8", line: "rgba(42,29,20,.18)", ink: "#2a1d14", mut: "#7c6854", acc: "#b5321e", dark: 0 }
 };
 /** "3500", "12.5k", "150k", "1.2m" — short, like on Discord */
 function btShort(v) {
@@ -2261,47 +2267,48 @@ function btPrice(w) {
   if (w.pu === "ring" || w.pu === "blanket") return { t: fmtRt(p), unit: w.pu };
   return { t: btShort(p), unit: "coin" };
 }
+/** a rounded label: { x, y (top), h, w } → background + edge */
+function btChip(x, y, w, hh, bg, edge) { rr(x, y, w, hh, hh / 2); ctx.fillStyle = bg; ctx.fill(); if (edge) { ctx.lineWidth = Math.max(1.5, hh * .045); ctx.strokeStyle = edge; ctx.stroke(); } }
 function btTile(w, x, y, S, T, kind) {
-  // cell: flat, a thin edge
-  rr(x, y, S, S, S * .05); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = Math.max(2, S * .007); ctx.strokeStyle = T.line; ctx.stroke();
-  // the picture: as big as the square allows
-  ctx.save(); rr(x, y, S, S, S * .06); ctx.clip();
-  icon(itemState(w), w.e, x + S * .5, y + S * (kind === "sale" || kind === "trade" ? .54 : .5), S * .86, 1);
+  const oos = !!w.oos, pad = S * .05, r = S * .07;
+  // the square: flat, a thin edge
+  rr(x, y, S, S, r); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = Math.max(2, S * .007); ctx.strokeStyle = T.line; ctx.stroke();
+  // the picture, centred, with room for the two labels in the corners
+  ctx.save(); rr(x, y, S, S, r); ctx.clip(); if (oos) ctx.globalAlpha = .28;
+  icon(itemState(w), w.e, x + S * .5, y + S * .5, S * .7, 1);
   ctx.restore();
-  const pad = S * .045, oos = !!w.oos;
-  // top-left: price (sell / buy) or ratio (trade)
+  ctx.save(); if (oos) ctx.globalAlpha = .45;
+  // top-left label: the price (sell / buy) or the ratio (trade)
+  const ph = S * .2, ps = S * .125;
   if (kind === "sale") {
     const P = btPrice(w);
     if (P) {
-      const s = S * .185, by = y + pad + s * .86;
-      let tw = btOut(P.t, x + pad, by, s, { maxW: S * .68, lw: .14 });
-      const cx = x + pad + tw + s * .42, cy = by - s * .36;
-      if (P.unit === "coin") coin(cx, cy, s * .4);
-      else if (P.unit === "ring") ringIcon(cx, cy, s * .42);
-      else if (P.unit === "blanket") blanketIcon(cx, cy, s * .4);
-      else btOut("MP", x + pad + tw + s * .06, by, s * .62, { lw: .22 });
+      const t = P.unit === "mp" ? P.t + "MP" : P.t, tw = measure(t, "700", ps), iw = P.unit === "mp" ? 0 : ph * .78, cw = tw + iw + ph * .62;
+      btChip(x + pad, y + pad, cw, ph, T.chip, T.line);
+      txt(t, x + pad + ph * .31, y + pad + ph / 2 + 1, { f: "700", s: ps, c: T.ink });
+      const cx = x + pad + ph * .31 + tw + iw * .55, cy = y + pad + ph / 2;
+      if (P.unit === "coin") coin(cx, cy, ph * .27); else if (P.unit === "ring") ringIcon(cx, cy, ph * .3); else if (P.unit === "blanket") blanketIcon(cx, cy, ph * .28);
     }
   } else if (kind === "trade" && hasRatio(w)) {
-    const s = S * .17, by = y + pad + s * .86;
-    const tw = btOut(fmtRt(num(w.rb)) + ":" + fmtRt(num(w.ra)), x + pad, by, s, { maxW: S * .66, lw: .14 });
-    const g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = s * 1.25;
-    parts.forEach((it, i) => icon(itemState(it), it.e, x + pad + tw + iz * .6 + i * iz * .62, by - s * .36, iz, 1));
+    const t = fmtRt(num(w.rb)) + " : " + fmtRt(num(w.ra)), g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = ph * .8;
+    const tw = measure(t, "700", ps), cw = tw + ph * .62 + (parts.length ? iz * (1 + (parts.length - 1) * .62) + ph * .1 : 0);
+    btChip(x + pad, y + pad, Math.min(cw, S - 2 * pad), ph, T.chip, T.line);
+    txt(t, x + pad + ph * .31, y + pad + ph / 2 + 1, { f: "700", s: ps, c: T.ink });
+    parts.forEach((it, i) => icon(itemState(it), it.e, x + pad + ph * .31 + tw + ph * .1 + iz / 2 + i * iz * .62, y + pad + ph / 2, iz, 1));
   }
-  // bottom-right: quantity, the biggest thing in the square
-  const q = num(w.q);
-  if (q > 0) btOut(fmt(q), x + S - pad * .8, y + S - pad * .6, S * .32, { al: "right", maxW: S - 2 * pad, lw: .14 });
-  // a short note: small band at the bottom-left
+  ctx.restore();
+  // bottom-right label: the quantity (or "Sold out" / "Not needed")
+  const q = num(w.q), qh = S * .25, qs = S * .17;
+  const lab = oos ? (st.type === "achat" || kind === "trade" || kind === "tq" ? "Not needed" : kind === "have" ? "Gone" : "Sold out") : q > 0 ? fmt(q) : "";
+  if (lab) {
+    const f = oos ? "700" : "800", s2 = oos ? qs * .7 : qs, tw = Math.min(measure(lab, f, s2), S - 2 * pad - qh * .6), cw = tw + qh * .6;
+    btChip(x + S - pad - cw, y + S - pad - qh, cw, qh, oos ? T.mut : T.ink, null);
+    txt(lab, x + S - pad - cw / 2, y + S - pad - qh / 2 + 1, { f, s: s2, c: T.dark ? T.bg : "#ffffff", al: "center", maxW: S - 2 * pad - qh * .6 });
+  }
+  // a short note: bottom-left, small
   const note = (w.note || "").trim();
-  if (note && note.length <= 14) btOut(note, x + pad, y + S - pad * .7, S * .08, { lw: .25, maxW: S * (q > 0 ? .45 : .9) });
-  if (oos) {
-    ctx.save(); rr(x, y, S, S, S * .06); ctx.clip();
-    ctx.globalAlpha = .62; ctx.fillStyle = T.bg; ctx.fillRect(x, y, S, S); ctx.globalAlpha = 1;
-    ctx.translate(x + S / 2, y + S / 2); ctx.rotate(-.42);
-    const lab = st.type === "achat" || kind === "trade" || kind === "tq" ? "NO LONGER NEEDED" : kind === "have" ? "GONE" : "SOLD OUT";
-    ctx.fillStyle = lab === "SOLD OUT" || lab === "GONE" ? T.acc : "#5d6470"; ctx.fillRect(-S, -S * .085, S * 2, S * .17);
-    txt(lab, 0, 2, { f: "800", s: S * (lab.length > 10 ? .075 : .1), c: "#fff", al: "center" });
-    ctx.restore();
-  }
+  if (note && !oos) { const ns = S * .085, nh = S * .15, room = S - 2 * pad - (lab ? measure(lab, "800", qs) + qh * .6 + pad * .6 : 0);
+    if (room > S * .25) { const tw = Math.min(measure(note, "600", ns), room - nh * .6); btChip(x + pad, y + S - pad - nh, tw + nh * .6, nh, T.chip, T.line); txt(note, x + pad + nh * .3, y + S - pad - nh / 2 + 1, { f: "600", s: ns, c: T.mut, maxW: room - nh * .6 }); } }
 }
 /** the whole picture */
 function drawBeta() {
@@ -2341,10 +2348,10 @@ function drawBeta() {
   /* measure */
   const typeLabel = { trade: "TRADE", vente: "SELLING", achat: "BUYING" }[type];
   const pS = U * .11, tS = title ? fit(title, "800", U * .27, IW, U * .15) : 0, kS = U * .12;
-  // "Buying" as title: no "BUYING" label under it, your name goes next to the title
-  const sameType = !!title && /^(?:buying|selling|for sale|trading|trade|shop)\b/i.test(title) && !kick;
-  const tS2 = sameType && user ? fit(title, "800", tS, IW - measure(user, "700", pS * 1.05) - U * .2, U * .17) : tS;
-  let H = M + (title ? tS * 1.08 : 0) + (kick ? kS * 1.5 : 0) + (sameType ? U * .1 : pS * 1.9 + U * .12);
+  // title on the left, your name on the right of it; the type label under the title
+  const uS = pS * 1.1, uW = user ? measure(user, "700", uS) : 0;
+  const tS2 = title ? fit(title, "800", tS, IW - (user ? uW + U * .2 : 0), U * .14) : 0, ph = pS * 1.8;
+  let H = M + (title ? tS * 1.12 : 0) + (kick ? kS * 1.5 : 0) + ph + U * .15;
   const secS = U * .11, secH = secS * 2.3;
   if (have.length) H += secH + Math.ceil(have.length / C) * (S + G) + U * .06;
   if (trade && (!grouped || !have.length)) H += secH;
@@ -2357,12 +2364,15 @@ function drawBeta() {
   const showTot = !trade && st.showTotal !== false && TT.sub > 0, totS = U * .16;
   const sec2 = convs().map(k => ({ t: "≈ " + btHalf(k === "ring" ? TT.rings : TT.blankets), k })).concat(units ? [{ t: fmt(units) + " items" }] : []);
   const tot1 = fit(fmt(TT.tot) + "00", "800", U * .23, IW * .9, U * .13), tot2 = U * .125, totPad = 0, totH = tot1 * 1.15 + (sec2.length ? tot2 * 1.5 : 0);
-  if (showTot) H += U * .16 + totH + (TT.disc ? totS * 1.25 : 0);
-  const bS = U * .115; if (BT.length) H += U * .1 + BT.length * bS * 1.45;
-  const nS = U * .135, nl = notes ? notes.split("\n").map(l => l.trim()).filter(Boolean).flatMap(l => wrap(l.replace(/^[-•*]\s+/, "• "), IW, "600", nS)).slice(0, 12) : [];
-  if (nl.length) H += U * .14 + nl.length * nS * 1.32;
-  if (sub) H += U * .14;
-  const urlS = Math.max(38, U * .17);
+  // one panel: the total, what it is in rings and blankets, and the bulk bonus
+  const bS = U * .115, pp = U * .1;
+  const panH = (showTot ? totH + (TT.disc ? totS * 1.2 : 0) : 0) + (BT.length ? (showTot ? U * .12 : 0) + BT.length * bS * 1.55 : 0);
+  if (panH) H += U * .16 + panH + 2 * pp;
+  // notes: one line each, the same bullet for all
+  const nS = U * .135, nl = notes ? notes.split("\n").map(l => l.trim().replace(/^[-•*·–]\s*/, "")).filter(Boolean).flatMap(l => wrap(l, IW - nS * 1.2, "600", nS).map((x, i) => ({ t: x, b: i === 0 }))).slice(0, 12) : [];
+  if (nl.length) H += U * .16 + nl.length * nS * 1.38;
+  if (sub) H += U * .05 + nS * 1.4;
+  const urlS = Math.max(34, U * .15);
   H += U * .14 + urlS + M * .75;
   if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
 
@@ -2372,15 +2382,14 @@ function drawBeta() {
 
   /* head: title, then the type and your name */
   let y = M;
-  if (title) { txt(title, M, y + tS * .52, { f: "800", s: tS2, c: T.ink }); y += tS * 1.08; }
+  if (title) { const cy = y + tS * .55; txt(title, M, cy, { f: "800", s: tS2, c: T.ink }); if (user) txt(user, W - M, cy, { f: "700", s: uS, c: T.mut, al: "right" }); y += tS * 1.12; }
   if (kick) { txt(kick, M, y + kS * .6, { f: "600", s: kS, c: T.mut, maxW: IW }); y += kS * 1.5; }
-  if (title && sameType) { if (user) { txt(user, W - M, M + tS * .55, { f: "700", s: pS * 1.05, c: T.mut, al: "right" }); } y += U * .1; }
-  else {
-    font("700", pS); const tw = ctx.measureText(typeLabel).width, ph = pS * 1.75, cy = y + ph / 2;
-    rr(M, y, tw + pS * 1.5, ph, ph / 2); ctx.fillStyle = trade ? T.ink : type === "achat" ? "#2f6fd0" : "#2f8f46"; if (T.dark) ctx.fillStyle = trade ? T.acc : ctx.fillStyle; ctx.fill();
-    txt(typeLabel, M + pS * .75, cy + 1, { f: "700", s: pS, c: "#fff", sp: 1 });
-    if (user) txt(user, W - M, cy, { f: "700", s: pS * 1.05, c: T.mut, al: "right", maxW: IW - tw - pS * 3 });
-    y += ph + U * .12;
+  {
+    const tw = measure(typeLabel, "700", pS), cy = y + ph / 2;
+    rr(M, y, tw + pS * 1.6, ph, ph / 2); ctx.fillStyle = trade ? (T.dark ? T.acc : T.ink) : type === "achat" ? "#2f6fd0" : "#2f8f46"; ctx.fill();
+    txt(typeLabel, M + pS * .8, cy + 1, { f: "700", s: pS, c: "#fff", sp: 1 });
+    if (user && !title) txt(user, W - M, cy, { f: "700", s: uS, c: T.mut, al: "right", maxW: IW - tw - pS * 3 });
+    y += ph + U * .15;
   }
   const grid = (list, kind) => {
     list.forEach((w, i) => { const r = Math.floor(i / C), c = i % C; btTile(w, M + c * (S + G), y + r * (S + G), S, T, kind); });
@@ -2410,35 +2419,39 @@ function drawBeta() {
 
   /* under the grid: the stamp, the total, bulk, notes */
   if (cta) { y += U * .16; txt(cta, W / 2, y + ctaS * .56, { f: "800", s: ctaS, c: T.ink, al: "center" }); y += ctaS * 1.12; }
-  if (showTot) {
-    // the total big on its own line, the conversions and the count under it, in a soft box
+  if (panH) {
     y += U * .16;
-    const bx = M, bw = IW, cy1 = y + totPad + tot1 * .55, cy2 = cy1 + tot1 * .55 + tot2 * .95;
-    { const t = fmt(TT.tot), tw = measure(t, "800", tot1), cw = tot1 * .9, x = W / 2 - (tw + cw) / 2;
-      txt(t, x, cy1, { f: "800", s: tot1, c: T.ink }); coin(x + tw + cw * .58, cy1, tot1 * .36); }
-    if (sec2.length) {
-      let ts = tot2, gap, iw, widths;
-      for (;;) { gap = ts * 1.2; iw = ts * 1.2; widths = sec2.map(p => measure(p.t, "600", ts) + (p.k ? iw : 0)); if (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1) <= IW - U * .2 || ts < tot2 * .6) break; ts -= 1; }
-      let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1)) / 2;
-      sec2.forEach((p, i) => {
-        const tw = txt(p.t, x, cy2, { f: "600", s: ts, c: T.mut }), ix = x + tw + iw * .55;
-        if (p.k === "ring") ringIcon(ix, cy2, ts * .46); else if (p.k === "blanket") blanketIcon(ix, cy2, ts * .44);
-        if (i < sec2.length - 1) txt("·", x + widths[i] + gap / 2, cy2, { f: "800", s: ts, c: T.line, al: "center" });
-        x += widths[i] + gap;
-      });
+    rr(M, y, IW, panH + 2 * pp, U * .07); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = T.line; ctx.stroke();
+    let py = y + pp;
+    if (showTot) {
+      const cy1 = py + tot1 * .55, cy2 = cy1 + tot1 * .55 + tot2 * .95;
+      { const t = fmt(TT.tot), tw = measure(t, "800", tot1), cw = tot1 * .9, x = W / 2 - (tw + cw) / 2;
+        txt(t, x, cy1, { f: "800", s: tot1, c: T.ink }); coin(x + tw + cw * .58, cy1, tot1 * .36); }
+      if (sec2.length) {
+        let ts = tot2, gap, iw, widths;
+        for (;;) { gap = ts * 1.2; iw = ts * 1.2; widths = sec2.map(p => measure(p.t, "600", ts) + (p.k ? iw : 0)); if (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1) <= IW - 2 * pp || ts < tot2 * .6) break; ts -= 1; }
+        let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1)) / 2;
+        sec2.forEach((p, i) => {
+          const tw = txt(p.t, x, cy2, { f: "600", s: ts, c: T.mut }), ix = x + tw + iw * .55;
+          if (p.k === "ring") ringIcon(ix, cy2, ts * .46); else if (p.k === "blanket") blanketIcon(ix, cy2, ts * .44);
+          if (i < sec2.length - 1) txt("·", x + widths[i] + gap / 2, cy2, { f: "800", s: ts, c: T.mut, al: "center" });
+          x += widths[i] + gap;
+        });
+      }
+      py += totH;
+      if (TT.disc) { txt("−" + fmtR(TT.disc) + "% included (was " + fmt(TT.sub) + ")", W / 2, py + totS * .6, { f: "700", s: totS * .78, c: T.acc, al: "center" }); py += totS * 1.2; }
     }
-    y += totH;
-    if (TT.disc) { txt("−" + fmtR(TT.disc) + "% included (was " + fmt(TT.sub) + ")", W / 2, y + totS * .75, { f: "700", s: totS * .78, c: T.acc, al: "center" }); y += totS * 1.25; }
-  }
-  if (BT.length) {
-    y += U * .1;
-    BT.forEach(t => { txt("+" + fmtR(t.pct) + "% bonus · " + bulkTxt(t), W / 2, y + bS * .7, { f: "700", s: bS, c: T.acc, al: "center", maxW: IW }); y += bS * 1.45; });
+    if (BT.length) {
+      if (showTot) { py += U * .06; rule(M + pp * 2, W - M - pp * 2, py, 2, T.line); py += U * .06; }
+      BT.forEach(t => { txt("+" + fmtR(t.pct) + "%  ·  " + bulkTxt(t), W / 2, py + bS * .75, { f: "700", s: bS, c: T.acc, al: "center", maxW: IW - 2 * pp }); py += bS * 1.55; });
+    }
+    y += panH + 2 * pp;
   }
   if (nl.length) {
-    y += U * .14;
-    nl.forEach(l => { txt(l, M, y + nS * .64, { f: "600", s: nS, c: T.ink, maxW: IW }); y += nS * 1.32; });
+    y += U * .16;
+    nl.forEach(l => { const cy = y + nS * .66; if (l.b) { ctx.beginPath(); ctx.arc(M + nS * .3, cy, nS * .14, 0, 7); ctx.fillStyle = T.mut; ctx.fill(); } txt(l.t, M + nS * 1.2, cy, { f: "600", s: nS, c: T.ink, maxW: IW - nS * 1.2 }); y += nS * 1.38; });
   }
-  if (sub) { txt(sub, W / 2, y + U * .07, { f: "600i", s: U * .1, c: T.mut, al: "center", maxW: IW }); y += U * .14; }
+  if (sub) { y += U * .05; txt(sub, M, y + nS * .66, { f: "600", s: nS, c: T.mut, maxW: IW }); y += nS * 1.4; }
   txt(SITE_URL, W / 2, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "center", maxW: IW });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
@@ -5710,7 +5723,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 04:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 04:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -6646,8 +6659,9 @@ function emojiChar(ch) {
 }
 /** Emojis → the item names ("💍" → Diamond Ring, ":hd_mayo:" → Mayonnaise), the others go: "💍 🫒 4k each" → "Diamond Ring, Olive Oil 4k each". */
 function emoNames(s) {
-  const put = p => p ? " " + p.en + "\u0002 " : " ";
-  return String(s || "").replace(/<a?:(\w+):\d+>|:(\w+):/g, (m, a, b) => put(emojiItem(a || b))).replace(EMOS_RE, m => put(CAT.byId[emojiChar(m)]))
+  // "Help 🪧": the name is already written just before its picture → not twice
+  const put = (p, str, off) => !p ? " " : (() => { const b = norm(String(str).slice(0, off)), n = norm(p.en); return b.endsWith(n) || b.endsWith(n + "s") ? " " : " " + p.en + "\u0002 "; })();
+  return String(s || "").replace(/<a?:(\w+):\d+>|:(\w+):/g, (m, a, b, off, str) => put(emojiItem(a || b), str, off)).replace(EMOS_RE, (m, off, str) => put(CAT.byId[emojiChar(m)], str, off))
     .replace(/\u0002(\s*)(?=$|[x×]\s*\d|\d|[.!:(])/gi, "$1").replace(/\u0002/g, ",");
 }
 const words = s => s.trim().split(/\s+/).filter(Boolean);
@@ -8267,7 +8281,8 @@ function impParse(lines, tiles, picNotes, text) {
       return;
     }
     if (!rm && emos.length && !/\d+\s*k\b|\d{3,}/i.test(s)) { pend.push(...emos.map(eItem), ...namedItems(s.split(/\s+/))); return; }
-    const sE = emos.length ? L.toks.map(t => t.w != null ? t.w : t.emo && CAT.byId[t.emo] ? CAT.byId[t.emo].en + "," : "").join(" ").replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "") : s;
+    // "70 Honey 🍯", "1000 Help 🪧": the name already written before its picture → once
+    const sE = emos.length ? L.toks.map((t, i) => { if (t.w != null) return t.w; const P = t.emo && CAT.byId[t.emo]; if (!P) return ""; const before = norm(L.toks.slice(0, i).map(x => x.w || "").join(" ")); return before.endsWith(norm(P.en)) || before.endsWith(norm(P.en) + "s") ? "," : P.en + ","; }).join(" ").replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "") : s;
     if (/\d\s*k\b|\d{3,}|\(\d+\)|\bx\s*\d+|\d+\s*x\b/i.test(s) && !RAT.test(s) && !/\.(com|io|net)\b|items?\)/i.test(s) && parseBuyList(sE).items.length) { cand.push(sE); return; }
     if (s && /[a-z]{2}/i.test(s) && (L.conf == null || L.conf >= 70)) { const n = s.replace(/[~]+/g, ""); R.notes.push(n); lastNote = { s: n, li }; }
   });
