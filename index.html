@@ -1059,6 +1059,7 @@ details summary{-webkit-tap-highlight-color:transparent}
 .betabar{display:grid;gap:8px;margin-bottom:10px}.betabar .seg{display:flex;flex-wrap:wrap;gap:6px}.betabar .seg button{flex:1;min-width:0;padding:9px 10px;border-radius:999px;border:1px solid var(--line2);background:none;color:var(--ink);font:700 14px var(--sans)}.betabar .seg button.on{background:var(--ink);color:var(--bg)}
 .mever{margin:6px 4px 2px;color:var(--mut);font-size:12px;text-align:center}
 .impchk{grid-column:1/-1;font-size:13px;font-weight:700;color:#c0392b;padding:6px 0 0}.impchk.ok{color:#2f8f46}
+.omsg{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 0;padding:7px 10px;border-radius:10px;background:#fff3dc;color:#8a5a00;font-size:13px;line-height:1.3}.omsg b{color:#6b4300}.omsg.ok{background:#e8f5ea;color:#2f6b3a}.omsg.ok b{color:#1f5a2b}.omsg.off{background:var(--soft,#f3efe7);color:var(--mut)}.omsg .btn{flex:none}
 </style>
 </head>
 <body data-tab="items">
@@ -4142,25 +4143,29 @@ function parseOrder(text) {
   // (not a price: "x20 450 each", "4k each")
   T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m; each = +n; return pre + " , "; })
     .replace(/\beach\s*(?:x\s*)?(\d{1,3})\b/gi, (m, n) => { each = +n; return " , "; });
-  // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity
+  // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity.
+  // Each one is kept as a mark on its line (\u0002p…\u0003): the order shows it, and uses it when it isn't your post's price.
+  const coinV = t => { t = String(t).replace(/\s/g, "").replace(/coins?|c$/i, ""); const k = /k$/i.test(t); t = t.replace(/k$/i, ""); const v = /^\d{1,3}(?:,\d{3})+$/.test(t) ? num(t.replace(/,/g, "")) : num(t.replace(",", ".")); return k ? v * 1000 : v; };
+  const mark = (v, u) => v > 0 ? " \u0002p" + Math.round(v * 1000) / 1000 + u + "\u0003 " : " ";
+  const numIn = t => (String(t).match(/\d[\d.,]*\s*k?/i) || [""])[0];
   const P = "\\d(?:[\\d.,]*\\d)?\\s*k?\\s*(?:coins?|c)?", END = "(?=\\s*(?:$|[,;\\n|]|\\s(?:and|&|\\+)\\s))";
   T = T
     // ×MP prices are not quantities: "3,5x" / "3.5x" (a quantity is never a decimal), "5xmp", "5x mp", "@ 8x"
-    .replace(/(^|[\s(@])\d+(?:[.,]\d+)?\s*(?:[x×]\s*(?:mp|max\s*price|max)\b|mp\b)/gim, "$1 ")
-    .replace(/(^|[\s(@])\d+[.,]\d+\s*[x×](?![a-z0-9])/gim, "$1 ")
-    // "rings x180 3,5": a decimal after the quantity is the price
-    .replace(/^([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×]|^\s*\d+\s)[^\n]*?[a-z][^\n]*?)\s+\d+[.,]\d{1,2}(?=\s*$)/gim, "$1")
-    .replace(/^([^\n]*?[a-z][^\n]*?\s[x×]?\d+)\s+\d+[.,]\d{1,2}(?=\s*$)/gim, "$1")
-    .replace(/^([^\n]*?[a-z][^\n]*?\s[x×]?\d+[x×]?)\s+\d[\d.,]*\s*(?:k|coins?)(?=\s*$)/gim, "$1")       // "olive oil x20 2k"
-    .replace(/\s+(?:@|at|à)\s*(?=$|\n)/gim, "")
-    .replace(/\s*\([^)\n]*\d[^)\n]*\b(?:ea|each|k|coins?|apiece|per)\b[^)\n]*\)/gi, " ")
-    .replace(new RegExp("\\s*(?:@|\\bat\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?" + END, "gi"), " ")
-    .replace(new RegExp("\\s+\\bfor\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)" + END, "gi"), " ")
-    .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), " ")
+    .replace(/(^|[\s(@])(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*(?:mp|max\s*price|max)\b|mp\b)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    .replace(/(^|[\s(@])(\d+[.,]\d+)\s*[x×](?![a-z0-9])/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    // "rings x180 3,5": a decimal after the quantity is the price (×MP)
+    .replace(/^([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×]|^\s*\d+\s)[^\n]*?[a-z][^\n]*?)\s+(\d+[.,]\d{1,2})(?=\s*$)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    .replace(/^([^\n]*?[a-z][^\n]*?\s[x×]?\d+)\s+(\d+[.,]\d{1,2})(?=\s*$)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    .replace(/^([^\n]*?[a-z][^\n]*?\s[x×]?\d+[x×]?)\s+(\d[\d.,]*\s*(?:k|coins?))(?=\s*$)/gim, (m, a, v) => a + mark(coinV(v), "c"))       // "olive oil x20 2k"
+    .replace(/[ \t]+(?:@|at|à)[ \t]*(?=$|\n|\u0002)/gim, " ")
+    .replace(/[ \t]*\(([^)\n]*\d[^)\n]*\b(?:ea|each|k|coins?|apiece|per)\b[^)\n]*)\)/gi, (m, v) => mark(coinV(numIn(v)), "c"))
+    .replace(new RegExp("[ \\t]*(?:@|\\bat\\b|\\bà\\b)[ \\t]*(" + P + ")\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?" + END, "gi"), (m, v) => mark(coinV(v), "c"))
+    .replace(new RegExp("\\s+\\bfor\\s*(" + P + ")\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)" + END, "gi"), (m, v) => mark(coinV(v), "c"))
+    .replace(new RegExp("\\s+(" + P + ")\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), (m, v) => mark(coinV(v), "c"))
     // "2 bem set 4k", "10 olive oil 2.5k": a price after the name, the quantity already in front
-    .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+\d[\d.,]*\s*(?:k|coins?)(?=\s*(?:$|[,;\n|]))/gim, "$1")
+    .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+(\d[\d.,]*\s*(?:k|coins?))(?=\s*(?:$|[,;\n|]))/gim, (m, a, v) => a + mark(coinV(v), "c"))
     // "Diamond rings x180 5x": the quantity is already there, the "5x" after it is the price
-    .replace(/^([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×](?=\s*[a-z])|^\s*\d+\s+(?=[a-z]))[^\n]*?[a-z][^\n]*?)\s+@?\d{1,2}\s*[x×](?=\s*$)/gim, "$1");
+    .replace(/^(?=[^\n]*[a-z][^\n]*\s@?\d{1,2}\s*[x×]\s*$)([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×](?=\s*[a-z])|^\s*\d+\s+(?=[a-z]))[^\n]*?)\s+@?(\d{1,2})\s*[x×](?=\s*$)/gim, (m, a, v) => a + mark(num(v), "x"));
   T.split(/\r?\n|;|•|·|\|/).forEach(line => {
     // pieces: commas (not "1,500"), then "and" / "&" / "+" unless it's one name of your post ("bacon and eggs")
     line.split(/,(?!\d{3}\b)|\s+\/\s+/).forEach(chunk => {
@@ -4175,6 +4180,8 @@ function parseOrder(text) {
         }
       }
       parts.forEach(part => {
+        const pm = part.match(/\u0002p([\d.]+)([xc])\u0003/), msgP = pm ? { p: pm[1], pu: pm[2] === "x" ? "xmp" : "coin" } : null;
+        part = part.replace(/\u0002p[\d.]+[xc]\u0003/g, " ");
         // "all" starts a new piece: "feta pie all jams"; "I need 30 … 20 …": the quantities split once "I need" is out
         part.replace(/([a-z)'’])\s+(?=(?:all|every)\s+[a-z])/gi, "$1\u0001").split("\u0001").forEach(p0 => orderSplitQty(orderLead(p0)).forEach(p1 => {
           const raw = p1.replace(/\s+/g, " ").trim(); if (!raw) return;
@@ -4189,7 +4196,7 @@ function parseOrder(text) {
           const name = W2.s || pc.name, all = W.all || W2.all;
           if (!pc.q && orderChat(name, post)) return;                    // "Heyyyy", "was wondering if you're interested in…"
           const segs = !pc.q && !all ? orderSegment(name, post) : [name];
-          segs.forEach(nm => out.push({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }));
+          segs.forEach(nm => out.push(Object.assign({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }, msgP ? { mp: msgP } : {})));
         }));
       });
     });
@@ -4566,7 +4573,7 @@ function orderDraftSwitch() {
   if (ORDER.pid) orderDraftSave();
   const S = ODRAFT[st.id] || { text: "", lines: [], who: "" };
   ORDER.pid = st.id; ORDER.text = S.text || ""; ORDER.who = S.who || "";
-  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp }));
+  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff }));
   ORDER.done = S.done || null; ORDER.dismissed = null; ORDER.undoEdit = null; ORDER.lastI = null; ORDER.scan = null;
   ORD_KEEP.forEach(k => { ORDER[k] = S[k] != null ? S[k] : k === "payEach" ? "" : k === "tmpOff" ? false : null; });
   ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null;
@@ -4586,6 +4593,14 @@ function renderOrder(force) {
   // paid in an item ("food for lobs"): read from the message; your choices stay while the message is the same
   if (ORDER.payText !== ORDER.text) { ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null; if (ORDER.payRef !== undefined && !(ORDER.text || "").trim()) ORDER.payRef = null; ORDER.payMode = null; ORDER.payRound = null; ORDER.payEach = ""; if (ORDER.payAuto) ORDER.payRef = null; }
   ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
+  // a price written in the message: used for that line when it isn't your post's (tap "Post price" to go back)
+  if (!trade) ORDER.lines.forEach((L, i) => {
+    const pv = (ORDER.prev || [])[i], same = pv && pv.raw === L.raw; if (same && pv.ppOff) L.ppOff = true;
+    if (!L.mp || L.ppOff || (L.pp && !L.pp.msg)) return;
+    const w = resolveLine(L).w; if (!w) return;
+    const eq = (w.pu === L.mp.pu || (L.mp.pu === "coin" && (!w.pu || w.pu === "coin"))) && Math.abs(num(w.p) - num(L.mp.p)) < 1e-9;
+    if (eq) { L.mpSame = true; if (L.pp && L.pp.msg) L.pp = null; } else L.pp = { p: L.mp.p, pu: L.mp.pu, msg: true };
+  });
   ORDER.prev = ORDER.lines;
   if (trade) orderBySets(ORDER.lines);                                    // "if I buy 8 sets": the quantities from the sets
   adv();
@@ -4666,6 +4681,15 @@ function renderOrder(force) {
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
       h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right,
       h("button", { class: "odel", "aria-label": "Remove this line", title: "Remove this line", onclick: () => dropLine(L) }, "×"));
+    // the price written in their message, next to yours
+    if (w && !trade && L.mp && !L._edit) {
+      const mpS = L.mp.pu === "xmp" ? fmtR(num(L.mp.p)) + "×MP" + (itemMax(w) ? " (" + fmtP(num(L.mp.p) * itemMax(w)) + " ea)" : "") : fmtP(num(L.mp.p)) + " ea";
+      if (L.pp && L.pp.msg) row.append(h("div", { class: "omsg" }, h("span", null, "💬 Their price: ", h("b", null, mpS), " — yours: " + priceLabel(w).split(" · ")[0]),
+        h("button", { class: "btn sm", onclick: () => { L.pp = null; L.ppOff = true; renderOrder(); } }, "Use mine")));
+      else if (L.mpSame) row.append(h("div", { class: "omsg ok" }, h("span", null, "💬 Their price: ", h("b", null, mpS), " ✓ same as yours")));
+      else if (L.ppOff) row.append(h("div", { class: "omsg off" }, h("span", null, "💬 Their price: " + mpS + " — your price is used"),
+        h("button", { class: "btn sm", onclick: () => { L.ppOff = false; L.pp = null; renderOrder(); } }, "Use theirs")));
+    }
     // a mix received in a trade: which of its items, as they come in the game
     if (w && trade && L._mix && mixOf(w)) {
       const mw = mixOf(w), MI = mixIn(L, mw), c = L.mixIn || (L.mixIn = {});
@@ -4686,7 +4710,7 @@ function renderOrder(force) {
       } });
       row.append(h("div", { class: "oedit" }, h("span", { class: "ol" }, "Price for this order"),
         h("div", { class: "box" }, pi, ub),
-        h("button", { class: "btn sm", onclick: () => { L.pp = null; L._edit = false; renderOrder(); } }, "Post price")));
+        h("button", { class: "btn sm", onclick: () => { L.pp = null; L.ppOff = true; L._edit = false; renderOrder(); } }, "Post price")));
     }
     list.append(row);
   });
@@ -5853,7 +5877,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "21 Nov 2026 · 23:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "21 Nov 2026 · 23:58";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -7593,7 +7617,7 @@ dealBadge();
 /* ---------- a deal open in Order: work on it there, switch to another one, send it back (with all, some or none of the changes) ---------- */
 /** The order on screen, as a deal keeps it. */
 function orderState() {
-  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? { p: L.pp.p, pu: L.pp.pu } : null, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
+  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? Object.assign({ p: L.pp.p, pu: L.pp.pu }, L.pp.msg ? { msg: 1 } : {}) : null, ppOff: L.ppOff ? 1 : 0, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
 }
 /** A deal → an order (deals saved from Order come back exactly; the others are rebuilt from their items). */
 function dealOrder(d) {
@@ -7607,7 +7631,7 @@ function dealOrder(d) {
 }
 function orderLoad(S) {
   if (S.pid && S.pid !== st.id && STATE.list.some(p => p.id === S.pid)) selectProfile(S.pid);
-  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp })); ORDER.who = S.who || "";
+  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff })); ORDER.who = S.who || "";
   ORDER.done = null; ORDER.dismissed = null; ORDER.undoEdit = null; $("#orderIn").value = S.text; renderOrder(true);
 }
 const coreOf = S => JSON.stringify({ text: S.text, lines: S.lines.map(l => [l.raw, l.pick, l.q, l.pp && l.pp.p, l.pp && l.pp.pu]), who: S.who || "" });
