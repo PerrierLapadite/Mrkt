@@ -2357,7 +2357,7 @@ function drawBeta() {
   const nS = U * .135, nl = notes ? notes.split("\n").map(l => l.trim()).filter(Boolean).flatMap(l => wrap(l.replace(/^[-•*]\s+/, "• "), IW, "600", nS)).slice(0, 12) : [];
   if (nl.length) H += U * .14 + nl.length * nS * 1.32;
   if (sub) H += U * .14;
-  const urlS = Math.max(26, U * .115);
+  const urlS = Math.max(38, U * .17);
   H += U * .14 + urlS + M * .75;
   if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
 
@@ -2434,7 +2434,7 @@ function drawBeta() {
     nl.forEach(l => { txt(l, M, y + nS * .64, { f: "600", s: nS, c: T.ink, maxW: IW }); y += nS * 1.32; });
   }
   if (sub) { txt(sub, W / 2, y + U * .07, { f: "600i", s: U * .1, c: T.mut, al: "center", maxW: IW }); y += U * .14; }
-  txt(SITE_URL, W - M, H - M * .75 - urlS * .5, { f: "700", s: urlS, c: T.mut, al: "right" });
+  txt(SITE_URL, W / 2, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "center", maxW: IW });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
   $("#pvSize").textContent = W + " × " + H + " px · " + C + (C > 1 ? " columns" : " column");
