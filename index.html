@@ -4320,6 +4320,10 @@ function resolveLine(L) {
   const lib = findMatches(L.name, CAT.list, p => p.en, 1)[0];
   const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "", 2).filter(m => !m.miss || (!(lib && lib.sc >= 4) && orderKeyWord(L.name, pName(m.x))));
   if (r.length) return { w: r[0].x, sure: !r[0].miss && !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
+  // "apple jam" with First Page Jams in your post: that jam, inside the mix
+  { const mp0 = lib && !lib.miss ? lib.x : (() => { const m = matchProduct(L.name); return m && m.p && m.sure ? m.p : null; })();
+    const inMix = mp0 && !mp0.mix && post.find(x => { const m = mixOf(x); return m && m.mix.includes(mp0.id); });
+    if (inMix) return { w: inMix, sure: true, part: mp0.id }; }
   const c = lib, mp = !c && L.name.length >= 3 ? matchProduct(L.name) : null, sub = (a, b) => { let i = 0; for (const ch of b) if (ch === a[i]) i++; return i === a.length; },
     okMp = mp && mp.p && slug(mp.p.en)[0] === slug(L.name)[0] && sub(slug(L.name).replace(/-/g, ""), slug(mp.p.en).replace(/-/g, "")), inP = c ? post.find(x => x.ref === c.x.id) : okMp && post.find(x => x.ref === mp.p.id);
   if (inP) return { w: inP, sure: false };                              // "mlk": a short typo found in the catalog, and it's in your post
@@ -4341,7 +4345,9 @@ function priceLine(L) {
   const qq = ORDER.capStock !== false && L._cap != null ? L._cap : q;
   // a mix (fp jams, all bars): the items it takes from your inventory, each at its own ×MP
   const mx = mixOf(pw);
-  if (mx && qq > 0) { R.mix = mixSplit(mx, qq, dealScope(), st.type === "achat");
+  if (mx && qq > 0 && R.part) { const P = CAT.byId[R.part] || {}; R.mix = mx.mix.map(id => ({ id, n: id === R.part ? qq : 0, name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" }));
+    if (pw.pu === "xmp") { const m = maxPrice(R.part); if (m > 0) u = num(pw.p) * m; } }
+  else if (mx && qq > 0) { R.mix = mixSplit(mx, qq, dealScope(), st.type === "achat");
     if (pw.pu === "xmp") { const v = R.mix.reduce((a, x) => a + x.n * maxPrice(x.id), 0); if (R.mix.every(x => !x.n || maxPrice(x.id) > 0)) u = num(pw.p) * v / qq; } }
   // buying: bulk bonus when the seller sells a big part of the item's quantity in one go
   const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(qq, wq, ORDER.oq || 0) : 0;
@@ -5506,7 +5512,7 @@ const dealScope = () => INV.deal || INV.cur;
 const mixTxt = (p, n, adding) => mixSplit(p, n, dealScope(), adding).filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ");
 /** A mix you receive (trade "89 BEM for 35 First Page Jams"): the jams they give, as you typed them, otherwise shared evenly. */
 function mixIn(L, mx) {
-  const q = Math.max(0, Math.round(L.q || 0)), c = L.mixIn || {}, typed = mx.mix.map(id => Math.max(0, Math.round(num(c[id]) || 0))), sum = typed.reduce((a, b) => a + b, 0);
+  const q = Math.max(0, Math.round(L.q || 0)), c = L.mixIn && Object.keys(L.mixIn).length ? L.mixIn : L.r && L.r.part && mx.mix.includes(L.r.part) ? { [L.r.part]: q } : {}, typed = mx.mix.map(id => Math.max(0, Math.round(num(c[id]) || 0))), sum = typed.reduce((a, b) => a + b, 0);
   const custom = sum > 0 && sum <= q, rest = custom ? q - sum : q, ev = evenSplit(mx.mix.length, rest);
   return { custom, sum, over: sum > q, list: mx.mix.map((id, i) => ({ id, n: (custom ? typed[i] : 0) + ev[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })) };
 }
