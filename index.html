@@ -1059,9 +1059,10 @@ details summary{-webkit-tap-highlight-color:transparent}
 .betabar{display:grid;gap:8px;margin-bottom:10px}.betabar .seg{display:flex;flex-wrap:wrap;gap:6px}.betabar .seg button{flex:1;min-width:0;padding:9px 10px;border-radius:999px;border:1px solid var(--line2);background:none;color:var(--ink);font:700 14px var(--sans)}.betabar .seg button.on{background:var(--ink);color:var(--bg)}
 .mever{margin:6px 4px 2px;color:var(--mut);font-size:12px;text-align:center}
 .impchk{grid-column:1/-1;font-size:13px;font-weight:700;color:#c0392b;padding:6px 0 0}.impchk.ok{color:#2f8f46}
-.omsg{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 0;padding:7px 10px;border-radius:10px;background:#fff3dc;color:#8a5a00;font-size:13px;line-height:1.3}.omsg b{color:#6b4300}.omsg.ok{background:#e8f5ea;color:#2f6b3a}.omsg.ok b{color:#1f5a2b}.omsg.off{background:var(--soft,#f3efe7);color:var(--mut)}.omsg .btn{flex:none}
+.omsg{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 0;padding:7px 10px;border-radius:10px;background:#fff3dc;color:#8a5a00;font-size:13px;line-height:1.3}.omsg b{color:#6b4300}.omsg.ok{background:#e8f5ea;color:#2f6b3a}.omsg.ok b{color:#1f5a2b}.omsg.xtra{background:#eef3ff;color:#34508a}.omsg.xtra b{color:#22396b}.omsg.off{background:var(--soft,#f3efe7);color:var(--mut)}.omsg .btn{flex:none}
 .lvltip{font-size:12.5px;color:var(--mut);padding:0 4px 4px;line-height:1.35}
 .lvlfin{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 2px 2px}.lvlfin small{flex-basis:100%;color:var(--mut);font-size:12px}
+.oxadd{display:block;margin-top:5px;border:1px dashed var(--acc);background:transparent;color:var(--acc);font:inherit;font-weight:700;font-size:12.5px;border-radius:8px;padding:4px 8px;cursor:pointer;white-space:normal;text-align:left}.oxtag{border:0;background:#fff0d6;color:#9a5b00;font:inherit;font-size:11.5px;font-weight:800;border-radius:6px;padding:1px 6px;cursor:pointer}
 </style>
 </head>
 <body data-tab="items">
@@ -4557,6 +4558,7 @@ function resolveLine(L) {
   const post = postItems();
   if (L.pick === "-") return { w: null, ignored: true };
   if (L.pick) { const w = post.find(x => x.uid === L.pick); if (w) return { w, sure: true }; }
+  if (L.extra) return { w: extraItem(L), sure: true, extra: true };              // added for this order only
   if (L.gpick) { const w = post.find(x => x.uid === L.gpick); if (w) return { w, sure: true }; }        // from "all jams" / "fp jams"…
   const mx = mixFromText(L.name); if (mx) { const w = post.find(x => x.ref === mx.id); return w ? { w, sure: true } : { w: null, prod: mx }; }
   // typos and stray words allowed (a buyer's message); a guess with a stray word is flagged "?"
@@ -4570,7 +4572,30 @@ function resolveLine(L) {
   const c = lib, mp = !c && L.name.length >= 3 ? matchProduct(L.name) : null, sub = (a, b) => { let i = 0; for (const ch of b) if (ch === a[i]) i++; return i === a.length; },
     okMp = mp && mp.p && slug(mp.p.en)[0] === slug(L.name)[0] && sub(slug(L.name).replace(/-/g, ""), slug(mp.p.en).replace(/-/g, "")), inP = c ? post.find(x => x.ref === c.x.id) : okMp && post.find(x => x.ref === mp.p.id);
   if (inP) return { w: inP, sure: false };                              // "mlk": a short typo found in the catalog, and it's in your post
+  // selling / buying: an item of the game that isn't in your post is added anyway, for this order only (tap to undo)
+  if (c && !c.miss && !L.noExtra && st.type !== "trade" && !c.x.custom && c.x.id !== (ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref)) && !/^(?:for|in|with|paid|pay(?:ing)?|trad\w*|swap\w*)\b/i.test(String(L.raw || "").trim())) { L.extra = extraNew(c.x.id); L.extra.auto = 1; return { w: extraItem(L), sure: true, extra: true }; }
   return { w: null, prod: c ? c.x : null };
+}
+/* ---------- items added for one order only (not in your post: the post never changes) ---------- */
+/** Its first price: like the rest of your post — the ×MP most of your items use, or the same ×MP as your coin prices; else 1×MP. */
+function extraNew(ref, name) {
+  const mp = ref ? maxPrice(ref) : 0, P = postItems().filter(w => !w.extra && w.ref && num(w.p) > 0);
+  const xs = P.filter(w => w.pu === "xmp"), cnt = new Map(); xs.forEach(w => cnt.set(num(w.p), (cnt.get(num(w.p)) || 0) + 1));
+  const modeX = [...cnt].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0];
+  const ks = P.filter(w => w.pu !== "xmp" && maxPrice(w.ref) > 0).map(w => unitPrice(w) / maxPrice(w.ref)).sort((a, b) => a - b), kMed = ks.length ? ks[ks.length >> 1] : 0;
+  const o = { ref: ref || null, name: ref ? "" : String(name || "").trim() };
+  if (!mp) return Object.assign(o, { p: "", pu: "coin" });
+  if (modeX && xs.length * 2 >= P.length) return Object.assign(o, { p: String(modeX[0]), pu: "xmp" });
+  if (kMed > 0) return Object.assign(o, { p: String(Math.round(kMed * mp)), pu: "coin" });
+  return Object.assign(o, { p: "1", pu: "xmp" });
+}
+/** The item of an order-only line (same object while the line doesn't change, so the stock maps keep it). */
+function extraItem(L) {
+  const X = L.extra, k = (X.ref || "") + "|" + (X.name || "") + "|" + X.p + "|" + X.pu;
+  if (L._xw && L._xwk === k) return L._xw;
+  const w = mkItem(X.ref, { q: "", p: X.p, pu: X.pu }); w.uid = "x-" + (X.ref || slug(X.name)); w.extra = true;
+  if (!X.ref) { w.name = X.name; w.e = "⭐"; }
+  L._xwk = k; return (L._xw = w);
 }
 /** Price one line from the active post: sell / buy → coins; trade → my items given by ratio. */
 function priceLine(L) {
@@ -4663,7 +4688,7 @@ function orderDraftSwitch() {
   if (ORDER.pid) orderDraftSave();
   const S = ODRAFT[st.id] || { text: "", lines: [], who: "" };
   ORDER.pid = st.id; ORDER.text = S.text || ""; ORDER.who = S.who || "";
-  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff }));
+  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra }));
   ORDER.done = S.done || null; ORDER.dismissed = null; ORDER.undoEdit = null; ORDER.lastI = null; ORDER.scan = null;
   ORD_KEEP.forEach(k => { ORDER[k] = S[k] != null ? S[k] : k === "payEach" ? "" : k === "tmpOff" ? false : null; });
   ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null;
@@ -4682,7 +4707,7 @@ function renderOrder(force) {
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
   // paid in an item ("food for lobs"): read from the message; your choices stay while the message is the same
   if (ORDER.payText !== ORDER.text) { ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null; if (ORDER.payRef !== undefined && !(ORDER.text || "").trim()) ORDER.payRef = null; ORDER.payMode = null; ORDER.payRound = null; ORDER.payEach = ""; if (ORDER.payAuto) ORDER.payRef = null; }
-  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
+  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, extra: ORDER.prev[i].extra, noExtra: ORDER.prev[i].noExtra, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
   // a price written in the message: used for that line when it isn't your post's (tap "Post price" to go back)
   if (!trade) ORDER.lines.forEach((L, i) => {
     const pv = (ORDER.prev || [])[i], same = pv && pv.raw === L.raw; if (same && pv.ppOff) L.ppOff = true;
@@ -4743,7 +4768,9 @@ function renderOrder(force) {
     const nameBtn = h("button", { class: "oname", onclick: () => pickSheet(L) }, w ? pName(w) : L.name, !w || !r.sure ? h("span", { class: "flag" }, w ? "?" : "!") : null);
     let right, sub;
     if (r.ignored) { right = h("span", { class: "miss" }, "—"); sub = "Ignored — tap to pick an item"; }
-    else if (!w) { right = h("span", { class: "miss" }, "—"); sub = r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick"; }
+    else if (!w) { right = h("span", { class: "miss" }, "—"); sub = [r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick",
+      !trade && !(r.prod && r.prod.custom) && cleanLine(L.name).length >= 2 ? h("button", { class: "oxadd", onclick: e => { e.stopPropagation(); L.extra = r.prod ? extraNew(r.prod.id) : extraNew(null, cleanLine(L.name)); L.noExtra = 0; if (!num(L.extra.p)) L._edit = true; renderOrder(); } },
+        "＋ Add " + (r.prod ? r.prod.en : "“" + cleanLine(L.name) + "”") + " to this order only") : null]; }
     else if (trade) {
       const R = r.ratio, pk = R && packOf(R.g);
       right = R ? h("span", { class: "ov" }, fmt(R.n), R.g ? thumb(itemState(R.g), R.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
@@ -4771,6 +4798,9 @@ function renderOrder(force) {
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
       h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right,
       h("button", { class: "odel", "aria-label": "Remove this line", title: "Remove this line", onclick: () => dropLine(L) }, "×"));
+    // not in your post: counted in this order only
+    if (w && w.extra) row.append(h("div", { class: "omsg xtra" }, h("span", null, "＋ Not in your post — ", h("b", null, "added for this order only"), num(dealItem(w, L).p) > 0 ? "" : " · type its price"),
+      h("button", { class: "btn sm", onclick: () => { L.extra = null; L.noExtra = 1; L.pp = null; L._edit = false; renderOrder(); } }, "Take out")));
     // the price written in their message, next to yours
     if (w && !trade && L.mp && !L._edit) {
       const mpS = L.mp.pu === "xmp" ? fmtR(num(L.mp.p)) + "×MP" + (itemMax(w) ? " (" + fmtP(num(L.mp.p) * itemMax(w)) + " ea)" : "") : fmtP(num(L.mp.p)) + " ea";
@@ -4800,7 +4830,7 @@ function renderOrder(force) {
       } });
       row.append(h("div", { class: "oedit" }, h("span", { class: "ol" }, "Price for this order"),
         h("div", { class: "box" }, pi, ub),
-        h("button", { class: "btn sm", onclick: () => { L.pp = null; L.ppOff = true; L._edit = false; renderOrder(); } }, "Post price")));
+        h("button", { class: "btn sm", onclick: () => { L.pp = null; L.ppOff = true; L._edit = false; renderOrder(); } }, w.extra ? "Usual price" : "Post price")));
     }
     list.append(row);
   });
@@ -4917,7 +4947,7 @@ function proposal(rows) {
   const trade = st.type === "trade", agg = new Map();
   rows.forEach(L => {
     if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + R.give); }
-    else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
+    else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && !w.extra && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
   });
   return [...agg].map(([w, n0]) => { const n = trade ? giveWhole(n0) : n0, have = num(w.q), pk = trade && !!packOf(w); return { w, n, have, pk, left: have ? (trade ? stockLeft(w, n) : Math.max(0, Math.round(have) - n)) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
@@ -4926,9 +4956,15 @@ function proposal(rows) {
 function updCard(P, trade) {
   const card = h("div", { class: "card upd deal" });
   card.append(h("h3", null, "Deal done?"));
+  const upd = SETTINGS.postUpd !== false;
   if (P.length) {
-    const what = trade ? "Lower your “I have” stock" : st.type === "achat" ? "Remove what you bought from your post" : "Remove what you sold from your post";
-    card.append(h("p", { class: "hint" }, what + " — only the ticked lines change, with the exact quantities."));
+    const what = trade ? "Lower my “I have” stock" : st.type === "achat" ? "Remove what I bought from my post" : "Remove what I sold from my post";
+    const sw = h("input", { type: "checkbox", checked: upd, onchange: () => { SETTINGS.postUpd = sw.checked; saveSettings(); renderOrder(); } });
+    card.append(h("label", { class: "switch sm" }, what, sw));
+    if (!upd) card.append(h("p", { class: "hint" }, "Your post stays as it is — the deal is only saved."));
+    else card.append(h("p", { class: "hint" }, "Only the ticked lines change, with the exact quantities."));
+  }
+  if (P.length && upd) {
     P.forEach(p => {
       const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
       const u = n => p.pk ? setsTxt(n) : fmtP(n), w = p.have ? [u(p.have) + " → ", p.left ? u(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
@@ -4940,9 +4976,9 @@ function updCard(P, trade) {
   const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; orderDraftSoon(); } });
   card.append(h("label", { class: "switch sm" }, "Save it in my History", save), who,
     h("div", { class: "two" },
-      h("button", { class: "btn pri", onclick: () => applyDeal(P, trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
+      h("button", { class: "btn pri", onclick: () => applyDeal(upd ? P : [], trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
       h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")),
-    h("button", { class: "btn full later", onclick: () => orderLater(P, trade, who.value.trim()) }, "⏳ Save for later — handle another one"));
+    h("button", { class: "btn full later", onclick: () => orderLater(upd ? P : [], trade, who.value.trim()) }, "⏳ Save for later — handle another one"));
   return card;
 }
 /** Keep this order in Deals (nothing changes yet) and free the box for the next one. */
@@ -4981,12 +5017,12 @@ function histEntry(who) {
 }
 function applyDeal(P, trade, keep, who) {
   const sel = P.filter(p => p.on);
-  if (!sel.length && !keep && !invLive()) return toast("Tick a line or “Save it in my History”");
+  if (!sel.length && !keep && !invLive()) return toast(SETTINGS.postUpd === false ? "Turn on “Save it in my History” — your post stays as it is" : "Tick a line or “Save it in my History”");
   const reply = replyText(), notes = [];
   ORDER.undo = { pid: st.id, wants: clone(st.wants), have: clone(st.have), inv: invSnap() };
   let hid = null;
   const e = histEntry(who);
-  if (keep) { HIST.unshift(e); saveHist(); hid = e.id; notes.push("Saved in History"); }
+  if (keep) { HIST.unshift(e); saveHist(); hid = e.id; notes.push("Saved in History" + (sel.length ? "" : " · post unchanged")); }
   const invU = invLive(); if (invU) { invApply(e); notes.push("Inventory updated"); }
   const list = trade ? st.have : st.wants;
   sel.forEach(p => {
@@ -4999,7 +5035,7 @@ function applyDeal(P, trade, keep, who) {
   ORDER.who = "";
   if (sel.length) { renderLists(); renderTarget(); renderResults(); changed(); }
   renderOrder();
-  toast(keep && sel.length ? "Done — post updated and saved ✔" : keep ? "Saved in History ✔" : "Post updated ✔");
+  toast(keep && sel.length ? "Done — post updated and saved ✔" : keep ? "Saved in History ✔ — post unchanged" : "Post updated ✔");
 }
 function renderDone() {
   const out = $("#orderOut"); out.textContent = "";
@@ -5967,7 +6003,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "22 Nov 2026 · 00:25";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "22 Nov 2026 · 01:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -7707,7 +7743,7 @@ dealBadge();
 /* ---------- a deal open in Order: work on it there, switch to another one, send it back (with all, some or none of the changes) ---------- */
 /** The order on screen, as a deal keeps it. */
 function orderState() {
-  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? Object.assign({ p: L.pp.p, pu: L.pp.pu }, L.pp.msg ? { msg: 1 } : {}) : null, ppOff: L.ppOff ? 1 : 0, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
+  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? Object.assign({ p: L.pp.p, pu: L.pp.pu }, L.pp.msg ? { msg: 1 } : {}) : null, ppOff: L.ppOff ? 1 : 0, extra: L.extra || null, noExtra: L.noExtra ? 1 : 0, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
 }
 /** A deal → an order (deals saved from Order come back exactly; the others are rebuilt from their items). */
 function dealOrder(d) {
@@ -7721,7 +7757,7 @@ function dealOrder(d) {
 }
 function orderLoad(S) {
   if (S.pid && S.pid !== st.id && STATE.list.some(p => p.id === S.pid)) selectProfile(S.pid);
-  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff })); ORDER.who = S.who || "";
+  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra })); ORDER.who = S.who || "";
   ORDER.done = null; ORDER.dismissed = null; ORDER.undoEdit = null; $("#orderIn").value = S.text; renderOrder(true);
 }
 const coreOf = S => JSON.stringify({ text: S.text, lines: S.lines.map(l => [l.raw, l.pick, l.q, l.pp && l.pp.p, l.pp && l.pp.pu]), who: S.who || "" });
