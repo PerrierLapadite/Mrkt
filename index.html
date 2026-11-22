@@ -1510,7 +1510,7 @@ const MIXES = [
   { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "drinks", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
   { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "drinks", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
   { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "drinks", badge: "3", mix: ["guava-juice", "mango-juice"] },
-  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
+  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["refined-coal", "iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
 ];
 const mixOf = x => { const p = x && (typeof x === "string" ? CAT.byId[x] : x.mix ? x : x.ref ? CAT.byId[x.ref] : null); return p && p.mix ? p : null; };
 const isVirt = p => !!(p && (p.parts || p.mix));            // a set or a mix: not an item of the barn itself
@@ -1859,8 +1859,8 @@ function composePack(s, p) {
   sts.forEach(x => { if (!(x.ok || x.fail)) x.subs.add(done); });
   done();
 }
-/** Picture of a mix (jam pages, all bars): up to 4 of its items + its badge ("1", "2", "3", "ALL"). */
-function composeMix(s, p) {
+/** Picture of a mix (jam pages, all bars): its items (up to 9) + its badge ("1", "2", "3", "ALL"). */
+function composeMix(s, p, noBadge) {
   const sts = p.mix.slice(0, 9).map(prodState);
   const done = () => {
     if (!sts.every(x => x.ok || x.fail)) return;
@@ -1872,7 +1872,7 @@ function composeMix(s, p) {
     const n = ok.length, cols = n === 1 ? 1 : n === 2 ? 2 : 3, rows = Math.ceil(n / cols), cell = Math.min(244 / cols, 232 / rows), z = cell * (n === 1 ? .92 : 1.08), y0 = (256 - rows * cell) / 2;
     const spots = ok.map((x, i) => { const r = Math.floor(i / cols), inRow = Math.min(cols, n - r * cols), c = i - r * cols, x0 = (256 - inRow * cell) / 2; return [x0 + cell * (c + .5), y0 + cell * (r + .5), z]; });
     ok.forEach((x, i) => { const [cx, cy, z] = spots[i], im = x.el, w = im.naturalWidth || im.width, hh = im.naturalHeight || im.height, k = z / Math.max(w, hh); g.drawImage(im, cx - w * k / 2, cy - hh * k / 2, w * k, hh * k); });
-    if (p.badge) {
+    if (p.badge && !noBadge) {
       const t = String(p.badge), r = t.length > 1 ? 40 : 30, bx = 256 - r - 4, by = 256 - r - 4;
       g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fillStyle = "#c2452d"; g.fill(); g.lineWidth = 8; g.strokeStyle = "#fff8e7"; g.stroke();
       g.fillStyle = "#fff8e7"; g.font = "800 " + (t.length > 1 ? 27 : 38) + "px system-ui, -apple-system, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t, bx, by + 2);
@@ -1882,6 +1882,13 @@ function composeMix(s, p) {
   };
   sts.forEach(x => { if (!(x.ok || x.fail)) x.subs.add(done); });
   done();
+}
+/** On the post picture a mix has no badge: its name is written on the tile, and the quantity sits where the badge was. */
+function picState(it) {
+  const p = it && !it.img && it.ref && CAT.byId[it.ref];
+  if (!p || !p.mix || !p.badge) return itemState(it);
+  const k = p.id + "#nb"; let s = IMGS.get(k); if (s) return s;
+  s = newState(); IMGS.set(k, s); composeMix(s, p, true); return s;
 }
 /** État d’image d’une URL / image importée propre à un article. */
 function srcState(src) {
@@ -2293,7 +2300,7 @@ function btTile(w, x, y, S, T, kind) {
       const t = fmtRt(num(w.rb)) + " : " + fmtRt(num(w.ra)), g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = bandH * .78;
       const iw = parts.length ? iz * (1 + (parts.length - 1) * .62) + S * .03 : 0, tw = Math.min(measure(t, "800", ps), S * .92 - iw), x0 = x + (S - tw - iw) / 2;
       txt(t, x0, cy, { f: "800", s: ps, c: fg, maxW: S * .92 - iw });
-      parts.forEach((it, k) => icon(itemState(it), it.e, x0 + tw + S * .03 + iz / 2 + k * iz * .62, y + bandH / 2, iz, 1));
+      parts.forEach((it, k) => icon(picState(it), it.e, x0 + tw + S * .03 + iz / 2 + k * iz * .62, y + bandH / 2, iz, 1));
     } else {
       const t = top.unit === "mp" ? top.t + "MP" : top.t, iw = top.unit === "mp" ? 0 : bandH * .7, tw = Math.min(measure(t, "800", ps), S * .9 - iw), x0 = x + (S - tw - iw) / 2;
       txt(t, x0, cy, { f: "800", s: ps, c: fg, maxW: S * .9 - iw });
@@ -2310,7 +2317,7 @@ function btTile(w, x, y, S, T, kind) {
   const t0 = (top ? bandH : 0) + capH, q = num(w.q), qS = S * .2;
   ctx.save(); rr(x, y, S, S, r); ctx.clip(); if (oos) ctx.globalAlpha = .25;
   const room = S - t0, iz = Math.min(S * .74, room * .86);
-  icon(itemState(w), w.e, x + S * .5, y + t0 + room * .46, iz, 1);
+  icon(picState(w), w.e, x + S * .5, y + t0 + room * .46, iz, 1);
   ctx.restore();
   // quantity: bottom-right, big, dark — a soft light halo keeps it readable over the picture
   if (q > 0 && !oos) {
@@ -2434,7 +2441,7 @@ function drawBeta() {
       const bw = measure(a + " : " + b, "800", gH) + iz * (1 + (parts.length - 1) * .62) + gH * 1.6;
       rr(M, cy - gH * .95, bw, gH * 1.9, gH * .32); ctx.fillStyle = T.ink; ctx.fill(); ctx.restore();
       x += gH * .6; x += txt(a + " : " + b, x, cy + 1, { f: "800", s: gH, c: T.dark ? T.bg : "#ffffff" });
-      parts.forEach((it, i) => icon(itemState(it), it.e, x + gH * .3 + iz / 2 + i * iz * .62, cy, iz, 1));
+      parts.forEach((it, i) => icon(picState(it), it.e, x + gH * .3 + iz / 2 + i * iz * .62, cy, iz, 1));
       let x2 = M + bw + gH * .5;
       if (g.bulk) txt(fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra)), x2, cy + 1, { f: "700", s: gH * .72, c: T.acc, maxW: W - M - x2 });
       y += gHead;
@@ -2561,13 +2568,13 @@ function oosMark(x, y, w, h, sx0, sx1, sy, T) {
 }
 const fmtRt = n => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });   // a ratio: 1.25 stays 1.25
 const giveIconsW = (g, iz) => { const n = giveParts(g).length; return n ? 8 + iz + (n - 1) * iz * .72 : 0; };
-function drawGiveIcons(g, x, cy, iz) { giveParts(g).forEach((it, i) => icon(itemState(it), it.e, x + 8 + iz / 2 + i * iz * .72, cy, iz, 1)); }
+function drawGiveIcons(g, x, cy, iz) { giveParts(g).forEach((it, i) => icon(picState(it), it.e, x + 8 + iz / 2 + i * iz * .72, cy, iz, 1)); }
 function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtRt(num(w.rb)), "D", z) + 8 + iz + 20 + measure(":", "D", z) + 20 + measure(fmtRt(num(w.ra)), "D", z) + giveIconsW(g, iz); }
 /** "60 [their item] : 89 [my item]" — what you get : what you give, as on Discord. */
 function drawRatio(w, x, cy, s, T) {
   const iz = s * 1.3, g = giveItem(w), z = s * .86;
   x += txt(fmtRt(num(w.rb)), x, cy + 1, { f: "D", s: z, c: T.ink });
-  icon(itemState(w), w.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz;
+  icon(picState(w), w.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz;
   x += 20; x += txt(":", x, cy, { f: "D", s: z, c: T.mut }) + 20;
   x += txt(fmtRt(num(w.ra)), x, cy + 1, { f: "D", s: z, c: T.acc });
   if (g) drawGiveIcons(g, x, cy, iz);
@@ -2641,7 +2648,7 @@ function saleRowH(nl, z) { return Math.round((SROW_H + nl * 30) * z); }
 function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
   const mb = top + 68 * z, iz = 100 * z;
   if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x0 - 16, top + 4, x1 - x0 + 32, rh - 8); ctx.fillStyle = T.acc; ctx.fillRect(x0 - 16, top + 4, 5, rh - 8); }
-  icon(itemState(w), w.e, x0 + iz / 2 + 2, nl && nl.length ? mb : top + rh / 2, iz);
+  icon(picState(w), w.e, x0 + iz / 2 + 2, nl && nl.length ? mb : top + rh / 2, iz);
   // right: the price per item, the biggest number of the row
   let pw = 0; const v = ledgerVal(w, "p");
   if (v && DRAW_CU && !DRAW_CU.ea) v.sub = null;
@@ -2703,7 +2710,7 @@ function drawCard(w, i, CD, x, ty, T, trade, mainK) {
   ctx.lineWidth = w.hot ? 3 : 1.5; ctx.strokeStyle = w.hot ? T.acc : T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.28)"; ctx.stroke();
   if (w.hot) starShape(x + cw - 18 * z, ty + 18 * z, 11 * z, T.acc);
   let yy = ty + 14 * z;
-  icon(itemState(w), w.e, cx, yy + 42 * z, 84 * z); yy += 92 * z;
+  icon(picState(w), w.e, cx, yy + 42 * z, 84 * z); yy += 92 * z;
   const L = CD.nameL[i], nTop = yy + (CD.NL - L.length) * 29 * z / 2; let nw = 0;
   L.forEach((l, k) => { nw = Math.max(nw, txt(l, cx, nTop + 14 * z + k * 29 * z, { f: "700", s: 25 * z, c: T.ink, al: "center" })); });
   yy += CD.NL * 29 * z;
@@ -2908,7 +2915,7 @@ function drawClassic() {
         const cx = W / 2 - rw / 2 + i * (ow + OG) + ow / 2, cy = y + 88;
         ctx.beginPath(); ctx.arc(cx, cy, 84, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
         ctx.setLineDash([3, 6]); ctx.lineWidth = 1.5; ctx.strokeStyle = T.mut; ctx.beginPath(); ctx.arc(cx, cy, 90, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-        icon(itemState(it), it.e, cx, cy, 138);
+        icon(picState(it), it.e, cx, cy, 138);
         let ny = y + 186 + 22;
         txt(it.name || "", cx, ny, { f: "700", s: 33, c: T.ink, al: "center", maxW: ow + 20, min: 20 });
         ny += 22;
@@ -2949,7 +2956,7 @@ function drawClassic() {
         const c = i % pr, r = (i / pr) | 0, x = M + BP + c * (tw + TG), ty = y + 84 + 6 + r * th, cx = x + tw / 2;
         if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x, ty + 2, tw, th - 4); starShape(x + tw - 16, ty + 18, 11, T.acc); }
         ctx.beginPath(); ctx.arc(cx, ty + 12 + TR, TR, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
-        icon(itemState(w), w.e, cx, ty + 12 + TR, TR * 1.8);
+        icon(picState(w), w.e, cx, ty + 12 + TR, TR * 1.8);
         const tnw = txt(w.name || "", cx, ty + 12 + 2 * TR + 10 + 17, { f: "700", s: 29, c: T.ink, al: "center", maxW: tw - 6, min: 17 });
         // "Want 150": how many you want of it
         const qOff = g.items.some(x => num(x.q) > 0) ? 28 : 0; if (num(w.q) > 0) txt("×" + fmt(num(w.q)), cx, ty + 12 + 2 * TR + 10 + 17 + 30, { f: "700", s: 24, c: T.acc, al: "center", maxW: tw - 6 });
@@ -2995,7 +3002,7 @@ function drawClassic() {
       const c = Math.floor(i / per), r = i % per, P0 = colsPos[c], ry = y + r * RH, cy = ry + RH / 2;
       if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(P0.x0 - 8, ry + 3, colW + 16, RH - 6); ctx.fillStyle = T.acc; ctx.fillRect(P0.x0 - 8, ry + 3, 4, RH - 6); }
       const big = !trade, iz = big ? 72 : 60;
-      icon(itemState(w), w.e, P0.x0 + iz / 2 + 3, cy, iz);
+      icon(picState(w), w.e, P0.x0 + iz / 2 + 3, cy, iz);
       let nx = P0.x0 + iz + 14; const nx0 = nx;
       if (w.hot) { starShape(nx + 9, cy - 1, 10, T.acc); nx += 24; }
       const rw = trade ? (hasRatio(w) ? ratioW(w, 34) : 0) : (LCc.length ? P0.xr - P0.left : 0);
@@ -3031,7 +3038,7 @@ function drawClassic() {
     rows.forEach(({ w, rw, nameMax, nl, h: rh }, idx) => {
       const top = y, ny = nl.length ? top + 40 : top + rh / 2;
       if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(M - 18, top + 4, W - 2 * M + 36, rh - 8); ctx.fillStyle = T.acc; ctx.fillRect(M - 18, top + 4, 5, rh - 8); }
-      icon(itemState(w), w.e, M + 40, top + rh / 2, 76);
+      icon(picState(w), w.e, M + 40, top + rh / 2, 76);
       let nx = nameX;
       if (w.hot) { starShape(nx + 12, ny - 2, 13, T.acc); nx += 32; }
       const nw = txt(w.name || "", nx, ny, { f: "700", s: trade ? 34 : 36, c: T.ink, maxW: nameMax - (nx - nameX), min: 20 });
@@ -6003,7 +6010,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "22 Nov 2026 · 01:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "22 Nov 2026 · 10:05";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
