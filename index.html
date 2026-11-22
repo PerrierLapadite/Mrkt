@@ -6010,7 +6010,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "22 Nov 2026 · 10:05";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "22 Nov 2026 · 10:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -8680,6 +8680,74 @@ function packify(items, text) {
   }
   return { items, pk };
 }
+/* ---------- a list post: rules on top, then one item a line ----------
+   "Buying all the below Items 15 Each / Juice 6xmp and the rest 8xmp / Cherry Juice / Tomato Juice / Feta Pie…"
+   → 15 of each; the juices at 6×MP, every other line at 8×MP. A line's own quantity or price ("Feta Pie x20 5x") wins. */
+const LP_PRICE = /(?:^|[\s@(])(\d+(?:[.,]\d+)?)\s*(x\s*m\.?\s*p|m\s*x\s*p|x\s*max(?:\s*price)?|xmp|mp|x(?![a-z])|×|k|m(?![a-z])|coins?)(?![a-z])/i;
+const LP_FILL = new Set("the a an and or of for at to is are be all every each any other others rest remaining else everything items item products product stuff things price prices priced pay paying will buy buying sell selling below above following list these those them this that i im we our my your on in with per ea apiece".split(" "));
+function impListPost(lines) {
+  const S = lines.map(L => emoNames(L.toks.filter(t => t.w || t.emo).map(t => t.w || (t.emo && CAT.byId[t.emo] ? CAT.byId[t.emo].en : "")).join(" ")).replace(/^[\s•·*\-–—>▪◦➤]+/, "").replace(/\s+/g, " ").trim());
+  // an item line: only game items, with maybe their own quantity / price
+  const itemOf = s => {
+    if (!s || !/[a-z]{3}/i.test(s) || /\d{1,2}\s?[:.]\s?\d{2}\s*$/.test(s)) return null;
+    const P = parseBuyList(s).items; if (!P.length || P.length > 4) return null;
+    const ms = P.map(it => { const m = matchProduct(it.name); return m.p && m.sure && !m.ignored ? { it, p: m.p } : null; });
+    return ms.every(Boolean) ? ms : null;
+  };
+  if (S.some(s => RAT.test(s) && !/\d{1,2}\s?:\s?\d{2}\s*$/.test(s)) || S.some(s => HAVE_RE.test(s))) return null;   // a trade post: not this
+  const items = S.map(itemOf), nItems = items.filter(Boolean).length;
+  if (nItems < 3) return null;
+  // the rules: a quantity for all ("15 each", "x15 each", "15 of each") and prices by group ("juice 6xmp", "the rest 8x")
+  let defQ = null; const rules = [], drop = new Set(), qC = []; let head = null;
+  S.forEach((s, i) => {
+    if (items[i] || !s) return;
+    let t = " " + s.toLowerCase().replace(/[’']/g, "") + " ", used = false;
+    // quantity for each item: a small number before "each" (a price would say k / xmp / coins)
+    const qm = t.match(/(?:^|\s)(?:x\s*)?(\d{1,4})\s*(?:x\s*)?(?:of\s+)?(?:each|ea|apiece|per\s+item|of\s+every(?:thing)?)(?![a-z])/) || t.match(/\b(?:quantit(?:y|ies)|qty|amount)\s*[:=]?\s*(\d{1,4})\b/);
+    // ("5x each" alone is a price, ×MP; "450 each" alone is a price in coins — decided once all the rules are read)
+    if (qm) { qC.push({ v: +qm[1], x: /x/.test(qm[0].replace(/\s+of\s+every.*$/, "").replace(/each|ea|apiece|per\s+item/, "")) }); t = t.slice(0, qm.index) + " " + t.slice(qm.index + qm[0].length); used = true; }
+    // price rules, one per piece
+    t.split(/,|;|\/|\band\b|\bthen\b|\bwhile\b|\.\s/).forEach(seg => {
+      const pm = seg.match(LP_PRICE); if (!pm) return;
+      const v = num(pm[1].replace(",", ".")), u = pm[2].replace(/\s|\./g, "").toLowerCase();
+      if (!(v > 0)) return;
+      const pr = /^k$/.test(u) ? { p: v * 1000, pu: "coin" } : /^m$/.test(u) ? { p: v * 1e6, pu: "coin" } : /^coins?$/.test(u) ? { p: v, pu: "coin" } : { p: v, pu: "xmp" };
+      const words = (seg.slice(0, pm.index) + " " + seg.slice(pm.index + pm[0].length)).replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w && !LP_FILL.has(w));
+      const rest = /\b(?:rest|others?|remaining|everything|else|all)\b/.test(seg) && !words.length;
+      rules.push({ words, rest: rest || !words.length, pr }); used = true;
+    });
+    const bs = BUY_RE.test(s) || /^(?:wtb|looking\s*for|lf)\b/i.test(s), ss = SELL_RE.test(s);
+    if (used || ((bs || ss) && s.split(/\s+/).length <= 4)) { drop.add(i); if (!head && (bs || ss)) head = { i, s: bs ? "Buying" : "Selling" }; }
+  });
+  qC.forEach(c => { if (!rules.length && (c.x || c.v >= 100)) rules.push({ words: [], rest: true, pr: c.x ? { p: c.v, pu: "xmp" } : { p: c.v, pu: "coin" } }); else if (defQ == null) defQ = c.v; });
+  if (defQ == null && !rules.length) return null;
+  // does a rule's words name this item? "juice" → every juice; "pies" → the pies group; "chocolate" → the chocolate ones
+  const vars = w => [w, w.replace(/s$/, ""), w.replace(/es$/, ""), w.replace(/ies$/, "y")];
+  const same1 = (a, b) => vars(a).some(x => vars(b).includes(x));
+  const hits = (p, words) => words.length && words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)) || (typeof LVL_CATW !== "undefined" && LVL_CATW[w] && LVL_CATW[w] === p.cat));
+  // "pies 6x": the items named "… pie" if there are any, else the whole group (pies & cakes)
+  const byName = (p, words) => words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)));
+  const allP = items.filter(Boolean).flat().map(x => x.p);
+  rules.forEach(r => { r.named = r.words.length && allP.some(p => byName(p, r.words)); });
+  const priceOf = p => { const r = rules.find(r => !r.rest && (r.named ? byName(p, r.words) : hits(p, r.words))) || rules.find(r => r.rest); return r ? r.pr : null; };
+  // a name the site doesn't know yet, in the middle of the list (or right after it): kept, to pick when the post is made
+  const idx = items.map((x, i) => x ? i : -1).filter(i => i >= 0), first = idx[0]; let last = idx[idx.length - 1];
+  const nameLike = s => s && !/\d{3,}|[:@#]|https?:/.test(s) && /^[a-zà-ÿ'’&\- ]+(?:\s+[x×]?\d{1,4})?$/i.test(s) && s.split(/\s+/).length <= 5 && !/\b(?:dm|pm|msg|message|thanks?|thx|ty|please|pls|tag|ping|partials?|accepted|welcome|send|me|you)\b/i.test(s);
+  for (let i = first; i < S.length; i++) {
+    if (items[i] || drop.has(i)) continue;
+    if (nameLike(S[i]) && (i < last || i === last + 1 || (i > last && items[i - 1]))) { const it = (parseBuyList(S[i]).items[0]) || { name: S[i] }; items[i] = [{ it, p: { id: null, en: it.name, fr: "", cat: null } }]; if (i > last) last = i; }
+    else if (i > last) break;
+  }
+  const priced = [];
+  items.forEach((ms, i) => {
+    if (!ms) return; drop.add(i);
+    ms.forEach(({ it, p }) => {
+      const q = it.q != null ? it.q : defQ, own = it.p != null ? { p: it.p, pu: "coin" } : it.xmp ? { p: it.xmp, pu: "xmp" } : null, pr = own || priceOf(p);
+      priced.push({ ref: p.id, name: p.id ? "" : it.name, q: q != null ? String(q) : "", p: pr ? String(Math.round(pr.p * 1000) / 1000) : "", pu: pr ? pr.pu : "coin" });
+    });
+  });
+  return { priced, drop, head, defQ, rules };
+}
 function impParse(lines, tiles, picNotes, text) {
   lines = lines.slice();
   const R = { have: [], groups: [], priced: [], tiles: tiles || [], notes: [], kind: null, author: "" };
@@ -8700,6 +8768,9 @@ function impParse(lines, tiles, picNotes, text) {
     });
     return Object.assign({}, L, { toks: out });
   }).filter(L => L.toks.length);
+  // a list post (rules on top, one item a line): read here, the rest goes on as usual
+  const LPR = tiles && tiles.length ? null : impListPost(lines);
+  if (LPR) { R.list = LPR.priced; lines = lines.map((L, i) => LPR.head && LPR.head.i === i ? Object.assign({}, L, { toks: [{ x: 0, w: LPR.head.s }] }) : LPR.drop.has(i) ? null : L).filter(Boolean); }
   // a "Have" list that goes on to the next line ("Have: 30 🔨, 50 🧨," / "60 🧨 and 80 🪓"): one line
   {
     const KW = x => HAVE_RE.test(x) || NEED_RE.test(x) || RAT.test(x) || BUY_RE.test(x) || SELL_RE.test(x), lt = L => txt(L).replace(/^[^\w(]+/, "");
@@ -8790,7 +8861,7 @@ function impParse(lines, tiles, picNotes, text) {
     if (!rm && emos.length && !/\d+\s*k\b|\d{3,}/i.test(s)) { pend.push(...emos.map(eItem), ...namedItems(s.split(/\s+/))); return; }
     // "70 Honey 🍯", "1000 Help 🪧": the name already written before its picture → once
     const sE = emos.length ? L.toks.map((t, i) => { if (t.w != null) return t.w; const P = t.emo && CAT.byId[t.emo]; if (!P) return ""; const before = norm(L.toks.slice(0, i).map(x => x.w || "").join(" ")); return before.endsWith(norm(P.en)) || before.endsWith(norm(P.en) + "s") ? "," : P.en + ","; }).join(" ").replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "") : s;
-    if (/\d\s*k\b|\d{3,}|\(\d+\)|\bx\s*\d+|\d+\s*x\b/i.test(s) && !RAT.test(s) && !/\.(com|io|net)\b|items?\)/i.test(s) && parseBuyList(sE).items.length) { cand.push(sE); return; }
+    if (/\d\s*k\b|\d{3,}|\(\d+\)|\bx\s*\d+|\d+\s*x\b|\d\s*x\s*m\.?p\b|\d\s*mp\b/i.test(s) && !RAT.test(s) && !/\.(com|io|net)\b|items?\)/i.test(s) && parseBuyList(sE).items.length) { cand.push(sE); return; }
     if (s && /[a-z]{2}/i.test(s) && (L.conf == null || L.conf >= 70)) { const n = s.replace(/[~]+/g, ""); R.notes.push(n); lastNote = { s: n, li }; }
   });
   if (pend.length && R.groups.length) R.groups[R.groups.length - 1].items.push(...pend.filter(x => x.ref));
@@ -8823,7 +8894,8 @@ function impPosts(R) {
   }
   const sell = R.kind === "achat" ? "achat" : "vente", items = [];
   R.tiles.forEach(t => items.push({ ref: t.ref, unknown: t.ref ? null : t, src: t, view: t.view, m: t.m, q: t.q, p: t.px, pu: t.coin ? "coin" : t.px ? "xmp" : "coin" }));
-  if (R.priced.length) parseBuyList(R.priced.join("\n")).items.forEach(it => { const m = matchProduct(it.name); items.push({ ref: m.p && m.sure ? m.p.id : null, name: m.p && m.sure ? "" : it.name, q: it.q != null ? String(it.q) : "", p: it.p ? String(it.p) : "", pu: "coin" }); });
+  (R.list || []).forEach(x => items.push({ ref: x.ref, name: x.name || "", q: x.q, p: x.p, pu: x.pu }));
+  if (R.priced.length) parseBuyList(R.priced.join("\n")).items.forEach(it => { const m = matchProduct(it.name); items.push({ ref: m.p && m.sure ? m.p.id : null, name: m.p && m.sure ? "" : it.name, q: it.q != null ? String(it.q) : "", p: it.xmp ? String(it.xmp) : it.p ? String(it.p) : "", pu: it.xmp ? "xmp" : "coin" }); });
   if (items.length || !posts.length) posts.push({ type: R.groups.length && !items.length ? sell : R.kind === "trade" ? "vente" : sell, on: true, name: nm(R.kind === "trade" ? "vente" : sell), wants: items, notes: posts.length ? [] : notes });
   return posts;
 }
