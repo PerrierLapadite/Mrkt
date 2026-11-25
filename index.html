@@ -1063,6 +1063,94 @@ details summary{-webkit-tap-highlight-color:transparent}
 .lvltip{font-size:12.5px;color:var(--mut);padding:0 4px 4px;line-height:1.35}
 .lvlfin{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 2px 2px}.lvlfin small{flex-basis:100%;color:var(--mut);font-size:12px}
 .oxadd{display:block;margin-top:5px;border:1px dashed var(--acc);background:transparent;color:var(--acc);font:inherit;font-weight:700;font-size:12.5px;border-radius:8px;padding:4px 8px;cursor:pointer;white-space:normal;text-align:left}.oxtag{border:0;background:#fff0d6;color:#9a5b00;font:inherit;font-size:11.5px;font-weight:800;border-radius:6px;padding:1px 6px;cursor:pointer}
+/* add panel, small: one row of items to swipe — the post stays visible under it */
+.srcrow .sic{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px/1 var(--sans);display:grid;place-items:center;padding:0}
+.srcrow .sic.ok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.srcrow{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px}
+.srcrow .lbl{display:none}
+.sdrop.compact .srcrow{grid-template-columns:minmax(0,1fr) auto auto auto;margin-bottom:8px;gap:6px}
+.sdrop.compact .srcrow .lbl{display:none}
+.sdrop.compact #sdone{display:none}
+.sdrop.compact #catPick>.two{display:none}
+.sdrop.compact #catPick>.filebtn{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;margin:0!important;padding:0;border:0}
+.sdrop:not(.compact) .srcrow .cam{display:none}
+.sdrop .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.sdrop .chips::-webkit-scrollbar{display:none}
+.sdrop .chips>*{flex:none}
+.sdrop.compact .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
+.sdrop.compact .chips::-webkit-scrollbar{display:none}
+.sdrop.compact .chips>*{flex:none}
+.sdrop.compact #results:not(.lvlmode){display:flex;overflow-x:auto;gap:8px;margin-top:8px;padding-bottom:4px;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
+.sdrop.compact #results:not(.lvlmode)::-webkit-scrollbar{display:none}
+.sdrop.compact #results:not(.lvlmode)>.tile{flex:0 0 82px;min-height:96px;scroll-snap-align:start}
+.sdrop.compact #results:not(.lvlmode)>.empty{flex:1}
+.sdrop.compact #results.lvlmode{max-height:46vh;overflow:auto}
+.sdrop.compact{max-height:none;overflow:visible}
+.tile.more{border-style:dashed;background:transparent}
+.tile.more .mi{width:56px;height:56px;display:grid;place-items:center;font:700 18px var(--sans);color:var(--mut)}
+#sdrop:not(.compact) #results:not(.lvlmode){max-height:none}
+.sdrop.compact #invPick,.sdrop.compact #textPick{max-height:52vh;overflow:auto;overscroll-behavior:contain}
+/* Order · tap my items */
+.omodes{margin:2px 0 10px}
+.omodes button{flex:1;padding:9px 6px;font-weight:700}
+.pkbar{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;margin-bottom:10px}
+.pkq{display:flex;align-items:center;gap:6px;font:700 12.5px var(--sans);color:var(--mut);white-space:nowrap}
+.pkq .inp{width:64px;padding:8px 8px;text-align:center}
+.pkq small{display:none}
+.pkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:7px}
+.tile.pk{min-height:104px;padding:7px 3px 6px;gap:2px}
+.tile.pk .th{width:48px;height:48px;font-size:30px}
+.tile.pk small{font:600 10.5px var(--sans);color:var(--mut)}
+.tile.pk .pkst{position:absolute;left:5px;top:5px;font:700 10px var(--sans);color:var(--mut);font-style:normal}
+.tile.pk.on{border:2px solid var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--surface))}
+.tile.pk .pkn{position:absolute;right:4px;top:4px;background:var(--acc);color:#fff;border-radius:8px;font:800 11px/18px var(--sans);padding:0 6px}
+.tile.pk.oos{opacity:.5}
+.pksum{margin-top:10px;font:600 13px var(--sans);color:var(--mut);text-align:center}
+.opicb{margin-top:8px}
+.opicimg{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
+/* small item cards: [picture] name / max price · value · ⋯ · ×, then price × quantity */
+.item.cmp{padding:8px 10px;gap:6px}
+.item.cmp .i1{grid-template-columns:42px minmax(0,1fr);grid-auto-flow:column;grid-auto-columns:auto;gap:8px;align-items:center}
+.item.cmp .i1 .thumbbtn .th,.item.cmp .i1>.th{width:40px;height:40px;font-size:24px}
+.item.cmp .icol{min-width:0;display:grid;gap:1px}
+.item.cmp .icol .name{font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:0;padding:0!important;margin:0}
+.item.cmp .icol .name.fixed{line-height:1.2}
+.item.cmp .thumbbtn{width:42px;height:42px;padding:3px;border-radius:10px}
+.item.cmp .i1{min-height:42px}
+.item.cmp .icol .inp.name{padding:4px 6px!important;font-size:14px;min-height:30px;border-color:var(--line)!important}
+.item.cmp .mpline{margin:0;font-size:11.5px;gap:2px;white-space:nowrap;overflow:hidden}
+.item.cmp .i1 .star:not(.on){display:none}
+.item.cmp .i1 .star.on{width:22px;height:22px;font-size:14px}
+.item.cmp .val{margin:0;font:700 14.5px var(--slab);gap:4px;white-space:nowrap}
+.item.cmp .val.zero{font:600 11px var(--sans);color:var(--mut);white-space:normal;max-width:84px;text-align:right}
+.item.cmp .i1 .ib{width:30px;height:30px}
+.item.cmp .i2 .box input{padding-top:8px;padding-bottom:8px}
+.item.cmp .icol .oostag{justify-self:start;margin-top:2px;font-size:10px;padding:1px 6px}
+.sec-h .cmode{border:1px solid var(--line);background:var(--surface);color:var(--mut);font:700 11.5px var(--sans);border-radius:8px;padding:3px 8px;align-self:center}
+.sec-h .cmode[hidden]{display:none}
+#wantList>.item,#haveList>.item{content-visibility:auto;contain-intrinsic-size:auto 118px}
+.lbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 2px}
+.lbar .spbtn{margin:0}
+.lbar .cmode{border:1px solid var(--line);background:var(--surface);color:var(--mut);font:700 12px var(--sans);border-radius:8px;padding:4px 9px;white-space:nowrap}
+.pvtexts{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:0}
+.pvtexts>summary{cursor:pointer;list-style:none;padding:11px 12px;font:700 14px var(--sans);display:flex;align-items:baseline;gap:8px}
+.pvtexts>summary::-webkit-details-marker{display:none}
+.pvtexts>summary small{font:600 12px var(--sans);color:var(--mut)}
+.pvtexts[open]>summary{border-bottom:1px solid var(--line)}
+.pvt{display:grid;gap:8px;padding:10px 12px 12px}
+#impNote:empty,#itemsScan:empty,#orderScan:empty{display:none}
+.empty.starts{display:grid;gap:10px;text-align:left;padding:14px}
+.empty.starts b{font:700 16px var(--sans);color:var(--ink)}
+.startb{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.startb .btn{min-height:44px;font-weight:700}
+.empty.starts small{color:var(--mut);font-size:12.5px;line-height:1.35}
+.empty.starts .btn{font-style:normal}
+.ftot{position:fixed;left:12px;right:64px;bottom:calc(74px + var(--safe-b));z-index:34;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line2);border-radius:12px;box-shadow:0 8px 24px -10px rgba(0,0,0,.45);padding:4px;max-width:420px}
+.ftot[hidden]{display:none}
+@media (max-width:999px){body[data-tab=items] #p-items{padding-bottom:56px}}
+.ftot .ftl{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 13.5px var(--sans);text-align:left;padding:6px 8px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
+.ftot .ftl b{font-weight:800}
+.ftot .ftp{border:0;border-radius:9px;background:var(--ink);color:var(--bg);font:700 13px var(--sans);padding:8px 12px;white-space:nowrap}
 </style>
 </head>
 <body data-tab="items">
@@ -1089,8 +1177,9 @@ details summary{-webkit-tap-highlight-color:transparent}
           <button class="clr" id="qclr" aria-label="Clear">✕</button>
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
-        <div class="sdrop card" id="sdrop" hidden>
-          <div class="srcrow"><span class="lbl">Add from</span><div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📚 Base</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 Text</button></div></div>
+        <div class="sdrop card compact" id="sdrop" hidden>
+          <div class="srcrow"><span class="lbl">Add from</span><div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📚 Base</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 Text</button></div>
+            <button class="sic cam" id="scam" type="button" aria-label="Add from screenshots or a video" title="Add from screenshots or a video (barn / silo)">📷</button><button class="sic" id="sbig" type="button" aria-label="Bigger list" title="Bigger list / smaller list">⤢</button><button class="sic ok" id="sdone2" type="button" aria-label="Done" title="Done">✓</button></div>
           <div id="invPick" hidden></div>
           <div id="textPick" hidden></div>
           <div id="catPick">
@@ -1110,7 +1199,7 @@ details summary{-webkit-tap-highlight-color:transparent}
         <div class="list" id="haveList"></div>
       </div>
       <div class="stack">
-        <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span><div class="sum" id="summary"></div></div>
+        <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span><div class="sum" id="summary"></div><button class="cmode" id="cardMode" type="button" title="Small cards / detailed cards" aria-label="Small cards or detailed cards"></button></div>
         <div class="lfilter" id="lfilter" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input class="inp" id="lf" type="search" placeholder="Filter my items" autocomplete="off" autocapitalize="off"></div>
         <div class="list" id="wantList"></div>
       </div>
@@ -1185,9 +1274,13 @@ details summary{-webkit-tap-highlight-color:transparent}
       <div class="card fieldset">
         <div class="ch"><h2>Order calculator</h2></div>
         <p class="hint" id="orderFor"></p>
+        <div class="seg omodes" id="oModeSeg"><button data-om="text" class="on">✍️ Their message</button><button data-om="pick">👆 Tap my items</button></div>
+        <div id="oPick" hidden></div>
+        <div id="oText">
         <textarea class="ta" id="orderIn" rows="7" autocomplete="off" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
-        <div class="three"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderShot" title="Their barn / silo screenshot (or screen recording): every item in it goes in the order">📷 Barn</button><button class="btn" id="orderClear">Clear</button></div>
+        <div class="three"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderShot" title="Any picture: a post picture (Market Manager, jjcuber…), a screenshot of their message or list, or their barn / silo (screenshot or screen recording)">📷 Picture</button><button class="btn" id="orderClear">Clear</button></div>
         <input type="file" id="orderFile" accept="image/*,video/*" multiple hidden>
+        </div>
         <div id="orderAdv"></div>
       </div>
       <div id="orderScan"></div>
@@ -1245,10 +1338,23 @@ details summary{-webkit-tap-highlight-color:transparent}
         <button class="btn" id="share">Share</button>
         <button class="btn" id="copy">Copy</button>
       </div>
+      <details class="pvtexts" id="pvTexts">
+        <summary>✎ Texts on the picture <small>title, your name, stamp, notes</small></summary>
+        <div class="pvt">
+          <div><label class="lbl">Title</label><input class="inp" data-k="title" placeholder="e.g. Shop open"></div>
+          <div class="two">
+            <div><label class="lbl">Your name</label><input class="inp" data-k="user" placeholder="Discord name"></div>
+            <div><label class="lbl">Stamp</label><input class="inp" data-k="cta" placeholder="e.g. Mix accepted"></div>
+          </div>
+          <div><label class="lbl">Notes</label><textarea class="ta" data-k="details" rows="2" placeholder="One line per point"></textarea></div>
+          <div><label class="lbl">Footer</label><input class="inp" data-k="sub" placeholder="optional"></div>
+        </div>
+      </details>
     </div>
   </aside>
 </main>
 
+<div class="ftot" id="ftot" hidden><button class="ftl" id="ftotL" type="button" aria-label="Back to the top of the list"></button><button class="ftp" id="ftotP" type="button">Preview ›</button></div>
 <div class="jump" id="jump" hidden><button id="jTop" aria-label="Go to top">↑</button><button id="jBot" aria-label="Go to bottom">↓</button></div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-h"><h3 id="sheetT"></h3><button class="ib" id="sheetX" aria-label="Close">✕</button></div><div class="sheet-b" id="sheetB"></div></div>
@@ -1260,29 +1366,460 @@ details summary{-webkit-tap-highlight-color:transparent}
    Le fichier wiki est déduit du nom anglais (ex. « Duct Tape » → Duct_Tape.png).
    La liste est complétée automatiquement au chargement par celle du wiki.
    ===================================================================== */
-const CATS = [
-  {id:"pop",    fr:"⭐ Populaires"},
-  {id:"recent", fr:"🕘 Récents"},
-  {id:"all",    fr:"Tous"},
-  {id:"packs",  fr:"Lots d’extension"},
-  {id:"ext",    fr:"Matériaux & outils"},
-  {id:"crops",  fr:"Cultures"},
-  {id:"trees",  fr:"Arbres & buissons"},
-  {id:"animal", fr:"Produits animaux"},
-  {id:"bakery", fr:"Boulangerie"},
-  {id:"dairy",  fr:"Laiterie & sucre"},
-  {id:"snack",  fr:"Barbecue & plats"},
-  {id:"pies",   fr:"Tartes & gâteaux"},
-  {id:"sweets", fr:"Confiserie & glaces"},
-  {id:"drinks", fr:"Jus & boissons"},
-  {id:"jams",   fr:"Confitures & sauces"},
-  {id:"textile",fr:"Textile"},
-  {id:"mine",   fr:"Mine & bijoux"},
-  {id:"fish",   fr:"Pêche"},
-  {id:"feed",   fr:"Nourriture animaux"},
-  {id:"other",  fr:"Autres (wiki)"},
-  {id:"perso",  fr:"Mes produits"}
-];
+/* the groups of the Items tab: as in the game — the fields, trees and animals, then each production building in the order you unlock it */
+const BUILDINGS = [["feed", "Feed Mill"], ["bakery", "Bakery"], ["dairy", "Dairy"], ["sugar-mill", "Sugar Mill"], ["popcorn-pot", "Popcorn Pot"], ["bbq-grill", "BBQ Grill"],
+  ["pie-oven", "Pie Oven"], ["loom", "Loom"], ["sewing-machine", "Sewing Machine"], ["cake-oven", "Cake Oven"], ["mine", "Mine"], ["smelter", "Smelter"], ["juice-press", "Juice Press"],
+  ["fish", "Fishing & lake"], ["ice-cream-maker", "Ice Cream Maker"], ["doner-kebab-stand", "Döner Kebab Stand"], ["jam-maker", "Jam Maker"], ["jeweler", "Jeweler"], ["honey-extractor", "Honey Extractor"],
+  ["coffee-kiosk", "Coffee Kiosk"], ["soup-kitchen", "Soup Kitchen"], ["candle-maker", "Candle Maker"], ["flower-shop", "Flower Shop"], ["candy-machine", "Candy Machine"], ["sauce-maker", "Sauce Maker"],
+  ["sushi-bar", "Sushi Bar"], ["salad-bar", "Salad Bar"], ["sandwich-bar", "Sandwich Bar"], ["smoothie-mixer", "Smoothie Mixer"], ["pasta-maker", "Pasta Maker"], ["essential-oils-lab", "Essential Oils Lab"],
+  ["wok-kitchen", "Wok Kitchen"], ["hat-maker", "Hat Maker"], ["pasta-kitchen", "Pasta Kitchen"], ["hot-dog-stand", "Hot Dog Stand"], ["donut-maker", "Donut Maker"], ["taco-kitchen", "Taco Kitchen"],
+  ["omelet-station", "Omelet Station"], ["tea-stand", "Tea Stand"], ["fondue-pot", "Fondue Pot"], ["bath-kiosk", "Bath Kiosk"], ["deep-fryer", "Deep Fryer"], ["preservation-station", "Preservation Station"],
+  ["pottery-studio", "Pottery Studio"], ["fudge-shop", "Fudge Shop"], ["yogurt-maker", "Yogurt Maker"], ["stew-pot", "Stew Pot"], ["cupcake-maker", "Cupcake Maker"], ["perfumerie", "Perfumerie"],
+  ["waffle-maker", "Waffle Maker"], ["porridge-bar", "Porridge Bar"], ["milkshake-bar", "Milkshake Bar"]];
+const CATS = [{ id: "pop" }, { id: "recent" }, { id: "all" }, { id: "packs" }, { id: "ext" }, { id: "crops" }, { id: "trees" }, { id: "animal" }]
+  .concat(BUILDINGS.map(([id]) => ({ id })), [{ id: "other" }, { id: "perso" }]);
+/* every good of the game and where it's made (field, tree, animal or building) */
+const GOODS_SRC = `
+Affogato|Ice Cream Maker
+Apple|Tree
+Apple Ginger Tea|Tea Stand
+Apple Jam|Jam Maker
+Apple Juice|Juice Press
+Apple Pie|Pie Oven
+Apple Porridge|Porridge Bar
+Asparagus|Field
+Asparagus Quiche|Pie Oven
+Asparagus Soup|Soup Kitchen
+Axe|Tools
+Bacon|Pig
+Bacon And Eggs|Bbq Grill
+Bacon Donut|Donut Maker
+Bacon Fondue|Fondue Pot
+Bacon Fries|Deep Fryer
+Bacon Pie|Pie Oven
+Bacon Toast|Sandwich Bar
+Baked Potato|Bbq Grill
+Banana|Tree
+Banana Bread|Bakery
+Banana Pancakes|Bbq Grill
+Banana Split|Ice Cream Maker
+Bean Dip|Sauce Maker
+Bean Salad|Salad Bar
+Beeswax|Honey Extractor
+Beetroot|Field
+Beetroot Salad|Salad Bar
+Bell Pepper|Field
+Bell Pepper Soup|Soup Kitchen
+Berry Juice|Juice Press
+Berry Smoothie|Smoothie Mixer
+Berry Waffle|Waffle Maker
+Big Sushi Roll|Sushi Bar
+Birthday Bouquet|Flower Shop
+Black Bean|Field
+Black Sesame Smoothie|Smoothie Mixer
+Blackberry|Bush
+Blackberry Jam|Jam Maker
+Blackberry Muffin|Bakery
+Blanket|Sewing Machine
+Blt Salad|Salad Bar
+Blue Lure|Lure Workbench
+Blue Sweater|Loom
+Blue Woolly Hat|Loom
+Blueberry|Bush
+Blueberry Cheesecake|Cake Oven
+Blueberry Chutney|Jam Maker
+Blueberry Muffin|Bakery
+Blueberry Waffle|Waffle Maker
+Bolt|Tools
+Bracelet|Jeweler
+Bread|Bakery
+Breakfast Bowl|Porridge Bar
+Breakfast Waffle|Waffle Maker
+Bright Bouquet|Flower Shop
+Broccoli|Field
+Broccoli Pasta|Pasta Kitchen
+Broccoli Soup|Soup Kitchen
+Brown Sugar|Sugar Mill
+Butter|Dairy
+Buttered Popcorn|Popcorn Pot
+Cabbage|Field
+Cabbage Soup|Soup Kitchen
+Cacao|Tree
+Caffe Latte|Coffee Kiosk
+Caffe Mocha|Coffee Kiosk
+Calming Diffuser|Perfumerie
+Candy Bouquet|Flower Shop
+Canned Fish|Preservation Station
+Caramel Apple|Candy Machine
+Caramel Latte|Coffee Kiosk
+Carrot|Field
+Carrot Cake|Cake Oven
+Carrot Juice|Juice Press
+Carrot Pie|Pie Oven
+Casserole|Pie Oven
+Chamomile|Field
+Chamomile Essential Oil|Essential Oils Lab
+Chamomile Tea|Tea Stand
+Cheese|Dairy
+Cheese Fondue|Fondue Pot
+Cheese Omelet|Omelet Station
+Cheesecake|Cake Oven
+Cherry|Tree
+Cherry Jam|Jam Maker
+Cherry Juice|Juice Press
+Cherry Popsicle|Ice Cream Maker
+Chicken Feed|Feed Mill
+Chickpea|Field
+Chickpea Stew|Stew Pot
+Chili Fudge|Fudge Shop
+Chili Pepper|Field
+Chili Popcorn|Popcorn Pot
+Chili Poppers|Deep Fryer
+Chili Stew|Stew Pot
+Chocolate|Candy Machine
+Chocolate Cake|Cake Oven
+Chocolate Fondue|Fondue Pot
+Chocolate Ice Cream|Ice Cream Maker
+Chocolate Pie|Pie Oven
+Chocolate Popcorn|Popcorn Pot
+Chocolate Roll|Cake Oven
+Chocolate Waffle|Waffle Maker
+Clay|Field
+Clay Mug|Pottery Studio
+Cloche Hat|Hat Maker
+Coal|Mine
+Cocoa Smoothie|Smoothie Mixer
+Coconut|Tree
+Coconut Ice Cream|Ice Cream Maker
+Coffee Bean|Bush
+Coleslaw|Salad Bar
+Colorful Candles|Candle Maker
+Colourful Omelet|Omelet Station
+Cookie|Bakery
+Cookie Cupcake|Cupcake Maker
+Corn|Field
+Corn Bread|Bakery
+Corn Dog|Hot Dog Stand
+Cotton|Field
+Cotton Candy|Candy Machine
+Cotton Fabric|Loom
+Cotton Shirt|Sewing Machine
+Cow Feed|Feed Mill
+Cream|Dairy
+Cream Cake|Cake Oven
+Cream Donut|Donut Maker
+Crunchy Donut|Donut Maker
+Cucumber|Field
+Cucumber Sandwich|Sandwich Bar
+Cucumber Smoothie|Smoothie Mixer
+Diamond Ring|Jeweler
+Dried Fruit|Preservation Station
+Duck Feather|Duck Salon
+Duck Trap|Net Maker
+Duct Tape|Tools
+Dynamite|Tools
+Egg|Chicken
+Egg Sandwich|Sandwich Bar
+Egg Sushi|Sushi Bar
+Eggplant|Field
+Eggplant Parmesan|Pie Oven
+Espresso|Coffee Kiosk
+Exfoliating Soap|Bath Kiosk
+Falafel|Deep Fryer
+Fancy Cake|Cake Oven
+Feta Pie|Pie Oven
+Feta Salad|Salad Bar
+Filled Donut|Donut Maker
+Fish And Chips|Bbq Grill
+Fish Burger|Bbq Grill
+Fish Fillet|Fish
+Fish Pie|Pie Oven
+Fish Skewer|Bbq Grill
+Fish Soup|Soup Kitchen
+Fish Taco|Taco Kitchen
+Fishing Net|Net Maker
+Floral Candle|Candle Maker
+Flower Crown|Hat Maker
+Flower Pendant|Jeweler
+Flower Shawl|Loom
+Fresh Diffuser|Perfumerie
+Fresh Pasta|Pasta Maker
+Fresh Porridge|Porridge Bar
+Fried Candy Bar|Deep Fryer
+Fried Rice|Wok Kitchen
+Fruit Cake|Cake Oven
+Fruit Salad|Salad Bar
+Fruit Sorbet|Ice Cream Maker
+Fruity Milkshake|Milkshake Bar
+Frutti Di Mare Pizza|Bakery
+Garlic|Field
+Garlic Bread|Bbq Grill
+Ginger|Field
+Ginger Essential Oil|Essential Oils Lab
+Gingerbread Cookie|Bakery
+Gnocchi|Pasta Kitchen
+Goat Cheese|Dairy
+Goat Cheese Toast|Sandwich Bar
+Goat Feed|Feed Mill
+Goat Milk|Goat
+Gold Bar|Smelter
+Gold Lure|Lure Workbench
+Gold Ore|Mine
+Gracious Bouquet|Flower Shop
+Grape Jam|Jam Maker
+Grape Juice|Juice Press
+Grapes|Field
+Green Lure|Lure Workbench
+Green Smoothie|Smoothie Mixer
+Green Tea|Tea Stand
+Grilled Asparagus|Bbq Grill
+Grilled Eggplant|Bbq Grill
+Grilled Lamb Skewer|Bbq Grill
+Grilled Onion|Bbq Grill
+Guava|Tree
+Guava Compote|Preservation Station
+Guava Cupcake|Cupcake Maker
+Guava Juice|Juice Press
+Hamburger|Bbq Grill
+Hand Pies|Deep Fryer
+Honey|Honey Extractor
+Honey Apple Cake|Cake Oven
+Honey Face Mask|Bath Kiosk
+Honey Peanuts|Candy Machine
+Honey Popcorn|Popcorn Pot
+Honey Soap|Bath Kiosk
+Honey Tea|Tea Stand
+Honey Toast|Sandwich Bar
+Honeycomb|Beehive
+Hot Chocolate|Coffee Kiosk
+Hot Dog|Hot Dog Stand
+Hummus|Sauce Maker
+Hummus Wrap|Sandwich Bar
+Iced Banana Latte|Coffee Kiosk
+Iced Tea|Tea Stand
+Indigo|Field
+Iron Bar|Smelter
+Iron Bracelet|Jeweler
+Iron Ore|Mine
+Jelly Beans|Candy Machine
+Kimchi|Preservation Station
+Lamb Chop|Lamb
+Lamb Doner Wrap|Doner Kebab Stand
+Lamb Feed|Feed Mill
+Lamb Soup|Soup Kitchen
+Lamb Stir Fry|Wok Kitchen
+Land Deed|Tools
+Lemon|Tree
+Lemon Cake|Cake Oven
+Lemon Candle|Candle Maker
+Lemon Curd|Sauce Maker
+Lemon Essential Oil|Essential Oils Lab
+Lemon Fudge|Fudge Shop
+Lemon Lotion|Bath Kiosk
+Lemon Pie|Pie Oven
+Lemon Tea|Tea Stand
+Lettuce|Field
+Lily|Field
+Lobster Pasta|Pasta Kitchen
+Lobster Skewer|Bbq Grill
+Lobster Soup|Soup Kitchen
+Lobster Sushi|Sushi Bar
+Lobster Tail|Lobster Pool
+Lobster Trap|Net Maker
+Lollipop|Candy Machine
+Macaroon|Bakery
+Mallet|Tools
+Mango|Tree
+Mango Juice|Juice Press
+Marker Stake|Tools
+Marmalade|Jam Maker
+Mayonnaise|Sauce Maker
+Meat Bucket|Feed Mill
+Milk|Cow
+Milk Tea|Tea Stand
+Mint|Field
+Mint Essential Oil|Essential Oils Lab
+Mint Fudge|Fudge Shop
+Mint Ice Cream|Ice Cream Maker
+Mint Tea|Tea Stand
+Mixed Smoothie|Smoothie Mixer
+Mocha Milkshake|Milkshake Bar
+Mushroom|Field
+Mushroom Pasta|Pasta Kitchen
+Mushroom Pot Pie|Pie Oven
+Mushroom Salad|Salad Bar
+Mushroom Soup|Soup Kitchen
+Mystery Net|Net Maker
+Nachos|Taco Kitchen
+Nail|Tools
+Necklace|Jeweler
+Noodle Soup|Soup Kitchen
+Oats|Field
+Olive|Tree
+Olive Dip|Sauce Maker
+Olive Oil|Sauce Maker
+Onion|Field
+Onion Dog|Hot Dog Stand
+Onion Melt|Sandwich Bar
+Onion Soup|Soup Kitchen
+Orange|Tree
+Orange Juice|Juice Press
+Orange Salad|Salad Bar
+Orange Sorbet|Ice Cream Maker
+Orange Tea|Tea Stand
+Pancake|Bbq Grill
+Passion Fruit|Field
+Passion Fruit Jam|Jam Maker
+Passion Fruit Juice|Juice Press
+Passion Fruit Pie|Pie Oven
+Pasta Carbonara|Pasta Kitchen
+Pasta Salad|Salad Bar
+Peach|Tree
+Peach Ice Cream|Ice Cream Maker
+Peach Jam|Jam Maker
+Peach Tart|Pie Oven
+Peanut Butter And Jelly Sandwich|Sandwich Bar
+Peanut Butter Milkshake|Ice Cream Maker
+Peanut Fudge|Fudge Shop
+Peanut Noodles|Wok Kitchen
+Peanuts|Squirrel House
+Peony|Field
+Pickaxe|Tools
+Pickles|Preservation Station
+Pig Feed|Feed Mill
+Pillow|Sewing Machine
+Pineapple|Field
+Pineapple Cake|Cake Oven
+Pineapple Coconut Bars|Bakery
+Pineapple Juice|Juice Press
+Pizza|Bakery
+Plain Cupcake|Cupcake Maker
+Plain Donut|Donut Maker
+Plain Waffle|Waffle Maker
+Plain Yogurt|Yogurt Maker
+Plank|Tools
+Platinum Bar|Smelter
+Platinum Ore|Mine
+Plum|Tree
+Plum Jam|Jam Maker
+Plum Smoothie|Smoothie Mixer
+Pomegranate|Tree
+Pomegranate Cake|Cake Oven
+Pomegranate Tea|Tea Stand
+Popcorn|Popcorn Pot
+Potato|Field
+Potato Bread|Bakery
+Potato Feta Cake|Cake Oven
+Potato Omelet|Omelet Station
+Potato Soup|Soup Kitchen
+Potted Plant|Pottery Studio
+Pumpkin|Field
+Pumpkin Pie|Pie Oven
+Pumpkin Soup|Soup Kitchen
+Purple Lure|Lure Workbench
+Quesadilla|Taco Kitchen
+Raspberry|Bush
+Raspberry Candle|Candle Maker
+Raspberry Jam|Jam Maker
+Raspberry Mocha|Coffee Kiosk
+Raspberry Muffin|Bakery
+Red Berry Cake|Cake Oven
+Red Lure|Lure Workbench
+Red Scarf|Loom
+Refined Coal|Smelter
+Rice|Field
+Rice Ball|Sushi Bar
+Rice Noodles|Pasta Maker
+Rich Fudge|Fudge Shop
+Rich Soap|Bath Kiosk
+Roasted Tomatoes|Bbq Grill
+Rustic Bouquet|Flower Shop
+Salsa|Sauce Maker
+Samosa|Deep Fryer
+Saw|Tools
+Screw|Tools
+Seafood Salad|Salad Bar
+Sesame|Field
+Sesame Brittle|Candy Machine
+Sesame Ice Cream|Ice Cream Maker
+Sheep Feed|Feed Mill
+Shepherds Pie|Pie Oven
+Shovel|Tools
+Silver Bar|Smelter
+Silver Ore|Mine
+Snack Mix|Popcorn Pot
+Soft Bouquet|Flower Shop
+Soothing Pad|Sewing Machine
+Soy Sauce|Sauce Maker
+Soybean|Field
+Spicy Bean Doner|Doner Kebab Stand
+Spicy Bean Taco|Taco Kitchen
+Spicy Fish|Wok Kitchen
+Spicy Pasta|Pasta Kitchen
+Spicy Pizza|Bakery
+Spring Omelet|Omelet Station
+Sprinkled Donut|Donut Maker
+Strawberry|Field
+Strawberry Cake|Cake Oven
+Strawberry Candle|Candle Maker
+Strawberry Ice Cream|Ice Cream Maker
+Strawberry Jam|Jam Maker
+Strawberry Yogurt|Yogurt Maker
+Stuffed Peppers|Bbq Grill
+Sugarcane|Field
+Summer Rolls|Salad Bar
+Summer Salad|Salad Bar
+Sun Hat|Hat Maker
+Sunflower|Field
+Sushi Roll|Sushi Bar
+Sweater|Loom
+Sweet Porridge|Porridge Bar
+Syrup|Sugar Mill
+Taco|Taco Kitchen
+Tart Dressing|Sauce Maker
+Tea Leaf|Field
+Tea Pot|Pottery Studio
+Tnt Barrel|Tools
+Toffee|Candy Machine
+Tofu Dog|Hot Dog Stand
+Tofu Stir Fry|Wok Kitchen
+Tomato|Field
+Tomato Juice|Juice Press
+Tomato Sauce|Sauce Maker
+Tomato Soup|Soup Kitchen
+Top Hat|Hat Maker
+Tower Doner Supreme|Doner Kebab Stand
+Tropical Cupcake|Cupcake Maker
+Tropical Fondue|Fondue Pot
+Tropical Smoothie|Smoothie Mixer
+Tropical Yogurt|Yogurt Maker
+Vanilla Ice Cream|Ice Cream Maker
+Vanilla Milkshake|Milkshake Bar
+Veggie Bagel|Sandwich Bar
+Veggie Bouquet|Flower Shop
+Veggie Lasagna|Pasta Kitchen
+Veggie Platter|Salad Bar
+Violet Dress|Sewing Machine
+Watermelon|Field
+Watermelon Juice|Juice Press
+Wheat|Field
+Wheat Bundle|Feed Mill
+White Sugar|Sugar Mill
+Winter Stew|Stew Pot
+Winter Veggies|Bbq Grill
+Wood Panel|Tools
+Wool|Sheep
+Wooly Chaps|Sewing Machine
+Yogurt Smoothie|Smoothie Mixer
+Zesty Perfume|Perfumerie
+`;
+const SRC2CAT = { field: "crops", tree: "trees", bush: "trees", chicken: "animal", cow: "animal", pig: "animal", sheep: "animal", goat: "animal", lamb: "animal", beehive: "animal", "squirrel house": "animal",
+  fish: "fish", "lobster pool": "fish", "lure workbench": "fish", "net maker": "fish", "duck salon": "fish", tools: "ext", "feed mill": "feed" };
+const GOODS = new Map();
+/** Where a good is made: its group in the Items tab (null = not in the list). */
+function goodCat(n) {
+  if (!GOODS.size) GOODS_SRC.trim().split("\n").forEach(l => { const [nm, src] = l.split("|"); if (nm && src) GOODS.set(slug(nm), SRC2CAT[norm(src)] || slug(src)); });
+  const k = slug(n); return GOODS.get(k) || GOODS.get(k.replace(/s$/, "")) || GOODS.get(k + "s") || null; }
 
 const CATALOG_SRC = `
 ext|Bolt|Boulon|🔩
@@ -1504,13 +2041,13 @@ const PACKS = [
 /* "Mixes": one item made of several that players trade as one — any of them counts (Jam Maker and Juice Press pages, as in the game;
    all the bars of the Smelter). In your inventory they are their items: you have = the sum, a deal takes them from what you have most of. */
 const MIXES = [
-  { en: "First Page Jams", fr: "Confitures page 1 · fp jams · 1st page jams · page 1", e: "🫙", cat: "jams", badge: "1", mix: ["apple-jam", "raspberry-jam", "blackberry-jam", "cherry-jam", "strawberry-jam"] },
-  { en: "Second Page Jams", fr: "Confitures page 2 · sp jams · 2nd page jams · page 2", e: "🫙", cat: "jams", badge: "2", mix: ["peach-jam", "grape-jam", "marmalade", "blueberry-chutney", "plum-jam"] },
-  { en: "Third Page Jams", fr: "Confitures page 3 · tp jams · 3rd page jams · page 3", e: "🫙", cat: "jams", badge: "3", mix: ["passion-fruit-jam"] },
-  { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "drinks", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
-  { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "drinks", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
-  { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "drinks", badge: "3", mix: ["guava-juice", "mango-juice"] },
-  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["refined-coal", "iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
+  { en: "First Page Jams", fr: "Confitures page 1 · fp jams · 1st page jams · page 1", e: "🫙", cat: "jam-maker", badge: "1", mix: ["apple-jam", "raspberry-jam", "blackberry-jam", "cherry-jam", "strawberry-jam"] },
+  { en: "Second Page Jams", fr: "Confitures page 2 · sp jams · 2nd page jams · page 2", e: "🫙", cat: "jam-maker", badge: "2", mix: ["peach-jam", "grape-jam", "marmalade", "blueberry-chutney", "plum-jam"] },
+  { en: "Third Page Jams", fr: "Confitures page 3 · tp jams · 3rd page jams · page 3", e: "🫙", cat: "jam-maker", badge: "3", mix: ["passion-fruit-jam"] },
+  { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "juice-press", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
+  { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "juice-press", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
+  { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "juice-press", badge: "3", mix: ["guava-juice", "mango-juice"] },
+  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "smelter", badge: "ALL", mix: ["refined-coal", "iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
 ];
 const mixOf = x => { const p = x && (typeof x === "string" ? CAT.byId[x] : x.mix ? x : x.ref ? CAT.byId[x.ref] : null); return p && p.mix ? p : null; };
 const isVirt = p => !!(p && (p.parts || p.mix));            // a set or a mix: not an item of the barn itself
@@ -1674,6 +2211,8 @@ function buildCatalog() {
   });
   // "Help": a player helping another (usually a tree to bring back to life) — sold like an item, no game max price
   addProduct({ id: "help", en: "Help", fr: "Aide ~ helps tree help tree helps revive help sign", e: "🪧", cat: "other", src: HELP_SVG, nomp: true });
+  // each built-in good in the group of where it's made (the list above); the rest by its name
+  CAT.list.forEach(p => { if (p.cat === "packs" || p.cat === "ext") return; const c = goodCat(p.en); p.cat = c || (guessCat(p.en, true) !== "other" ? guessCat(p.en, true) : OLD_CAT[p.cat] || p.cat); });
   (store.get("hd5_wiki", { names: [] }).names || []).forEach(addWikiName);
   CUSTOM.forEach(c => addProduct({ id: c.id, en: c.en, fr: c.fr || "", e: c.e || "⭐", cat: "perso", custom: true }));
   MIXES.forEach(m => { const ids = m.mix.filter(id => CAT.byId[id]); if (ids.length) addProduct({ id: slug(m.en), en: m.en, fr: m.fr, e: m.e, cat: m.cat, mix: ids, badge: m.badge }); });
@@ -1682,7 +2221,78 @@ function addWikiName(n) {
   if (!n || WIKI_BLACKLIST.has(n) || /\b(tree|bush|icon|field|coins?|experience|voucher|level|building|machine)\b/i.test(n)) return;
   const id = slug(n);
   if (CAT.byId[id] || MIXES.some(m => slug(m.en) === id)) return;
-  addProduct({ id, en: n, fr: "", e: "📦", cat: "other", file: n.replace(/ /g, "_"), wiki: true });
+  addProduct({ id, en: n, fr: "", e: "📦", cat: goodCat(n) || guessCat(n), file: n.replace(/ /g, "_"), wiki: true });
+}
+/* ---------- the category of a good read from the wiki (its name says what it is) ---------- */
+var GC_RAW = null;
+const GC_RULES = [
+  ["feed", /\bfeed\b|\btreats?\b|pet food|kibble|meat bucket|wheat bundle/],
+  ["fish", /\blure\b|\bnet\b|\btrap\b|\bfillet\b|lobster tail|duck feather/],
+  ["flower-shop", /bouquet|wreath|garland|corsage/],
+  ["candle-maker", /candle/],
+  ["bath-kiosk", /\bsoap\b|lotion|\bbath\b|face mask|scrub|shampoo/],
+  ["perfumerie", /perfume|diffuser|cologne/],
+  ["essential-oils-lab", /essential oil/],
+  ["pottery-studio", /\bmug\b|\bvase\b|tea pot|potted|ceramic|pottery/],
+  ["hat-maker", /\bhat\b|\bcap\b|crown|bonnet|beanie|beret/],
+  ["jeweler", /\bring\b|bracelet|necklace|pendant|earring|brooch|tiara|anklet/],
+  ["smelter", /^(?:iron|silver|gold|platinum|copper|bronze) bar$|refined coal/],
+  ["mine", /\bore\b|^coal$/],
+  ["loom", /fabric|sweater|scarf|shawl|woolly|wolly|yarn/],
+  ["sewing-machine", /shirt|dress|chaps|blanket|pillow|\bpad\b|skirt|jacket|\bcoat\b/],
+  ["milkshake-bar", /milkshake/],
+  ["smoothie-mixer", /smoothie/],
+  ["tea-stand", /\btea\b/],
+  ["coffee-kiosk", /latte|mocha|espresso|coffee|hot chocolate|cappuccino|frapp/],
+  ["juice-press", /juice/],
+  ["ice-cream-maker", /ice cream|popsicle|sorbet|gelato|sundae|banana split|affogato/],
+  ["fudge-shop", /fudge/],
+  ["cupcake-maker", /cupcake/],
+  ["donut-maker", /donut|doughnut/],
+  ["waffle-maker", /waffle/],
+  ["yogurt-maker", /yogh?urt/],
+  ["porridge-bar", /porridge|breakfast bowl|oatmeal/],
+  ["deep-fryer", /fries|fried(?! rice)|falafel|samosa|poppers|hand pies|churro|tempura|onion rings/],
+  ["candy-machine", /candy|lollipop|toffee|^chocolate$|jelly beans?|brittle|caramel apple|marshmallow|gumm|honey peanuts/],
+  ["jam-maker", /\bjam\b|marmalade|chutney/],
+  ["honey-extractor", /^honey$|beeswax/],
+  ["sauce-maker", /\bsauce\b|\bdip\b|\boil\b|mayonnaise|ketchup|mustard|dressing|salsa|hummus|pesto|\bcurd\b/],
+  ["preservation-station", /pickles?|canned|dried fruit|compote|kimchi|preserves?/],
+  ["fondue-pot", /fondue/],
+  ["omelet-station", /omelet/],
+  ["stew-pot", /\bstew\b/],
+  ["soup-kitchen", /soup|chowder|broth|bisque|gumbo/],
+  ["salad-bar", /salad|coleslaw|platter|summer rolls/],
+  ["sushi-bar", /sushi|rice ball|onigiri|nigiri|maki|sashimi/],
+  ["wok-kitchen", /stir.?fry|fried rice|\bwok\b|noodles|spicy fish|dumpling/],
+  ["pasta-maker", /fresh pasta|rice noodles/],
+  ["pasta-kitchen", /pasta|gnocchi|lasagna|carbonara|spaghetti|ravioli|tortellini|penne|macaroni/],
+  ["taco-kitchen", /taco|nachos|quesadilla|burrito|enchilada|fajita/],
+  ["hot-dog-stand", /hot ?dog|corn ?dog|\bdog\b/],
+  ["doner-kebab-stand", /d[öo]ner|kebab|gyro/],
+  ["sandwich-bar", /sandwich|\btoast\b|bagel|\bwrap\b|\bmelt\b|panini/],
+  ["popcorn-pot", /popcorn|snack mix/],
+  ["cake-oven", /\bcakes?\b|cheesecake|\broll$|torte|gateau/],
+  ["pie-oven", /\bpies?\b|\btart\b|quiche|casserole|parmesan/],
+  ["bakery", /bread|muffin|cookie|pizza|macaroon|croissant|\bbuns?\b|biscuit|scone|\bbars$|baguette|brioche|crepe/],
+  ["bbq-grill", /grill|skewer|roast|bbq|pancake|burger|bacon and eggs|baked potato|stuffed|fish and chips|veggies/],
+  ["dairy", /^(?:goat )?(?:cheese|cream|butter)$/],
+  ["sugar-mill", /sugar$|^syrup$/],
+];
+/** Groups of the earlier versions → their building (built-in goods the list doesn't name). */
+const OLD_CAT = { snack: "bbq-grill", pies: "pie-oven", sweets: "candy-machine", drinks: "juice-press", jams: "jam-maker", textile: "loom", soups: "soup-kitchen", fastfood: "sandwich-bar", asian: "wok-kitchen", home: "candle-maker" };
+const GC_TREE = /apple|berry|cherry|lemon|orange|peach|banana|plum|mango|coconut|guava|pomegranate|passion fruit|olive|cacao|coffee bean|kiwi|\bfig\b|lime|apricot|pear|avocado|\bnut\b|almond|walnut|hazelnut|pecan|cashew|date\b|lychee|papaya|persimmon|grapefruit|nectarine|tangerine/;
+const GC_CROP = /sesame|peanut|\bbeans?\b|\bpeas?\b|lentil|\boats?\b|barley|\brye\b|quinoa|cauliflower|spinach|radish|zucchini|squash|kale|leek|celery|turnip|\byam\b|sweet potato|herb|basil|lavender|tulip|\brose\b|daisy|orchid|cotton|hemp|flax|bamboo|saffron|vanilla|cinnamon|pepper|artichoke|okra|parsnip|corn\b|melon|gourd|sorghum|cumin|ginger|wasabi|lotus/;
+const GC_ANIMAL = /\begg\b|milk|wool|feather|bacon|honeycomb|mussel|lobster$|shrimp|crab|oyster|fleece|silk cocoon|truffle$/;
+function guessCat(n, builtIn) {
+  const s = norm(n);
+  if (!GC_RAW) GC_RAW = new Set(((store.get("hd5_wiki", {}) || {}).raw || []).map(norm));
+  // a crop, a fruit or an animal good (from the wiki's crops / animal goods pages)
+  if (!builtIn && GC_RAW.has(s)) return GC_ANIMAL.test(s) ? "animal" : GC_TREE.test(s) ? "trees" : "crops";
+  for (const [c, re] of GC_RULES) if (re.test(s)) return c;
+  // a short name with no dish word: a raw good
+  if (!builtIn && s.split(" ").length <= 2) { if (GC_ANIMAL.test(s)) return "animal"; if (GC_TREE.test(s)) return "trees"; if (GC_CROP.test(s)) return "crops"; }
+  return "other";
 }
 /** Récupère la liste complète des produits sur le wiki (comme hd.jjtechdev.com), mise en cache 7 jours. */
 async function refreshWikiList(force) {
@@ -1700,7 +2310,9 @@ async function refreshWikiList(force) {
       // raw = on the crops / animal goods pages and not on the products page (a page may show what a crop is used in)
       const made = new Set(prod), rawOnly = [...new Set(raw)].filter(n => !made.has(n));
       store.set("hd5_wiki", { t: Date.now(), names: [...new Set(names)], raw: rawOnly });
-      WIKI_RAW = new Set(rawOnly.map(norm));
+      WIKI_RAW = new Set(rawOnly.map(norm)); GC_RAW = null;
+      // the goods already listed get their group again (the crops / animal goods lists may be new)
+      CAT.list.forEach(p => { if (p.wiki) p.cat = goodCat(p.en) || guessCat(p.en); });
       const before = CAT.list.length;
       names.forEach(addWikiName);
       if (CAT.list.length !== before) renderResults();
@@ -1744,10 +2356,15 @@ function search(q, cat) {
     }
     if (sc) out.push([sc - en.length / 100, p]);
   }
-  if (!out.length && nq.length >= 3) for (const p of pool) { // sous-séquence (fautes de frappe légères) si rien trouvé
+  const isGrp = Object.keys(CAT_EN).some(id => !["pop", "recent", "all", "other", "perso"].includes(id) && (norm(CAT_EN[id]) === nq || (nq.length >= 4 && norm(CAT_EN[id]).startsWith(nq)))) || catsOf(nq).length || catsOf(nq.replace(/s$/, "")).length;
+  if (!out.length && nq.length >= 3 && !isGrp) for (const p of pool) { // sous-séquence (fautes de frappe légères) si rien trouvé
     const en = norm(p.en); let i = 0; for (const ch of en) if (ch === nq[i]) i++;
     if (i === nq.length) out.push([100 - en.length / 100, p]);
   }
+  // a building or a group ("bakery", "pie oven", "soups", "jus"): its goods come too, after the names that match
+  const grp = Object.keys(CAT_EN).filter(id => !["pop", "recent", "all", "other", "perso"].includes(id) && (norm(CAT_EN[id]) === nq || (nq.length >= 4 && norm(CAT_EN[id]).startsWith(nq))));
+  const cw = catsOf(nq.replace(/s$/, "")).concat(catsOf(nq)), cats = new Set(grp.concat(cw));
+  if (cats.size) { const seen = new Set(out.map(x => x[1])); CAT.list.forEach(p => { if (cats.has(p.cat) && !seen.has(p) && (!cat || ["all", "pop", "recent"].includes(cat) || p.cat === cat)) out.push([50, p]); }); }
   return out.sort((a, b) => b[0] - a[0]).map(x => x[1]);
 }
 
@@ -2495,7 +3112,7 @@ function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
 /* the beta switch and the colours, above the picture */
 function betaBar() {
   const bar = $("#betaBar"); if (!bar) return; bar.textContent = "";
-  const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); } }, l)));
+  const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); renderStyle(); } }, l)));
   bar.append(seg([["new", "New look"], ["old", "Classic"]], st.betaOff ? "old" : "new", v => { st.betaOff = v === "old"; }));
   if (!st.betaOff) bar.append(h("div", { class: "lbl" }, "Sort the items by"), seg([["qty", "Quantity"], ["price", "Price"]], sortKey(), v => { st.sort = v; st.sortV = 1; }));
   if (!st.betaOff) bar.append(seg(Object.entries(BT_THEMES).map(([k, t]) => [k, t.name]), st.bTheme && BT_THEMES[st.bTheme] ? st.bTheme : "cream", v => { st.bTheme = v; }));
@@ -2554,6 +3171,7 @@ function sortedWants() {
   return out.filter(w => !w.oos).concat(out.filter(w => w.oos));
 }
 function totals() {
+  if (st._tot) return st._tot;                       // the order picture: the order's own total (discount, bulk bonus, special prices)
   const wants = st.wants.filter(w => ((w.name || "").trim() || w.ref) && !w.oos); // out of stock: not counted
   const sub = wants.reduce((a, w) => a + itemValue(w), 0);
   const d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc))); // buying posts use the bulk bonus instead
@@ -3191,6 +3809,7 @@ function tab(t) {
   $("#impBtn").classList.toggle("on", t === "imp");
   if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
+  ftotPaint();
   requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
 }
@@ -3264,15 +3883,19 @@ function deletePost(p) {
 function newProfileSheet() {
   // a new empty post, or an old one rebuilt from its screenshot / text (Import)
   openSheet("New post", h("div", { class: "menu" }, Object.keys(TYPES).map(t => h("button", { onclick: () => { const p = mkProfile(t); STATE.list.push(p); closeSheet(); selectProfile(p.id); toast("“" + p.name + "” created"); } }, h("i", null, "＋"), TYPES[t].name + " post")),
-    h("button", { onclick: () => { closeSheet(); tab("imp"); } }, h("i", null, "📥"), "From an old post (screenshot or text)")));
+    h("button", { onclick: () => { closeSheet(); tab("imp"); } }, h("i", null, "📥"), "From an old post (screenshot or text)"),
+    st && (st.wants.length || st.have.length) ? h("button", { onclick: () => { closeSheet(); $("#dupP").click(); } }, h("i", null, "⧉"), "A copy of “" + (st.name || "this post") + "” (same items and prices)") : null));
 }
 function selectProfile(id) { st = STATE.list.find(p => p.id === id) || STATE.list[0]; STATE.active = st.id; renderAll(); changed(); }
 function renderAll() { betaBar(); renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); if (typeof renderOrder === "function") renderOrder(); }
 
 /* ---------- search ---------- */
-const CAT_EN = { pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy & sugar", snack: "Grill & meals", pies: "Pies & cakes", sweets: "Sweets & ice cream", drinks: "Drinks", jams: "Jams & sauces", textile: "Textiles", mine: "Mine & jewelry", fish: "Fishing", feed: "Animal feed", other: "More (wiki)", perso: "My items" };
+const CAT_EN = Object.assign({ pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods" },
+  Object.fromEntries(BUILDINGS), { other: "Other", perso: "My items" });
 let curCat = "pop", resLimit = 16;
-const baseLimit = () => $("#q").value ? 48 : 16;
+// the items you add often come back: the search opens on your recent ones once there are a few
+setTimeout(() => { if ((SETTINGS.recent || []).length >= 4 && curCat === "pop") curCat = "recent"; }, 0);
+const baseLimit = () => $("#q").value ? 48 : !SETTINGS.dropBig ? 30 : 16;
 function renderCats() {
   const c = $("#cats"); c.textContent = "";
   CATS.forEach(k => {
@@ -3339,7 +3962,8 @@ const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have
 function renderResults() {
   const q = $("#q").value;
   $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q;
-  const LQ = lvlQuery(q); if (LQ) { const box = $("#results"); box.textContent = ""; renderLvlResults(LQ, box); return; }
+  const LQ = lvlQuery(q); $("#results").classList.toggle("lvlmode", !!LQ);
+  if (LQ) { const box = $("#results"); box.textContent = ""; renderLvlResults(LQ, box); return; }
   const res = search(q, q ? "all" : curCat), box = $("#results");
   box.textContent = "";
   if (!res.length) { box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, q ? "No product found — add it as a custom item." : "Nothing here yet.")); $("#moreRes").hidden = true; return; }
@@ -3350,8 +3974,24 @@ function renderResults() {
     box.append(t);
   });
   $("#moreRes").hidden = res.length <= resLimit;
+  // the small list: one row you swipe, ending with "more" and "custom item"
+  if (dropSmall()) {
+    if (res.length > resLimit) box.append(h("button", { class: "tile more", onclick: () => { resLimit += 48; renderResults(); } }, h("span", { class: "mi" }, "＋" + Math.min(48, res.length - resLimit)), h("b", null, "Show more")));
+    box.append(h("button", { class: "tile more", onclick: () => $("#freeAdd").click() }, h("span", { class: "mi" }, "✎"), h("b", null, "Custom item")));
+  }
 }
 $("#moreRes").onclick = () => { resLimit += 48; renderResults(); };
+/* the add panel: small by default (one row of items you swipe — your list stays in view), or big (a grid) */
+const dropSmall = () => !SETTINGS.dropBig;
+function dropMode() {
+  const d = $("#sdrop"); if (!d) return;
+  d.classList.toggle("compact", dropSmall());
+  $("#sbig").textContent = dropSmall() ? "⤢" : "⤡";
+  $("#sbig").setAttribute("aria-label", dropSmall() ? "Bigger list" : "Smaller list");
+}
+$("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
+$("#sdone2").onclick = () => closeDrop();
+$("#scam").onclick = () => $("#itemsShot").click();
 /* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
 let LVL = (() => { try { return store.get("hd5_lvl") || {}; } catch (e) { return {}; } })();   // id → level (0 = none found)
 const LVL_ST = { loading: false, done: 0, total: 0, p: null, fail: false };
@@ -3368,10 +4008,9 @@ const FIN_RE = /\b(?:finished|finish|processed|crafted|transformed)\s*(?:product
 const FIN_RE_G = new RegExp(FIN_RE.source, "g");
 function isFinished(p) {
   if (!p || p.parts || p.mix || p.custom || p.nomp || isVirt(p)) return false;
-  if (["crops", "trees", "animal", "feed", "ext", "packs", "fish"].includes(p.cat)) return false;
+  if (["crops", "trees", "animal", "feed", "ext", "packs", "fish", "mine", "smelter", "dairy", "sugar-mill"].includes(p.cat)) return false;
   const n = norm(p.en);
   if (FIN_NOT.has(n) || FIN_NOT_RE.test(n) || WIKI_RAW.has(n)) return false;
-  if (p.cat === "mine") return /ring|bracelet|necklace|earring|brooch|crown|tiara|pendant|watch|cufflink/.test(n);
   return true;
 }
 const lvlCandidates = () => CAT.list.filter(p => p.en && !p.parts && !p.mix && !p.custom && !p.nomp && p.cat !== "ext" && p.cat !== "packs");
@@ -3431,12 +4070,9 @@ function loadLevels(onProg) {
 /** "level 30 to 110", "lvl 80+", "from level 80", "niveau 30 à 110", "up to lvl 20" → { lo, hi }; else null */
 /** "level 30 to 110", "lv 69 and lower", "80+", "under 50", "entre 30 et 60", "1-20, 50+", "pies level 30-60":
     one or more level ranges, and optionally words of a name or a group (pies, juices, crops…). */
-const LVL_CATW = { crop: "crops", crops: "crops", culture: "crops", cultures: "crops", tree: "trees", trees: "trees", bush: "trees", bushes: "trees", fruit: "trees", fruits: "trees", arbre: "trees", arbres: "trees",
-  animal: "animal", animals: "animal", bakery: "bakery", bread: "bakery", breads: "bakery", boulangerie: "bakery", dairy: "dairy", sugar: "dairy", laiterie: "dairy",
-  snack: "snack", snacks: "snack", bbq: "snack", barbecue: "snack", dish: "snack", dishes: "snack", meal: "snack", meals: "snack", plat: "snack", plats: "snack",
-  pie: "pies", pies: "pies", cake: "pies", cakes: "pies", tarte: "pies", tartes: "pies", gateau: "pies", gateaux: "pies", sweet: "sweets", sweets: "sweets", candy: "sweets", candies: "sweets", confiserie: "sweets",
-  drink: "drinks", drinks: "drinks", juice: "drinks", juices: "drinks", jus: "drinks", boisson: "drinks", boissons: "drinks", jam: "jams", jams: "jams", sauce: "jams", sauces: "jams", confiture: "jams", confitures: "jams",
-  textile: "textile", textiles: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", jewels: "mine", bijoux: "mine", fish: "fish", fishing: "fish", peche: "fish", feed: "feed" };
+/** words for a group of goods ("pies", "jus", "soupes"…) → the building(s) that make them */
+const LVL_CATW = { "crop": "crops", "crops": "crops", "culture": "crops", "cultures": "crops", "field": "crops", "fields": "crops", "tree": "trees", "trees": "trees", "bush": "trees", "bushes": "trees", "fruit": "trees", "fruits": "trees", "arbre": "trees", "arbres": "trees", "buisson": "trees", "buissons": "trees", "animal": "animal", "animals": "animal", "animaux": "animal", "feed": "feed", "feeds": "feed", "nourriture": "feed", "bakery": "bakery", "bread": "bakery", "breads": "bakery", "boulangerie": "bakery", "pain": "bakery", "pains": "bakery", "pizza": "bakery", "pizzas": "bakery", "muffin": "bakery", "muffins": "bakery", "cookie": "bakery", "cookies": "bakery", "dairy": "dairy", "laiterie": "dairy", "sugar": "sugar-mill", "sucre": "sugar-mill", "sucrerie": "sugar-mill", "popcorn": "popcorn-pot", "popcorns": "popcorn-pot", "bbq": "bbq-grill", "barbecue": "bbq-grill", "grill": "bbq-grill", "grilled": "bbq-grill", "pie": "pie-oven", "pies": "pie-oven", "tarte": "pie-oven", "tartes": "pie-oven", "cake": "cake-oven", "cakes": "cake-oven", "gateau": "cake-oven", "gateaux": "cake-oven", "loom": "loom", "sewing": "sewing-machine", "couture": "sewing-machine", "mine": "mine", "ore": "mine", "ores": "mine", "minerai": "mine", "minerais": "mine", "bars": "smelter", "lingots": "smelter", "smelter": "smelter", "fonderie": "smelter", "juice": "juice-press", "juices": "juice-press", "jus": "juice-press", "fish": "fish", "fishing": "fish", "peche": "fish", "lure": "fish", "lures": "fish", "leurre": "fish", "leurres": "fish", "ice": "ice-cream-maker", "glace": "ice-cream-maker", "glaces": "ice-cream-maker", "icecream": "ice-cream-maker", "icecreams": "ice-cream-maker", "sorbet": "ice-cream-maker", "sorbets": "ice-cream-maker", "doner": "doner-kebab-stand", "doners": "doner-kebab-stand", "kebab": "doner-kebab-stand", "kebabs": "doner-kebab-stand", "jam": "jam-maker", "jams": "jam-maker", "confiture": "jam-maker", "confitures": "jam-maker", "jewelry": "jeweler", "jewellery": "jeweler", "jewels": "jeweler", "bijoux": "jeweler", "jeweler": "jeweler", "honey": "honey-extractor", "miel": "honey-extractor", "coffee": "coffee-kiosk", "coffees": "coffee-kiosk", "cafe": "coffee-kiosk", "cafes": "coffee-kiosk", "latte": "coffee-kiosk", "soup": "soup-kitchen", "soups": "soup-kitchen", "soupe": "soup-kitchen", "soupes": "soup-kitchen", "candle": "candle-maker", "candles": "candle-maker", "bougie": "candle-maker", "bougies": "candle-maker", "flower": "flower-shop", "flowers": "flower-shop", "fleur": "flower-shop", "fleurs": "flower-shop", "bouquet": "flower-shop", "bouquets": "flower-shop", "candy": "candy-machine", "candies": "candy-machine", "sweets": "candy-machine", "bonbon": "candy-machine", "bonbons": "candy-machine", "sauce": "sauce-maker", "sauces": "sauce-maker", "dip": "sauce-maker", "dips": "sauce-maker", "sushi": "sushi-bar", "sushis": "sushi-bar", "salad": "salad-bar", "salads": "salad-bar", "salade": "salad-bar", "salades": "salad-bar", "sandwich": "sandwich-bar", "sandwiches": "sandwich-bar", "sandwichs": "sandwich-bar", "toast": "sandwich-bar", "toasts": "sandwich-bar", "smoothie": "smoothie-mixer", "smoothies": "smoothie-mixer", "essential": "essential-oils-lab", "wok": "wok-kitchen", "hat": "hat-maker", "hats": "hat-maker", "chapeau": "hat-maker", "chapeaux": "hat-maker", "pasta": "pasta-kitchen", "pastas": "pasta-kitchen", "pates": "pasta-kitchen", "hotdog": "hot-dog-stand", "hotdogs": "hot-dog-stand", "donut": "donut-maker", "donuts": "donut-maker", "beignet": "donut-maker", "beignets": "donut-maker", "taco": "taco-kitchen", "tacos": "taco-kitchen", "omelet": "omelet-station", "omelets": "omelet-station", "omelette": "omelet-station", "omelettes": "omelet-station", "tea": "tea-stand", "teas": "tea-stand", "the": "tea-stand", "fondue": "fondue-pot", "fondues": "fondue-pot", "soap": "bath-kiosk", "soaps": "bath-kiosk", "savon": "bath-kiosk", "savons": "bath-kiosk", "bath": "bath-kiosk", "fried": "deep-fryer", "fryer": "deep-fryer", "frit": "deep-fryer", "frits": "deep-fryer", "preserved": "preservation-station", "conserve": "preservation-station", "conserves": "preservation-station", "pottery": "pottery-studio", "poterie": "pottery-studio", "fudge": "fudge-shop", "fudges": "fudge-shop", "yogurt": "yogurt-maker", "yogurts": "yogurt-maker", "yaourt": "yogurt-maker", "yaourts": "yogurt-maker", "stew": "stew-pot", "stews": "stew-pot", "ragout": "stew-pot", "cupcake": "cupcake-maker", "cupcakes": "cupcake-maker", "perfume": "perfumerie", "perfumes": "perfumerie", "parfum": "perfumerie", "parfums": "perfumerie", "waffle": "waffle-maker", "waffles": "waffle-maker", "gaufre": "waffle-maker", "gaufres": "waffle-maker", "porridge": "porridge-bar", "porridges": "porridge-bar", "milkshake": "milkshake-bar", "milkshakes": "milkshake-bar", "tools": "ext", "materials": "ext", "outils": "ext", "materiaux": "ext", "clothes": ["loom", "sewing-machine"], "textile": ["loom", "sewing-machine"], "textiles": ["loom", "sewing-machine"], "vetements": ["loom", "sewing-machine"], "drinks": ["juice-press", "coffee-kiosk", "tea-stand", "smoothie-mixer", "milkshake-bar"], "drink": ["juice-press", "coffee-kiosk", "tea-stand", "smoothie-mixer", "milkshake-bar"], "boissons": ["juice-press", "coffee-kiosk", "tea-stand", "smoothie-mixer", "milkshake-bar"], "pastries": ["bakery", "cake-oven", "pie-oven"] };
+const catsOf = w => [].concat(LVL_CATW[w] || []);
 const LVL_FILL = new Set("level levels lvl lvls lv lev lvs niveau niveaux niv nv all every everything any the a an of at to i me my we want need give show add get list products product items item things thing stuff unlocked unlock unlocks unlocking les le la l des de du d tous tout toute toutes produits produit objets objet items debloques debloque debloquer au aux en for with please pls inclusive included inclus compris".split(" "));
 function lvlQuery(q) {
   let s = norm(q).replace(/≤|=</g, "<=").replace(/≥|=>/g, ">=").replace(/[–—−~→]|\.{2,}/g, "-").replace(/\bjusqu\w*/g, " upto ").replace(/\bjusque\b/g, " upto ");
@@ -3446,7 +4082,7 @@ function lvlQuery(q) {
   const fin = FIN_RE.test(s); if (fin) s = s.replace(FIN_RE_G, " ");
   const hasK = /\b(?:level|levels|lvl|lvls|lv|lev|niveau|niveaux|niv|nv)\b/.test(s);
   const nums = s.match(/\d{1,3}/g);
-  if (!nums) { if (!fin) return null; const nm = s.split(/[^a-z]+/).filter(w => w && !LVL_FILL.has(w)); return { ranges: [{ lo: 1, hi: 999 }], lo: 1, hi: 999, words: nm, cats: [...new Set(nm.map(w => LVL_CATW[w]).filter(Boolean))], name: nm.filter(w => !LVL_CATW[w]), fin: true }; }
+  if (!nums) { if (!fin) return null; const nm = s.split(/[^a-z]+/).filter(w => w && !LVL_FILL.has(w)); return { ranges: [{ lo: 1, hi: 999 }], lo: 1, hi: 999, words: nm, cats: [...new Set(nm.flatMap(catsOf))], name: nm.filter(w => !LVL_CATW[w]), fin: true }; }
   // without the word "level", only a pure range: "30-110", "80+", "<= 69", "69 and lower"
   const rest = s.replace(/\d{1,3}/g, " ").replace(/[-+<>=,;/&()]/g, " ").split(/\s+/).filter(Boolean);
   const OPW = /^(?:and|or|et|ou|up|upto|until|till|to|a|from|since|starting|start|starts|between|entre|de|des|depuis|partir|apres|after|before|avant|above|over|higher|more|plus|min|minimum|least|au|moins|less|lower|below|under|down|max|maximum|maxi|most|than|que|dessus|dessous|superieur|inferieur|superieurs|inferieurs|sup|inf|onwards|onward|upward|upwards|downward|downwards|beyond|lowest|highest|only|exactly|just|seulement|pile|y|compris)$/;
@@ -3477,11 +4113,11 @@ function lvlQuery(q) {
   ranges.sort((a, b) => a.lo - b.lo);
   const R = { ranges, lo: Math.min(...ranges.map(r => r.lo)), hi: Math.max(...ranges.map(r => r.hi)), words: names, fin };
   // a group ("pies", "jus") or the words of a name
-  R.cats = [...new Set(names.map(w => LVL_CATW[w]).filter(Boolean))];
+  R.cats = [...new Set(names.flatMap(catsOf))];
   R.name = names.filter(w => !LVL_CATW[w]);
   return R;
 }
-const LVL_CATN = { crops: "Crops", trees: "Fruits & trees", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy", snack: "BBQ & dishes", pies: "Pies & cakes", sweets: "Sweets", drinks: "Drinks & juices", jams: "Jams & sauces", textile: "Textile", mine: "Mine & jewelry", fish: "Fishing", feed: "Feed" };
+const LVL_CATN = CAT_EN;
 const lvlOne = r => r.hi >= 999 ? r.lo + "+" : r.lo === r.hi ? "" + r.lo : r.lo <= 1 ? "≤ " + r.hi : r.lo + "–" + r.hi;
 const lvlRangeTxt = R => (R.fin || FIN_ONLY ? "Finished products · " : "") + lvlRangeTxt0(R);
 const lvlRangeTxt0 = R => {
@@ -3510,10 +4146,11 @@ function renderLvlResults(R, box) {
     h("div", null, h("b", null, (R.fin || FIN_ONLY ? "Finished products · " : "") + (R.lo <= 1 && R.hi >= 999 && (R.ranges || [R]).length === 1 ? lvlRangeTxt0(R).replace(/all levels$/, "all levels") : "unlocked at " + lvlRangeTxt0(R)).replace(/^u/, m => R.fin || FIN_ONLY ? m : "U")), h("small", null, ready ? L.length + " products" + (L.length - add.length ? " · " + (L.length - add.length) + " already in the list" : "") : "Reading the levels from the Hay Day wiki… " + LVL_ST.done + " / " + (LVL_ST.total || "…"))),
     h("button", { class: "btn pri", disabled: !ready || !add.length, onclick: () => {
       const room = 150 - list.length, take = add.slice(0, Math.max(0, room));
-      take.forEach(p => { list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : null)); });
+      const like = st.type !== "trade" && list === st.wants ? [...list].reverse().find(x => x.pu === "xmp" && num(x.p) > 0) : null;
+      take.forEach(p => { list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : like ? { p: like.p, pu: "xmp" } : null)); });
       renderLists(); renderResults(); changed();
       toast("✓ " + take.length + " products added (" + lvlRangeTxt(R) + ")" + (take.length < add.length ? " · " + (add.length - take.length) + " left out: 150 items max per post" : ""));
-    } }, add.length ? "Add all " + add.length : "All added"));
+    } }, !ready ? "Loading…" : add.length ? "Add all " + add.length : L.length ? "All added" : "Nothing found"));
   box.append(head);
   if (!R.fin) box.append(h("div", { class: "lvlfin", style: "grid-column:1/-1" },
     h("button", { class: "chip" + (FIN_ONLY ? "" : " on"), onclick: () => { FIN_ONLY = false; store.set("hd5_fin", 0); renderResults(); } }, "All products"),
@@ -3531,10 +4168,22 @@ function renderLvlResults(R, box) {
 }
 
 /* drop-down results: open while searching, close with Done / Esc / tap outside */
-function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
+function openDrop() { if (!$("#sdrop").hidden) return; dropMode(); $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
 function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
 $("#q").addEventListener("focus", openDrop);
 $("#sdone").onclick = closeDrop;
+$("#cardMode").onclick = () => { SETTINGS.cardFull = !SETTINGS.cardFull; saveSettings(); renderLists(); };
+// tap a number (a price, a quantity): it's selected, so what you type replaces it — no need to erase first
+let lastTap = { t: null, at: 0 };
+document.addEventListener("pointerdown", e => { lastTap = { t: e.target, at: Date.now() }; }, true);
+document.addEventListener("focusin", e => {
+  const t = e.target;
+  if (!t || t.tagName !== "INPUT" || t.type === "search" || t.readOnly) return;
+  if (lastTap.t !== t || Date.now() - lastTap.at > 1000) return;          // only a tap: a refresh that puts the cursor back keeps it
+  if (!/^(?:numeric|decimal)$/.test(t.inputMode) && !/^(?:Price|Quantity|qty|Qty)/.test(t.getAttribute("aria-label") || t.placeholder || "")) return;
+  if (!t.value || !/^[\d.,\s×x]+$/i.test(t.value)) return;
+  setTimeout(() => { try { if (document.activeElement === t) t.select(); } catch (er) {} }, 0);
+});
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
@@ -3588,9 +4237,15 @@ function addFromCatalog(p) {
   const list = targetList(), ex = list.find(it => it.ref === p.id);
   if (ex) { flashItem(ex.uid); toast(p.en + " is already in the list"); return; }
   if (list.length >= 150) return toast("150 items max per post.");
-  list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : null)); pushRecent(p.id);
+  // selling / buying: a new item starts at the ×MP of the last item added (and, buying, its quantity) — one less thing to type
+  const like = st.type !== "trade" && list === st.wants && !p.nomp ? [...list].reverse().find(x => x.pu === "xmp" && num(x.p) > 0) : null;
+  const lastQ = st.type === "achat" && list === st.wants && list.length ? list[list.length - 1].q : "";
+  const nw = mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : like ? Object.assign({ p: like.p, pu: "xmp" }, lastQ ? { q: lastQ } : {}) : lastQ ? { q: lastQ } : null);
+  list.push(nw); pushRecent(p.id);
   renderLists(); renderResults(); changed();
-  toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : ""));
+  // the new item, shown under the add panel: its price is right there to change
+  if (dropSmall()) requestAnimationFrame(() => flashItem(nw.uid));
+  toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : like ? " at " + fmtR(num(like.p)) + "×MP, like the last one" : ""));
 }
 $("#freeAdd").onclick = () => {
   const it = mkItem(null, Object.assign({ name: $("#q").value.trim(), e: "📦" }, st.type === "trade" && targetList() === st.wants && st.addR ? addRF() : {}));
@@ -3609,11 +4264,29 @@ function renderSummary() {
   }
   $("#wantN").textContent = w.length ? w.length + (w.length > 1 ? " items" : " item") : "";
   $("#haveN").textContent = st.have.length ? st.have.length + (st.have.length > 1 ? " items" : " item") : "";
+  ftotPaint();
 }
+/* deep in a long list: a slim bar above the tabs keeps the count and the total in view (tap it: back to the top) */
+let ftotOut = false;
+function ftotPaint() {
+  const bar = $("#ftot"); if (!bar) return;
+  const w = st.wants.filter(x => (x.name || "").trim() || x.ref);
+  const show = ftotOut && document.body.dataset.tab === "items" && w.length >= 4 && innerWidth < 1000;
+  bar.hidden = !show; if (!show) return;
+  const L = $("#ftotL"); L.textContent = "";
+  L.append(h("b", null, plural(w.length, "item")));
+  if (st.type !== "trade") { const T = totals(); if (T.tot) L.append(" · ", h("i", { class: "coin" }), fmt(Math.round(T.tot))); }
+}
+$("#ftotL").onclick = () => { const e = $("#wantH"); if (e) e.scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("#ftotP").onclick = () => tab("prev");
+addEventListener("scroll", () => { const e = $("#wantH"); if (!e) return; const out = e.getBoundingClientRect().bottom < 60; if (out !== ftotOut) { ftotOut = out; ftotPaint(); } }, { passive: true });
 
 /* ---------- item cards ---------- */
+/* the post's cards: small (default — twice as many on the screen) or detailed */
+const cardsSmall = () => !SETTINGS.cardFull;
 function renderLists() {
   if (typeof renderImpNote === "function") renderImpNote();
+  $("#cardMode").hidden = true;
   const trade = st.type === "trade";
   $("#haveBox").hidden = !trade;
   $("#wantH").textContent = TYPES[st.type].list; $("#wantI").textContent = TYPES[st.type].li;
@@ -3627,8 +4300,23 @@ function renderLists() {
     ratioGroups(st.wants).forEach(g => wl.append(groupCard(g)));
     wl.append(h("button", { class: "btn dashed newgrp", onclick: () => newRatioSheet() }, "+ New ratio group"));
     markTargetGroup();
-  } else { if (st.wants.length > 1) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
-  if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
+  } else {
+    const mode = h("button", { type: "button", class: "cmode", title: "Small cards / detailed cards", onclick: () => { SETTINGS.cardFull = !SETTINGS.cardFull; saveSettings(); renderLists(); } }, cardsSmall() ? "▤ Detailed" : "☰ Small");
+    if (st.wants.length > 1) wl.append(spOpen ? samePriceBar() : h("div", { class: "lbar" }, samePriceBar(), mode));
+    else if (st.wants.length) wl.append(h("div", { class: "lbar" }, h("span"), mode));
+    st.wants.forEach(it => wl.append(itemCard(it)));
+  }
+  // an empty post: the quickest ways to fill it
+  if (!st.wants.length) {
+    const q = (t, f) => { $("#q").value = t; $("#q").focus(); openDrop(); f && f(); resLimit = baseLimit(); renderResults(); };
+    wl.prepend(h("div", { class: "empty card starts" }, h("b", null, "Fill this post"),
+      h("div", { class: "startb" },
+        h("button", { class: "btn", onclick: () => q("") }, "🔍 Search an item"),
+        h("button", { class: "btn", onclick: () => { $("#q").focus(); openDrop(); setSrc("inv"); } }, "📦 From my barn"),
+        h("button", { class: "btn", onclick: () => q("level 1 to 30") }, "🔢 By level"),
+        h("button", { class: "btn", onclick: () => tab("imp") }, "📥 Import a post")),
+      h("small", null, "Import: a screenshot of a post (yours or another seller's) or its text — the items, quantities and prices come in at once.")));
+  }
   if (st.wants.length > 1) wl.append(clearAllBtn());
   $("#lfilter").hidden = st.wants.length + st.have.length < 7;
   if ($("#lfilter").hidden) $("#lf").value = ""; else applyListFilter();
@@ -3648,7 +4336,7 @@ function clearAllBtn() {
    (trade posts: "all jams 45:89"). Checked before anything changes; later lines win; Undo. ---------- */
 let spOpen = false, spUndo = null;
 const SP_MAX_LINES = 60, SP_MAX_LEN = 3000;
-const SP_CATS = { bakery: "bakery", breads: "bakery", dairy: "dairy", sugar: "dairy", grill: "snack", meals: "snack", snacks: "snack", sweets: "sweets", candies: "sweets", drinks: "drinks", textiles: "textile", textile: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", fishing: "fish", fish: "fish", feed: "feed", crops: "crops", trees: "trees", fruits: "trees", animal: "animal", "animal goods": "animal", tools: "ext", materials: "ext" };
+const SP_CATS = { "animal goods": "animal", meals: "bbq-grill", grill: "bbq-grill", snacks: "bbq-grill", breads: "bakery" };
 const SP_FILL = /^(?:all|every|everything|the|my|your|of|each|ea|items?|products?|stuff|things|goods|foods?|kinds?|types?|any|mixed?|mix)$/;
 /** The price at the end (or start) of a rule → { p, pu, rest } — trade: a ratio "45:89" → { rb: 45 (you get), ra: 89 (you give) }. */
 function spPrice(line, trade) {
@@ -3683,8 +4371,8 @@ function spTarget(name, items) {
   if (exact.length && !(all && wd.length > exact.length)) return { items: exact, how: "this item" };
   const fam = orderFamily(n) || orderFamily(c);
   if (fam) { const f = withMix(new Set(fam.map(p => p.id))); if (f.length) return { items: f, how: "family" }; }
-  const cat = SP_CATS[c] || SP_CATS[core[0]];
-  if (cat && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && CAT.byId[w.ref].cat === cat), how: "category" };
+  const sp = SP_CATS[c] || SP_CATS[core[0]], cats = sp ? [sp] : catsOf(c).length ? catsOf(c) : catsOf(core[0]);
+  if (cats.length && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && cats.includes(CAT.byId[w.ref].cat)), how: "category" };
   // a word they share: "mussel" → Mussel Nigiri, Grilled Mussels, Steamed Mussels…
   if (wd.length >= 2) return { items: wd, how: "named “" + c + "”" };
   const r = findMatches(c, items, w => pName(w), 1);
@@ -3938,15 +4626,20 @@ function itemCard(it) {
       noteArea(it, "Note (optional)"));
     return card;
   }
-  const val = h("div", { class: "val" });
+  const val = h("div", { class: "val" }), cmp = cardsSmall();
   // xMP (read-only, fixed game price): "Max price 87 · 5×MP = 435 each"
   const mp = h("div", { class: "mpline" });
   const upd = () => {
     const v = itemValue(it), src = maxSource(it); val.textContent = ""; val.classList.toggle("zero", !v);
-    if (v) val.append(h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), ...convEls(v));
-    else if (it.pu === "xmp" && num(it.p) && !itemMax(it)) val.append(!it.ref ? "×MP needs a game item" : src === "loading" ? "loading…" : "max price not available");
+    if (v) val.append(...(cmp ? [fmt(v), h("i", { class: "coin" })] : [h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), ...convEls(v)]));
+    else if (it.pu === "xmp" && num(it.p) && !itemMax(it)) val.append(!it.ref ? "×MP needs a game item" : src === "loading" ? "loading…" : "no max price");
     mp.hidden = it.pu !== "xmp"; mp.textContent = "";
-    if (it.pu === "xmp") {
+    if (it.pu === "xmp" && cmp) {
+      // small card: "MP 87 · 435 ea" under the name
+      const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
+      mp.append("MP ", auto ? fmtP(auto) : src === "loading" ? "…" : "—");
+      if (m && num(it.p)) mp.append(" · ", h("b", null, fmtP(num(it.p) * m) + " ea"));
+    } else if (it.pu === "xmp") {
       const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
       mp.title = { wiki: "Game max price (wiki)", table: "Game max price", "its 89 materials": "A set = 89 materials (30 / 30 / 29): the sum of their max prices" }[src] || "";
       mp.append("Max price", h("i", { class: "coin" }), auto ? fmtP(auto) : src === "loading" ? "…" : "—");
@@ -3960,6 +4653,18 @@ function itemCard(it) {
     const m = p.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i) || p.value.match(/^\s*(?:x|×)\s*(\d+(?:[.,]\d+)?)\s*$/i);
     if (m) { it.pu = "xmp"; it.p = m[1]; p.value = m[1]; ub.repaint(); } else it.p = p.value;
     upd(); changed(); } });
+  if (cmp) {
+    // small card: [picture] name + max price · value · ⋯ · ×  /  price × quantity  (the note only when there is one)
+    card.classList.add("cmp");
+    const head = card.firstChild, nm = head.querySelector(".name");
+    if (nm) { const col = h("div", { class: "icol" }); nm.before(col); col.append(nm, mp); const oo = head.querySelector(".oostag"); if (oo) col.append(oo); }
+    const more = [...head.querySelectorAll(".ib")].find(b => b.getAttribute("aria-label") === "More actions");
+    head.insertBefore(val, more || null);
+    card.append(h("div", { class: "i2" }, h("div", { class: "box" }, p, ub), h("span", { class: "x", "aria-hidden": "true" }, "×"), stepper(it, upd)));
+    if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); card.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const b = n.querySelector("button"); b && b.click(); }); } }
+    upd();
+    return card;
+  }
   card.append(h("div", { class: "i2" }, h("div", { class: "box" }, p, ub), h("span", { class: "x", "aria-hidden": "true" }, "×"), stepper(it, upd)), mp,
     h("div", { class: "i3" }, noteArea(it, "Note (optional)"), val));
   upd();
@@ -3973,7 +4678,9 @@ function itemMenu(it, list) {
     h("div", { class: "menu" },
       h("button", { onclick: () => { closeSheet(); setTimeout(() => pickItemSheet(it), 220); } }, h("i", null, "⇆"), it.ref ? "Change the item" : "Pick the game item"),
       st.type === "trade" && list === st.wants ? h("button", { onclick: () => { closeSheet(); setTimeout(() => newRatioSheet(it), 220); } }, h("i", null, ":"), "Change ratio") : null,
-      st.type === "trade" && list === st.wants && !(it.note || "").trim() ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
+      list === st.wants && !(it.note || "").trim() && (st.type === "trade" || cardsSmall()) ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
+      list === st.wants ? h("button", { onclick: act(() => { it.hot = it.hot ? 0 : 1; }) }, h("i", null, "★"), it.hot ? "Don't highlight it any more" : "Highlight it on the picture") : null,
+      list === st.wants && st.type !== "trade" && num(it.p) > 0 && st.wants.length > 1 ? h("button", { onclick: () => { const n = st.wants.length - 1; undoHint("Same price for all"); st.wants.forEach(w => { if (w !== it && !(it.pu === "xmp" && !w.ref)) { w.p = it.p; w.pu = it.pu; } }); closeSheet(); renderLists(); changed(); toastUndo("Every item at " + (it.pu === "xmp" ? fmtR(num(it.p)) + "×MP" : priceLabel(it).split(" · ")[0])); } }, h("i", null, "＝"), "Same price for every item (" + (it.pu === "xmp" ? fmtR(num(it.p)) + "×MP" : priceLabel(it).split(" · ")[0]) + ")") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i - 1, 0, it); }) }, h("i", null, "↑"), "Move up") : null,
       i < list.length - 1 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i + 1, 0, it); }) }, h("i", null, "↓"), "Move down") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.unshift(it); }) }, h("i", null, "⤒"), "Move to top") : null,
@@ -4047,7 +4754,8 @@ function renderCustom() {
     h("p", { class: "hint" }, "Changes show right away in Preview. “Auto” columns keep the picture about twice as tall as wide, the size Discord shows best.")].filter(Boolean));
 }
 function renderStyle() {
-  $$("[data-k]").forEach(i => { i.value = st[i.dataset.k] || ""; i.oninput = () => { st[i.dataset.k] = i.value; if (i.dataset.k === "name") renderProfiles(); changed(); }; });
+  // the same text can be in two places (Style and under the picture): both follow
+  $$("[data-k]").forEach(i => { if (document.activeElement !== i) i.value = st[i.dataset.k] || ""; i.oninput = () => { st[i.dataset.k] = i.value; $$('[data-k="' + i.dataset.k + '"]').forEach(o => { if (o !== i) o.value = i.value; }); if (i.dataset.k === "name") renderProfiles(); changed(); }; });
   $$("#typeSeg button").forEach(b => { b.classList.toggle("on", b.dataset.y === st.type); b.onclick = () => { st.type = b.dataset.y; renderAll(); changed(); }; });
   const th = $("#themes"); th.textContent = "";
   Object.entries(THEMES).forEach(([k, T]) => th.append(h("button", { class: "theme" + (st.theme === k ? " on" : ""), onclick: () => { st.theme = k; renderStyle(); changed(); } }, h("i", { style: `background:${T.paper};--a:${T.acc};--k:${T.ink}` }), T.name)));
@@ -4056,8 +4764,10 @@ function renderStyle() {
   renderCustom();
   $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === sortKey()); b.onclick = () => { st.sort = b.dataset.s; st.sortV = 1; renderStyle(); changed(); }; });
   $("#haveTitleF").hidden = st.type !== "trade";
+  // Paper and Layout are for the Classic look only (the New look has its colours and sort above the picture)
+  $("#themes").closest(".card").hidden = !st.betaOff; $("#layouts").closest(".card").hidden = !st.betaOff;
 }
-$("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Profile duplicated"); };
+$("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Post duplicated"); };
 let delArm = 0;
 $("#delP").onclick = function () {
   if (STATE.list.length < 2) return toast("Keep at least one profile.");
@@ -4349,7 +5059,20 @@ function matchInfo(qt, name, mode) {
   return { sc: score - miss * 1.6 + (used.size === pt.length ? 2 : 0) - (pt.length - used.size) * .6, miss, typo };
 }
 const matchScore = (qt, name, mode) => matchInfo(qt, name, mode).sc;
+/* the same name against the same list gives the same answer: kept, so a long order re-renders fast (typing a price stays smooth) */
+const FM_CACHE = new Map();
 function findMatches(name, pool, label, mode) {
+  const pk = pool === CAT.list ? "C" + CAT.list.length : "P" + pool.length + ":" + pool.map(x => (x.uid || x.id) + "=" + label(x)).join("|");
+  const key = (mode || 0) + "\u0001" + name + "\u0001" + pk;
+  const hit = FM_CACHE.get(key); if (hit && hit.pool === pool.length && hit.ok(pool)) return hit.r.slice();
+  if (FM_CACHE.size > 3000) FM_CACHE.clear();
+  const r = findMatches0(name, pool, label, mode);
+  // the objects of the list can change (a new post): the cached result is used only when they're the same ones
+  const objs = new Set(r.map(m => m.x));
+  FM_CACHE.set(key, { r, pool: pool.length, ok: P => [...objs].every(o => P.includes(o)) });
+  return r.slice();
+}
+function findMatches0(name, pool, label, mode) {
   const al = ALIASES[slug(name)] || ALIASES[slug(name).replace(/s$/, "")];
   const qt = toks(name);
   return pool.map(x => { const nm = label(x), id = x.ref || x.id, I = matchInfo(qt, nm, mode); let sc = I.sc; if (al && id === al) sc = Math.max(sc, 50); if (slug(nm) === slug(name)) sc = 100; return { x, sc, miss: sc >= 50 ? 0 : I.miss, typo: sc >= 50 ? 0 : I.typo }; })
@@ -4905,9 +5628,12 @@ function renderOrder(force) {
   ORDER.mpWait = mpWait;
   if (mpWait) tot.append(h("p", { class: "owarn" }, "⏳ Max prices are still loading from the wiki — the total updates by itself in a moment. Wait before copying."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
+  tot.append(h("button", { class: "btn full opicb", onclick: openOrderPic }, "🖼️ Picture of this order"));
   if (trade) { const H = tradeSteps(rows); if (H) tot.append(H); }
   out.append(tot);
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
+  if (OM() === "pick") renderPick();
+  orderBadge();
   // keep typing in the deal-price box after the refresh
   if (ORDER.editFocus != null) { const e = out.querySelector(`[data-edit="${ORDER.editFocus}"]`); ORDER.editFocus = null; if (e) { e.focus(); const n = e.value.length; try { e.setSelectionRange(n, n); } catch (er) {} } }
 }
@@ -5070,7 +5796,10 @@ const orderTyping = () => { const a = document.activeElement, o = $("#orderOut")
 const renderOrderSoon = debounce(() => { if (orderTyping()) { ORDER.pend = true; return; } renderOrder(); }, 250);
 $("#orderOut").addEventListener("focusout", () => { if (!ORDER.pend) return; setTimeout(() => { if (!ORDER.pend || orderTyping()) return; ORDER.pend = false; renderOrder(); }, 320); });
 // a tap on a button right after typing: the order is brought up to date first, so the button works on the new quantities
-document.addEventListener("click", () => { if (ORDER.pend && !orderTyping()) { ORDER.pend = false; renderOrder(); } }, true);
+// a tap after typing in a line: refresh — but after the tapped button has done its job (refreshing first would hand it an old line)
+document.addEventListener("click", e => { if (!ORDER.pend) return; const inOut = $("#orderOut") && $("#orderOut").contains(e.target);
+  const go = () => { if (ORDER.pend && !orderTyping()) { ORDER.pend = false; renderOrder(); } };
+  if (inOut) setTimeout(go, 0); else go(); }, true);
 $("#orderOut").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.tagName === "INPUT" && !e.target.closest(".obar")) e.target.blur(); });
 /* ---------- edit the order in one tap (the order box is rewritten, one item per line) ---------- */
 const cleanLine = s => String(s).replace(/[;|•·\r\n]/g, " ").replace(/\s+/g, " ").trim();
@@ -5159,7 +5888,136 @@ addEventListener("pagehide", () => { if (odT) orderDraftSave(); });
 document.addEventListener("visibilitychange", () => { if (document.hidden && odT) orderDraftSave(); });
 $("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderShot").onclick = () => $("#orderFile").click();
-$("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f, "order"); };
+$("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) orderPicture(f); };
+/** Order from any picture: a post picture (tiles with a quantity and a price), a screenshot of a message or a list
+    → one line per item ("32 Caramel Apple @ 5xmp"). A barn / silo screenshot or a video → the barn reader. */
+async function orderPicture(files) {
+  if (files.some(isVideo)) return scanFiles(files, "order");
+  scanWhere = "order"; scanPut("order", { busy: true, msg: "Reading the picture…" }); renderOrderScan();
+  const say = m => { if (SCN.stop) throw new Error("stopped"); updScan(m); };
+  let got = null;
+  try {
+    const pool = await scanPool((d, t) => say("Loading the game pictures… " + d + " / " + t + (d < t ? " (the first time only)" : "")));
+    let lines = [], tiles = [], picNotes = [];
+    for (const [k, f] of files.entries()) {
+      const r = await impReadImage(await loadFileImg(f), pool, m => say((files.length > 1 ? "Picture " + (k + 1) + ": " : "") + m));
+      lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes);
+    }
+    const R = impParse(lines, tiles, picNotes, ""), posts = impPosts(R);
+    let its = posts.flatMap(p => p.wants || []); if (!its.length) its = posts.flatMap(p => (p.have || []).filter(x => x.ref));
+    its = its.filter(w => (w.ref || (w.name || "").trim()) && num(w.q) > 0);
+    if (its.some(w => w.ref)) got = { its, nTiles: tiles.length };
+  } catch (e) { if ((e && e.message) === "stopped") { SCN.stop = false; scanPut("order", null); renderOrderScan(); return; } }
+  // nothing read as a post or a list: it's their barn / silo
+  if (!got) { scanPut("order", null); return scanFiles(files, "order"); }
+  const nm = w => w.ref && CAT.byId[w.ref] ? CAT.byId[w.ref].en : (w.name || "").trim() || String(w.ref || "").replace(/-/g, " ");
+  const pr = w => num(w.p) > 0 ? " @ " + (w.pu === "xmp" ? fmtR(num(w.p)) + "xmp" : String(Math.round(num(w.p)))) : "";
+  const known = got.its.filter(w => w.ref), unk = got.its.length - known.length;
+  const txt = known.map(w => String(Math.round(num(w.q))) + " " + nm(w) + pr(w)).join("\n");
+  const cur = ($("#orderIn").value || "").trim(), all = cur ? cur + "\n" + txt : txt;
+  $("#orderIn").value = all; ORDER.text = all; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false;
+  scanPut("order", null); renderOrderScan(); orderDraftSoon(); renderOrder(true);
+  toast(plural(known.length, "item") + " read from the picture" + (unk ? " · " + unk + " not recognised" : "") + (cur ? " (added below your text)" : ""));
+}
+/* ---------- the order as a picture, like your post: its items with the quantities ordered, the total items and the total price ---------- */
+function orderPicPost() {
+  const trade = st.type === "trade", items = [], give = new Map(); let units = 0;
+  (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).forEach((L, i) => {
+    const w = L.r.w, n = Math.round(trade ? (L._auto === 1 ? num(w.q) : num(L.q)) : (L.r.qq != null ? L.r.qq : num(L.q)));
+    if (!(n > 0)) return;
+    const R = L.r.ratio, base = trade ? Object.assign({}, w, R ? { ra: String(R.a), rb: String(R.b) } : {}) : dealItem(w, L);
+    items.push(Object.assign({}, base, { uid: "ord" + i + "-" + w.uid, q: String(n), oos: 0, hot: 0 }));
+    units += n;
+    if (trade && R && R.g) { const k = giveName(R.g); give.set(k, (give.get(k) || 0) + R.give); }
+  });
+  if (!items.length) return null;
+  const who = (ORDER.who || "").trim(), tot = ORDER.total || 0;
+  return Object.assign({}, st, {
+    wants: items, have: [], title: "Order · " + fmt(units) + (units > 1 ? " items" : " item"), kicker: who ? "For " + who : "",
+    cta: trade && give.size ? "You get " + [...give].map(([k, v]) => fmtR(Math.round(v * 100) / 100) + " " + k).join(" + ") : "", sub: "", betaOff: false, showTotal: true, bulk: [], disc: 0,
+    details: "",
+    _tot: trade ? null : { sub: ORDER.useD && ORDER.sub ? ORDER.sub : tot, disc: ORDER.useD ? num(ORDER.d) : 0, tot, rings: tot / RING_RATE, blankets: tot / BLANKET_RATE }
+  });
+}
+/** Draws it on the post's canvas for a moment (then the post is drawn back) and keeps the picture. */
+function orderPicURL() {
+  const S = orderPicPost(); if (!S) return null;
+  const S0 = st; let url = null;
+  st = S; try { drawBeta(); url = cv.toDataURL("image/png"); } finally { st = S0; try { draw(); } catch (e) {} }
+  return url;
+}
+const urlBlob = u => fetch(u).then(r => r.blob());
+function openOrderPic() {
+  let url = orderPicURL(); if (!url) return toast("No item in this order yet");
+  const img = h("img", { class: "opicimg", src: url, alt: "Picture of the order" });
+  // a picture still loading: drawn again a moment later
+  setTimeout(() => { const u2 = orderPicURL(); if (u2 && u2 !== url) { url = u2; img.src = u2; } }, 700);
+  const name = () => (slug("order " + (ORDER.who || st.name || "")) || "order") + ".png";
+  openSheet("Picture of this order", [img,
+    h("div", { class: "three", style: "margin-top:10px" },
+      h("button", { class: "btn pri", onclick: async () => { try { if (!window.ClipboardItem) throw 0; await navigator.clipboard.write([new ClipboardItem({ "image/png": urlBlob(url) })]); toast("Copied — paste it in Discord ✔"); } catch (e) { toast("Copy isn’t supported here: use Share or Save."); } } }, "Copy"),
+      h("button", { class: "btn", onclick: async () => { try { const f = new File([await urlBlob(url)], name(), { type: "image/png" }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); else { saveBlob(f, name()); toast("Sharing unavailable: image downloaded"); } } catch (e) { if (!e || e.name !== "AbortError") toast("Couldn’t share"); } } }, "Share"),
+      h("button", { class: "btn", onclick: async () => { saveBlob(await urlBlob(url), name()); toast("Image downloaded ✔"); } }, "Save")),
+    h("p", { class: "hint" }, "Your post's look and colours, with the quantities of this order" + (st.type === "trade" ? " and what they get." : ", the total items and the total price."))]);
+}
+/* ---------- Order · tap my items: pick the items of your post by hand, no message needed ----------
+   Each tap writes a line in the order ("Apple Pie x20"), so the totals, the stock, the reply and the picture work as usual.
+   Tap again to take it out; change a quantity in the lines below. */
+const OM = () => SETTINGS.omode === "pick" ? "pick" : "text";
+const PK = { f: "" };
+function setOMode(m) {
+  SETTINGS.omode = m; saveSettings();
+  $$("#oModeSeg button").forEach(b => b.classList.toggle("on", b.dataset.om === m));
+  $("#oText").hidden = m === "pick"; $("#oPick").hidden = m !== "pick";
+  if (m === "pick") renderPick();
+}
+$$("#oModeSeg button").forEach(b => b.onclick = () => setOMode(b.dataset.om));
+/** The lines of the order for one item of your post. */
+const pickLines = w => (ORDER.lines || []).filter(L => L.r && L.r.w === w && !L.r.ignored);
+const pickQ = w => pickLines(w).reduce((a, L) => a + (L._auto === 1 ? num(w.q) || 0 : Math.round(num(L.q)) || 0), 0);
+/** Set the quantity of one item in the order ("all" = all in your post, 0 = out of the order). */
+function pickSet(w, q) {
+  const Ls = ORDER.lines || [], mine = pickLines(w), all = q === "all";
+  let lines;
+  if (!all && !(q > 0)) lines = Ls.filter(L => !mine.includes(L));
+  else if (mine.length) lines = Ls.filter(L => !mine.slice(1).includes(L)).map(L => L === mine[0] ? tie(L, all ? { raw: lineRaw(L), q: 1, qEdit: 0, qGuess: true } : { raw: lineRaw(L, q), q, qEdit: 1, qGuess: false }) : L);
+  else lines = Ls.concat([all ? { raw: cleanLine(pName(w)), name: pName(w), q: 1, qGuess: true, pick: w.uid } : { raw: cleanLine(pName(w)) + " x" + q, name: pName(w), q, qEdit: 1, pick: w.uid }]);
+  orderSet(lines); orderDraftSoon();
+}
+function renderPick() {
+  const box = $("#oPick"); if (!box || box.hidden) return;
+  // typing in the picker: don't rebuild it under your finger
+  if (box.contains(document.activeElement) && /^(?:INPUT)$/.test(document.activeElement.tagName)) { pickSum(); return; }
+  box.textContent = "";
+  const items = postItems();
+  if (!items.length) { box.append(h("p", { class: "hint" }, "Your post has no items yet — add some in Items.")); return; }
+  const dq = h("input", { class: "inp", value: SETTINGS.pickQ || "", inputMode: "numeric", placeholder: "all", "aria-label": "Quantity of each tap", oninput: () => { SETTINGS.pickQ = dq.value.replace(/[^\d]/g, ""); saveSettings(); } });
+  const fi = h("input", { class: "inp", type: "search", value: PK.f, placeholder: "Find in my post…", "aria-label": "Find in my post", oninput: () => { PK.f = fi.value; pickFilter(); } });
+  box.append(h("div", { class: "pkbar" },
+    h("label", { class: "pkq" }, h("span", null, "Each tap"), dq, h("small", null, "empty = all")),
+    fi));
+  const grid = h("div", { class: "pkgrid" });
+  items.forEach(w => {
+    const q = pickQ(w), on = pickLines(w).length > 0, trade = st.type === "trade";
+    const sub = trade ? (num(w.rb) ? ratioLabel(w.ra, w.rb) : "") : num(w.p) ? (w.pu === "xmp" ? fmtR(num(w.p)) + "×MP" : fmtP(unitPrice(w)) + " ea") : "";
+    const t = h("button", { class: "tile pk" + (on ? " on" : "") + (w.oos ? " oos" : ""), "data-k": norm(pName(w)), title: pName(w), onclick: () => {
+      if (on) pickSet(w, 0);
+      else { const d = Math.round(num(SETTINGS.pickQ)); pickSet(w, d > 0 ? d : "all"); }
+    } }, thumb(itemState(w), w.e), h("b", null, pName(w)), sub ? h("small", null, sub) : null,
+      num(w.q) ? h("i", { class: "pkst" }, fmt(num(w.q))) : null,
+      on ? h("span", { class: "pkn" }, "×" + fmt(q)) : null);
+    grid.append(t);
+  });
+  box.append(grid, h("div", { class: "pksum", id: "pkSum" }));
+  pickFilter(); pickSum();
+}
+setTimeout(() => setOMode(OM()), 0);
+function pickFilter() { const f = norm(PK.f || ""); $$("#oPick .tile.pk").forEach(t => { t.hidden = !!f && !t.dataset.k.includes(f); }); }
+function pickSum() {
+  const el = $("#pkSum"); if (!el) return;
+  const n = (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).length;
+  el.textContent = n ? plural(n, "item") + " picked — set the quantities in the lines below" + (st.type !== "trade" && ORDER.total ? " · total " + fmt(Math.round(ORDER.total)) : "") : "Tap the items they want. Tap again to take one out.";
+}
 $("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
 
 /* =====================================================================
@@ -6010,7 +6868,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "22 Nov 2026 · 10:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "25 Nov 2026 · 23:00";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -7459,6 +8317,8 @@ const DTYPE = { trade: { t: "Trade", i: "🔁" }, vente: { t: "Sale", i: "💰" 
 const openDeals = () => DEALS.filter(d => d.status === "open");
 const dayKey = t => { const d = new Date(t); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
 const doneToday = d => !!(d.daily && d.daily.log.some(x => dayKey(x.t) === dayKey(Date.now())));
+/** The Order tab shows how many items the order in progress has (you see it from Items). */
+function orderBadge() { const b = $("#tabbar [data-t=order]"); if (!b) return; let i = b.querySelector(".tbdg"); const n = (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).length; if (!i) { i = h("b", { class: "tbdg" }); b.append(i); } i.textContent = n || ""; i.hidden = !n; }
 function dealBadge() { const b = $("#tabbar [data-t=deals]"); if (!b) return; let i = b.querySelector(".tbdg"); const n = openDeals().length; if (!i) { i = h("b", { class: "tbdg" }); b.append(i); } i.textContent = n || ""; i.hidden = !n; }
 /** What you hand over in one delivery (or one day): sold items, items given in a trade. */
 // amounts in what the inventory counts: materials for a set (a sale of "BEM Set ×2" = 178)
@@ -8724,7 +9584,7 @@ function impListPost(lines) {
   // does a rule's words name this item? "juice" → every juice; "pies" → the pies group; "chocolate" → the chocolate ones
   const vars = w => [w, w.replace(/s$/, ""), w.replace(/es$/, ""), w.replace(/ies$/, "y")];
   const same1 = (a, b) => vars(a).some(x => vars(b).includes(x));
-  const hits = (p, words) => words.length && words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)) || (typeof LVL_CATW !== "undefined" && LVL_CATW[w] && LVL_CATW[w] === p.cat));
+  const hits = (p, words) => words.length && words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)) || (typeof LVL_CATW !== "undefined" && catsOf(w).includes(p.cat)));
   // "pies 6x": the items named "… pie" if there are any, else the whole group (pies & cakes)
   const byName = (p, words) => words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)));
   const allP = items.filter(Boolean).flat().map(x => x.p);
