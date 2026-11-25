@@ -123,6 +123,8 @@ body[data-tab=prev] #editor{display:none}
 .tile:active{background:var(--surface2)}
 .tile .th{width:56px;height:56px;font-size:34px}
 .tile b{font:600 12px/1.15 -apple-system,system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .lv{font:700 11px var(--sans);color:var(--mut)}
+.lvlhead{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 12px;border:1px solid var(--line2);border-radius:12px}.lvlhead>div{display:grid;gap:2px;min-width:0}.lvlhead small{color:var(--mut)}.lvlhead .btn{flex:none}
 .tile .in{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:10px;font-weight:700;display:grid;place-items:center}
 .th{display:grid;place-items:center;line-height:1;overflow:hidden}
 .th img{width:100%;height:100%;object-fit:contain}
@@ -1056,6 +1058,54 @@ details summary{-webkit-tap-highlight-color:transparent}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .betabar{display:grid;gap:8px;margin-bottom:10px}.betabar .seg{display:flex;flex-wrap:wrap;gap:6px}.betabar .seg button{flex:1;min-width:0;padding:9px 10px;border-radius:999px;border:1px solid var(--line2);background:none;color:var(--ink);font:700 14px var(--sans)}.betabar .seg button.on{background:var(--ink);color:var(--bg)}
 .betatag{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#e0533a;color:#fff;font:800 12px var(--sans);vertical-align:middle}
+.mever{margin:6px 4px 2px;color:var(--mut);font-size:12px;text-align:center}
+.impchk{grid-column:1/-1;font-size:13px;font-weight:700;color:#c0392b;padding:6px 0 0}.impchk.ok{color:#2f8f46}
+.omsg{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 0;padding:7px 10px;border-radius:10px;background:#fff3dc;color:#8a5a00;font-size:13px;line-height:1.3}.omsg b{color:#6b4300}.omsg.ok{background:#e8f5ea;color:#2f6b3a}.omsg.ok b{color:#1f5a2b}.omsg.xtra{background:#eef3ff;color:#34508a}.omsg.xtra b{color:#22396b}.omsg.off{background:var(--soft,#f3efe7);color:var(--mut)}.omsg .btn{flex:none}
+.lvltip{font-size:12.5px;color:var(--mut);padding:0 4px 4px;line-height:1.35}
+.lvlfin{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 2px 2px}.lvlfin small{flex-basis:100%;color:var(--mut);font-size:12px}
+.oxadd{display:block;margin-top:5px;border:1px dashed var(--acc);background:transparent;color:var(--acc);font:inherit;font-weight:700;font-size:12.5px;border-radius:8px;padding:4px 8px;cursor:pointer;white-space:normal;text-align:left}.oxtag{border:0;background:#fff0d6;color:#9a5b00;font:inherit;font-size:11.5px;font-weight:800;border-radius:6px;padding:1px 6px;cursor:pointer}
+/* add panel, small: one row of items to swipe — the post stays visible under it */
+.srcrow .sic{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 16px/1 var(--sans);display:grid;place-items:center;padding:0}
+.srcrow .sic.ok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.srcrow{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px}
+.srcrow .lbl{display:none}
+.sdrop.compact .srcrow{grid-template-columns:minmax(0,1fr) auto auto auto;margin-bottom:8px;gap:6px}
+.sdrop.compact .srcrow .lbl{display:none}
+.sdrop.compact #sdone{display:none}
+.sdrop.compact #catPick>.two{display:none}
+.sdrop.compact #catPick>.filebtn{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;margin:0!important;padding:0;border:0}
+.sdrop:not(.compact) .srcrow .cam{display:none}
+.sdrop.compact .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
+.sdrop.compact .chips::-webkit-scrollbar{display:none}
+.sdrop.compact .chips>*{flex:none}
+.sdrop.compact #results:not(.lvlmode){display:flex;overflow-x:auto;gap:8px;margin-top:8px;padding-bottom:4px;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
+.sdrop.compact #results:not(.lvlmode)::-webkit-scrollbar{display:none}
+.sdrop.compact #results:not(.lvlmode)>.tile{flex:0 0 82px;min-height:96px;scroll-snap-align:start}
+.sdrop.compact #results:not(.lvlmode)>.empty{flex:1}
+.sdrop.compact #results.lvlmode{max-height:46vh;overflow:auto}
+.sdrop.compact{max-height:none;overflow:visible}
+.tile.more{border-style:dashed;background:transparent}
+.tile.more .mi{width:56px;height:56px;display:grid;place-items:center;font:700 18px var(--sans);color:var(--mut)}
+#sdrop:not(.compact) #results:not(.lvlmode){max-height:none}
+.sdrop.compact #invPick,.sdrop.compact #textPick{max-height:52vh;overflow:auto;overscroll-behavior:contain}
+/* Order · tap my items */
+.omodes{margin:2px 0 10px}
+.omodes button{flex:1;padding:9px 6px;font-weight:700}
+.pkbar{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;margin-bottom:10px}
+.pkq{display:flex;align-items:center;gap:6px;font:700 12.5px var(--sans);color:var(--mut);white-space:nowrap}
+.pkq .inp{width:64px;padding:8px 8px;text-align:center}
+.pkq small{display:none}
+.pkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:7px}
+.tile.pk{min-height:104px;padding:7px 3px 6px;gap:2px}
+.tile.pk .th{width:48px;height:48px;font-size:30px}
+.tile.pk small{font:600 10.5px var(--sans);color:var(--mut)}
+.tile.pk .pkst{position:absolute;left:5px;top:5px;font:700 10px var(--sans);color:var(--mut);font-style:normal}
+.tile.pk.on{border:2px solid var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--surface))}
+.tile.pk .pkn{position:absolute;right:4px;top:4px;background:var(--acc);color:#fff;border-radius:8px;font:800 11px/18px var(--sans);padding:0 6px}
+.tile.pk.oos{opacity:.5}
+.pksum{margin-top:10px;font:600 13px var(--sans);color:var(--mut);text-align:center}
+.opicb{margin-top:8px}
+.opicimg{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
 </style>
 </head>
 <body data-tab="items">
@@ -1082,8 +1132,9 @@ details summary{-webkit-tap-highlight-color:transparent}
           <button class="clr" id="qclr" aria-label="Clear">✕</button>
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
-        <div class="sdrop card" id="sdrop" hidden>
-          <div class="srcrow"><span class="lbl">Add from</span><div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📚 Base</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 Text</button></div></div>
+        <div class="sdrop card compact" id="sdrop" hidden>
+          <div class="srcrow"><span class="lbl">Add from</span><div class="seg srcseg" id="srcSeg"><button data-src="cat" class="on">📚 Base</button><button data-src="inv">📦 Inventory</button><button data-src="text">📝 Text</button></div>
+            <button class="sic cam" id="scam" type="button" aria-label="Add from screenshots or a video" title="Add from screenshots or a video (barn / silo)">📷</button><button class="sic" id="sbig" type="button" aria-label="Bigger list" title="Bigger list / smaller list">⤢</button><button class="sic ok" id="sdone2" type="button" aria-label="Done" title="Done">✓</button></div>
           <div id="invPick" hidden></div>
           <div id="textPick" hidden></div>
           <div id="catPick">
@@ -1178,9 +1229,13 @@ details summary{-webkit-tap-highlight-color:transparent}
       <div class="card fieldset">
         <div class="ch"><h2>Order calculator</h2></div>
         <p class="hint" id="orderFor"></p>
+        <div class="seg omodes" id="oModeSeg"><button data-om="text" class="on">✍️ Their message</button><button data-om="pick">👆 Tap my items</button></div>
+        <div id="oPick" hidden></div>
+        <div id="oText">
         <textarea class="ta" id="orderIn" rows="7" autocomplete="off" placeholder="Paste the buyer’s message, e.g.&#10;carrot pies x26&#10;pumpkin pie x 42&#10;cotton shirt (no number = all)"></textarea>
-        <div class="three"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderShot" title="Their barn / silo screenshot (or screen recording): every item in it goes in the order">📷 Barn</button><button class="btn" id="orderClear">Clear</button></div>
+        <div class="three"><button class="btn" id="orderPaste">Paste</button><button class="btn" id="orderShot" title="Any picture: a post picture (Market Manager, jjcuber…), a screenshot of their message or list, or their barn / silo (screenshot or screen recording)">📷 Picture</button><button class="btn" id="orderClear">Clear</button></div>
         <input type="file" id="orderFile" accept="image/*,video/*" multiple hidden>
+        </div>
         <div id="orderAdv"></div>
       </div>
       <div id="orderScan"></div>
@@ -1203,7 +1258,7 @@ details summary{-webkit-tap-highlight-color:transparent}
         <div class="ch"><h2>Layout</h2></div>
         <div class="layouts" id="layouts"></div>
         <div id="custBox" class="stack" hidden></div>
-        <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="manual">Manual</button><button data-s="qty">Qty</button><button data-s="value">Value</button><button data-s="name">A–Z</button></div></div>
+        <div><label class="lbl">Order</label><div class="seg" id="sortSeg"><button data-s="qty">Quantity</button><button data-s="price">Price</button></div></div>
       </div>
       <div class="card fieldset">
         <div class="ch"><h2>Texts</h2></div>
@@ -1269,11 +1324,15 @@ const CATS = [
   {id:"sweets", fr:"Confiserie & glaces"},
   {id:"drinks", fr:"Jus & boissons"},
   {id:"jams",   fr:"Confitures & sauces"},
+  {id:"soups",  fr:"Soupes & salades"},
+  {id:"fastfood",fr:"Sandwichs & snacks"},
+  {id:"asian",  fr:"Sushis, riz & nouilles"},
   {id:"textile",fr:"Textile"},
+  {id:"home",   fr:"Bougies, fleurs & soins"},
   {id:"mine",   fr:"Mine & bijoux"},
   {id:"fish",   fr:"Pêche"},
   {id:"feed",   fr:"Nourriture animaux"},
-  {id:"other",  fr:"Autres (wiki)"},
+  {id:"other",  fr:"Autres"},
   {id:"perso",  fr:"Mes produits"}
 ];
 
@@ -1503,7 +1562,7 @@ const MIXES = [
   { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "drinks", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
   { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "drinks", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
   { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "drinks", badge: "3", mix: ["guava-juice", "mango-juice"] },
-  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
+  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["refined-coal", "iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
 ];
 const mixOf = x => { const p = x && (typeof x === "string" ? CAT.byId[x] : x.mix ? x : x.ref ? CAT.byId[x.ref] : null); return p && p.mix ? p : null; };
 const isVirt = p => !!(p && (p.parts || p.mix));            // a set or a mix: not an item of the barn itself
@@ -1650,6 +1709,8 @@ let USERIMG = new Map(); // "ov:<id>" remplacement d’un produit · "c:<id>" pr
 const SPECIAL_FILE = { "Tnt_Barrel": "TNT_Barrel", "Blt_Salad": "BLT_Salad", "Bacon_And_Eggs": "Bacon_and_Eggs", "Fish_And_Chips": "Fish_and_Chips", "Peanut_Butter_And_Jelly_Sandwich": "Peanut_Butter_and_Jelly_Sandwich", "Frutti_Di_Mare_Pizza": "Frutti_di_Mare_Pizza" };
 const titleSnake = s => { const t = s.trim().split(/[\s_]+/).map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join("_"); return SPECIAL_FILE[t] || t; };
 const CAT = { list: [], byId: {} };
+// the help sign (a wooden post, a paper with "!"), drawn here: it isn't a game item with a wiki picture
+const HELP_SVG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#8a5a2b"/><stop offset=".5" stop-color="#b07a3f"/><stop offset="1" stop-color="#7a4d22"/></linearGradient><linearGradient id="p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbe6"/><stop offset="1" stop-color="#f1e2a8"/></linearGradient></defs><rect x="56" y="58" width="16" height="66" rx="4" fill="url(#w)" stroke="#5a3715" stroke-width="3"/><path d="M26 10h76l-4 56H30z" fill="url(#p)" stroke="#8a6a2a" stroke-width="4" stroke-linejoin="round"/><path d="M58 20h12l-2 28h-8z" fill="#2b2b2b"/><circle cx="64" cy="56" r="5.5" fill="#2b2b2b"/></svg>');
 function addProduct(p) {
   if (CAT.byId[p.id]) return CAT.byId[p.id];
   p.k = norm(p.en + " " + (p.fr || "").replace(/[~·]/g, " ") + " " + p.id.replace(/-/g, " "));
@@ -1663,6 +1724,9 @@ function buildCatalog() {
     if (!en) return;
     addProduct({ id: slug(en), en, fr, e: e || "📦", cat, file: file || titleSnake(en) });
   });
+  // "Help": a player helping another (usually a tree to bring back to life) — sold like an item, no game max price
+  addProduct({ id: "help", en: "Help", fr: "Aide ~ helps tree help tree helps revive help sign", e: "🪧", cat: "other", src: HELP_SVG, nomp: true });
+  Object.entries(CAT_MOVE).forEach(([id, c]) => { if (CAT.byId[id]) CAT.byId[id].cat = c; });
   (store.get("hd5_wiki", { names: [] }).names || []).forEach(addWikiName);
   CUSTOM.forEach(c => addProduct({ id: c.id, en: c.en, fr: c.fr || "", e: c.e || "⭐", cat: "perso", custom: true }));
   MIXES.forEach(m => { const ids = m.mix.filter(id => CAT.byId[id]); if (ids.length) addProduct({ id: slug(m.en), en: m.en, fr: m.fr, e: m.e, cat: m.cat, mix: ids, badge: m.badge }); });
@@ -1671,22 +1735,61 @@ function addWikiName(n) {
   if (!n || WIKI_BLACKLIST.has(n) || /\b(tree|bush|icon|field|coins?|experience|voucher|level|building|machine)\b/i.test(n)) return;
   const id = slug(n);
   if (CAT.byId[id] || MIXES.some(m => slug(m.en) === id)) return;
-  addProduct({ id, en: n, fr: "", e: "📦", cat: "other", file: n.replace(/ /g, "_"), wiki: true });
+  addProduct({ id, en: n, fr: "", e: "📦", cat: guessCat(n), file: n.replace(/ /g, "_"), wiki: true });
 }
+/* ---------- the category of a good read from the wiki (its name says what it is) ---------- */
+var GC_RAW = null;
+const GC_RULES = [
+  ["feed", /\bfeed\b|\btreats?\b|pet food|kibble/],
+  ["fish", /\blure\b|\bnet\b|\btrap\b|\bfillet\b|lobster tail/],
+  ["home", /candle|bouquet|wreath|garland|lotion|\bsoap\b|bath\b|bath bomb|perfume|essential oil|lip balm|potpourri|incense|diffuser|scrub|shampoo|vase|flower crown|corsage|boutonniere|\bdye\b|cosmetic|face mask|\bwax\b/],
+  ["mine", /\bore\b|^(?:iron|silver|gold|platinum|copper|bronze) bar$|\bcoal\b|\b(?:diamond|gold|golden|silver|emerald|ruby|sapphire|pearl|platinum|iron|engagement|amethyst|topaz) ring\b|bracelet|necklace|earring|brooch|crown|tiara|pendant|anklet|cufflink/],
+  ["textile", /shirt|sweater|dress\b|\bhat\b|\bcap\b|scarf|chaps|skirt|jacket|\bcoat\b|\bsocks?\b|gloves?|mittens?|blanket|pillow|quilt|fabric|yarn|ribbon|\bbow\b|\btie\b|\bsuit\b|\bshoes?\b|\bboots?\b|sandals?|purse|\bsilk\b|apron|bandana|\bvest\b|hoodie|cardigan|poncho|tote|backpack|bonnet|beanie|headband|\bveil\b|kimono|overalls/],
+  ["drinks", /juice|smoothie|latte|mocha|espresso|coffee|\btea\b|lemonade|milkshake|\bshake\b|hot chocolate|cocoa|\bpunch\b|\bsoda\b|cider|frapp|cappuccino|\biced\b|chai|kombucha|\bdrink\b|nectar|cooler|float\b|eggnog/],
+  ["sweets", /ice cream|popsicle|candy|lollipop|toffee|^chocolate$|jelly beans?|gumm|fudge|marshmallow|caramel apple|sundae|frozen yogurt|sorbet|gelato|donut|doughnut|macaron|brownie|cupcake|truffle|praline|nougat|churro|pudding|custard|mochi|parfait|cream puff|eclair|candied|bonbon|sweets?\b|banana split|\bsplit\b/],
+  ["pies", /\bpie\b|\bcakes?\b|\btart\b|cheesecake|quiche|strudel|cobbler|crumble|gateau|torte/],
+  ["jams", /\bjam\b|marmalade|chutney|\bcurd\b|\bsauce\b|\boil\b|mayonnaise|ketchup|mustard|vinegar|dressing|^honey$|syrup|\bdip\b|salsa|hummus|pesto|spread|peanut butter|relish|guacamole|preserves?|compote|pickles?|jelly$/],
+  ["soups", /soup|salad|\bstew\b|chowder|broth|casserole|curry|gumbo|gazpacho|bisque|goulash|ragout|ratatouille/],
+  ["asian", /sushi|maki|\brice\b|noodle|ramen|dumpling|\bwok\b|stir.?fry|spring roll|teriyaki|tempura|bento|pad thai|dim sum|gyoza|onigiri|miso|sashimi|udon|pho\b|bibimbap|kimchi|tofu/],
+  ["fastfood", /sandwich|\bwrap\b|d[öo]ner|kebab|gyro|burger|hot ?dog|corn ?dog|taco|burrito|quesadilla|nacho|enchilada|fajita|bagel|fries|onion rings|\bsub\b|panini|nuggets|fish and chips|club|hoagie|slider|tortilla|falafel|pretzel|chips\b/],
+  ["bakery", /bread|muffin|cookie|croissant|\bbuns?\b|biscuit|scone|waffle|pancake|baguette|\bloaf\b|pizza|focaccia|brioche|roll$|danish|cracker|pastry|bun\b|crepe|\btoast\b/],
+  ["dairy", /^(?!grilled|toasted|fried|baked|melted|smoked)(?:\w+ )?(?:cheese|cream|butter|yogh?urt|sugar|milk|feta|mozzarella|ricotta|ghee)$/],
+  ["snack", /popcorn|bbq|grill|roast|skewer|steak|ribs|chicken|bacon|sausage|omelet|\beggs?\b|fondue|potato|baked|pasta|lasagna|spaghetti|macaroni|risotto|noodle|meatball|frittata|hash|platter|nachos|fried|stuffed|souffle|gratin|pot ?pie|chili\b(?! pepper)|mac and|cheese|gnocchi|ravioli|tortellini|penne|fettuccine|carbonara|pierogi|enchilada|empanada/],
+];
+const GC_TREE = /apple|berry|cherry|lemon|orange|peach|banana|plum|mango|coconut|guava|pomegranate|passion fruit|olive|cacao|coffee bean|kiwi|\bfig\b|lime|apricot|pear|avocado|\bnut\b|almond|walnut|hazelnut|pecan|cashew|date\b|lychee|papaya|persimmon|grapefruit|nectarine|tangerine/;
+const GC_CROP = /sesame|peanut|\bbeans?\b|\bpeas?\b|lentil|\boats?\b|barley|\brye\b|quinoa|cauliflower|spinach|radish|zucchini|squash|kale|leek|celery|turnip|\byam\b|sweet potato|herb|basil|lavender|tulip|\brose\b|daisy|orchid|cotton|hemp|flax|bamboo|saffron|vanilla|cinnamon|pepper|artichoke|okra|parsnip|corn\b|melon|gourd|sorghum|cumin|ginger|wasabi|lotus/;
+const GC_ANIMAL = /\begg\b|milk|wool|feather|bacon|honeycomb|mussel|lobster$|shrimp|crab|oyster|fleece|silk cocoon|truffle$/;
+function guessCat(n) {
+  const s = norm(n);
+  if (!GC_RAW) GC_RAW = new Set(((store.get("hd5_wiki", {}) || {}).raw || []).map(norm));
+  // a crop, a fruit or an animal good (from the wiki's crops / animal goods pages)
+  if (GC_RAW.has(s)) return GC_ANIMAL.test(s) ? "animal" : GC_TREE.test(s) ? "trees" : "crops";
+  for (const [c, re] of GC_RULES) if (re.test(s)) return c;
+  // a short name with no dish word: a raw good
+  if (s.split(" ").length <= 2) { if (GC_ANIMAL.test(s)) return "animal"; if (GC_TREE.test(s)) return "trees"; if (GC_CROP.test(s)) return "crops"; }
+  return "other";
+}
+/** Goods whose built-in group was too wide: soups & salads, sushi, burgers… get the new groups. */
+const CAT_MOVE = { "tomato-soup": "soups", "pumpkin-soup": "soups", "blt-salad": "soups", "sushi-roll": "asian", "hamburger": "fastfood", "fish-burger": "fastfood", "fish-and-chips": "fastfood", "beeswax": "home" };
 /** Récupère la liste complète des produits sur le wiki (comme hd.jjtechdev.com), mise en cache 7 jours. */
 async function refreshWikiList(force) {
   const c = store.get("hd5_wiki", { t: 0, names: [] });
-  if (!force && Date.now() - c.t < 7 * 864e5 && c.names.length) return;
+  if (!force && Date.now() - c.t < 7 * 864e5 && c.names.length && c.raw) return;
   try {
     const pages = ["Products", "Crops", "Animal_Goods"];
-    const names = [];
+    const names = [], raw = [], prod = [];
     for (const page of pages) {
       const r = await fetch(WIKI_API + "?" + new URLSearchParams({ origin: "*", action: "parse", page, format: "json", prop: "images" }));
       const j = await r.json();
-      (j.parse && j.parse.images || []).forEach(im => { if (/\.png$/i.test(im)) names.push(im.replace(/\.png$/i, "").replace(/_/g, " ")); });
+      (j.parse && j.parse.images || []).forEach(im => { if (/\.png$/i.test(im)) { const n = im.replace(/\.png$/i, "").replace(/_/g, " "); names.push(n); (page === "Products" ? prod : raw).push(n); } });
     }
     if (names.length > 30) {
-      store.set("hd5_wiki", { t: Date.now(), names: [...new Set(names)] });
+      // raw = on the crops / animal goods pages and not on the products page (a page may show what a crop is used in)
+      const made = new Set(prod), rawOnly = [...new Set(raw)].filter(n => !made.has(n));
+      store.set("hd5_wiki", { t: Date.now(), names: [...new Set(names)], raw: rawOnly });
+      WIKI_RAW = new Set(rawOnly.map(norm)); GC_RAW = null;
+      // the goods already listed get their group again (the crops / animal goods lists may be new)
+      CAT.list.forEach(p => { if (p.wiki) p.cat = guessCat(p.en); });
       const before = CAT.list.length;
       names.forEach(addWikiName);
       if (CAT.list.length !== before) renderResults();
@@ -1815,6 +1918,7 @@ function prodState(id) {
     const cands = [];
     const ov = null; // game pictures can't be replaced
     if (p.custom) { const c = USERIMG.get("c:" + id); if (c) cands.push(c); }
+    if (p.src) { loadChain(s, [p.src]); return; }
     if (p.parts && !ov) return composePack(s, p);
     if (p.mix) return composeMix(s, p);
     if (LOCAL.has(id)) cands.push("images/" + id + ".png");
@@ -1844,8 +1948,8 @@ function composePack(s, p) {
   sts.forEach(x => { if (!(x.ok || x.fail)) x.subs.add(done); });
   done();
 }
-/** Picture of a mix (jam pages, all bars): up to 4 of its items + its badge ("1", "2", "3", "ALL"). */
-function composeMix(s, p) {
+/** Picture of a mix (jam pages, all bars): its items (up to 9) + its badge ("1", "2", "3", "ALL"). */
+function composeMix(s, p, noBadge) {
   const sts = p.mix.slice(0, 9).map(prodState);
   const done = () => {
     if (!sts.every(x => x.ok || x.fail)) return;
@@ -1857,7 +1961,7 @@ function composeMix(s, p) {
     const n = ok.length, cols = n === 1 ? 1 : n === 2 ? 2 : 3, rows = Math.ceil(n / cols), cell = Math.min(244 / cols, 232 / rows), z = cell * (n === 1 ? .92 : 1.08), y0 = (256 - rows * cell) / 2;
     const spots = ok.map((x, i) => { const r = Math.floor(i / cols), inRow = Math.min(cols, n - r * cols), c = i - r * cols, x0 = (256 - inRow * cell) / 2; return [x0 + cell * (c + .5), y0 + cell * (r + .5), z]; });
     ok.forEach((x, i) => { const [cx, cy, z] = spots[i], im = x.el, w = im.naturalWidth || im.width, hh = im.naturalHeight || im.height, k = z / Math.max(w, hh); g.drawImage(im, cx - w * k / 2, cy - hh * k / 2, w * k, hh * k); });
-    if (p.badge) {
+    if (p.badge && !noBadge) {
       const t = String(p.badge), r = t.length > 1 ? 40 : 30, bx = 256 - r - 4, by = 256 - r - 4;
       g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fillStyle = "#c2452d"; g.fill(); g.lineWidth = 8; g.strokeStyle = "#fff8e7"; g.stroke();
       g.fillStyle = "#fff8e7"; g.font = "800 " + (t.length > 1 ? 27 : 38) + "px system-ui, -apple-system, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(t, bx, by + 2);
@@ -1867,6 +1971,13 @@ function composeMix(s, p) {
   };
   sts.forEach(x => { if (!(x.ok || x.fail)) x.subs.add(done); });
   done();
+}
+/** On the post picture a mix has no badge: its name is written on the tile, and the quantity sits where the badge was. */
+function picState(it) {
+  const p = it && !it.img && it.ref && CAT.byId[it.ref];
+  if (!p || !p.mix || !p.badge) return itemState(it);
+  const k = p.id + "#nb"; let s = IMGS.get(k); if (s) return s;
+  s = newState(); IMGS.set(k, s); composeMix(s, p, true); return s;
 }
 /** État d’image d’une URL / image importée propre à un article. */
 function srcState(src) {
@@ -1973,6 +2084,8 @@ function bulkTxt(t) {
   return t.at >= 100 ? "the full quantity at once" : "≥ " + fmtR(t.at) + "% of the quantity at once";
 }
 const curTxt = (k, n) => { const s = fmtR(n); return s + " " + (s === "1" ? CUR[k].one : CUR[k].many); };
+// in messages you copy: rounded to the nearest ring / blanket, an exact half kept (12.5)
+const curTxtH = (k, n) => { const s = btHalf(n); return s + " " + (s === "1" ? CUR[k].one : CUR[k].many); };
 /** Value of an item in coins (sell / buy posts only — trade posts use ratios, no prices). */
 function itemValue(w) {
   if (st && st.type === "trade") return 0;
@@ -1995,6 +2108,7 @@ function maxPrice(id) {
   // a set = its 89 materials (30 Bolt + 30 Plank + 29 Duct Tape)
   if (p.parts) { const v = p.parts.map(maxPrice); return v.every(x => x > 0) ? packSplit(p, SET_N).reduce((a, s, i) => a + s.n * v[i], 0) : 0; }
   if (p.mix) { const v = p.mix.map(maxPrice); return v.length && v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
+  if (p.nomp) return 0;                                        // Help: no price in the game
   if (MAXP[id] > 0) return MAXP[id];
   if (!(id in MAXP) && !p.custom) queueMax(id);
   return MAXP_BASE[id] || 0;
@@ -2228,10 +2342,10 @@ function starShape(cx, cy, r, c) { ctx.beginPath(); for (let i = 0; i < 10; i++)
    One square per item, the game picture big, price top-left, quantity big bottom-right.
    Columns are chosen so the picture stays about as tall as wide: Discord shows it whole, readable while scrolling. */
 const BT_THEMES = {
-  cream: { name: "Cream", bg: "#fff6c9", cell: "rgba(255,255,255,.35)", line: "rgba(120,96,40,.28)", ink: "#141414", mut: "#5c5232", acc: "#b5321e", dark: 0 },
-  white: { name: "White", bg: "#ffffff", cell: "#f4f4f2", line: "rgba(0,0,0,.12)", ink: "#111111", mut: "#5d5d5d", acc: "#c0392b", dark: 0 },
-  night: { name: "Night", bg: "#1b1c22", cell: "#262833", line: "rgba(255,255,255,.10)", ink: "#f4f1e8", mut: "#a9a6b8", acc: "#f0b43c", dark: 1 },
-  barn:  { name: "Barn",  bg: "#f4ead7", cell: "#fbf5e8", line: "rgba(42,29,20,.18)", ink: "#2a1d14", mut: "#7c6854", acc: "#b5321e", dark: 0 }
+  cream: { name: "Cream", bg: "#fff6c9", chip: "#ffffff", cell: "rgba(255,255,255,.42)", line: "rgba(120,96,40,.28)", ink: "#141414", mut: "#5c5232", acc: "#b5321e", dark: 0 },
+  white: { name: "White", bg: "#ffffff", chip: "#ffffff", cell: "#f4f4f2", line: "rgba(0,0,0,.12)", ink: "#111111", mut: "#5d5d5d", acc: "#c0392b", dark: 0 },
+  night: { name: "Night", bg: "#1b1c22", chip: "#353847", cell: "#262833", line: "rgba(255,255,255,.10)", ink: "#f4f1e8", mut: "#a9a6b8", acc: "#f0b43c", dark: 1 },
+  barn:  { name: "Barn",  bg: "#f4ead7", chip: "#ffffff", cell: "#fbf5e8", line: "rgba(42,29,20,.18)", ink: "#2a1d14", mut: "#7c6854", acc: "#b5321e", dark: 0 }
 };
 /** "3500", "12.5k", "150k", "1.2m" — short, like on Discord */
 function btShort(v) {
@@ -2240,12 +2354,14 @@ function btShort(v) {
   if (v < 1e6) return (Math.round(v / 100) / 10).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "k";
   return (Math.round(v / 1e4) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "m";
 }
+/** rings / blankets in the total: rounded to the nearest, except an exact half (624.5 stays 624.5) */
+function btHalf(v) { const f = v - Math.floor(v); return Math.abs(f - .5) < 1e-6 ? fmt(Math.floor(v)) + ".5" : fmt(Math.round(v)); }
 /** Big outlined text (white with a dark edge reads on any picture). Returns its width. */
 function btOut(t, x, y, s, o) {
   o = o || {};
-  ctx.save(); font(o.f || "900", s); ls(o.sp || 0);
+  ctx.save(); font(o.f || "800", s); ls(o.sp || 0);
   ctx.textAlign = o.al || "left"; ctx.textBaseline = o.bl || "alphabetic"; ctx.lineJoin = "round"; ctx.miterLimit = 2;
-  let z = s; if (o.maxW) { while (ctx.measureText(t).width > o.maxW && z > s * .55) { z--; font(o.f || "900", z); } }
+  let z = s; if (o.maxW) { while (ctx.measureText(t).width > o.maxW && z > s * .55) { z--; font(o.f || "800", z); } }
   ctx.lineWidth = z * (o.lw || .2); ctx.strokeStyle = o.stroke || "#141414"; ctx.strokeText(t, x, y);
   ctx.fillStyle = o.fill || "#ffffff"; ctx.fillText(t, x, y);
   const w = ctx.measureText(t).width; ls(0); ctx.restore(); return w;
@@ -2257,45 +2373,59 @@ function btPrice(w) {
   if (w.pu === "ring" || w.pu === "blanket") return { t: fmtRt(p), unit: w.pu };
   return { t: btShort(p), unit: "coin" };
 }
+/** a rounded label: { x, y (top), h, w } → background + edge */
+function btChip(x, y, w, hh, bg, edge) { rr(x, y, w, hh, hh / 2); ctx.fillStyle = bg; ctx.fill(); if (edge) { ctx.lineWidth = Math.max(1.5, hh * .045); ctx.strokeStyle = edge; ctx.stroke(); } }
 function btTile(w, x, y, S, T, kind) {
-  // cell: flat, a thin edge
-  rr(x, y, S, S, S * .05); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = Math.max(2, S * .007); ctx.strokeStyle = T.line; ctx.stroke();
-  // the picture: as big as the square allows
-  ctx.save(); rr(x, y, S, S, S * .06); ctx.clip();
-  icon(itemState(w), w.e, x + S * .5, y + S * (kind === "sale" || kind === "trade" ? .54 : .5), S * .86, 1);
-  ctx.restore();
-  const pad = S * .045, oos = !!w.oos;
-  // top-left: price (sell / buy) or ratio (trade)
-  if (kind === "sale") {
-    const P = btPrice(w);
-    if (P) {
-      const s = S * .175, by = y + pad + s * .86;
-      let tw = btOut(P.t, x + pad, by, s, { maxW: S * .68, lw: .18 });
-      const cx = x + pad + tw + s * .42, cy = by - s * .36;
-      if (P.unit === "coin") coin(cx, cy, s * .4);
-      else if (P.unit === "ring") ringIcon(cx, cy, s * .42);
-      else if (P.unit === "blanket") blanketIcon(cx, cy, s * .4);
-      else btOut("MP", x + pad + tw + s * .06, by, s * .62, { lw: .22 });
+  const oos = !!w.oos, r = S * .07, bandH = S * .22;
+  const top = kind === "sale" ? btPrice(w) : kind === "trade" && hasRatio(w) ? { ratio: 1 } : null;
+  // the square
+  rr(x, y, S, S, r); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = Math.max(2, S * .007); ctx.strokeStyle = T.line; ctx.stroke();
+  // top band: the price (or the ratio), white on dark, across the whole square
+  if (top) {
+    ctx.save(); rr(x, y, S, S, r); ctx.clip();
+    ctx.fillStyle = oos ? T.mut : T.ink; ctx.fillRect(x, y, S, bandH);
+    const fg = T.dark ? T.bg : "#ffffff", cy = y + bandH / 2 + 1, ps = S * .155;
+    if (top.ratio) {
+      const t = fmtRt(num(w.rb)) + " : " + fmtRt(num(w.ra)), g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = bandH * .78;
+      const iw = parts.length ? iz * (1 + (parts.length - 1) * .62) + S * .03 : 0, tw = Math.min(measure(t, "800", ps), S * .92 - iw), x0 = x + (S - tw - iw) / 2;
+      txt(t, x0, cy, { f: "800", s: ps, c: fg, maxW: S * .92 - iw });
+      parts.forEach((it, k) => icon(picState(it), it.e, x0 + tw + S * .03 + iz / 2 + k * iz * .62, y + bandH / 2, iz, 1));
+    } else {
+      const t = top.unit === "mp" ? top.t + "MP" : top.t, iw = top.unit === "mp" ? 0 : bandH * .7, tw = Math.min(measure(t, "800", ps), S * .9 - iw), x0 = x + (S - tw - iw) / 2;
+      txt(t, x0, cy, { f: "800", s: ps, c: fg, maxW: S * .9 - iw });
+      const cx = x0 + tw + iw * .58, ccy = y + bandH / 2;
+      if (top.unit === "coin") coin(cx, ccy, bandH * .25); else if (top.unit === "ring") ringIcon(cx, ccy, bandH * .29); else if (top.unit === "blanket") blanketIcon(cx, ccy, bandH * .27);
     }
-  } else if (kind === "trade" && hasRatio(w)) {
-    const s = S * .16, by = y + pad + s * .86;
-    const tw = btOut(fmtRt(num(w.rb)) + ":" + fmtRt(num(w.ra)), x + pad, by, s, { maxW: S * .66, lw: .18 });
-    const g = giveItem(w), parts = giveParts(g).slice(0, 3), iz = s * 1.25;
-    parts.forEach((it, i) => icon(itemState(it), it.e, x + pad + tw + iz * .6 + i * iz * .62, by - s * .36, iz, 1));
+    ctx.restore();
   }
-  // bottom-right: quantity, the biggest thing in the square
-  const q = num(w.q);
-  if (q > 0) btOut(fmt(q), x + S - pad * .8, y + S - pad * .6, S * .3, { al: "right", maxW: S - 2 * pad, lw: .18 });
-  // a short note: small band at the bottom-left
+  // sets, page mixes and Help: the name under the band, so nobody wonders what it is
+  const P0 = w.ref && CAT.byId[w.ref], named = P0 && (P0.parts || P0.mix || P0.id === "help");
+  const capS = S * .09, capH = named ? capS * 1.5 : 0;
+  if (named) txt(pName(w), x + S / 2, y + (top ? bandH : 0) + capH * .58, { f: "800", s: capS, c: oos ? T.mut : T.ink, al: "center", maxW: S * .9 });
+  // the picture, in the room left under the band
+  const t0 = (top ? bandH : 0) + capH, q = num(w.q), qS = S * .2;
+  ctx.save(); rr(x, y, S, S, r); ctx.clip(); if (oos) ctx.globalAlpha = .25;
+  const room = S - t0, iz = Math.min(S * .74, room * .86);
+  icon(picState(w), w.e, x + S * .5, y + t0 + room * .46, iz, 1);
+  ctx.restore();
+  // quantity: bottom-right, big, dark — a soft light halo keeps it readable over the picture
+  if (q > 0 && !oos) {
+    const t = q < 1e4 ? String(Math.round(q)) : fmt(q), bx = x + S - S * .06, by = y + S - S * .055;
+    ctx.save(); font("800", qS); let z = qS; while (ctx.measureText(t).width > S * .8 && z > qS * .6) { z--; font("800", z); }
+    ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"; ctx.lineJoin = "round";
+    ctx.lineWidth = z * .28; ctx.strokeStyle = T.dark ? "rgba(27,28,34,.9)" : "rgba(255,255,255,.92)"; ctx.strokeText(t, bx, by);
+    ctx.fillStyle = T.ink; ctx.fillText(t, bx, by); ctx.restore();
+  }
+  // a short note: bottom-left, small
   const note = (w.note || "").trim();
-  if (note && note.length <= 14) btOut(note, x + pad, y + S - pad * .7, S * .08, { lw: .25, maxW: S * (q > 0 ? .45 : .9) });
+  if (note && !oos) txt(note, x + S * .06, y + S - S * .09, { f: "700", s: S * .085, c: T.mut, maxW: S * .42 });
+  // sold out / no longer needed: a full-width band across the middle, strong colour, big letters
   if (oos) {
-    ctx.save(); rr(x, y, S, S, S * .06); ctx.clip();
-    ctx.globalAlpha = .62; ctx.fillStyle = T.bg; ctx.fillRect(x, y, S, S); ctx.globalAlpha = 1;
-    ctx.translate(x + S / 2, y + S / 2); ctx.rotate(-.42);
-    const lab = st.type === "achat" || kind === "trade" || kind === "tq" ? "NO LONGER NEEDED" : kind === "have" ? "GONE" : "SOLD OUT";
-    ctx.fillStyle = lab === "SOLD OUT" || lab === "GONE" ? T.acc : "#5d6470"; ctx.fillRect(-S, -S * .085, S * 2, S * .17);
-    txt(lab, 0, 2, { f: "900", s: S * (lab.length > 10 ? .075 : .1), c: "#fff", al: "center" });
+    const lab = st.type === "achat" || kind === "trade" || kind === "tq" ? "NOT NEEDED" : kind === "have" ? "GONE" : "SOLD OUT";
+    const bh = S * .2, by = y + t0 + (S - t0) / 2 - bh / 2;
+    ctx.save(); rr(x, y, S, S, r); ctx.clip();
+    ctx.fillStyle = lab === "NOT NEEDED" ? "#4a5263" : "#c0392b"; ctx.fillRect(x, by, S, bh);
+    txt(lab, x + S / 2, by + bh / 2 + 1, { f: "800", s: S * .12, c: "#ffffff", al: "center", sp: 1, maxW: S * .9 });
     ctx.restore();
   }
 }
@@ -2316,7 +2446,7 @@ function drawBeta() {
   // columns: the fewest that keep the picture at most ~1.55× taller than wide (Discord shows it whole while scrolling)
   const rowsOf = c => GR.reduce((a, g) => a + Math.ceil(g.items.length / c), 0);
   const est = c => {
-    const Wc = c * S + (c - 1) * G + 2 * M, Uc = Math.max(Math.min(S, (Wc - 2 * M) / 2.9), Wc * .17);
+    const Wc = c * S + (c - 1) * G + 2 * M, Uc = Math.max(Math.min(S, (Wc - 2 * M) / 2.9), Wc * .17) * 1.07;
     let Hc = M + (title ? Uc * .36 : 0) + (kick ? Uc * .14 : 0) + Uc * .3 + (have.length ? Uc * .3 + Math.ceil(have.length / c) * (S + G) : 0) + (trade ? Uc * .3 : 0);
     Hc += rowsOf(c) * (S + G) + (grouped ? GR.length * Uc * .3 : 0);
     Hc += (cta ? Uc * .6 : 0) + (!trade && TT.sub > 0 ? Uc * .42 : 0) + BT.length * Uc * .2 + (notes ? Math.min(12, notes.split("\n").length) * Uc * .19 + Uc * .14 : 0) + Uc * .22 + M;
@@ -2331,16 +2461,18 @@ function drawBeta() {
   S = Math.max(300, Math.floor((1040 - 2 * M - (C - 1) * G) / C));
   const W = C * S + (C - 1) * G + 2 * M, IW = W - 2 * M;
   // text unit: follows the squares; on a wide picture it grows with the width, so the text stays readable once Discord shrinks it
-  const U = Math.max(Math.min(S, IW / 2.9), W * .17);
+  const U = Math.max(Math.min(S, IW / 2.9), W * .17) * 1.07;
   const fit = (t, f, s0, max, min) => { let z = s0; font(f, z); while (t && ctx.measureText(t).width > max && z > min) { z -= 1; font(f, z); } return z; };
 
   /* measure */
   const typeLabel = { trade: "TRADE", vente: "SELLING", achat: "BUYING" }[type];
-  const pS = U * .11, tS = title ? fit(title, "900", U * .27, IW, U * .15) : 0, kS = U * .12;
-  // "Buying" as title: no "BUYING" label under it, your name goes next to the title
-  const sameType = !!title && /^(?:buying|selling|for sale|trading|trade|shop)\b/i.test(title) && !kick;
-  const tS2 = sameType && user ? fit(title, "900", tS, IW - measure(user, "800", pS * 1.05) - U * .2, U * .17) : tS;
-  let H = M + (title ? tS * 1.08 : 0) + (kick ? kS * 1.5 : 0) + (sameType ? U * .1 : pS * 1.9 + U * .12);
+  const pS = U * .11, tS = title ? fit(title, "800", U * .27, IW, U * .15) : 0, kS = U * .12;
+  // title on the left, your name on the right of it; the type label under the title
+  const uS = pS * 1.1, uW = user ? measure(user, "700", uS) : 0;
+  const tS2 = title ? fit(title, "800", tS, IW - (user ? uW + U * .2 : 0), U * .14) : 0, ph = pS * 1.8;
+  // a title says it already ("Shop open"): no SELLING label under it
+  const showType = !title;
+  let H = M + (title ? tS * 1.12 : 0) + (kick ? kS * 1.5 : 0) + (showType ? ph : 0) + U * .15;
   const secS = U * .11, secH = secS * 2.3;
   if (have.length) H += secH + Math.ceil(have.length / C) * (S + G) + U * .06;
   if (trade && (!grouped || !have.length)) H += secH;
@@ -2349,16 +2481,19 @@ function drawBeta() {
   GR.forEach(g => { if (grouped) H += gHead; H += Math.ceil(g.items.length / C) * (S + G); });
   H -= G;
   if (!wants.length) H += S * .5;
-  const ctaS = cta ? fit(cta, "900", U * .39, IW, U * .17) : 0; if (cta) H += U * .16 + ctaS * 1.12;
+  const ctaS = cta ? fit(cta, "800", U * .39, IW, U * .17) : 0; if (cta) H += U * .16 + ctaS * 1.12;
   const showTot = !trade && st.showTotal !== false && TT.sub > 0, totS = U * .16;
-  const sec2 = convs().map(k => ({ t: "≈ " + fmtP(Math.round((k === "ring" ? TT.rings : TT.blankets) * 100) / 100), k })).concat(units ? [{ t: fmt(units) + " items" }] : []);
-  const tot1 = fit(fmt(TT.tot) + "00", "900", U * .23, IW * .9, U * .13), tot2 = U * .125, totPad = 0, totH = tot1 * 1.15 + (sec2.length ? tot2 * 1.5 : 0);
-  if (showTot) H += U * .16 + totH + (TT.disc ? totS * 1.25 : 0);
-  const bS = U * .115; if (BT.length) H += U * .1 + BT.length * bS * 1.45;
-  const nS = U * .135, nl = notes ? notes.split("\n").map(l => l.trim()).filter(Boolean).flatMap(l => wrap(l.replace(/^[-•*]\s+/, "• "), IW, "600", nS)).slice(0, 12) : [];
-  if (nl.length) H += U * .14 + nl.length * nS * 1.32;
-  if (sub) H += U * .14;
-  const urlS = Math.max(18, U * .075);
+  const sec2 = convs().map(k => ({ t: "≈ " + btHalf(k === "ring" ? TT.rings : TT.blankets), k })).concat(units ? [{ t: fmt(units) + " items" }] : []);
+  const tot1 = fit(fmt(TT.tot) + "00", "800", U * .23, IW * .9, U * .13), tot2 = U * .125, totPad = 0, totH = tot1 * 1.15 + (sec2.length ? tot2 * 1.5 : 0);
+  // one panel: the total, what it is in rings and blankets, and the bulk bonus
+  const bS = U * .115, pp = U * .1;
+  const panH = (showTot ? totH + (TT.disc ? totS * 1.2 : 0) : 0) + (BT.length ? (showTot ? U * .12 : 0) + BT.length * bS * 1.55 : 0);
+  if (panH) H += U * .16 + panH + 2 * pp;
+  // notes: one line each, the same bullet for all
+  const nS = U * .135, nl = notes ? notes.split("\n").map(l => l.trim().replace(/^[-•*·–]\s*/, "")).filter(Boolean).flatMap(l => wrap(l, IW - nS * 1.2, "600", nS).map((x, i) => ({ t: x, b: i === 0 }))).slice(0, 12) : [];
+  if (nl.length) H += U * .16 + nl.length * nS * 1.38;
+  if (sub) H += U * .05 + nS * 1.4;
+  const urlS = Math.max(34, U * .15);
   H += U * .14 + urlS + M * .75;
   if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
 
@@ -2368,21 +2503,21 @@ function drawBeta() {
 
   /* head: title, then the type and your name */
   let y = M;
-  if (title) { txt(title, M, y + tS * .52, { f: "900", s: tS2, c: T.ink }); y += tS * 1.08; }
+  if (title) { const cy = y + tS * .55; txt(title, M, cy, { f: "800", s: tS2, c: T.ink }); if (user) txt(user, W - M, cy, { f: "700", s: uS, c: T.mut, al: "right" }); y += tS * 1.12; }
   if (kick) { txt(kick, M, y + kS * .6, { f: "600", s: kS, c: T.mut, maxW: IW }); y += kS * 1.5; }
-  if (title && sameType) { if (user) { txt(user, W - M, M + tS * .55, { f: "800", s: pS * 1.05, c: T.mut, al: "right" }); } y += U * .1; }
+  if (!showType) y += U * .15;
   else {
-    font("800", pS); const tw = ctx.measureText(typeLabel).width, ph = pS * 1.75, cy = y + ph / 2;
-    rr(M, y, tw + pS * 1.5, ph, ph / 2); ctx.fillStyle = trade ? T.ink : type === "achat" ? "#2f6fd0" : "#2f8f46"; if (T.dark) ctx.fillStyle = trade ? T.acc : ctx.fillStyle; ctx.fill();
-    txt(typeLabel, M + pS * .75, cy + 1, { f: "800", s: pS, c: "#fff", sp: 1 });
-    if (user) txt(user, W - M, cy, { f: "800", s: pS * 1.05, c: T.mut, al: "right", maxW: IW - tw - pS * 3 });
-    y += ph + U * .12;
+    const tw = measure(typeLabel, "700", pS), cy = y + ph / 2;
+    rr(M, y, tw + pS * 1.6, ph, ph * .28); ctx.fillStyle = trade ? (T.dark ? T.acc : T.ink) : type === "achat" ? "#2f6fd0" : "#2f8f46"; ctx.fill();
+    txt(typeLabel, M + pS * .8, cy + 1, { f: "700", s: pS, c: "#fff", sp: 1 });
+    if (user && !title) txt(user, W - M, cy, { f: "700", s: uS, c: T.mut, al: "right", maxW: IW - tw - pS * 3 });
+    y += ph + U * .15;
   }
   const grid = (list, kind) => {
     list.forEach((w, i) => { const r = Math.floor(i / C), c = i % C; btTile(w, M + c * (S + G), y + r * (S + G), S, T, kind); });
     y += Math.ceil(list.length / C) * (S + G);
   };
-  const sec = t => { txt(t, M, y + secH * .45, { f: "900", s: secS, c: T.mut, sp: 3 }); y += secH; };
+  const sec = t => { txt(t, M, y + secH * .45, { f: "800", s: secS, c: T.mut, sp: 3 }); y += secH; };
   if (have.length) { sec("I HAVE"); grid(have, "have"); y += U * .06 - G; y += G; }
   if (trade) sec("I WANT");
   if (!wants.length) { txt("Add items in the Items tab", W / 2, y + S * .25, { f: "600", s: U * .12, c: T.mut, al: "center" }); y += S * .5; }
@@ -2390,14 +2525,14 @@ function drawBeta() {
     if (grouped) {
       // "60 : 89 [BEM]" once for the whole row(s), and the bigger deal ratio next to it
       const w0 = g.items[0], gi = giveItem(w0), parts = giveParts(gi).slice(0, 4), iz = gH * 1.5, cy = y + gHead * .45;
-      font("900", gH); const a = fmtRt(num(g.rb)), b = fmtRt(num(g.ra));
+      font("800", gH); const a = fmtRt(num(g.rb)), b = fmtRt(num(g.ra));
       let x = M; ctx.save();
-      const bw = measure(a + " : " + b, "900", gH) + iz * (1 + (parts.length - 1) * .62) + gH * 1.6;
-      rr(M, cy - gH * .95, bw, gH * 1.9, gH * .95); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = T.line; ctx.stroke(); ctx.restore();
-      x += gH * .6; x += txt(a + " : " + b, x, cy + 1, { f: "900", s: gH, c: T.ink });
-      parts.forEach((it, i) => icon(itemState(it), it.e, x + gH * .3 + iz / 2 + i * iz * .62, cy, iz, 1));
+      const bw = measure(a + " : " + b, "800", gH) + iz * (1 + (parts.length - 1) * .62) + gH * 1.6;
+      rr(M, cy - gH * .95, bw, gH * 1.9, gH * .32); ctx.fillStyle = T.ink; ctx.fill(); ctx.restore();
+      x += gH * .6; x += txt(a + " : " + b, x, cy + 1, { f: "800", s: gH, c: T.dark ? T.bg : "#ffffff" });
+      parts.forEach((it, i) => icon(picState(it), it.e, x + gH * .3 + iz / 2 + i * iz * .62, cy, iz, 1));
       let x2 = M + bw + gH * .5;
-      if (g.bulk) txt(fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra)), x2, cy + 1, { f: "800", s: gH * .72, c: T.acc, maxW: W - M - x2 });
+      if (g.bulk) txt(fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra)), x2, cy + 1, { f: "700", s: gH * .72, c: T.acc, maxW: W - M - x2 });
       y += gHead;
     }
     grid(g.items, trade ? (grouped ? "tq" : "trade") : "sale");
@@ -2405,37 +2540,41 @@ function drawBeta() {
   y -= G;
 
   /* under the grid: the stamp, the total, bulk, notes */
-  if (cta) { y += U * .16; txt(cta, W / 2, y + ctaS * .56, { f: "900", s: ctaS, c: T.ink, al: "center" }); y += ctaS * 1.12; }
-  if (showTot) {
-    // the total big on its own line, the conversions and the count under it, in a soft box
+  if (cta) { y += U * .16; txt(cta, W / 2, y + ctaS * .56, { f: "800", s: ctaS, c: T.ink, al: "center" }); y += ctaS * 1.12; }
+  if (panH) {
     y += U * .16;
-    const bx = M, bw = IW, cy1 = y + totPad + tot1 * .55, cy2 = cy1 + tot1 * .55 + tot2 * .95;
-    { const t = fmt(TT.tot), tw = measure(t, "900", tot1), cw = tot1 * .9, x = W / 2 - (tw + cw) / 2;
-      txt(t, x, cy1, { f: "900", s: tot1, c: T.ink }); coin(x + tw + cw * .58, cy1, tot1 * .36); }
-    if (sec2.length) {
-      let ts = tot2, gap, iw, widths;
-      for (;;) { gap = ts * 1.2; iw = ts * 1.2; widths = sec2.map(p => measure(p.t, "700", ts) + (p.k ? iw : 0)); if (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1) <= IW - U * .2 || ts < tot2 * .6) break; ts -= 1; }
-      let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1)) / 2;
-      sec2.forEach((p, i) => {
-        const tw = txt(p.t, x, cy2, { f: "700", s: ts, c: T.mut }), ix = x + tw + iw * .55;
-        if (p.k === "ring") ringIcon(ix, cy2, ts * .46); else if (p.k === "blanket") blanketIcon(ix, cy2, ts * .44);
-        if (i < sec2.length - 1) txt("·", x + widths[i] + gap / 2, cy2, { f: "900", s: ts, c: T.line, al: "center" });
-        x += widths[i] + gap;
-      });
+    rr(M, y, IW, panH + 2 * pp, U * .07); ctx.fillStyle = T.cell; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = T.line; ctx.stroke();
+    let py = y + pp;
+    if (showTot) {
+      const cy1 = py + tot1 * .55, cy2 = cy1 + tot1 * .55 + tot2 * .95;
+      { const t = fmt(TT.tot), tw = measure(t, "800", tot1), cw = tot1 * .9, x = W / 2 - (tw + cw) / 2;
+        txt(t, x, cy1, { f: "800", s: tot1, c: T.ink }); coin(x + tw + cw * .58, cy1, tot1 * .36); }
+      if (sec2.length) {
+        let ts = tot2, gap, iw, widths;
+        for (;;) { gap = ts * 1.2; iw = ts * 1.2; widths = sec2.map(p => measure(p.t, "600", ts) + (p.k ? iw : 0)); if (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1) <= IW - 2 * pp || ts < tot2 * .6) break; ts -= 1; }
+        let x = W / 2 - (widths.reduce((a, b) => a + b, 0) + gap * (sec2.length - 1)) / 2;
+        sec2.forEach((p, i) => {
+          const tw = txt(p.t, x, cy2, { f: "600", s: ts, c: T.mut }), ix = x + tw + iw * .55;
+          if (p.k === "ring") ringIcon(ix, cy2, ts * .46); else if (p.k === "blanket") blanketIcon(ix, cy2, ts * .44);
+          if (i < sec2.length - 1) txt("·", x + widths[i] + gap / 2, cy2, { f: "800", s: ts, c: T.mut, al: "center" });
+          x += widths[i] + gap;
+        });
+      }
+      py += totH;
+      if (TT.disc) { txt("−" + fmtR(TT.disc) + "% included (was " + fmt(TT.sub) + ")", W / 2, py + totS * .6, { f: "700", s: totS * .78, c: T.acc, al: "center" }); py += totS * 1.2; }
     }
-    y += totH;
-    if (TT.disc) { txt("−" + fmtR(TT.disc) + "% included (was " + fmt(TT.sub) + ")", W / 2, y + totS * .75, { f: "800", s: totS * .78, c: T.acc, al: "center" }); y += totS * 1.25; }
-  }
-  if (BT.length) {
-    y += U * .1;
-    BT.forEach(t => { txt("+" + fmtR(t.pct) + "% bonus · " + bulkTxt(t), W / 2, y + bS * .7, { f: "800", s: bS, c: T.acc, al: "center", maxW: IW }); y += bS * 1.45; });
+    if (BT.length) {
+      if (showTot) { py += U * .06; rule(M + pp * 2, W - M - pp * 2, py, 2, T.line); py += U * .06; }
+      BT.forEach(t => { txt("+" + fmtR(t.pct) + "%  ·  " + bulkTxt(t), W / 2, py + bS * .75, { f: "700", s: bS, c: T.acc, al: "center", maxW: IW - 2 * pp }); py += bS * 1.55; });
+    }
+    y += panH + 2 * pp;
   }
   if (nl.length) {
-    y += U * .14;
-    nl.forEach(l => { txt(l, M, y + nS * .64, { f: "600", s: nS, c: T.ink, maxW: IW }); y += nS * 1.32; });
+    y += U * .16;
+    nl.forEach(l => { const cy = y + nS * .66; if (l.b) { ctx.beginPath(); ctx.arc(M + nS * .3, cy, nS * .14, 0, 7); ctx.fillStyle = T.mut; ctx.fill(); } txt(l.t, M + nS * 1.2, cy, { f: "600", s: nS, c: T.ink, maxW: IW - nS * 1.2 }); y += nS * 1.38; });
   }
-  if (sub) { txt(sub, W / 2, y + U * .07, { f: "600i", s: U * .1, c: T.mut, al: "center", maxW: IW }); y += U * .14; }
-  txt(SITE_URL, W - M, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "right" });
+  if (sub) { y += U * .05; txt(sub, M, y + nS * .66, { f: "600", s: nS, c: T.mut, maxW: IW }); y += nS * 1.4; }
+  txt(SITE_URL, W / 2, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "center", maxW: IW });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
   $("#pvSize").textContent = W + " × " + H + " px · " + C + (C > 1 ? " columns" : " column");
@@ -2447,6 +2586,7 @@ function betaBar() {
   const bar = $("#betaBar"); if (!bar) return; bar.textContent = "";
   const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); } }, l)));
   bar.append(seg([["new", "New render β"], ["old", "Classic"]], st.betaOff ? "old" : "new", v => { st.betaOff = v === "old"; }));
+  if (!st.betaOff) bar.append(h("div", { class: "lbl" }, "Sort the items by"), seg([["qty", "Quantity"], ["price", "Price"]], sortKey(), v => { st.sort = v; st.sortV = 1; }));
   if (!st.betaOff) bar.append(seg(Object.entries(BT_THEMES).map(([k, t]) => [k, t.name]), st.bTheme && BT_THEMES[st.bTheme] ? st.bTheme : "cream", v => { st.bTheme = v; }));
 }
 
@@ -2492,12 +2632,18 @@ function ratioGroups(list) {
 /** "10+ sets" / "10+ rings": the size a bulk ratio starts at, in what you give. */
 function bulkUnit(g) { const gi = st.have.find(x => x.uid === g.give) || firstHave(), p = gi && gi.ref && CAT.byId[gi.ref]; if (p && p.parts) return "sets"; const n = gi ? (gi.name || "items").toLowerCase() : "items"; return /s$/.test(n) ? n : n + "s"; }
 const bulkLabel = g => fmtR(num(g.bulk.at)) + "+ " + bulkUnit(g) + " → " + fmtR(num(g.bulk.rb)) + " : " + fmtR(num(g.bulk.ra));
+// how the picture is sorted: most items by default; "Manual" saved before the automatic sort counts as unset
+const sortKey = () => st.sort === "price" ? "price" : "qty";    // the picture: by quantity (default) or by price
 function sortedWants() {
   const a = st.wants.filter(w => (w.name || "").trim() || w.ref);
-  const by = { qty: (x, y) => num(y.q) - num(x.q), value: (x, y) => itemValue(y) - itemValue(x), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[st.sort];
-  return by ? a.slice().sort(by) : a;
+  // sorted by itself: most items first unless you chose otherwise; sold out / not needed always at the end
+  const k = sortKey(), qd = (x, y) => num(y.q) - num(x.q);
+  const by = { qty: (x, y) => qd(x, y) || unitPrice(y) - unitPrice(x), price: (x, y) => unitPrice(y) - unitPrice(x) || qd(x, y), value: (x, y) => itemValue(y) - itemValue(x) || qd(x, y), name: (x, y) => (x.name || "").localeCompare(y.name || "") }[k];
+  const out = by ? a.slice().sort(by) : a.slice();
+  return out.filter(w => !w.oos).concat(out.filter(w => w.oos));
 }
 function totals() {
+  if (st._tot) return st._tot;                       // the order picture: the order's own total (discount, bulk bonus, special prices)
   const wants = st.wants.filter(w => ((w.name || "").trim() || w.ref) && !w.oos); // out of stock: not counted
   const sub = wants.reduce((a, w) => a + itemValue(w), 0);
   const d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc))); // buying posts use the bulk bonus instead
@@ -2512,13 +2658,13 @@ function oosMark(x, y, w, h, sx0, sx1, sy, T) {
 }
 const fmtRt = n => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });   // a ratio: 1.25 stays 1.25
 const giveIconsW = (g, iz) => { const n = giveParts(g).length; return n ? 8 + iz + (n - 1) * iz * .72 : 0; };
-function drawGiveIcons(g, x, cy, iz) { giveParts(g).forEach((it, i) => icon(itemState(it), it.e, x + 8 + iz / 2 + i * iz * .72, cy, iz, 1)); }
+function drawGiveIcons(g, x, cy, iz) { giveParts(g).forEach((it, i) => icon(picState(it), it.e, x + 8 + iz / 2 + i * iz * .72, cy, iz, 1)); }
 function ratioW(w, s) { const iz = s * 1.3, g = giveItem(w), z = s * .86; return measure(fmtRt(num(w.rb)), "D", z) + 8 + iz + 20 + measure(":", "D", z) + 20 + measure(fmtRt(num(w.ra)), "D", z) + giveIconsW(g, iz); }
 /** "60 [their item] : 89 [my item]" — what you get : what you give, as on Discord. */
 function drawRatio(w, x, cy, s, T) {
   const iz = s * 1.3, g = giveItem(w), z = s * .86;
   x += txt(fmtRt(num(w.rb)), x, cy + 1, { f: "D", s: z, c: T.ink });
-  icon(itemState(w), w.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz;
+  icon(picState(w), w.e, x + 8 + iz / 2, cy, iz, 1); x += 8 + iz;
   x += 20; x += txt(":", x, cy, { f: "D", s: z, c: T.mut }) + 20;
   x += txt(fmtRt(num(w.ra)), x, cy + 1, { f: "D", s: z, c: T.acc });
   if (g) drawGiveIcons(g, x, cy, iz);
@@ -2592,7 +2738,7 @@ function saleRowH(nl, z) { return Math.round((SROW_H + nl * 30) * z); }
 function saleRow(w, x0, x1, top, rh, T, z, nl, mainK, hair) {
   const mb = top + 68 * z, iz = 100 * z;
   if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x0 - 16, top + 4, x1 - x0 + 32, rh - 8); ctx.fillStyle = T.acc; ctx.fillRect(x0 - 16, top + 4, 5, rh - 8); }
-  icon(itemState(w), w.e, x0 + iz / 2 + 2, nl && nl.length ? mb : top + rh / 2, iz);
+  icon(picState(w), w.e, x0 + iz / 2 + 2, nl && nl.length ? mb : top + rh / 2, iz);
   // right: the price per item, the biggest number of the row
   let pw = 0; const v = ledgerVal(w, "p");
   if (v && DRAW_CU && !DRAW_CU.ea) v.sub = null;
@@ -2654,7 +2800,7 @@ function drawCard(w, i, CD, x, ty, T, trade, mainK) {
   ctx.lineWidth = w.hot ? 3 : 1.5; ctx.strokeStyle = w.hot ? T.acc : T.dark ? "rgba(240,229,207,.3)" : "rgba(42,29,20,.28)"; ctx.stroke();
   if (w.hot) starShape(x + cw - 18 * z, ty + 18 * z, 11 * z, T.acc);
   let yy = ty + 14 * z;
-  icon(itemState(w), w.e, cx, yy + 42 * z, 84 * z); yy += 92 * z;
+  icon(picState(w), w.e, cx, yy + 42 * z, 84 * z); yy += 92 * z;
   const L = CD.nameL[i], nTop = yy + (CD.NL - L.length) * 29 * z / 2; let nw = 0;
   L.forEach((l, k) => { nw = Math.max(nw, txt(l, cx, nTop + 14 * z + k * 29 * z, { f: "700", s: 25 * z, c: T.ink, al: "center" })); });
   yy += CD.NL * 29 * z;
@@ -2859,7 +3005,7 @@ function drawClassic() {
         const cx = W / 2 - rw / 2 + i * (ow + OG) + ow / 2, cy = y + 88;
         ctx.beginPath(); ctx.arc(cx, cy, 84, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
         ctx.setLineDash([3, 6]); ctx.lineWidth = 1.5; ctx.strokeStyle = T.mut; ctx.beginPath(); ctx.arc(cx, cy, 90, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-        icon(itemState(it), it.e, cx, cy, 138);
+        icon(picState(it), it.e, cx, cy, 138);
         let ny = y + 186 + 22;
         txt(it.name || "", cx, ny, { f: "700", s: 33, c: T.ink, al: "center", maxW: ow + 20, min: 20 });
         ny += 22;
@@ -2900,7 +3046,7 @@ function drawClassic() {
         const c = i % pr, r = (i / pr) | 0, x = M + BP + c * (tw + TG), ty = y + 84 + 6 + r * th, cx = x + tw / 2;
         if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(x, ty + 2, tw, th - 4); starShape(x + tw - 16, ty + 18, 11, T.acc); }
         ctx.beginPath(); ctx.arc(cx, ty + 12 + TR, TR, 0, 7); ctx.fillStyle = T.tile; ctx.fill();
-        icon(itemState(w), w.e, cx, ty + 12 + TR, TR * 1.8);
+        icon(picState(w), w.e, cx, ty + 12 + TR, TR * 1.8);
         const tnw = txt(w.name || "", cx, ty + 12 + 2 * TR + 10 + 17, { f: "700", s: 29, c: T.ink, al: "center", maxW: tw - 6, min: 17 });
         // "Want 150": how many you want of it
         const qOff = g.items.some(x => num(x.q) > 0) ? 28 : 0; if (num(w.q) > 0) txt("×" + fmt(num(w.q)), cx, ty + 12 + 2 * TR + 10 + 17 + 30, { f: "700", s: 24, c: T.acc, al: "center", maxW: tw - 6 });
@@ -2946,7 +3092,7 @@ function drawClassic() {
       const c = Math.floor(i / per), r = i % per, P0 = colsPos[c], ry = y + r * RH, cy = ry + RH / 2;
       if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(P0.x0 - 8, ry + 3, colW + 16, RH - 6); ctx.fillStyle = T.acc; ctx.fillRect(P0.x0 - 8, ry + 3, 4, RH - 6); }
       const big = !trade, iz = big ? 72 : 60;
-      icon(itemState(w), w.e, P0.x0 + iz / 2 + 3, cy, iz);
+      icon(picState(w), w.e, P0.x0 + iz / 2 + 3, cy, iz);
       let nx = P0.x0 + iz + 14; const nx0 = nx;
       if (w.hot) { starShape(nx + 9, cy - 1, 10, T.acc); nx += 24; }
       const rw = trade ? (hasRatio(w) ? ratioW(w, 34) : 0) : (LCc.length ? P0.xr - P0.left : 0);
@@ -2982,7 +3128,7 @@ function drawClassic() {
     rows.forEach(({ w, rw, nameMax, nl, h: rh }, idx) => {
       const top = y, ny = nl.length ? top + 40 : top + rh / 2;
       if (w.hot) { ctx.fillStyle = T.tile; ctx.fillRect(M - 18, top + 4, W - 2 * M + 36, rh - 8); ctx.fillStyle = T.acc; ctx.fillRect(M - 18, top + 4, 5, rh - 8); }
-      icon(itemState(w), w.e, M + 40, top + rh / 2, 76);
+      icon(picState(w), w.e, M + 40, top + rh / 2, 76);
       let nx = nameX;
       if (w.hot) { starShape(nx + 12, ny - 2, 13, T.acc); nx += 32; }
       const nw = txt(w.name || "", nx, ny, { f: "700", s: trade ? 34 : 36, c: T.ink, maxW: nameMax - (nx - nameX), min: 20 });
@@ -3214,9 +3360,9 @@ function selectProfile(id) { st = STATE.list.find(p => p.id === id) || STATE.lis
 function renderAll() { betaBar(); renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); if (typeof renderOrder === "function") renderOrder(); }
 
 /* ---------- search ---------- */
-const CAT_EN = { pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy & sugar", snack: "Grill & meals", pies: "Pies & cakes", sweets: "Sweets & ice cream", drinks: "Drinks", jams: "Jams & sauces", textile: "Textiles", mine: "Mine & jewelry", fish: "Fishing", feed: "Animal feed", other: "More (wiki)", perso: "My items" };
+const CAT_EN = { pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy & sugar", snack: "Grill & meals", pies: "Pies & cakes", sweets: "Sweets & ice cream", drinks: "Drinks & coffee", jams: "Jams, sauces & dips", soups: "Soups & salads", fastfood: "Sandwiches & snacks", asian: "Sushi, rice & noodles", textile: "Clothes & hats", home: "Candles, flowers & care", mine: "Mine & jewelry", fish: "Fishing", feed: "Animal feed & treats", other: "Other", perso: "My items" };
 let curCat = "pop", resLimit = 16;
-const baseLimit = () => $("#q").value ? 48 : 16;
+const baseLimit = () => $("#q").value ? 48 : !SETTINGS.dropBig ? 30 : 16;
 function renderCats() {
   const c = $("#cats"); c.textContent = "";
   CATS.forEach(k => {
@@ -3283,6 +3429,8 @@ const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have
 function renderResults() {
   const q = $("#q").value;
   $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q;
+  const LQ = lvlQuery(q); $("#results").classList.toggle("lvlmode", !!LQ);
+  if (LQ) { const box = $("#results"); box.textContent = ""; renderLvlResults(LQ, box); return; }
   const res = search(q, q ? "all" : curCat), box = $("#results");
   box.textContent = "";
   if (!res.length) { box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, q ? "No product found — add it as a custom item." : "Nothing here yet.")); $("#moreRes").hidden = true; return; }
@@ -3293,13 +3441,223 @@ function renderResults() {
     box.append(t);
   });
   $("#moreRes").hidden = res.length <= resLimit;
+  // the small list: one row you swipe, ending with "more" and "custom item"
+  if (dropSmall()) {
+    if (res.length > resLimit) box.append(h("button", { class: "tile more", onclick: () => { resLimit += 48; renderResults(); } }, h("span", { class: "mi" }, "＋" + Math.min(48, res.length - resLimit)), h("b", null, "Show more")));
+    box.append(h("button", { class: "tile more", onclick: () => $("#freeAdd").click() }, h("span", { class: "mi" }, "✎"), h("b", null, "Custom item")));
+  }
 }
 $("#moreRes").onclick = () => { resLimit += 48; renderResults(); };
+/* the add panel: small by default (one row of items you swipe — your list stays in view), or big (a grid) */
+const dropSmall = () => !SETTINGS.dropBig;
+function dropMode() {
+  const d = $("#sdrop"); if (!d) return;
+  d.classList.toggle("compact", dropSmall());
+  $("#sbig").textContent = dropSmall() ? "⤢" : "⤡";
+  $("#sbig").setAttribute("aria-label", dropSmall() ? "Bigger list" : "Smaller list");
+}
+$("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
+$("#sdone2").onclick = () => closeDrop();
+$("#scam").onclick = () => $("#itemsShot").click();
+/* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
+let LVL = (() => { try { return store.get("hd5_lvl") || {}; } catch (e) { return {}; } })();   // id → level (0 = none found)
+const LVL_ST = { loading: false, done: 0, total: 0, p: null, fail: false };
+/** the products that have an unlock level: not sets, page mixes, materials & tools, Help or your own items */
+/* ---------- finished products: made, and not an ingredient of something else ---------- */
+// ingredients and materials (made, but used to make other products) — exact names
+const FIN_NOT = new Set(["cream", "butter", "cheese", "goat cheese", "brown sugar", "white sugar", "syrup", "olive oil", "soy sauce", "tomato sauce", "mayonnaise", "honey", "beeswax", "honeycomb",
+  "cotton fabric", "wool", "silk", "yarn", "fish fillet", "lobster tail", "lobster", "mussel", "mussel meat", "duck feather", "feather", "coal", "refined coal", "milk", "goat milk", "egg", "bacon",
+  "sesame oil", "peanut butter", "rice noodles", "noodles", "flour", "dough", "tofu", "cocoa", "coffee bean", "tea leaf", "chili oil", "vinegar", "wax", "fishing net", "mystery net"]);
+const FIN_NOT_RE = /(?:\bfeed|\btreats?|\bore|^(?:iron|silver|gold|platinum|copper|bronze)\s+bar|\blure|\bnet|\btrap|\bfillet|\bseeds?|\bsapling)$/;
+let WIKI_RAW = new Set(((store.get("hd5_wiki", {}) || {}).raw || []).map(norm));
+let FIN_ONLY = !!store.get("hd5_fin", 0);
+const FIN_RE = /\b(?:finished|finish|processed|crafted|transformed)\s*(?:products?|goods|items?|foods?)?\b|\bmade\s+(?:products?|goods|items?)\b|\bproduits?\s+(?:finis?|transformes?|finals?)\b|\b(?:finis|transformes?)\b/;
+const FIN_RE_G = new RegExp(FIN_RE.source, "g");
+function isFinished(p) {
+  if (!p || p.parts || p.mix || p.custom || p.nomp || isVirt(p)) return false;
+  if (["crops", "trees", "animal", "feed", "ext", "packs", "fish"].includes(p.cat)) return false;
+  const n = norm(p.en);
+  if (FIN_NOT.has(n) || FIN_NOT_RE.test(n) || WIKI_RAW.has(n)) return false;
+  if (p.cat === "mine") return /ring|bracelet|necklace|earring|brooch|crown|tiara|pendant|watch|cufflink/.test(n);
+  return true;
+}
+const lvlCandidates = () => CAT.list.filter(p => p.en && !p.parts && !p.mix && !p.custom && !p.nomp && p.cat !== "ext" && p.cat !== "packs");
+function lvlFromText(t) {
+  t = String(t || "").replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1").replace(/'{2,3}/g, "");
+  // the page's own sentence first ("unlocked at experience level 34"), then the infobox field
+  const m = t.match(/(?:unlocked|available|unlocks?)\s+(?:at|from|on)\s+(?:the\s+)?(?:experience\s+|xp\s+)?level\s+(\d{1,3})\b/i)
+    || t.match(/experience\s+level\s+(\d{1,3})\b/i)
+    || t.match(/\|\s*(?:level|lvl|lv|unlock\w*|required\s*level|req\w*level)\s*=\s*(\d{1,3})\b/i)
+    || t.match(/\blevel\s*(?:required)?\s*[:=]\s*(\d{1,3})\b/i);
+  return m ? +m[1] : 0;
+}
+/** Reads the missing levels: first the page sources (50 a time), then the shown pages for those still unknown (20 a time). */
+function loadLevels(onProg) {
+  if (LVL_ST.loading) return LVL_ST.p;
+  const todo = lvlCandidates().filter(p => !(p.id in LVL));
+  if (!todo.length) return Promise.resolve();
+  LVL_ST.loading = true; LVL_ST.fail = false; LVL_ST.total = todo.length; LVL_ST.done = 0;
+  const prog = () => { try { onProg && onProg(); } catch (e) {} };
+  const save = () => { try { store.set("hd5_lvl", LVL); } catch (e) {} };
+  const fwd = j => { const m = new Map(); ((j.query && j.query.normalized) || []).concat((j.query && j.query.redirects) || []).forEach(x => m.set(x.from, x.to)); return t => { for (let i = 0; i < 5 && m.has(t); i++) t = m.get(t); return t; }; };
+  LVL_ST.p = (async () => {
+    const left = [];
+    for (let i = 0; i < todo.length; i += 50) {
+      const chunk = todo.slice(i, i + 50);
+      try {
+        const q = { origin: "*", action: "query", prop: "revisions", rvprop: "content", rvslots: "main", format: "json", formatversion: "2", redirects: "1", titles: chunk.map(p => p.en).join("|") };
+        const j = await (await fetch(WIKI_API + "?" + new URLSearchParams(q))).json(), to = fwd(j), pages = new Map();
+        ((j.query && j.query.pages) || []).forEach(pg => pages.set(pg.title, pg));
+        chunk.forEach(p => {
+          const pg = pages.get(to(p.en));
+          const rv = pg && !pg.missing && pg.revisions && pg.revisions[0];
+          const src = rv ? (rv.slots ? rv.slots.main.content : rv.content) : "";
+          const lv = src ? lvlFromText(src) : 0;
+          if (lv) { LVL[p.id] = lv; LVL_ST.done++; } else if (pg && pg.missing) { LVL[p.id] = 0; LVL_ST.done++; } else left.push(p);
+        });
+      } catch (e) { LVL_ST.fail = true; chunk.forEach(p => left.push(p)); }
+      save(); prog();
+    }
+    // still unknown (the level comes from a template): the shown pages, several in one go
+    for (let i = 0; i < left.length; i += 20) {
+      const chunk = left.slice(i, i + 20);
+      try {
+        const text = chunk.map((p, k) => "\n\nLVLMARK" + k + "LVLMARK\n\n{{:" + p.en + "}}").join("");
+        const fd = new URLSearchParams({ origin: "*", action: "parse", format: "json", prop: "text", contentmodel: "wikitext", disablelimitreport: "1", disableeditsection: "1", text });
+        const j = await (await fetch(WIKI_API, { method: "POST", body: fd })).json();
+        const html = j.parse && j.parse.text && j.parse.text["*"]; if (!html) throw 0;
+        const all = (new DOMParser().parseFromString(html, "text/html").body.textContent || "").replace(/\s+/g, " ").split(/LVLMARK(\d+)LVLMARK/);
+        chunk.forEach((p, k) => { const at = all.indexOf(String(k)); const part = at >= 0 ? all[at + 1] || "" : ""; LVL[p.id] = lvlFromText(part); LVL_ST.done++; });
+      } catch (e) { LVL_ST.fail = true; }
+      save(); prog();
+    }
+    LVL_ST.loading = false; prog();
+  })();
+  return LVL_ST.p;
+}
+/** "level 30 to 110", "lvl 80+", "from level 80", "niveau 30 à 110", "up to lvl 20" → { lo, hi }; else null */
+/** "level 30 to 110", "lv 69 and lower", "80+", "under 50", "entre 30 et 60", "1-20, 50+", "pies level 30-60":
+    one or more level ranges, and optionally words of a name or a group (pies, juices, crops…). */
+const LVL_CATW = { crop: "crops", crops: "crops", culture: "crops", cultures: "crops", tree: "trees", trees: "trees", bush: "trees", bushes: "trees", fruit: "trees", fruits: "trees", arbre: "trees", arbres: "trees",
+  animal: "animal", animals: "animal", bakery: "bakery", bread: "bakery", breads: "bakery", boulangerie: "bakery", dairy: "dairy", sugar: "dairy", laiterie: "dairy",
+  snack: "snack", snacks: "snack", bbq: "snack", barbecue: "snack", dish: "snack", dishes: "snack", meal: "snack", meals: "snack", plat: "snack", plats: "snack",
+  pie: "pies", pies: "pies", cake: "pies", cakes: "pies", tarte: "pies", tartes: "pies", gateau: "pies", gateaux: "pies", sweet: "sweets", sweets: "sweets", candy: "sweets", candies: "sweets", confiserie: "sweets",
+  drink: "drinks", drinks: "drinks", juice: "drinks", juices: "drinks", jus: "drinks", boisson: "drinks", boissons: "drinks", jam: "jams", jams: "jams", sauce: "jams", sauces: "jams", confiture: "jams", confitures: "jams",
+  soup: "soups", soups: "soups", salad: "soups", salads: "soups", soupe: "soups", soupes: "soups", salade: "soups", salades: "soups",
+  sandwich: "fastfood", sandwiches: "fastfood", burger: "fastfood", burgers: "fastfood", wrap: "fastfood", wraps: "fastfood", taco: "fastfood", tacos: "fastfood",
+  sushi: "asian", sushis: "asian", noodles: "asian", nouilles: "asian", candle: "home", candles: "home", bougie: "home", bougies: "home", flowers: "home", fleurs: "home", bouquet: "home", bouquets: "home",
+  hat: "textile", hats: "textile", chapeau: "textile", chapeaux: "textile", coffee: "drinks", cafe: "drinks", dip: "jams", dips: "jams",
+  textile: "textile", textiles: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", jewels: "mine", bijoux: "mine", fish: "fish", fishing: "fish", peche: "fish", feed: "feed" };
+const LVL_FILL = new Set("level levels lvl lvls lv lev lvs niveau niveaux niv nv all every everything any the a an of at to i me my we want need give show add get list products product items item things thing stuff unlocked unlock unlocks unlocking les le la l des de du d tous tout toute toutes produits produit objets objet items debloques debloque debloquer au aux en for with please pls inclusive included inclus compris".split(" "));
+function lvlQuery(q) {
+  let s = norm(q).replace(/≤|=</g, "<=").replace(/≥|=>/g, ">=").replace(/[–—−~→]|\.{2,}/g, "-").replace(/\bjusqu\w*/g, " upto ").replace(/\bjusque\b/g, " upto ");
+  // "lv69", "lvl.30", "niv80", "l69": the number stuck to the word
+  s = s.replace(/\b(lvls?|lv|lev|levels?|niveaux?|niv|nv|l)\.?(?=\d)/g, (m, k) => " level ");
+  // "finished products", "produits finis", "transformés": only what's made and not used to make something else
+  const fin = FIN_RE.test(s); if (fin) s = s.replace(FIN_RE_G, " ");
+  const hasK = /\b(?:level|levels|lvl|lvls|lv|lev|niveau|niveaux|niv|nv)\b/.test(s);
+  const nums = s.match(/\d{1,3}/g);
+  if (!nums) { if (!fin) return null; const nm = s.split(/[^a-z]+/).filter(w => w && !LVL_FILL.has(w)); return { ranges: [{ lo: 1, hi: 999 }], lo: 1, hi: 999, words: nm, cats: [...new Set(nm.map(w => LVL_CATW[w]).filter(Boolean))], name: nm.filter(w => !LVL_CATW[w]), fin: true }; }
+  // without the word "level", only a pure range: "30-110", "80+", "<= 69", "69 and lower"
+  const rest = s.replace(/\d{1,3}/g, " ").replace(/[-+<>=,;/&()]/g, " ").split(/\s+/).filter(Boolean);
+  const OPW = /^(?:and|or|et|ou|up|upto|until|till|to|a|from|since|starting|start|starts|between|entre|de|des|depuis|partir|apres|after|before|avant|above|over|higher|more|plus|min|minimum|least|au|moins|less|lower|below|under|down|max|maximum|maxi|most|than|que|dessus|dessous|superieur|inferieur|superieurs|inferieurs|sup|inf|onwards|onward|upward|upwards|downward|downwards|beyond|lowest|highest|only|exactly|just|seulement|pile|y|compris)$/;
+  // a typo of a range word ("lowe", "highr", "abov") still counts
+  const KEYW = ["lower", "below", "under", "higher", "above", "over", "less", "more", "until", "between", "starting", "since", "maximum", "minimum", "moins", "plus", "dessous", "dessus", "partir", "entre", "depuis", "jusqu", "onwards", "upwards", "downwards", "level", "levels", "niveau", "niveaux"];
+  rest.forEach(w => { if (w.length < 4 || OPW.test(w) || LVL_FILL.has(w) || LVL_CATW[w]) return; const k = KEYW.find(k => Math.abs(k.length - w.length) <= 2 && editDist(w, k, 1) <= 1 || (w.length >= 4 && k.startsWith(w))); if (k) { s = s.replace(new RegExp("\\b" + w + "\\b"), k); rest[rest.indexOf(w)] = k; } });
+  const names = rest.filter(w => !OPW.test(w) && !LVL_FILL.has(w));
+  if (!hasK && names.length) return null;
+  if (!hasK && nums.length < 2 && !/[-+<>]|\b(?:up|upto|until|till|from|since|above|over|under|below|lower|higher|less|more|plus|moins|between|entre|max|min|dessous|dessus|partir|depuis)\b/.test(s)) return null;
+  const ranges = [];
+  // one range per piece: "1-20, 50+", "30 to 40 / 60 to 70"
+  s.split(/[,;/]|\bthen\b|\bpuis\b/).forEach(seg => {
+    const n = (seg.match(/\d{1,3}/g) || []).map(Number).filter(x => x > 0); if (!n.length) return;
+    if (n.length >= 3) { n.forEach(x => ranges.push({ lo: x, hi: x })); return; }
+    if (n.length === 2) { ranges.push({ lo: Math.min(n[0], n[1]), hi: Math.max(n[0], n[1]) }); return; }
+    const x = n[0], i = seg.search(/\d/), pre = seg.slice(0, i), post = seg.slice(i).replace(/^\d+/, "");
+    // after the number: inclusive ("69 and lower", "80+", "69-", "80 et plus")
+    if (/^\s*(?:\+|(?:and|or|et|ou|&)?\s*(?:up|upward|upwards|onwards?|above|over|higher|more|plus|beyond|after|later|newer|highest|(?:au\s+)?dessus|superieurs?)\b)/.test(post)) { ranges.push({ lo: x, hi: 999 }); return; }
+    if (/^\s*(?:-(?!\s*\d)|(?:and|or|et|ou|&)?\s*(?:down|downwards?|below|under|lower|less|moins|before|earlier|older|lowest|(?:en\s+)?dessous|inferieurs?)\b)/.test(post)) { ranges.push({ lo: 1, hi: x }); return; }
+    // before the number: "<=", "up to", "max", "until" are inclusive; "<", "under", "below", "less than", "before" are not
+    if (/(?:<=|\b(?:upto|up\s+to|until|till|max|maximum|maxi|at\s+most|au\s+plus|no\s+more\s+than|not\s+above))\s*(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: 1, hi: x }); return; }
+    if (/(?:<|\b(?:under|below|before|less\s+than|lower\s+than|moins\s+de|moins\s+que|avant|en\s+dessous\s+de|en\s+dessous\s+du|inferieurs?\s+(?:a|au)|sous)\s*)$/.test(pre.replace(/\s*(?:level|lvl|lv|niveau|niv)\s*$/, " ").trim() + " ") || /(?:<|\b(?:under|below|before|less\s+than|lower\s+than|moins\s+de|moins\s+que|avant|en\s+dessous\s+d\w*|inferieurs?\s+\w*|sous))\s*(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: 1, hi: Math.max(1, x - 1) }); return; }
+    if (/(?:>=|\b(?:from|since|starting(?:\s+(?:at|from))?|starts?\s+at|min|minimum|at\s+least|a\s+partir\s+d\w*|partir\s+d\w*|des|depuis|au\s+moins|not\s+below|no\s+less\s+than)\s*)(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: x, hi: 999 }); return; }
+    if (/(?:>|\b(?:above|over|after|beyond|more\s+than|higher\s+than|plus\s+de|plus\s+que|apres|au\s+dessus\s+d\w*|superieurs?\s+\w*))\s*(?:level|lvl|lv|niveau|niv|le\s+niveau|du\s+niveau)?\s*$/.test(pre)) { ranges.push({ lo: x + 1, hi: 999 }); return; }
+    ranges.push({ lo: x, hi: x });
+  });
+  if (!ranges.length) return null;
+  ranges.sort((a, b) => a.lo - b.lo);
+  const R = { ranges, lo: Math.min(...ranges.map(r => r.lo)), hi: Math.max(...ranges.map(r => r.hi)), words: names, fin };
+  // a group ("pies", "jus") or the words of a name
+  R.cats = [...new Set(names.map(w => LVL_CATW[w]).filter(Boolean))];
+  R.name = names.filter(w => !LVL_CATW[w]);
+  return R;
+}
+const LVL_CATN = CAT_EN;
+const lvlOne = r => r.hi >= 999 ? r.lo + "+" : r.lo === r.hi ? "" + r.lo : r.lo <= 1 ? "≤ " + r.hi : r.lo + "–" + r.hi;
+const lvlRangeTxt = R => (R.fin || FIN_ONLY ? "Finished products · " : "") + lvlRangeTxt0(R);
+const lvlRangeTxt0 = R => {
+  const rs = R.ranges || [R], what = (R.cats && R.cats.length ? R.cats.map(c => LVL_CATN[c] || c).join(", ") + " · " : "") + (R.name && R.name.length && R._nameOk ? "“" + R.name.join(" ") + "” · " : "");
+  if (rs.length === 1 && rs[0].lo <= 1 && rs[0].hi >= 999) return what + "all levels";
+  if (rs.length > 1) return what + "levels " + rs.map(lvlOne).join(", ");
+  const r = rs[0];
+  return what + (r.hi >= 999 ? "level " + r.lo + " and up" : r.lo === r.hi ? "level " + r.lo : r.lo <= 1 ? "level " + r.hi + " and lower" : "levels " + r.lo + " to " + r.hi);
+};
+const lvlNameOk = (p, R) => R.name.every(w => toks(p.en + " " + (p.fr || "")).some(t => t.startsWith(w) || same(t, w)));
+const lvlProducts = R => {
+  const rs = R.ranges || [R], any = rs.length === 1 && rs[0].lo <= 1 && rs[0].hi >= 999, inR = lv => any || rs.some(r => lv >= r.lo && lv <= r.hi);
+  let L = lvlCandidates().filter(p => inR(LVL[p.id]) && (!R.cats || !R.cats.length || R.cats.includes(p.cat)) && (!(R.fin || FIN_ONLY) || isFinished(p)));
+  // words of a name: kept only if they name something (a typo of "lower" shouldn't empty the list)
+  R._nameOk = false;
+  if (R.name && R.name.length && lvlCandidates().some(p => lvlNameOk(p, R))) { R._nameOk = true; L = L.filter(p => lvlNameOk(p, R)); }
+  return L.sort((a, b) => (LVL[a.id] || 999) - (LVL[b.id] || 999) || a.en.localeCompare(b.en));
+};
+/** the results for a level search: the products, and one button to add them all */
+function renderLvlResults(R, box) {
+  const anyLv = (R.ranges || [R]).length === 1 && R.lo <= 1 && R.hi >= 999;
+  const ready = anyLv || lvlCandidates().every(p => p.id in LVL);
+  if (!ready && !LVL_ST.loading) loadLevels(debounce(() => { if (lvlQuery($("#q").value)) renderResults(); }, 150));
+  const L = lvlProducts(R), list = targetList(), inList = new Set(list.map(it => it.ref)), add = L.filter(p => !inList.has(p.id));
+  const head = h("div", { class: "lvlhead", style: "grid-column:1/-1" },
+    h("div", null, h("b", null, (R.fin || FIN_ONLY ? "Finished products · " : "") + (R.lo <= 1 && R.hi >= 999 && (R.ranges || [R]).length === 1 ? lvlRangeTxt0(R).replace(/all levels$/, "all levels") : "unlocked at " + lvlRangeTxt0(R)).replace(/^u/, m => R.fin || FIN_ONLY ? m : "U")), h("small", null, ready ? L.length + " products" + (L.length - add.length ? " · " + (L.length - add.length) + " already in the list" : "") : "Reading the levels from the Hay Day wiki… " + LVL_ST.done + " / " + (LVL_ST.total || "…"))),
+    h("button", { class: "btn pri", disabled: !ready || !add.length, onclick: () => {
+      const room = 150 - list.length, take = add.slice(0, Math.max(0, room));
+      const like = st.type !== "trade" && list === st.wants ? [...list].reverse().find(x => x.pu === "xmp" && num(x.p) > 0) : null;
+      take.forEach(p => { list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : like ? { p: like.p, pu: "xmp" } : null)); });
+      renderLists(); renderResults(); changed();
+      toast("✓ " + take.length + " products added (" + lvlRangeTxt(R) + ")" + (take.length < add.length ? " · " + (add.length - take.length) + " left out: 150 items max per post" : ""));
+    } }, !ready ? "Loading…" : add.length ? "Add all " + add.length : L.length ? "All added" : "Nothing found"));
+  box.append(head);
+  if (!R.fin) box.append(h("div", { class: "lvlfin", style: "grid-column:1/-1" },
+    h("button", { class: "chip" + (FIN_ONLY ? "" : " on"), onclick: () => { FIN_ONLY = false; store.set("hd5_fin", 0); renderResults(); } }, "All products"),
+    h("button", { class: "chip" + (FIN_ONLY ? " on" : ""), onclick: () => { FIN_ONLY = true; store.set("hd5_fin", 1); renderResults(); } }, "🍽️ Finished products only"),
+    FIN_ONLY ? h("small", null, "no crops, animal goods, feed, bars, fillets, oils, sugar, dairy basics…") : null));
+  const one = (R.ranges || [R]).length === 1 && R.lo === R.hi;
+  if (one) box.append(h("div", { class: "lvltip", style: "grid-column:1/-1" }, "Ranges work too: “69 and lower”, “30-110”, “80+”, “under 50”, “1-20, 50+”, “pies 30-60”, “jus niveau 40 à 70”"));
+  if (LVL_ST.fail && !LVL_ST.loading && !ready) box.append(h("div", { class: "empty", style: "grid-column:1/-1" }, "The wiki can't be reached right now — try again in a moment."));
+  L.slice(0, resLimit).forEach(p => {
+    const t = h("button", { class: "tile", title: p.en, onclick: () => addFromCatalog(p) }, thumb(prodState(p.id), p.e), h("b", null, p.en), h("span", { class: "lv" }, "Lv " + LVL[p.id]));
+    if (inList.has(p.id)) t.append(h("span", { class: "in" }, "✓"));
+    box.append(t);
+  });
+  $("#moreRes").hidden = L.length <= resLimit;
+}
+
 /* drop-down results: open while searching, close with Done / Esc / tap outside */
-function openDrop() { if (!$("#sdrop").hidden) return; $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
+function openDrop() { if (!$("#sdrop").hidden) return; dropMode(); $("#sdrop").hidden = false; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
 function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
 $("#q").addEventListener("focus", openDrop);
 $("#sdone").onclick = closeDrop;
+// tap a number (a price, a quantity): it's selected, so what you type replaces it — no need to erase first
+let lastTap = { t: null, at: 0 };
+document.addEventListener("pointerdown", e => { lastTap = { t: e.target, at: Date.now() }; }, true);
+document.addEventListener("focusin", e => {
+  const t = e.target;
+  if (!t || t.tagName !== "INPUT" || t.type === "search" || t.readOnly) return;
+  if (lastTap.t !== t || Date.now() - lastTap.at > 1000) return;          // only a tap: a refresh that puts the cursor back keeps it
+  if (!/^(?:numeric|decimal)$/.test(t.inputMode) && !/^(?:Price|Quantity|qty|Qty)/.test(t.getAttribute("aria-label") || t.placeholder || "")) return;
+  if (!t.value || !/^[\d.,\s×x]+$/i.test(t.value)) return;
+  setTimeout(() => { try { if (document.activeElement === t) t.select(); } catch (er) {} }, 0);
+});
 document.addEventListener("pointerdown", e => { if (!$("#sdrop").hidden && !e.target.closest("#sbar") && !e.target.closest("#sheet") && !e.target.closest("#toast")) closeDrop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrop(); });
 /* ↑ / ↓ jump buttons for long lists */
@@ -3353,9 +3711,15 @@ function addFromCatalog(p) {
   const list = targetList(), ex = list.find(it => it.ref === p.id);
   if (ex) { flashItem(ex.uid); toast(p.en + " is already in the list"); return; }
   if (list.length >= 150) return toast("150 items max per post.");
-  list.push(mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : null)); pushRecent(p.id);
+  // selling / buying: a new item starts at the ×MP of the last item added (and, buying, its quantity) — one less thing to type
+  const like = st.type !== "trade" && list === st.wants && !p.nomp ? [...list].reverse().find(x => x.pu === "xmp" && num(x.p) > 0) : null;
+  const lastQ = st.type === "achat" && list === st.wants && list.length ? list[list.length - 1].q : "";
+  const nw = mkItem(p.id, st.type === "trade" && list === st.wants && st.addR ? addRF() : like ? Object.assign({ p: like.p, pu: "xmp" }, lastQ ? { q: lastQ } : {}) : lastQ ? { q: lastQ } : null);
+  list.push(nw); pushRecent(p.id);
   renderLists(); renderResults(); changed();
-  toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : ""));
+  // the new item, shown under the add panel: its price is right there to change
+  if (dropSmall()) requestAnimationFrame(() => flashItem(nw.uid));
+  toast("✓ " + p.en + " added" + (st.type === "trade" && list === st.wants ? (st.addR ? " at " + ratioLabel(st.addR.ra, st.addR.rb) : " (no ratio)") : like ? " at " + fmtR(num(like.p)) + "×MP, like the last one" : ""));
 }
 $("#freeAdd").onclick = () => {
   const it = mkItem(null, Object.assign({ name: $("#q").value.trim(), e: "📦" }, st.type === "trade" && targetList() === st.wants && st.addR ? addRF() : {}));
@@ -3819,7 +4183,7 @@ function renderStyle() {
   const ly = $("#layouts"); ly.textContent = "";
   LAYOUTS.forEach(l => { const b = h("button", { class: "lay" + (st.layout === l.id ? " on" : ""), onclick: () => { st.layout = l.id; renderStyle(); changed(); } }); b.innerHTML = l.svg; b.append(l.fr); ly.append(b); });
   renderCustom();
-  $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === (st.sort || "manual")); b.onclick = () => { st.sort = b.dataset.s; renderStyle(); changed(); }; });
+  $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === sortKey()); b.onclick = () => { st.sort = b.dataset.s; st.sortV = 1; renderStyle(); changed(); }; });
   $("#haveTitleF").hidden = st.type !== "trade";
 }
 $("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Profile duplicated"); };
@@ -4006,14 +4370,29 @@ function parseOrder(text) {
   // (not a price: "x20 450 each", "4k each")
   T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m; each = +n; return pre + " , "; })
     .replace(/\beach\s*(?:x\s*)?(\d{1,3})\b/gi, (m, n) => { each = +n; return " , "; });
-  // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity
-  const P = "\\d[\\d.,]*\\s*k?\\s*(?:coins?|c)?", END = "(?=\\s*(?:$|[,;\\n|]|\\s(?:and|&|\\+)\\s))";
-  T = T.replace(/\s*\([^)\n]*\d[^)\n]*\b(?:ea|each|k|coins?|apiece|per)\b[^)\n]*\)/gi, " ")
-    .replace(new RegExp("\\s*(?:@|\\bat\\b|\\bà\\b)\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?" + END, "gi"), " ")
-    .replace(new RegExp("\\s+\\bfor\\s*" + P + "\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)" + END, "gi"), " ")
-    .replace(new RegExp("\\s+" + P + "\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), " ")
+  // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity.
+  // Each one is kept as a mark on its line (\u0002p…\u0003): the order shows it, and uses it when it isn't your post's price.
+  const coinV = t => { t = String(t).replace(/\s/g, "").replace(/coins?|c$/i, ""); const k = /k$/i.test(t); t = t.replace(/k$/i, ""); const v = /^\d{1,3}(?:,\d{3})+$/.test(t) ? num(t.replace(/,/g, "")) : num(t.replace(",", ".")); return k ? v * 1000 : v; };
+  const mark = (v, u) => v > 0 ? " \u0002p" + Math.round(v * 1000) / 1000 + u + "\u0003 " : " ";
+  const numIn = t => (String(t).match(/\d[\d.,]*\s*k?/i) || [""])[0];
+  const P = "\\d(?:[\\d.,]*\\d)?\\s*k?\\s*(?:coins?|c)?", END = "(?=\\s*(?:$|[,;\\n|]|\\s(?:and|&|\\+)\\s))";
+  T = T
+    // ×MP prices are not quantities: "3,5x" / "3.5x" (a quantity is never a decimal), "5xmp", "5x mp", "@ 8x"
+    .replace(/(^|[\s(@])(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*(?:mp|max\s*price|max)\b|mp\b)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    .replace(/(^|[\s(@])(\d+[.,]\d+)\s*[x×](?![a-z0-9])/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    // "rings x180 3,5": a decimal after the quantity is the price (×MP)
+    .replace(/^([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×]|^\s*\d+\s)[^\n]*?[a-z][^\n]*?)\s+(\d+[.,]\d{1,2})(?=\s*$)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    .replace(/^([^\n]*?[a-z][^\n]*?\s[x×]?\d+)\s+(\d+[.,]\d{1,2})(?=\s*$)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
+    .replace(/^([^\n]*?[a-z][^\n]*?\s[x×]?\d+[x×]?)\s+(\d[\d.,]*\s*(?:k|coins?))(?=\s*$)/gim, (m, a, v) => a + mark(coinV(v), "c"))       // "olive oil x20 2k"
+    .replace(/[ \t]+(?:@|at|à)[ \t]*(?=$|\n|\u0002)/gim, " ")
+    .replace(/[ \t]*\(([^)\n]*\d[^)\n]*\b(?:ea|each|k|coins?|apiece|per)\b[^)\n]*)\)/gi, (m, v) => mark(coinV(numIn(v)), "c"))
+    .replace(new RegExp("[ \\t]*(?:@|\\bat\\b|\\bà\\b)[ \\t]*(" + P + ")\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)?" + END, "gi"), (m, v) => mark(coinV(v), "c"))
+    .replace(new RegExp("\\s+\\bfor\\s*(" + P + ")\\s*(?:each|ea|apiece|per\\s*\\w+|\\/\\s*\\w+)" + END, "gi"), (m, v) => mark(coinV(v), "c"))
+    .replace(new RegExp("\\s+(" + P + ")\\s*(?:each|ea|apiece|\\/\\s*ea(?:ch)?)\\b" + END, "gi"), (m, v) => mark(coinV(v), "c"))
     // "2 bem set 4k", "10 olive oil 2.5k": a price after the name, the quantity already in front
-    .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+\d[\d.,]*\s*(?:k|coins?)(?=\s*(?:$|[,;\n|]))/gim, "$1");
+    .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+(\d[\d.,]*\s*(?:k|coins?))(?=\s*(?:$|[,;\n|]))/gim, (m, a, v) => a + mark(coinV(v), "c"))
+    // "Diamond rings x180 5x": the quantity is already there, the "5x" after it is the price
+    .replace(/^(?=[^\n]*[a-z][^\n]*\s@?\d{1,2}\s*[x×]\s*$)([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×](?=\s*[a-z])|^\s*\d+\s+(?=[a-z]))[^\n]*?)\s+@?(\d{1,2})\s*[x×](?=\s*$)/gim, (m, a, v) => a + mark(num(v), "x"));
   T.split(/\r?\n|;|•|·|\|/).forEach(line => {
     // pieces: commas (not "1,500"), then "and" / "&" / "+" unless it's one name of your post ("bacon and eggs")
     line.split(/,(?!\d{3}\b)|\s+\/\s+/).forEach(chunk => {
@@ -4028,6 +4407,8 @@ function parseOrder(text) {
         }
       }
       parts.forEach(part => {
+        const pm = part.match(/\u0002p([\d.]+)([xc])\u0003/), msgP = pm ? { p: pm[1], pu: pm[2] === "x" ? "xmp" : "coin" } : null;
+        part = part.replace(/\u0002p[\d.]+[xc]\u0003/g, " ");
         // "all" starts a new piece: "feta pie all jams"; "I need 30 … 20 …": the quantities split once "I need" is out
         part.replace(/([a-z)'’])\s+(?=(?:all|every)\s+[a-z])/gi, "$1\u0001").split("\u0001").forEach(p0 => orderSplitQty(orderLead(p0)).forEach(p1 => {
           const raw = p1.replace(/\s+/g, " ").trim(); if (!raw) return;
@@ -4042,7 +4423,7 @@ function parseOrder(text) {
           const name = W2.s || pc.name, all = W.all || W2.all;
           if (!pc.q && orderChat(name, post)) return;                    // "Heyyyy", "was wondering if you're interested in…"
           const segs = !pc.q && !all ? orderSegment(name, post) : [name];
-          segs.forEach(nm => out.push({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }));
+          segs.forEach(nm => out.push(Object.assign({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }, msgP ? { mp: msgP } : {})));
         }));
       });
     });
@@ -4097,7 +4478,20 @@ function matchInfo(qt, name, mode) {
   return { sc: score - miss * 1.6 + (used.size === pt.length ? 2 : 0) - (pt.length - used.size) * .6, miss, typo };
 }
 const matchScore = (qt, name, mode) => matchInfo(qt, name, mode).sc;
+/* the same name against the same list gives the same answer: kept, so a long order re-renders fast (typing a price stays smooth) */
+const FM_CACHE = new Map();
 function findMatches(name, pool, label, mode) {
+  const pk = pool === CAT.list ? "C" + CAT.list.length : "P" + pool.length + ":" + pool.map(x => (x.uid || x.id) + "=" + label(x)).join("|");
+  const key = (mode || 0) + "\u0001" + name + "\u0001" + pk;
+  const hit = FM_CACHE.get(key); if (hit && hit.pool === pool.length && hit.ok(pool)) return hit.r.slice();
+  if (FM_CACHE.size > 3000) FM_CACHE.clear();
+  const r = findMatches0(name, pool, label, mode);
+  // the objects of the list can change (a new post): the cached result is used only when they're the same ones
+  const objs = new Set(r.map(m => m.x));
+  FM_CACHE.set(key, { r, pool: pool.length, ok: P => [...objs].every(o => P.includes(o)) });
+  return r.slice();
+}
+function findMatches0(name, pool, label, mode) {
   const al = ALIASES[slug(name)] || ALIASES[slug(name).replace(/s$/, "")];
   const qt = toks(name);
   return pool.map(x => { const nm = label(x), id = x.ref || x.id, I = matchInfo(qt, nm, mode); let sc = I.sc; if (al && id === al) sc = Math.max(sc, 50); if (slug(nm) === slug(name)) sc = 100; return { x, sc, miss: sc >= 50 ? 0 : I.miss, typo: sc >= 50 ? 0 : I.typo }; })
@@ -4313,16 +4707,44 @@ function resolveLine(L) {
   const post = postItems();
   if (L.pick === "-") return { w: null, ignored: true };
   if (L.pick) { const w = post.find(x => x.uid === L.pick); if (w) return { w, sure: true }; }
+  if (L.extra) return { w: extraItem(L), sure: true, extra: true };              // added for this order only
   if (L.gpick) { const w = post.find(x => x.uid === L.gpick); if (w) return { w, sure: true }; }        // from "all jams" / "fp jams"…
   const mx = mixFromText(L.name); if (mx) { const w = post.find(x => x.ref === mx.id); return w ? { w, sure: true } : { w: null, prod: mx }; }
   // typos and stray words allowed (a buyer's message); a guess with a stray word is flagged "?"
   const lib = findMatches(L.name, CAT.list, p => p.en, 1)[0];
   const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "", 2).filter(m => !m.miss || (!(lib && lib.sc >= 4) && orderKeyWord(L.name, pName(m.x))));
   if (r.length) return { w: r[0].x, sure: !r[0].miss && !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
+  // "apple jam" with First Page Jams in your post: that jam, inside the mix
+  { const mp0 = lib && !lib.miss ? lib.x : (() => { const m = matchProduct(L.name); return m && m.p && m.sure ? m.p : null; })();
+    const inMix = mp0 && !mp0.mix && post.find(x => { const m = mixOf(x); return m && m.mix.includes(mp0.id); });
+    if (inMix) return { w: inMix, sure: true, part: mp0.id }; }
   const c = lib, mp = !c && L.name.length >= 3 ? matchProduct(L.name) : null, sub = (a, b) => { let i = 0; for (const ch of b) if (ch === a[i]) i++; return i === a.length; },
     okMp = mp && mp.p && slug(mp.p.en)[0] === slug(L.name)[0] && sub(slug(L.name).replace(/-/g, ""), slug(mp.p.en).replace(/-/g, "")), inP = c ? post.find(x => x.ref === c.x.id) : okMp && post.find(x => x.ref === mp.p.id);
   if (inP) return { w: inP, sure: false };                              // "mlk": a short typo found in the catalog, and it's in your post
+  // selling / buying: an item of the game that isn't in your post is added anyway, for this order only (tap to undo)
+  if (c && !c.miss && !L.noExtra && st.type !== "trade" && !c.x.custom && c.x.id !== (ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref)) && !/^(?:for|in|with|paid|pay(?:ing)?|trad\w*|swap\w*)\b/i.test(String(L.raw || "").trim())) { L.extra = extraNew(c.x.id); L.extra.auto = 1; return { w: extraItem(L), sure: true, extra: true }; }
   return { w: null, prod: c ? c.x : null };
+}
+/* ---------- items added for one order only (not in your post: the post never changes) ---------- */
+/** Its first price: like the rest of your post — the ×MP most of your items use, or the same ×MP as your coin prices; else 1×MP. */
+function extraNew(ref, name) {
+  const mp = ref ? maxPrice(ref) : 0, P = postItems().filter(w => !w.extra && w.ref && num(w.p) > 0);
+  const xs = P.filter(w => w.pu === "xmp"), cnt = new Map(); xs.forEach(w => cnt.set(num(w.p), (cnt.get(num(w.p)) || 0) + 1));
+  const modeX = [...cnt].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0];
+  const ks = P.filter(w => w.pu !== "xmp" && maxPrice(w.ref) > 0).map(w => unitPrice(w) / maxPrice(w.ref)).sort((a, b) => a - b), kMed = ks.length ? ks[ks.length >> 1] : 0;
+  const o = { ref: ref || null, name: ref ? "" : String(name || "").trim() };
+  if (!mp) return Object.assign(o, { p: "", pu: "coin" });
+  if (modeX && xs.length * 2 >= P.length) return Object.assign(o, { p: String(modeX[0]), pu: "xmp" });
+  if (kMed > 0) return Object.assign(o, { p: String(Math.round(kMed * mp)), pu: "coin" });
+  return Object.assign(o, { p: "1", pu: "xmp" });
+}
+/** The item of an order-only line (same object while the line doesn't change, so the stock maps keep it). */
+function extraItem(L) {
+  const X = L.extra, k = (X.ref || "") + "|" + (X.name || "") + "|" + X.p + "|" + X.pu;
+  if (L._xw && L._xwk === k) return L._xw;
+  const w = mkItem(X.ref, { q: "", p: X.p, pu: X.pu }); w.uid = "x-" + (X.ref || slug(X.name)); w.extra = true;
+  if (!X.ref) { w.name = X.name; w.e = "⭐"; }
+  L._xwk = k; return (L._xw = w);
 }
 /** Price one line from the active post: sell / buy → coins; trade → my items given by ratio. */
 function priceLine(L) {
@@ -4340,7 +4762,9 @@ function priceLine(L) {
   const qq = ORDER.capStock !== false && L._cap != null ? L._cap : q;
   // a mix (fp jams, all bars): the items it takes from your inventory, each at its own ×MP
   const mx = mixOf(pw);
-  if (mx && qq > 0) { R.mix = mixSplit(mx, qq, dealScope(), st.type === "achat");
+  if (mx && qq > 0 && R.part) { const P = CAT.byId[R.part] || {}; R.mix = mx.mix.map(id => ({ id, n: id === R.part ? qq : 0, name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" }));
+    if (pw.pu === "xmp") { const m = maxPrice(R.part); if (m > 0) u = num(pw.p) * m; } }
+  else if (mx && qq > 0) { R.mix = mixSplit(mx, qq, dealScope(), st.type === "achat");
     if (pw.pu === "xmp") { const v = R.mix.reduce((a, x) => a + x.n * maxPrice(x.id), 0); if (R.mix.every(x => !x.n || maxPrice(x.id) > 0)) u = num(pw.p) * v / qq; } }
   // buying: bulk bonus when the seller sells a big part of the item's quantity in one go
   const wq = num(R.w.q), bulk = st.type === "achat" && ORDER.applyBulk !== false ? bulkForLine(qq, wq, ORDER.oq || 0) : 0;
@@ -4413,7 +4837,7 @@ function orderDraftSwitch() {
   if (ORDER.pid) orderDraftSave();
   const S = ODRAFT[st.id] || { text: "", lines: [], who: "" };
   ORDER.pid = st.id; ORDER.text = S.text || ""; ORDER.who = S.who || "";
-  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp }));
+  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra }));
   ORDER.done = S.done || null; ORDER.dismissed = null; ORDER.undoEdit = null; ORDER.lastI = null; ORDER.scan = null;
   ORD_KEEP.forEach(k => { ORDER[k] = S[k] != null ? S[k] : k === "payEach" ? "" : k === "tmpOff" ? false : null; });
   ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null;
@@ -4432,7 +4856,15 @@ function renderOrder(force) {
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
   // paid in an item ("food for lobs"): read from the message; your choices stay while the message is the same
   if (ORDER.payText !== ORDER.text) { ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null; if (ORDER.payRef !== undefined && !(ORDER.text || "").trim()) ORDER.payRef = null; ORDER.payMode = null; ORDER.payRound = null; ORDER.payEach = ""; if (ORDER.payAuto) ORDER.payRef = null; }
-  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
+  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, extra: ORDER.prev[i].extra, noExtra: ORDER.prev[i].noExtra, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
+  // a price written in the message: used for that line when it isn't your post's (tap "Post price" to go back)
+  if (!trade) ORDER.lines.forEach((L, i) => {
+    const pv = (ORDER.prev || [])[i], same = pv && pv.raw === L.raw; if (same && pv.ppOff) L.ppOff = true;
+    if (!L.mp || L.ppOff || (L.pp && !L.pp.msg)) return;
+    const w = resolveLine(L).w; if (!w) return;
+    const eq = (w.pu === L.mp.pu || (L.mp.pu === "coin" && (!w.pu || w.pu === "coin"))) && Math.abs(num(w.p) - num(L.mp.p)) < 1e-9;
+    if (eq) { L.mpSame = true; if (L.pp && L.pp.msg) L.pp = null; } else L.pp = { p: L.mp.p, pu: L.mp.pu, msg: true };
+  });
   ORDER.prev = ORDER.lines;
   if (trade) orderBySets(ORDER.lines);                                    // "if I buy 8 sets": the quantities from the sets
   adv();
@@ -4485,7 +4917,9 @@ function renderOrder(force) {
     const nameBtn = h("button", { class: "oname", onclick: () => pickSheet(L) }, w ? pName(w) : L.name, !w || !r.sure ? h("span", { class: "flag" }, w ? "?" : "!") : null);
     let right, sub;
     if (r.ignored) { right = h("span", { class: "miss" }, "—"); sub = "Ignored — tap to pick an item"; }
-    else if (!w) { right = h("span", { class: "miss" }, "—"); sub = r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick"; }
+    else if (!w) { right = h("span", { class: "miss" }, "—"); sub = [r.prod ? "Not in your post (" + r.prod.en + ") — tap to pick" : "Unknown item — tap to pick",
+      !trade && !(r.prod && r.prod.custom) && cleanLine(L.name).length >= 2 ? h("button", { class: "oxadd", onclick: e => { e.stopPropagation(); L.extra = r.prod ? extraNew(r.prod.id) : extraNew(null, cleanLine(L.name)); L.noExtra = 0; if (!num(L.extra.p)) L._edit = true; renderOrder(); } },
+        "＋ Add " + (r.prod ? r.prod.en : "“" + cleanLine(L.name) + "”") + " to this order only") : null]; }
     else if (trade) {
       const R = r.ratio, pk = R && packOf(R.g);
       right = R ? h("span", { class: "ov" }, fmt(R.n), R.g ? thumb(itemState(R.g), R.g.e, "mini") : null) : h("span", { class: "miss" }, "—");
@@ -4513,6 +4947,18 @@ function renderOrder(force) {
       h("div", { class: "omid" }, nameBtn, h("small", null, sub)),
       h("div", { class: "oq" + (L._auto === 1 ? " all" : ""), title: L._auto === 1 ? "No quantity in the message: all in your post" : null }, h("span", null, L._auto === 1 ? "all" : "×"), q), right,
       h("button", { class: "odel", "aria-label": "Remove this line", title: "Remove this line", onclick: () => dropLine(L) }, "×"));
+    // not in your post: counted in this order only
+    if (w && w.extra) row.append(h("div", { class: "omsg xtra" }, h("span", null, "＋ Not in your post — ", h("b", null, "added for this order only"), num(dealItem(w, L).p) > 0 ? "" : " · type its price"),
+      h("button", { class: "btn sm", onclick: () => { L.extra = null; L.noExtra = 1; L.pp = null; L._edit = false; renderOrder(); } }, "Take out")));
+    // the price written in their message, next to yours
+    if (w && !trade && L.mp && !L._edit) {
+      const mpS = L.mp.pu === "xmp" ? fmtR(num(L.mp.p)) + "×MP" + (itemMax(w) ? " (" + fmtP(num(L.mp.p) * itemMax(w)) + " ea)" : "") : fmtP(num(L.mp.p)) + " ea";
+      if (L.pp && L.pp.msg) row.append(h("div", { class: "omsg" }, h("span", null, "💬 Their price: ", h("b", null, mpS), " — yours: " + priceLabel(w).split(" · ")[0]),
+        h("button", { class: "btn sm", onclick: () => { L.pp = null; L.ppOff = true; renderOrder(); } }, "Use mine")));
+      else if (L.mpSame) row.append(h("div", { class: "omsg ok" }, h("span", null, "💬 Their price: ", h("b", null, mpS), " ✓ same as yours")));
+      else if (L.ppOff) row.append(h("div", { class: "omsg off" }, h("span", null, "💬 Their price: " + mpS + " — your price is used"),
+        h("button", { class: "btn sm", onclick: () => { L.ppOff = false; L.pp = null; renderOrder(); } }, "Use theirs")));
+    }
     // a mix received in a trade: which of its items, as they come in the game
     if (w && trade && L._mix && mixOf(w)) {
       const mw = mixOf(w), MI = mixIn(L, mw), c = L.mixIn || (L.mixIn = {});
@@ -4533,7 +4979,7 @@ function renderOrder(force) {
       } });
       row.append(h("div", { class: "oedit" }, h("span", { class: "ol" }, "Price for this order"),
         h("div", { class: "box" }, pi, ub),
-        h("button", { class: "btn sm", onclick: () => { L.pp = null; L._edit = false; renderOrder(); } }, "Post price")));
+        h("button", { class: "btn sm", onclick: () => { L.pp = null; L.ppOff = true; L._edit = false; renderOrder(); } }, w.extra ? "Usual price" : "Post price")));
     }
     list.append(row);
   });
@@ -4601,9 +5047,11 @@ function renderOrder(force) {
   ORDER.mpWait = mpWait;
   if (mpWait) tot.append(h("p", { class: "owarn" }, "⏳ Max prices are still loading from the wiki — the total updates by itself in a moment. Wait before copying."));
   tot.append(h("button", { class: "btn gold full", onclick: copyReply }, "Copy the reply for Discord"));
+  tot.append(h("button", { class: "btn full opicb", onclick: openOrderPic }, "🖼️ Picture of this order"));
   if (trade) { const H = tradeSteps(rows); if (H) tot.append(H); }
   out.append(tot);
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
+  if (OM() === "pick") renderPick();
   // keep typing in the deal-price box after the refresh
   if (ORDER.editFocus != null) { const e = out.querySelector(`[data-edit="${ORDER.editFocus}"]`); ORDER.editFocus = null; if (e) { e.focus(); const n = e.value.length; try { e.setSelectionRange(n, n); } catch (er) {} } }
 }
@@ -4650,7 +5098,7 @@ function proposal(rows) {
   const trade = st.type === "trade", agg = new Map();
   rows.forEach(L => {
     if (trade) { const R = L.r && L.r.ratio; if (R && R.g) agg.set(R.g, (agg.get(R.g) || 0) + R.give); }
-    else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
+    else { const w = L.r && L.r.w, n = ORDER.capStock !== false && L._cap != null ? L._cap : L.q; if (w && !w.extra && n > 0) agg.set(w, (agg.get(w) || 0) + n); }
   });
   return [...agg].map(([w, n0]) => { const n = trade ? giveWhole(n0) : n0, have = num(w.q), pk = trade && !!packOf(w); return { w, n, have, pk, left: have ? (trade ? stockLeft(w, n) : Math.max(0, Math.round(have) - n)) : 0, on: have > 0 }; })
     .filter(p => !trade || p.have > 0);
@@ -4659,9 +5107,15 @@ function proposal(rows) {
 function updCard(P, trade) {
   const card = h("div", { class: "card upd deal" });
   card.append(h("h3", null, "Deal done?"));
+  const upd = SETTINGS.postUpd !== false;
   if (P.length) {
-    const what = trade ? "Lower your “I have” stock" : st.type === "achat" ? "Remove what you bought from your post" : "Remove what you sold from your post";
-    card.append(h("p", { class: "hint" }, what + " — only the ticked lines change, with the exact quantities."));
+    const what = trade ? "Lower my “I have” stock" : st.type === "achat" ? "Remove what I bought from my post" : "Remove what I sold from my post";
+    const sw = h("input", { type: "checkbox", checked: upd, onchange: () => { SETTINGS.postUpd = sw.checked; saveSettings(); renderOrder(); } });
+    card.append(h("label", { class: "switch sm" }, what, sw));
+    if (!upd) card.append(h("p", { class: "hint" }, "Your post stays as it is — the deal is only saved."));
+    else card.append(h("p", { class: "hint" }, "Only the ticked lines change, with the exact quantities."));
+  }
+  if (P.length && upd) {
     P.forEach(p => {
       const cb = h("input", { type: "checkbox", checked: p.on, onchange: () => { p.on = cb.checked; } });
       const u = n => p.pk ? setsTxt(n) : fmtP(n), w = p.have ? [u(p.have) + " → ", p.left ? u(p.left) + " left" : h("em", null, "remove")] : ["no quantity → ", h("em", null, "remove")];
@@ -4673,9 +5127,9 @@ function updCard(P, trade) {
   const who = h("input", { class: "inp who", placeholder: (st.type === "achat" ? "Seller" : trade ? "Trade partner" : "Buyer") + " (optional)", value: ORDER.who || "", oninput: () => { ORDER.who = who.value; orderDraftSoon(); } });
   card.append(h("label", { class: "switch sm" }, "Save it in my History", save), who,
     h("div", { class: "two" },
-      h("button", { class: "btn pri", onclick: () => applyDeal(P, trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
+      h("button", { class: "btn pri", onclick: () => applyDeal(upd ? P : [], trade, save.checked, who.value.trim()) }, "✓ Mark as done"),
       h("button", { class: "btn", onclick: () => { ORDER.dismissed = ORDER.text; renderOrder(); } }, "Not now")),
-    h("button", { class: "btn full later", onclick: () => orderLater(P, trade, who.value.trim()) }, "⏳ Save for later — handle another one"));
+    h("button", { class: "btn full later", onclick: () => orderLater(upd ? P : [], trade, who.value.trim()) }, "⏳ Save for later — handle another one"));
   return card;
 }
 /** Keep this order in Deals (nothing changes yet) and free the box for the next one. */
@@ -4714,12 +5168,12 @@ function histEntry(who) {
 }
 function applyDeal(P, trade, keep, who) {
   const sel = P.filter(p => p.on);
-  if (!sel.length && !keep && !invLive()) return toast("Tick a line or “Save it in my History”");
+  if (!sel.length && !keep && !invLive()) return toast(SETTINGS.postUpd === false ? "Turn on “Save it in my History” — your post stays as it is" : "Tick a line or “Save it in my History”");
   const reply = replyText(), notes = [];
   ORDER.undo = { pid: st.id, wants: clone(st.wants), have: clone(st.have), inv: invSnap() };
   let hid = null;
   const e = histEntry(who);
-  if (keep) { HIST.unshift(e); saveHist(); hid = e.id; notes.push("Saved in History"); }
+  if (keep) { HIST.unshift(e); saveHist(); hid = e.id; notes.push("Saved in History" + (sel.length ? "" : " · post unchanged")); }
   const invU = invLive(); if (invU) { invApply(e); notes.push("Inventory updated"); }
   const list = trade ? st.have : st.wants;
   sel.forEach(p => {
@@ -4732,7 +5186,7 @@ function applyDeal(P, trade, keep, who) {
   ORDER.who = "";
   if (sel.length) { renderLists(); renderTarget(); renderResults(); changed(); }
   renderOrder();
-  toast(keep && sel.length ? "Done — post updated and saved ✔" : keep ? "Saved in History ✔" : "Post updated ✔");
+  toast(keep && sel.length ? "Done — post updated and saved ✔" : keep ? "Saved in History ✔ — post unchanged" : "Post updated ✔");
 }
 function renderDone() {
   const out = $("#orderOut"); out.textContent = "";
@@ -4760,7 +5214,10 @@ const orderTyping = () => { const a = document.activeElement, o = $("#orderOut")
 const renderOrderSoon = debounce(() => { if (orderTyping()) { ORDER.pend = true; return; } renderOrder(); }, 250);
 $("#orderOut").addEventListener("focusout", () => { if (!ORDER.pend) return; setTimeout(() => { if (!ORDER.pend || orderTyping()) return; ORDER.pend = false; renderOrder(); }, 320); });
 // a tap on a button right after typing: the order is brought up to date first, so the button works on the new quantities
-document.addEventListener("click", () => { if (ORDER.pend && !orderTyping()) { ORDER.pend = false; renderOrder(); } }, true);
+// a tap after typing in a line: refresh — but after the tapped button has done its job (refreshing first would hand it an old line)
+document.addEventListener("click", e => { if (!ORDER.pend) return; const inOut = $("#orderOut") && $("#orderOut").contains(e.target);
+  const go = () => { if (ORDER.pend && !orderTyping()) { ORDER.pend = false; renderOrder(); } };
+  if (inOut) setTimeout(go, 0); else go(); }, true);
 $("#orderOut").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.tagName === "INPUT" && !e.target.closest(".obar")) e.target.blur(); });
 /* ---------- edit the order in one tap (the order box is rewritten, one item per line) ---------- */
 const cleanLine = s => String(s).replace(/[;|•·\r\n]/g, " ").replace(/\s+/g, " ").trim();
@@ -4818,7 +5275,7 @@ function replyText() {
     const by = new Map(); L.forEach(x => { const R = x.r.ratio; if (!R) return; const k = R.g ? R.g.uid : "-"; const o = by.get(k) || { g: R.g, n: 0 }; o.n += R.give; by.set(k, o); });
     foot = "**You get: " + [...by.values()].map(o => { const n = giveAmt(o.g, o.n), mg = mixOf(o.g), s = splitTxt(o.g, o.n) || (mg ? mixTxt(mg, n) : ""); return (packOf(o.g) ? fmt(n) : fmtR(n)) + " " + giveName(o.g) + (s ? " (" + s + ")" : ""); }).join(" + ") + "**";
   } else {
-    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(Math.round(ORDER.sub - ORDER.bonus))}\nBulk bonus${(ORDER.reached || []).length ? " " + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% (" + bulkTxt(t).replace(" at once", "") + ")").join(" / ") : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
+    foot += (ORDER.useD ? `Subtotal: ${fmt(ORDER.sub)} · −${fmtR(ORDER.d)}%\n` : "") + (ORDER.bonus > 0 ? `Subtotal: ${fmt(Math.round(ORDER.sub - ORDER.bonus))}\nBulk bonus${(ORDER.reached || []).length ? " " + ORDER.reached.map(t => "+" + fmtR(t.pct) + "% (" + bulkTxt(t).replace(" at once", "") + ")").join(" / ") : ""}: +${fmt(Math.round(ORDER.sub) - Math.round(ORDER.sub - ORDER.bonus))}\n` : "") + `**Total: ${fmt(ORDER.total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${btHalf(ORDER.total / RING_RATE)} 💍` : ` ≈ ${curTxtH(k, ORDER.total / CUR[k].rate)}`).join(" ·") + "**";
     const Y = ORDER.pay; if (Y) foot += `\nIn ${Y.P.en}: ${fmt(ORDER.total)} ÷ ${qcExact(Y.each)}${Y.fixed ? "" : " (" + (Y.mode === "custom" ? "each" : fmtRt(Y.mode === "order" ? Y.kOrder : 1) + "×MP") + ")"} = **${fmt(Y.n)} ${Y.P.en}**` + (Math.abs(Y.diff) >= .5 ? ` (${Y.diff > 0 ? "+" : "−"}${qcExact(Math.abs(Y.diff))} coins with the rounding)` : "");
   }
   const T = trade && orderTmp(), I = trade && ORDER.intent;
@@ -4849,7 +5306,136 @@ addEventListener("pagehide", () => { if (odT) orderDraftSave(); });
 document.addEventListener("visibilitychange", () => { if (document.hidden && odT) orderDraftSave(); });
 $("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderShot").onclick = () => $("#orderFile").click();
-$("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) scanFiles(f, "order"); };
+$("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) orderPicture(f); };
+/** Order from any picture: a post picture (tiles with a quantity and a price), a screenshot of a message or a list
+    → one line per item ("32 Caramel Apple @ 5xmp"). A barn / silo screenshot or a video → the barn reader. */
+async function orderPicture(files) {
+  if (files.some(isVideo)) return scanFiles(files, "order");
+  scanWhere = "order"; scanPut("order", { busy: true, msg: "Reading the picture…" }); renderOrderScan();
+  const say = m => { if (SCN.stop) throw new Error("stopped"); updScan(m); };
+  let got = null;
+  try {
+    const pool = await scanPool((d, t) => say("Loading the game pictures… " + d + " / " + t + (d < t ? " (the first time only)" : "")));
+    let lines = [], tiles = [], picNotes = [];
+    for (const [k, f] of files.entries()) {
+      const r = await impReadImage(await loadFileImg(f), pool, m => say((files.length > 1 ? "Picture " + (k + 1) + ": " : "") + m));
+      lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes);
+    }
+    const R = impParse(lines, tiles, picNotes, ""), posts = impPosts(R);
+    let its = posts.flatMap(p => p.wants || []); if (!its.length) its = posts.flatMap(p => (p.have || []).filter(x => x.ref));
+    its = its.filter(w => (w.ref || (w.name || "").trim()) && num(w.q) > 0);
+    if (its.some(w => w.ref)) got = { its, nTiles: tiles.length };
+  } catch (e) { if ((e && e.message) === "stopped") { SCN.stop = false; scanPut("order", null); renderOrderScan(); return; } }
+  // nothing read as a post or a list: it's their barn / silo
+  if (!got) { scanPut("order", null); return scanFiles(files, "order"); }
+  const nm = w => w.ref && CAT.byId[w.ref] ? CAT.byId[w.ref].en : (w.name || "").trim() || String(w.ref || "").replace(/-/g, " ");
+  const pr = w => num(w.p) > 0 ? " @ " + (w.pu === "xmp" ? fmtR(num(w.p)) + "xmp" : String(Math.round(num(w.p)))) : "";
+  const known = got.its.filter(w => w.ref), unk = got.its.length - known.length;
+  const txt = known.map(w => String(Math.round(num(w.q))) + " " + nm(w) + pr(w)).join("\n");
+  const cur = ($("#orderIn").value || "").trim(), all = cur ? cur + "\n" + txt : txt;
+  $("#orderIn").value = all; ORDER.text = all; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false;
+  scanPut("order", null); renderOrderScan(); orderDraftSoon(); renderOrder(true);
+  toast(plural(known.length, "item") + " read from the picture" + (unk ? " · " + unk + " not recognised" : "") + (cur ? " (added below your text)" : ""));
+}
+/* ---------- the order as a picture, like your post: its items with the quantities ordered, the total items and the total price ---------- */
+function orderPicPost() {
+  const trade = st.type === "trade", items = [], give = new Map(); let units = 0;
+  (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).forEach((L, i) => {
+    const w = L.r.w, n = Math.round(trade ? (L._auto === 1 ? num(w.q) : num(L.q)) : (L.r.qq != null ? L.r.qq : num(L.q)));
+    if (!(n > 0)) return;
+    const R = L.r.ratio, base = trade ? Object.assign({}, w, R ? { ra: String(R.a), rb: String(R.b) } : {}) : dealItem(w, L);
+    items.push(Object.assign({}, base, { uid: "ord" + i + "-" + w.uid, q: String(n), oos: 0, hot: 0 }));
+    units += n;
+    if (trade && R && R.g) { const k = giveName(R.g); give.set(k, (give.get(k) || 0) + R.give); }
+  });
+  if (!items.length) return null;
+  const who = (ORDER.who || "").trim(), tot = ORDER.total || 0;
+  return Object.assign({}, st, {
+    wants: items, have: [], title: "Order · " + fmt(units) + (units > 1 ? " items" : " item"), kicker: who ? "For " + who : "",
+    cta: trade && give.size ? "You get " + [...give].map(([k, v]) => fmtR(Math.round(v * 100) / 100) + " " + k).join(" + ") : "", sub: "", betaOff: false, showTotal: true, bulk: [], disc: 0,
+    details: "",
+    _tot: trade ? null : { sub: ORDER.useD && ORDER.sub ? ORDER.sub : tot, disc: ORDER.useD ? num(ORDER.d) : 0, tot, rings: tot / RING_RATE, blankets: tot / BLANKET_RATE }
+  });
+}
+/** Draws it on the post's canvas for a moment (then the post is drawn back) and keeps the picture. */
+function orderPicURL() {
+  const S = orderPicPost(); if (!S) return null;
+  const S0 = st; let url = null;
+  st = S; try { drawBeta(); url = cv.toDataURL("image/png"); } finally { st = S0; try { draw(); } catch (e) {} }
+  return url;
+}
+const urlBlob = u => fetch(u).then(r => r.blob());
+function openOrderPic() {
+  let url = orderPicURL(); if (!url) return toast("No item in this order yet");
+  const img = h("img", { class: "opicimg", src: url, alt: "Picture of the order" });
+  // a picture still loading: drawn again a moment later
+  setTimeout(() => { const u2 = orderPicURL(); if (u2 && u2 !== url) { url = u2; img.src = u2; } }, 700);
+  const name = () => (slug("order " + (ORDER.who || st.name || "")) || "order") + ".png";
+  openSheet("Picture of this order", [img,
+    h("div", { class: "three", style: "margin-top:10px" },
+      h("button", { class: "btn pri", onclick: async () => { try { if (!window.ClipboardItem) throw 0; await navigator.clipboard.write([new ClipboardItem({ "image/png": urlBlob(url) })]); toast("Copied — paste it in Discord ✔"); } catch (e) { toast("Copy isn’t supported here: use Share or Save."); } } }, "Copy"),
+      h("button", { class: "btn", onclick: async () => { try { const f = new File([await urlBlob(url)], name(), { type: "image/png" }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); else { saveBlob(f, name()); toast("Sharing unavailable: image downloaded"); } } catch (e) { if (!e || e.name !== "AbortError") toast("Couldn’t share"); } } }, "Share"),
+      h("button", { class: "btn", onclick: async () => { saveBlob(await urlBlob(url), name()); toast("Image downloaded ✔"); } }, "Save")),
+    h("p", { class: "hint" }, "Your post's look and colours, with the quantities of this order" + (st.type === "trade" ? " and what they get." : ", the total items and the total price."))]);
+}
+/* ---------- Order · tap my items: pick the items of your post by hand, no message needed ----------
+   Each tap writes a line in the order ("Apple Pie x20"), so the totals, the stock, the reply and the picture work as usual.
+   Tap again to take it out; change a quantity in the lines below. */
+const OM = () => SETTINGS.omode === "pick" ? "pick" : "text";
+const PK = { f: "" };
+function setOMode(m) {
+  SETTINGS.omode = m; saveSettings();
+  $$("#oModeSeg button").forEach(b => b.classList.toggle("on", b.dataset.om === m));
+  $("#oText").hidden = m === "pick"; $("#oPick").hidden = m !== "pick";
+  if (m === "pick") renderPick();
+}
+$$("#oModeSeg button").forEach(b => b.onclick = () => setOMode(b.dataset.om));
+/** The lines of the order for one item of your post. */
+const pickLines = w => (ORDER.lines || []).filter(L => L.r && L.r.w === w && !L.r.ignored);
+const pickQ = w => pickLines(w).reduce((a, L) => a + (L._auto === 1 ? num(w.q) || 0 : Math.round(num(L.q)) || 0), 0);
+/** Set the quantity of one item in the order ("all" = all in your post, 0 = out of the order). */
+function pickSet(w, q) {
+  const Ls = ORDER.lines || [], mine = pickLines(w), all = q === "all";
+  let lines;
+  if (!all && !(q > 0)) lines = Ls.filter(L => !mine.includes(L));
+  else if (mine.length) lines = Ls.filter(L => !mine.slice(1).includes(L)).map(L => L === mine[0] ? tie(L, all ? { raw: lineRaw(L), q: 1, qEdit: 0, qGuess: true } : { raw: lineRaw(L, q), q, qEdit: 1, qGuess: false }) : L);
+  else lines = Ls.concat([all ? { raw: cleanLine(pName(w)), name: pName(w), q: 1, qGuess: true, pick: w.uid } : { raw: cleanLine(pName(w)) + " x" + q, name: pName(w), q, qEdit: 1, pick: w.uid }]);
+  orderSet(lines); orderDraftSoon();
+}
+function renderPick() {
+  const box = $("#oPick"); if (!box || box.hidden) return;
+  // typing in the picker: don't rebuild it under your finger
+  if (box.contains(document.activeElement) && /^(?:INPUT)$/.test(document.activeElement.tagName)) { pickSum(); return; }
+  box.textContent = "";
+  const items = postItems();
+  if (!items.length) { box.append(h("p", { class: "hint" }, "Your post has no items yet — add some in Items.")); return; }
+  const dq = h("input", { class: "inp", value: SETTINGS.pickQ || "", inputMode: "numeric", placeholder: "all", "aria-label": "Quantity of each tap", oninput: () => { SETTINGS.pickQ = dq.value.replace(/[^\d]/g, ""); saveSettings(); } });
+  const fi = h("input", { class: "inp", type: "search", value: PK.f, placeholder: "Find in my post…", "aria-label": "Find in my post", oninput: () => { PK.f = fi.value; pickFilter(); } });
+  box.append(h("div", { class: "pkbar" },
+    h("label", { class: "pkq" }, h("span", null, "Each tap"), dq, h("small", null, "empty = all")),
+    fi));
+  const grid = h("div", { class: "pkgrid" });
+  items.forEach(w => {
+    const q = pickQ(w), on = pickLines(w).length > 0, trade = st.type === "trade";
+    const sub = trade ? (num(w.rb) ? ratioLabel(w.ra, w.rb) : "") : num(w.p) ? (w.pu === "xmp" ? fmtR(num(w.p)) + "×MP" : fmtP(unitPrice(w)) + " ea") : "";
+    const t = h("button", { class: "tile pk" + (on ? " on" : "") + (w.oos ? " oos" : ""), "data-k": norm(pName(w)), title: pName(w), onclick: () => {
+      if (on) pickSet(w, 0);
+      else { const d = Math.round(num(SETTINGS.pickQ)); pickSet(w, d > 0 ? d : "all"); }
+    } }, thumb(itemState(w), w.e), h("b", null, pName(w)), sub ? h("small", null, sub) : null,
+      num(w.q) ? h("i", { class: "pkst" }, fmt(num(w.q))) : null,
+      on ? h("span", { class: "pkn" }, "×" + fmt(q)) : null);
+    grid.append(t);
+  });
+  box.append(grid, h("div", { class: "pksum", id: "pkSum" }));
+  pickFilter(); pickSum();
+}
+setTimeout(() => setOMode(OM()), 0);
+function pickFilter() { const f = norm(PK.f || ""); $$("#oPick .tile.pk").forEach(t => { t.hidden = !!f && !t.dataset.k.includes(f); }); }
+function pickSum() {
+  const el = $("#pkSum"); if (!el) return;
+  const n = (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).length;
+  el.textContent = n ? plural(n, "item") + " picked — set the quantities in the lines below" + (st.type !== "trade" && ORDER.total ? " · total " + fmt(Math.round(ORDER.total)) : "") : "Tap the items they want. Tap again to take one out.";
+}
 $("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
 
 /* =====================================================================
@@ -5061,8 +5647,8 @@ const SV = { per: "30", more: {} };
 const SV_PER = [["7", "7 days"], ["30", "30 days"], ["90", "90 days"], ["all", "All"]];
 const sk = x => x.ref || "n:" + norm(x.name || "");
 const sThumb = x => thumb(x.ref && CAT.byId[x.ref] ? prodState(x.ref) : null, x.e || "📦", "mini");
-const sOr = v => convs().map(k => k === "ring" ? fmtR(v / RING_RATE) + " rings" : curTxt(k, v / CUR[k].rate)).join(" or ");
-const sConv = v => convs().map(k => k === "ring" ? "≈ " + fmtR(v / RING_RATE) + " rings" : "≈ " + curTxt(k, v / CUR[k].rate)).join(" · ");
+const sOr = v => convs().map(k => k === "ring" ? btHalf(v / RING_RATE) + " rings" : curTxtH(k, v / CUR[k].rate)).join(" or ");
+const sConv = v => convs().map(k => k === "ring" ? "≈ " + btHalf(v / RING_RATE) + " rings" : "≈ " + curTxtH(k, v / CUR[k].rate)).join(" · ");
 const dOnly = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
 const WDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -5505,7 +6091,7 @@ const dealScope = () => INV.deal || INV.cur;
 const mixTxt = (p, n, adding) => mixSplit(p, n, dealScope(), adding).filter(x => x.n).map(x => fmt(x.n) + " " + x.name).join(" · ");
 /** A mix you receive (trade "89 BEM for 35 First Page Jams"): the jams they give, as you typed them, otherwise shared evenly. */
 function mixIn(L, mx) {
-  const q = Math.max(0, Math.round(L.q || 0)), c = L.mixIn || {}, typed = mx.mix.map(id => Math.max(0, Math.round(num(c[id]) || 0))), sum = typed.reduce((a, b) => a + b, 0);
+  const q = Math.max(0, Math.round(L.q || 0)), c = L.mixIn && Object.keys(L.mixIn).length ? L.mixIn : L.r && L.r.part && mx.mix.includes(L.r.part) ? { [L.r.part]: q } : {}, typed = mx.mix.map(id => Math.max(0, Math.round(num(c[id]) || 0))), sum = typed.reduce((a, b) => a + b, 0);
   const custom = sum > 0 && sum <= q, rest = custom ? q - sum : q, ev = evenSplit(mx.mix.length, rest);
   return { custom, sum, over: sum > q, list: mx.mix.map((id, i) => ({ id, n: (custom ? typed[i] : 0) + ev[i], name: (CAT.byId[id] || {}).en || id, e: (CAT.byId[id] || {}).e || "" })) };
 }
@@ -5700,6 +6286,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
+const APP_VER = "25 Nov 2026 · 21:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -5711,7 +6298,8 @@ function renderMeMenu() {
     go("📦", "Inventory", invAny() ? (INV.farms.length > 1 ? plural(INV.farms.length, "farm") + " · " : "") + fmt(invCount()) + " items · barn " + fmt(invUnits("barn")) + " · silo " + fmt(invUnits("silo")) : "Your barn & silo — from screenshots or by hand", () => tab("inv")),
     go("🕘", "History & stats", HIST.length ? fmt(HIST.length) + " deals" + (S ? " · " + short(Math.round(S.in)) + " coins in" : "") : "Your deals, and what they add up to", () => tab("hist")),
     go("🎨", "Style & backup", "Paper, layout, texts · backup of everything", () => tab("style")),
-    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")));
+    h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
+    h("p", { class: "mever" }, "Version " + APP_VER + " · if this isn't the latest, reload the page"));
 }
 
 /* =====================================================================
@@ -5738,6 +6326,8 @@ function qcLine(raw) {
   const m0 = qcMath(t); if (m0 != null) return { math: true, total: m0, txt: t };
   t = t.toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ");
   let q = null, m;
+  // "2x200 feathers": 2 times 200 → 400
+  if ((m = t.match(/^(\d+)\s*[x×]\s*(\d[\d.,]*)\s+(?=[a-z])/))) t = String(num(m[1]) * num(m[2])) + " " + t.slice(m[0].length);
   // quantity: "10 bem set", "x10 bem set", "10x bem set", "bem set x10"
   if ((m = t.match(/^(?:[x×]\s*)?(\d[\d.,]*[km]?)\s*(?:[x×]|pcs|pieces?)?\s+(?=\D)/))) { q = num(m[1]); t = t.slice(m[0].length); }
   else if ((m = t.match(/\s(?:[x×]\s*)(\d[\d.,]*[km]?)\b/))) { q = num(m[1]); t = (t.slice(0, m.index) + " " + t.slice(m.index + m[0].length)).trim(); }
@@ -5838,7 +6428,10 @@ async function copyText(t) { try { await navigator.clipboard.writeText(t); toast
 function qcText(Ls, sum, k) {
   const lines = Ls.filter(L => !L.err).map(L => L.math ? L.txt + " = " + qcExact(L.total) : fmt(L.q) + "× " + (L.p ? L.p.en : L.name || "item") + " — " + (L.q > 1 && !L.mixed ? qcExact(L.each) + " ea = " : "") + qcExact(L.total) + (L.parts ? " (" + L.parts.map(x => fmt(x.n) + " " + x.name).join(" + ") + ")" : ""));
   const fin = Math.round(sum * (1 + k / 100) * 100) / 100;
-  if (lines.length > 1 || k) lines.push((k ? "With " + (k > 0 ? "+" : "−") + fmtR(Math.abs(k)) + "%: " : "Total: ") + qcExact(fin) + " coins");
+  // the total in rings and blankets too (rounded to the nearest, an exact half kept)
+  const conv = fin > 0 ? " ≈ " + btHalf(fin / RING_RATE) + " 💍 · ≈ " + btHalf(fin / BLANKET_RATE) + " blankets" : "";
+  if (lines.length > 1 || k) lines.push("**" + (k ? "With " + (k > 0 ? "+" : "−") + fmtR(Math.abs(k)) + "%: " : "Total: ") + qcExact(fin) + " coins" + conv + "**");
+  else if (lines.length && conv) lines[0] += conv;
   return lines.join("\n");
 }
 $("#calcBtn").onclick = openCalc;
@@ -6629,8 +7222,9 @@ function emojiChar(ch) {
 }
 /** Emojis → the item names ("💍" → Diamond Ring, ":hd_mayo:" → Mayonnaise), the others go: "💍 🫒 4k each" → "Diamond Ring, Olive Oil 4k each". */
 function emoNames(s) {
-  const put = p => p ? " " + p.en + "\u0002 " : " ";
-  return String(s || "").replace(/<a?:(\w+):\d+>|:(\w+):/g, (m, a, b) => put(emojiItem(a || b))).replace(EMOS_RE, m => put(CAT.byId[emojiChar(m)]))
+  // "Help 🪧": the name is already written just before its picture → not twice
+  const put = (p, str, off) => !p ? " " : (() => { const b = norm(String(str).slice(0, off)), n = norm(p.en); return b.endsWith(n) || b.endsWith(n + "s") ? " " : " " + p.en + "\u0002 "; })();
+  return String(s || "").replace(/<a?:(\w+):\d+>|:(\w+):/g, (m, a, b, off, str) => put(emojiItem(a || b), str, off)).replace(EMOS_RE, (m, off, str) => put(CAT.byId[emojiChar(m)], str, off))
     .replace(/\u0002(\s*)(?=$|[x×]\s*\d|\d|[.!:(])/gi, "$1").replace(/\u0002/g, ",");
 }
 const words = s => s.trim().split(/\s+/).filter(Boolean);
@@ -7067,7 +7661,7 @@ function renderSearch() {
 }
 function srReply(live, total, byGive) {
   const C = live.filter(r => !r.rate && r.q > 0), T = live.filter(r => r.rate && r.q > 0), out = [];
-  if (C.length) out.push((SR.buyNow ? "I'll buy:\n" : "I can sell you:\n") + C.map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmtP(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`).join("\n") + `\n**Total: ${fmt(total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${fmtR(total / RING_RATE)} 💍` : ` ≈ ${curTxt(k, total / CUR[k].rate)}`).join(" ·") + "**");
+  if (C.length) out.push((SR.buyNow ? "I'll buy:\n" : "I can sell you:\n") + C.map(r => `${fmt(r.q)}× ${r.p.en} — ${r.price ? fmtP(r.price) + " ea = " + fmt(r.q * r.price) : "price?"}`).join("\n") + `\n**Total: ${fmt(total)} coins` + convs().map(k => k === "ring" ? ` ≈ ${btHalf(total / RING_RATE)} 💍` : ` ≈ ${curTxtH(k, total / CUR[k].rate)}`).join(" ·") + "**");
   if (T.length) out.push("I can give you:\n" + T.map(r => `${fmt(r.q)}× ${r.p.en} (${ratioTxt(r.ratio)})`).join("\n") + "\n**For: " + [...(byGive || new Map()).values()].map(o => unitsTxt(o.g, o.n)).join(" + ") + "**");
   return out.join("\n\n");
 }
@@ -7432,7 +8026,7 @@ dealBadge();
 /* ---------- a deal open in Order: work on it there, switch to another one, send it back (with all, some or none of the changes) ---------- */
 /** The order on screen, as a deal keeps it. */
 function orderState() {
-  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? { p: L.pp.p, pu: L.pp.pu } : null, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
+  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? Object.assign({ p: L.pp.p, pu: L.pp.pu }, L.pp.msg ? { msg: 1 } : {}) : null, ppOff: L.ppOff ? 1 : 0, extra: L.extra || null, noExtra: L.noExtra ? 1 : 0, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
 }
 /** A deal → an order (deals saved from Order come back exactly; the others are rebuilt from their items). */
 function dealOrder(d) {
@@ -7446,7 +8040,7 @@ function dealOrder(d) {
 }
 function orderLoad(S) {
   if (S.pid && S.pid !== st.id && STATE.list.some(p => p.id === S.pid)) selectProfile(S.pid);
-  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp })); ORDER.who = S.who || "";
+  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra })); ORDER.who = S.who || "";
   ORDER.done = null; ORDER.dismissed = null; ORDER.undoEdit = null; $("#orderIn").value = S.text; renderOrder(true);
 }
 const coreOf = S => JSON.stringify({ text: S.text, lines: S.lines.map(l => [l.raw, l.pick, l.q, l.pp && l.pp.p, l.pp && l.pp.pu]), who: S.who || "" });
@@ -7645,7 +8239,7 @@ async function impReadImage(img, pool, say) {
   }
   // f) post-generator pictures: tiles with "5x" (price × max price) at the top left and the quantity at the bottom right
   say("Reading the picture…");
-  const tiles = await impGrid(P, lines, regs);
+  const tiles = await impGrid(P, lines, regs, img);
   const inTile = (x, y) => tiles.some(t => x >= t.box.x0 && x <= t.box.x1 && y >= t.box.y0 && y <= t.box.y1);
   // g) which item each emoji is (emojis inside the tiles belong to the tiles)
   say("Finding the items…");
@@ -7701,8 +8295,8 @@ function cropView(P, c) {
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = ((y + c.y0) * P.W + x + c.x0) * 4, j = (y * w + x) * 4; D.data[j] = P.d[i]; D.data[j + 1] = P.d[i + 1]; D.data[j + 2] = P.d[i + 2]; D.data[j + 3] = 255; }
   g.putImageData(D, 0, 0); const k = 56 / h, o = mkCanvas(w * k, 56); o.getContext("2d").drawImage(s, 0, 0, o.width, o.height); const u = o.toDataURL("image/jpeg", .85); s.width = s.height = o.width = o.height = 0; return u;
 }
-/** Tiles of a post-generator picture, found from their labels: "5x" top left, the quantity bottom right (white, outlined). */
-async function impGrid(P, lines, regs) {
+/** The first way (kept as a second opinion): tiles from their labels, read at once. */
+async function impGridLabels(P, lines, regs) {
   const { W, H, d } = P;
   const white = i => d[i] > 210 && d[i + 1] > 210 && d[i + 2] > 210 && sat(d, i) < 35;
   // real text lines (words with letters) are not labels
@@ -7742,6 +8336,226 @@ async function impGrid(P, lines, regs) {
     if (!t.coin && (!t.px || !+t.px)) { const v = (await rd(b.x0, b.y0, b.x0 + p * .6, b.y0 + p * .34, "0123456789x.")).match(/(\d+(?:\.\d+)?)x/i); if (v && +v[1]) t.px = v[1]; }
   }
   return tiles.sort((a, b) => Math.round(a.box.y0 / p) - Math.round(b.box.y0 / p) || a.box.x0 - b.box.x0);
+}
+/** Both ways, put together: the squares read one by one, and the labels read at once.
+    When they disagree on a square, the other reading is kept aside: the picture's total (if it shows one) decides. */
+async function impGrid(P, lines, regs, img) {
+  const A = await impGridCells(P, lines, regs, img), B = await impGridLabels(P, lines, regs);
+  const ctr = t => [(t.box.x0 + t.box.x1) / 2, (t.box.y0 + t.box.y1) / 2];
+  const same = (a, b) => { const [ax, ay] = ctr(a), [bx, by] = ctr(b), s = Math.min(a.box.x1 - a.box.x0, b.box.x1 - b.box.x0) * .5; return Math.abs(ax - bx) < s && Math.abs(ay - by) < s; };
+  const good = T => T.filter(t => t.px && t.q).length;
+  if (!A.length) return B;
+  if (!B.length) return A;
+  // the one that found more complete squares leads; the other one's readings become alternatives
+  const [M, O] = good(B) > good(A) || (A.weak && good(B) >= good(A)) ? [B, A] : [A, B];
+  M.forEach(t => { t.altQ = t.altQ || []; t.altP = t.altP || []; });
+  O.forEach(o => {
+    const t = M.find(x => same(x, o));
+    if (!t) { if (o.px && o.q) M.push(Object.assign(o, { altQ: [], altP: [] })); return; }
+    if (o.q && o.q !== t.q && !t.altQ.includes(o.q)) { if (!t.q) t.q = o.q; else t.altQ.push(o.q); }
+    if (o.px && o.coin === t.coin && o.px !== t.px && !t.altP.includes(o.px)) { if (!t.px) t.px = o.px; else t.altP.push(o.px); }
+  });
+  const p = M[0].box.y1 - M[0].box.y0;
+  return M.sort((a, b) => Math.round(a.box.y0 / p) - Math.round(b.box.y0 / p) || a.box.x0 - b.box.x0);
+}
+/** Tiles of a post-generator picture (jjcuber and the like): a grid of squares, the price at the top left
+    ("5x", or "2.9k" + a coin), the quantity at the bottom right (white, outlined).
+    1. a first read of the white labels finds the grid (its step and where it starts);
+    2. every square of the grid is then read on its own, bigger: price band and quantity corner. */
+async function impGridCells(P, lines, regs, img) {
+  const { W, H, d } = P;
+  const white = i => d[i] > 205 && d[i + 1] > 205 && d[i + 2] > 205 && sat(d, i) < 38;
+  // real text lines (words with letters) are not labels
+  const txtBoxes = lines.filter(L => L.words.filter(w => /[a-z]{3}/i.test(w.t) && (w.conf == null || w.conf >= 70)).length >= 2);
+  const inTxt = (x, y) => txtBoxes.some(L => x >= L.x0 - 4 && x <= L.x1 + 4 && y >= L.y0 - 3 && y <= L.y1 + 3);
+  const L = await ocrRead(maskCanvas(P, 0, 0, W, H, (i, x, y) => white(i) && !inTxt(x, y), 2), 11, "0123456789xk.,");
+  // labels inside the picture of the message when there is one (not the name, level or time above it)
+  const inPic = w => !(regs || []).length || regs.some(r => w.x0 >= r.x0 - 2 && w.x1 <= r.x1 + 2 && w.y0 >= r.y0 - 2 && w.y1 <= r.y1 + 2);
+  const words = L.flatMap(l => l.words).map(w => ({ t: w.t.replace(/,/g, "."), x0: w.x0 / 2, y0: w.y0 / 2, x1: w.x1 / 2, y1: w.y1 / 2 })).filter(inPic);
+  // a coin (yellow) just after a number
+  const coinAt = (x0, y0, x1, y1) => { let n = 0, t = 0; for (let y = Math.max(0, Math.round(y0)); y <= Math.min(H - 1, y1); y += 2) for (let x = Math.max(0, Math.round(x0)); x <= Math.min(W - 1, x1); x += 2) { t++; const i = (y * W + x) * 4; if (d[i] > 185 && d[i + 1] > 135 && d[i + 2] < 140 && d[i] - d[i + 2] > 75) n++; } return t > 0 && n / t > .08; };
+  const coinAfter = w => coinAt(w.x1 + 1, w.y0, w.x1 + (w.y1 - w.y0) * 1.5, w.y1);
+  const PRICE = /^\d+(?:\.\d+)?k?$/i;
+  let A = words.filter(w => /^\d+(?:\.\d+)?x$/i.test(w.t));
+  if (!A.length) A = words.filter(w => PRICE.test(w.t) && w.t !== "0" && coinAfter(w)).map(w => Object.assign(w, { coin: true }));
+  const N = words.filter(w => /^\d{1,4}$/.test(w.t) && !A.includes(w));
+  if (!A.length) return [];
+  // the labels read again one by one, from the picture at full size, cropped tight around their digits
+  const Q = img && (img.naturalWidth || img.width) > W * 1.05 ? scanPixels(img, Math.min(3200, img.naturalWidth || img.width)) : P, f = Q.W / W;
+  const whiteQ = i => Q.d[i] > 205 && Q.d[i + 1] > 205 && Q.d[i + 2] > 205 && sat(Q.d, i) < 38;
+  let lastTB = null;
+  const tight = async (x0, y0, x1, y1, side, wl, hMin, hMax) => {
+    lastTB = null;
+    const X0 = Math.max(0, Math.round(x0 * f)), Y0 = Math.max(0, Math.round(y0 * f)), X1 = Math.min(Q.W - 1, Math.round(x1 * f)), Y1 = Math.min(Q.H - 1, Math.round(y1 * f)), w = X1 - X0 + 1, h = Y1 - Y0 + 1;
+    if (w < 8 || h < 8) return null;
+    const m = new Uint8Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) m[y * w + x] = whiteQ(((y + Y0) * Q.W + x + X0) * 4) ? 1 : 0;
+    const SL = scanLabel(m, w, h, 2), all = SL.comps, scanLabelId = (x, y) => SL.lab[y * w + x], tall = all.filter(c => { const ch = c.y1 - c.y0 + 1; return ch >= hMin * f && ch <= hMax * f && c.x1 - c.x0 + 1 <= ch * 1.3; });
+    if (!tall.length) return null;
+    // the label: from its corner digit, the digits next to it on the same line
+    // (the corner one: a white part of the picture lower down is not the label)
+    const a = side === "right" ? tall.reduce((p, c) => c.x1 + c.y1 > p.x1 + p.y1 ? c : p) : tall.reduce((p, c) => c.x0 + c.y0 * 2 < p.x0 + p.y0 * 2 ? c : p);
+    const bh = a.y1 - a.y0 + 1, same = c => Math.abs(c.y1 - a.y1) <= Math.max(2, bh * .14) && (c.y1 - c.y0 + 1) > bh * .55 && (c.y1 - c.y0 + 1) < bh * 1.3;   // same baseline
+    const row = tall.filter(same).sort((u, v) => u.x0 - v.x0);
+    let i = row.indexOf(a), lo = i, hi = i;
+    // next to each other: a small gap, or a wider one with the dot in it ("2.9k") — a piece of the picture further away is not part of it
+    const dotIn = (l, r) => all.some(c => c.x0 >= l.x1 - 1 && c.x1 <= r.x0 + 1 && (c.y1 - c.y0 + 1) < bh * .4 && c.y1 > a.y1 - bh * .45);
+    const near = (l, r) => r.x0 - l.x1 < bh * .45 || (r.x0 - l.x1 < bh * 1.05 && dotIn(l, r));
+    while (lo > 0 && near(row[lo - 1], row[lo])) lo--;
+    while (hi < row.length - 1 && near(row[hi], row[hi + 1])) hi++;
+    const g = row.slice(lo, hi + 1), bx0 = Math.min(...g.map(c => c.x0)), bx1 = Math.max(...g.map(c => c.x1)), by0 = Math.min(...g.map(c => c.y0)), by1 = Math.max(...g.map(c => c.y1));
+    // dots and the "k" join if they sit on that line
+    const ex = all.filter(c => c.x0 >= bx0 - bh * .4 && c.x1 <= bx1 + bh * .9 && c.y1 <= by1 + bh * .15 && c.y0 >= by0 - bh * .15 && !g.includes(c));
+    const cx0 = Math.min(bx0, ...ex.map(c => c.x0)), cx1 = Math.max(bx1, ...ex.map(c => c.x1));
+    // where the label is (on the picture: kept out of the item's picture when it is recognised), with its outline
+    { const o = bh * .35; lastTB = { x0: (X0 + cx0 - o) / f, y0: (Y0 + by0 - o) / f, x1: (X0 + cx1 + o) / f, y1: (Y0 + by1 + o) / f }; }
+    // each character alone (the labels' digits never touch): a narrow one is a "1"; a small blob low between two is the dot
+    const chars = [];
+    for (const c of g) {
+      const cw = c.x1 - c.x0 + 1, ch = c.y1 - c.y0 + 1, pd = Math.round(ch * .25), k = Math.max(1, Math.min(8, 72 / ch));
+      const sx = Math.max(0, X0 + c.x0 - pd), sy = Math.max(0, Y0 + c.y0 - pd), sw = Math.min(Q.W - 1, X0 + c.x1 + pd) - sx, sh = Math.min(Q.H - 1, Y0 + c.y1 + pd) - sy;
+      // only this character's own pixels
+      const own = (i, x, y) => { const lx = x - X0, ly = y - Y0; return lx >= 0 && ly >= 0 && lx < w && ly < h && all.some(o => o.id === c.id) && m[ly * w + lx] && scanLabelId(lx, ly) === c.id; };
+      const ws = (await ocrRead(maskCanvas(Q, sx, sy, sw, sh, (i, x, y) => own(i, x, y), k), 10, wl)).flatMap(l => l.words);
+      let t = (ws.map(w => w.t).join("") || "").replace(/[^0-9kx]/gi, ""), conf = ws.length ? Math.min(...ws.map(w => w.conf)) : 0;
+      if (cw / ch < .5 && /^[1247]?$/.test(t)) t = "1";            // a narrow one is a "1" (never a 4 or a 7)
+      if (/x/i.test(wl) && ch < bh * .84 && c.y1 >= by1 - bh * .15) t = "x";   // the "x" of "10x" is shorter than the digits
+      chars.push({ c, t: t.slice(0, 1) || "?", conf });
+    }
+
+    let out = "";
+    chars.forEach((o, i) => { out += o.t; const nx = chars[i + 1]; if (nx && ex.some(e => e.x0 >= o.c.x1 - 1 && e.x1 <= nx.c.x0 + 1 && (e.y0 + e.y1) / 2 > by0 + (by1 - by0) * .55 && (e.y1 - e.y0 + 1) < bh * .4)) out += "."; });
+    if (!out.includes("?")) return out;
+    // a character not read: the whole label at once
+    const pad = Math.round(bh * .3), k = Math.max(1, Math.min(6, 64 / bh));
+    const sx = Math.max(0, X0 + cx0 - pad), sy = Math.max(0, Y0 + by0 - pad), ex1 = Math.min(Q.W - 1, X0 + cx1 + pad), ey1 = Math.min(Q.H - 1, Y0 + by1 + pad);
+    const r = await ocrRead(maskCanvas(Q, sx, sy, ex1 - sx, ey1 - sy, whiteQ, k), 7, wl);
+    const t = r.flatMap(l => l.words).map(w => w.t).join("").replace(/,/g, ".");
+    // the whole read only fills the characters not read one by one (the ones read alone are surer)
+    const tc = t.replace(/\./g, "");
+    if (tc.length === chars.length) { let o2 = ""; chars.forEach((o, i) => { o2 += o.t === "?" ? tc[i] : o.t; const nx = chars[i + 1]; if (nx && ex.some(e => e.x0 >= o.c.x1 - 1 && e.x1 <= nx.c.x0 + 1 && (e.y0 + e.y1) / 2 > by0 + (by1 - by0) * .55 && (e.y1 - e.y0 + 1) < bh * .4)) o2 += "."; }); return o2; }
+    return t || null;
+  };
+  const med = a => { a = a.slice().sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; };
+  const hh = med(A.map(w => w.y1 - w.y0));
+  // the step of the grid, across and down (squares: the same, unless the picture says otherwise)
+  const step = (axis) => {
+    const g = [];
+    A.forEach(a => A.forEach(b => { const dd = axis === "x" ? b.x0 - a.x0 : b.y0 - a.y0, other = axis === "x" ? Math.abs(a.y0 - b.y0) : Math.abs(a.x0 - b.x0); if (dd > hh * 2.2 && other < hh * .7) g.push(dd); }));
+    if (!g.length) return 0;
+    const p0 = Math.min(...g); return med(g.map(x => x / Math.max(1, Math.round(x / p0))));
+  };
+  let px = step("x"), py = step("y"); const fromLabels = !!px;
+  // one label per row: the step from the picture itself (its squares repeat: the strongest repeat of the edges)
+  const period = (y0, y1, x0, x1, lo, hi) => {
+    y0 = Math.max(0, Math.round(y0)); y1 = Math.min(H - 1, Math.round(y1)); x0 = Math.max(1, Math.round(x0)); x1 = Math.min(W - 1, Math.round(x1));
+    const n = x1 - x0 + 1, G = new Float32Array(n);
+    for (let y = y0; y <= y1; y += 2) for (let x = x0; x <= x1; x++) { const i = (y * W + x) * 4, j = i - 4; G[x - x0] += Math.abs(d[i] - d[j]) + Math.abs(d[i + 1] - d[j + 1]) + Math.abs(d[i + 2] - d[j + 2]); }
+    const m = G.reduce((a, b) => a + b, 0) / n; for (let i = 0; i < n; i++) G[i] -= m;
+    const sc = []; for (let L = Math.round(lo); L <= Math.min(hi, n / 2); L++) { let s = 0; for (let i = 0; i + L < n; i++) s += G[i] * G[i + L]; sc.push([L, s / (n - L)]); }
+    if (!sc.length) return 0; const mx = Math.max(...sc.map(x => x[1])); if (mx <= 0) return 0;
+    for (let k = 1; k < sc.length - 1; k++) if (sc[k][1] >= mx * .7 && sc[k][1] >= sc[k - 1][1] && sc[k][1] >= sc[k + 1][1]) return sc[k][0];
+    return 0;
+  };
+  // …or from the squares' own borders: straight vertical lines crossing the whole row of squares
+  let bordX = null;
+  if (!px) { const a0 = A.reduce((p, c) => c.y0 < p.y0 ? c : p), reg = (regs || []).find(r => a0.x0 >= r.x0 && a0.x1 <= r.x1 && a0.y0 >= r.y0 && a0.y1 <= r.y1) || { x0: 0, y0: 0, x1: W - 1, y1: H - 1 };
+    const rb = regBg(P, reg), y0 = Math.max(0, Math.round(a0.y0 - hh * .2)), y1 = Math.min(H - 1, Math.round(a0.y0 + hh * 3)), xs = [];
+    for (let x = reg.x0 + 1; x < reg.x1; x++) { let run = 0, best = 0; for (let y = y0; y <= y1; y++) { if (cdist(d, (y * W + x) * 4, rb) > 30) { run++; if (run > best) best = run; } else run = 0; } if (best >= (y1 - y0) * .92) xs.push(x); }
+    const cl = []; xs.forEach(x => { if (cl.length && x - cl[cl.length - 1][1] <= 3) cl[cl.length - 1][1] = x; else cl.push([x, x]); });
+    // a border is thin; the pictures make wide blocks
+    const bx = cl.filter(c => c[1] - c[0] <= Math.max(4, hh * .12)).map(c => (c[0] + c[1]) / 2), gaps = []; for (let i = 1; i < bx.length; i++) if (bx[i] - bx[i - 1] > hh * 2.2) gaps.push(bx[i] - bx[i - 1]);
+    if (gaps.length >= 2) { const g0 = Math.min(...gaps); px = med(gaps.map(g => g / Math.max(1, Math.round(g / g0)))); bordX = bx.filter(x => x <= a0.x0 && a0.x0 - x < px * .2).pop(); if (bordX == null) bordX = null; }
+    // …or from the square's own quantity: it ends at the bottom-right corner of the square the price starts
+    if (!px) {
+      const X0 = Math.round(a0.x0 * f), Y0 = Math.round((a0.y0 + hh * 1.2) * f), X1 = Math.min(Q.W - 1, Math.round((a0.x0 + hh * 9) * f)), Y1 = Math.min(Q.H - 1, Math.round((a0.y0 + hh * 9) * f)), w = X1 - X0 + 1, h2 = Y1 - Y0 + 1;
+      if (w > 10 && h2 > 10) {
+        const m = new Uint8Array(w * h2); for (let y = 0; y < h2; y++) for (let x = 0; x < w; x++) m[y * w + x] = whiteQ(((y + Y0) * Q.W + x + X0) * 4) ? 1 : 0;
+        const big = scanLabel(m, w, h2, 4).comps.filter(c => { const ch = c.y1 - c.y0 + 1; return ch >= hh * f * .8 && ch <= hh * f * 2.8 && c.x1 - c.x0 + 1 <= ch * 1.3; });
+        // the first quantity to the right: the leftmost group of tall glyphs on one line
+        big.sort((u, v) => u.x1 - v.x1);
+        const g0 = big[0];
+        if (g0) { const line = big.filter(c => Math.abs(c.y1 - g0.y1) < (g0.y1 - g0.y0) * .15); let end = g0.x1; line.sort((u, v) => u.x0 - v.x0).forEach(c => { if (c.x0 - end < (g0.y1 - g0.y0) * .8 && c.x0 >= g0.x0) end = Math.max(end, c.x1); });
+          const span = (X0 + end) / f - a0.x0, spanY = (Y0 + g0.y1) / f - a0.y0;
+          if (span > hh * 2.2) { px = span / .9; py = spanY > hh * 2.2 ? spanY / .9 : px; } }
+      }
+    }
+    if (!px) px = period(a0.y0 + hh * .2, a0.y0 + hh * 4, reg.x0, reg.x1, hh * 2.5, hh * 9); }
+  if (!px && !py) px = py = hh * 3.6; else if (!px) px = py; else if (!py) py = px;
+  // where the grid starts (labels sit just inside the top-left corner of their square)
+  const inset = px * .05;
+  const circ = (vals, p) => { const r0 = vals[0], res = vals.map(v => { let k = (v - r0) % p; if (k > p / 2) k -= p; if (k < -p / 2) k += p; return k; }); return r0 + med(res); };
+  let ox = bordX != null ? bordX : circ(A.map(a => a.x0 - inset), px), oy = circ(A.map(a => a.y0 - inset), py);
+  while (ox - px > -px * .3) ox -= px; while (oy - py > -py * .3) oy -= py;
+  const colOf = x => Math.floor((x - ox) / px), rowOf = y => Math.floor((y - oy) / py);
+  const cells = new Map(), key = (r, c) => r + ":" + c;
+  const cell = (r, c) => { const k = key(r, c); if (!cells.has(k)) cells.set(k, { r, c, a: null, n: null }); return cells.get(k); };
+  A.forEach(a => { const C = cell(rowOf(a.y0 + 2), colOf(a.x0 + 2)); if (!C.a) C.a = a; });
+  N.forEach(n => { const r = rowOf(n.y1 - 2), c = colOf(n.x1 - 2); const C = cells.get(key(r, c)); if (C && !C.n) C.n = n; else if (!C) { const D = cell(r, c); D.n = n; D.loose = true; } });
+  const boxOf = (r, c) => ({ x0: Math.max(0, Math.round(ox + c * px)), y0: Math.max(0, Math.round(oy + r * py)), x1: Math.min(W - 1, Math.round(ox + (c + 1) * px - 2)), y1: Math.min(H - 1, Math.round(oy + (r + 1) * py - 2)) });
+  const gbg = regBg(P, { x0: 0, y0: 0, x1: W - 1, y1: H - 1 });
+  const filled = b => { const bg = gbg; let n = 0, t = 0;
+    for (let y = b.y0 + (b.y1 - b.y0) * .3; y < b.y1 - (b.y1 - b.y0) * .2; y += 3) for (let x = b.x0 + (b.x1 - b.x0) * .2; x < b.x1 - (b.x1 - b.x0) * .2; x += 3) { t++; if (cdist(d, (Math.round(y) * W + Math.round(x)) * 4, bg) > 45) n++; }
+    return t && n / t > .12; };
+  // the rows and columns the labels span: every square inside them that holds a picture is an item
+  // (quantities count too: a column whose prices were all missed by the first read is still a column)
+  const known = [...cells.values()].filter(C => C.a || (C.n && filled(boxOf(C.r, C.c))));
+  const rs = known.map(C => C.r), cs = known.map(C => C.c);
+  const r0 = Math.min(...rs), r1 = Math.max(...rs), c0 = Math.min(...cs), c1 = Math.max(...cs);
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) { const C = cells.get(key(r, c)); if (!C && filled(boxOf(r, c))) cell(r, c).pic = true; }
+  // squares next to the known ones (their labels missed by the first read): one with a price is an item too
+  const coinMode = A[0].coin === true, PRx = coinMode ? /^\d+(?:\.\d+)?k?$/i : /^\d+(?:\.\d+)?x$/i;
+  const inside = (r, c) => { const rx0 = ox + c * px, ry0 = oy + r * py; return rx0 >= -px * .15 && ry0 >= -py * .15 && rx0 + px <= W + px * .15 && ry0 + py <= H + py * .15; };
+  const hasPrice = async (r, c) => { if (!inside(r, c) || !filled(boxOf(r, c))) return false; const b = boxOf(r, c); const t = await tight(b.x0, b.y0, b.x0 + px * .85, b.y0 + py * .32, "left", coinMode ? "0123456789k." : "0123456789x.", py * .07, py * .3); return !!(t && PRx.test(t)); };
+  let R0 = r0, R1 = r1, C0 = c0, C1 = c1;
+  for (let r = R0; r <= R1; r++) {
+    for (let c = C0 - 1, k = 0; k < 12 && await hasPrice(r, c); c--, k++) { cell(r, c).pic = true; if (c < C0) C0 = c; }
+    for (let c = C1 + 1, k = 0; k < 12 && await hasPrice(r, c); c++, k++) { cell(r, c).pic = true; if (c > C1) C1 = c; }
+  }
+  for (const dir of [1, -1]) for (let r = dir > 0 ? R1 + 1 : R0 - 1, k = 0; k < 12; r += dir, k++) {
+    let any = false; for (let c = C0; c <= C1; c++) if (await hasPrice(r, c)) { cell(r, c).pic = true; any = true; }
+    if (!any) break; if (r > R1) R1 = r; if (r < R0) R0 = r;
+  }
+  // read each square on its own, bigger
+  // the words read in a part of a square (each with its place), bigger
+  const rd = async (x0, y0, x1, y1, wl) => { x0 = Math.max(0, Math.round(x0)); y0 = Math.max(0, Math.round(y0)); x1 = Math.min(W - 1, Math.round(x1)); y1 = Math.min(H - 1, Math.round(y1)); if (x1 - x0 < 6 || y1 - y0 < 6) return []; const r = await ocrRead(maskCanvas(P, x0, y0, x1 - x0, y1 - y0, white, 4), 11, wl); return r.flatMap(l => l.words).map(w => ({ t: w.t.replace(/,/g, "."), x0: w.x0, x1: w.x1, y1: w.y1, conf: w.conf })).filter(w => w.t); };
+  const toPrice = (t, coin) => { if (!t) return ""; const m = t.match(/(\d+(?:\.\d+)?)(k?)/i); if (!m) return ""; const v = num(m[1]) * (m[2] ? 1000 : 1); return v > 0 ? String(Math.round(v * 1000) / 1000) : ""; };
+  const tiles = [];
+  for (const C of [...cells.values()].sort((a, b) => a.r - b.r || a.c - b.c)) {
+    if (C.r < R0 || C.r > R1 + 1 || C.c < C0 - 1 || C.c > C1 + 1) continue;
+    if (C.loose && !C.a && !filled(boxOf(C.r, C.c))) continue;
+    // a square cut off by the edge of the picture is not one (text above or below the grid)
+    { const rx0 = ox + C.c * px, ry0 = oy + C.r * py; if (rx0 < -px * .15 || ry0 < -py * .15 || rx0 + px > W + px * .15 || ry0 + py > H + py * .15) continue; }
+    const b = boxOf(C.r, C.c), coin = A[0].coin === true;
+    // price band: the top third, left part
+    // (the first read wins; the closer read fills a gap, or adds the "k" / decimals the first one lost)
+    let pt = C.a ? C.a.t : ""; const altP = [];
+    const PR = coin ? /^\d+(?:\.\d+)?k?$/i : /^\d+(?:\.\d+)?x$/i;
+    const tp = await tight(b.x0, b.y0, b.x0 + px * .85, b.y0 + py * .32, "left", coin ? "0123456789k." : "0123456789x.", py * .07, py * .3), tpBox = lastTB;
+    if (tp && PR.test(tp)) { if (pt && pt !== tp) altP.push(pt); pt = tp; }
+    else { const pw = (await rd(b.x0, b.y0, b.x0 + px * .82, b.y0 + py * .3, coin ? "0123456789k." : "0123456789x.")).sort((u, v) => u.x0 - v.x0);
+      const pm = pw.map(w => w.t.match(PR)).find(Boolean);
+      if (pm) { const t = pm[0], digits = x => x.replace(/\D/g, ""); if (!pt || (digits(t).startsWith(digits(pt)) && t.length > pt.length) || (/k/i.test(t) && !/k/i.test(pt) && digits(t) === digits(pt))) pt = t; } }
+    // quantity: the bottom-right corner
+    let qt = C.n ? C.n.t : ""; const altQ = [];
+    const tq = await tight(b.x0 + px * .25, b.y0 + py * .45, b.x1 + 1, b.y1 + 1, "right", "0123456789", py * .12, py * .5), tqBox = lastTB;
+    if (tq && /^\d{1,5}$/.test(tq) && +tq) { if (qt && qt !== tq) altQ.push(qt); qt = tq; }
+    if (!qt) { const old = (await rd(b.x0 + px * .2, b.y0 + py * .52, b.x1, b.y1, "0123456789")).map(w => w.t).join("").replace(/\D/g, ""); if (old && +old && old.length <= 4) qt = old; }
+    if (!qt) { const qw = (await rd(b.x0 + px * .3, b.y0 + py * .55, b.x1 + 1, b.y1 + 1, "0123456789")).filter(w => /^\d{1,4}$/.test(w.t)).sort((u, v) => v.x1 - u.x1 || v.y1 - u.y1); if (qw[0] && +qw[0].t) qt = qw[0].t; }
+    const occ = [C.a, C.n].filter(Boolean).map(w => ({ x0: w.x0 - 3, y0: w.y0 - 3, x1: w.x1 + 3, y1: w.y1 + 3 }));
+    occ.push({ x0: b.x0, y0: b.y0, x1: b.x0 + px * .82, y1: b.y0 + py * .27 });                 // the price band is never part of the picture
+    // nor the quantity written over it (white digits on a bottle made the juices unrecognisable)
+    if (tqBox) occ.push(tqBox); else if (qt) occ.push({ x0: b.x0 + px * .5, y0: b.y0 + py * .66, x1: b.x1, y1: b.y1 });
+    if (tpBox) occ.push(tpBox);
+    const pv = t => coin ? toPrice(t) : (t.match(/[\d.]+/) || [""])[0];
+    if (!pt && !qt) continue;                                      // nothing written on it: not an item square
+    if (!C.a && !qt) continue;                                     // found by the grid only: it needs its quantity
+    tiles.push({ box: b, px: pv(pt), coin, q: qt ? String(+qt) : "", altP: altP.map(pv).filter(Boolean), altQ: altQ.map(x => String(+x)).filter(x => +x), occ, bg: regBg(P, { x0: b.x0 + 3, y0: b.y0 + 3, x1: b.x1 - 3, y1: b.y1 - 3 }) });
+  }
+  // a real grid: most squares have both their price and their quantity (an app screenshot with numbers and coins does not)
+  const both = tiles.filter(t => t.px && t.q).length;
+  if (tiles.length >= 2 && both < tiles.length * .6) return [];
+  tiles.weak = !fromLabels;
+  return tiles;
 }
 /* ---------- 1b. a picture made by this site (any paper, List / Compact / Auto / trade boxes) ----------
    Read as a table, from the full-size picture: the paper tells the theme, so only its ink, muted
@@ -8142,6 +8956,74 @@ function packify(items, text) {
   }
   return { items, pk };
 }
+/* ---------- a list post: rules on top, then one item a line ----------
+   "Buying all the below Items 15 Each / Juice 6xmp and the rest 8xmp / Cherry Juice / Tomato Juice / Feta Pie…"
+   → 15 of each; the juices at 6×MP, every other line at 8×MP. A line's own quantity or price ("Feta Pie x20 5x") wins. */
+const LP_PRICE = /(?:^|[\s@(])(\d+(?:[.,]\d+)?)\s*(x\s*m\.?\s*p|m\s*x\s*p|x\s*max(?:\s*price)?|xmp|mp|x(?![a-z])|×|k|m(?![a-z])|coins?)(?![a-z])/i;
+const LP_FILL = new Set("the a an and or of for at to is are be all every each any other others rest remaining else everything items item products product stuff things price prices priced pay paying will buy buying sell selling below above following list these those them this that i im we our my your on in with per ea apiece".split(" "));
+function impListPost(lines) {
+  const S = lines.map(L => emoNames(L.toks.filter(t => t.w || t.emo).map(t => t.w || (t.emo && CAT.byId[t.emo] ? CAT.byId[t.emo].en : "")).join(" ")).replace(/^[\s•·*\-–—>▪◦➤]+/, "").replace(/\s+/g, " ").trim());
+  // an item line: only game items, with maybe their own quantity / price
+  const itemOf = s => {
+    if (!s || !/[a-z]{3}/i.test(s) || /\d{1,2}\s?[:.]\s?\d{2}\s*$/.test(s)) return null;
+    const P = parseBuyList(s).items; if (!P.length || P.length > 4) return null;
+    const ms = P.map(it => { const m = matchProduct(it.name); return m.p && m.sure && !m.ignored ? { it, p: m.p } : null; });
+    return ms.every(Boolean) ? ms : null;
+  };
+  if (S.some(s => RAT.test(s) && !/\d{1,2}\s?:\s?\d{2}\s*$/.test(s)) || S.some(s => HAVE_RE.test(s))) return null;   // a trade post: not this
+  const items = S.map(itemOf), nItems = items.filter(Boolean).length;
+  if (nItems < 3) return null;
+  // the rules: a quantity for all ("15 each", "x15 each", "15 of each") and prices by group ("juice 6xmp", "the rest 8x")
+  let defQ = null; const rules = [], drop = new Set(), qC = []; let head = null;
+  S.forEach((s, i) => {
+    if (items[i] || !s) return;
+    let t = " " + s.toLowerCase().replace(/[’']/g, "") + " ", used = false;
+    // quantity for each item: a small number before "each" (a price would say k / xmp / coins)
+    const qm = t.match(/(?:^|\s)(?:x\s*)?(\d{1,4})\s*(?:x\s*)?(?:of\s+)?(?:each|ea|apiece|per\s+item|of\s+every(?:thing)?)(?![a-z])/) || t.match(/\b(?:quantit(?:y|ies)|qty|amount)\s*[:=]?\s*(\d{1,4})\b/);
+    // ("5x each" alone is a price, ×MP; "450 each" alone is a price in coins — decided once all the rules are read)
+    if (qm) { qC.push({ v: +qm[1], x: /x/.test(qm[0].replace(/\s+of\s+every.*$/, "").replace(/each|ea|apiece|per\s+item/, "")) }); t = t.slice(0, qm.index) + " " + t.slice(qm.index + qm[0].length); used = true; }
+    // price rules, one per piece
+    t.split(/,|;|\/|\band\b|\bthen\b|\bwhile\b|\.\s/).forEach(seg => {
+      const pm = seg.match(LP_PRICE); if (!pm) return;
+      const v = num(pm[1].replace(",", ".")), u = pm[2].replace(/\s|\./g, "").toLowerCase();
+      if (!(v > 0)) return;
+      const pr = /^k$/.test(u) ? { p: v * 1000, pu: "coin" } : /^m$/.test(u) ? { p: v * 1e6, pu: "coin" } : /^coins?$/.test(u) ? { p: v, pu: "coin" } : { p: v, pu: "xmp" };
+      const words = (seg.slice(0, pm.index) + " " + seg.slice(pm.index + pm[0].length)).replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w && !LP_FILL.has(w));
+      const rest = /\b(?:rest|others?|remaining|everything|else|all)\b/.test(seg) && !words.length;
+      rules.push({ words, rest: rest || !words.length, pr }); used = true;
+    });
+    const bs = BUY_RE.test(s) || /^(?:wtb|looking\s*for|lf)\b/i.test(s), ss = SELL_RE.test(s);
+    if (used || ((bs || ss) && s.split(/\s+/).length <= 4)) { drop.add(i); if (!head && (bs || ss)) head = { i, s: bs ? "Buying" : "Selling" }; }
+  });
+  qC.forEach(c => { if (!rules.length && (c.x || c.v >= 100)) rules.push({ words: [], rest: true, pr: c.x ? { p: c.v, pu: "xmp" } : { p: c.v, pu: "coin" } }); else if (defQ == null) defQ = c.v; });
+  if (defQ == null && !rules.length) return null;
+  // does a rule's words name this item? "juice" → every juice; "pies" → the pies group; "chocolate" → the chocolate ones
+  const vars = w => [w, w.replace(/s$/, ""), w.replace(/es$/, ""), w.replace(/ies$/, "y")];
+  const same1 = (a, b) => vars(a).some(x => vars(b).includes(x));
+  const hits = (p, words) => words.length && words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)) || (typeof LVL_CATW !== "undefined" && LVL_CATW[w] && LVL_CATW[w] === p.cat));
+  // "pies 6x": the items named "… pie" if there are any, else the whole group (pies & cakes)
+  const byName = (p, words) => words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)));
+  const allP = items.filter(Boolean).flat().map(x => x.p);
+  rules.forEach(r => { r.named = r.words.length && allP.some(p => byName(p, r.words)); });
+  const priceOf = p => { const r = rules.find(r => !r.rest && (r.named ? byName(p, r.words) : hits(p, r.words))) || rules.find(r => r.rest); return r ? r.pr : null; };
+  // a name the site doesn't know yet, in the middle of the list (or right after it): kept, to pick when the post is made
+  const idx = items.map((x, i) => x ? i : -1).filter(i => i >= 0), first = idx[0]; let last = idx[idx.length - 1];
+  const nameLike = s => s && !/\d{3,}|[:@#]|https?:/.test(s) && /^[a-zà-ÿ'’&\- ]+(?:\s+[x×]?\d{1,4})?$/i.test(s) && s.split(/\s+/).length <= 5 && !/\b(?:dm|pm|msg|message|thanks?|thx|ty|please|pls|tag|ping|partials?|accepted|welcome|send|me|you)\b/i.test(s);
+  for (let i = first; i < S.length; i++) {
+    if (items[i] || drop.has(i)) continue;
+    if (nameLike(S[i]) && (i < last || i === last + 1 || (i > last && items[i - 1]))) { const it = (parseBuyList(S[i]).items[0]) || { name: S[i] }; items[i] = [{ it, p: { id: null, en: it.name, fr: "", cat: null } }]; if (i > last) last = i; }
+    else if (i > last) break;
+  }
+  const priced = [];
+  items.forEach((ms, i) => {
+    if (!ms) return; drop.add(i);
+    ms.forEach(({ it, p }) => {
+      const q = it.q != null ? it.q : defQ, own = it.p != null ? { p: it.p, pu: "coin" } : it.xmp ? { p: it.xmp, pu: "xmp" } : null, pr = own || priceOf(p);
+      priced.push({ ref: p.id, name: p.id ? "" : it.name, q: q != null ? String(q) : "", p: pr ? String(Math.round(pr.p * 1000) / 1000) : "", pu: pr ? pr.pu : "coin" });
+    });
+  });
+  return { priced, drop, head, defQ, rules };
+}
 function impParse(lines, tiles, picNotes, text) {
   lines = lines.slice();
   const R = { have: [], groups: [], priced: [], tiles: tiles || [], notes: [], kind: null, author: "" };
@@ -8162,6 +9044,9 @@ function impParse(lines, tiles, picNotes, text) {
     });
     return Object.assign({}, L, { toks: out });
   }).filter(L => L.toks.length);
+  // a list post (rules on top, one item a line): read here, the rest goes on as usual
+  const LPR = tiles && tiles.length ? null : impListPost(lines);
+  if (LPR) { R.list = LPR.priced; lines = lines.map((L, i) => LPR.head && LPR.head.i === i ? Object.assign({}, L, { toks: [{ x: 0, w: LPR.head.s }] }) : LPR.drop.has(i) ? null : L).filter(Boolean); }
   // a "Have" list that goes on to the next line ("Have: 30 🔨, 50 🧨," / "60 🧨 and 80 🪓"): one line
   {
     const KW = x => HAVE_RE.test(x) || NEED_RE.test(x) || RAT.test(x) || BUY_RE.test(x) || SELL_RE.test(x), lt = L => txt(L).replace(/^[^\w(]+/, "");
@@ -8250,8 +9135,9 @@ function impParse(lines, tiles, picNotes, text) {
       return;
     }
     if (!rm && emos.length && !/\d+\s*k\b|\d{3,}/i.test(s)) { pend.push(...emos.map(eItem), ...namedItems(s.split(/\s+/))); return; }
-    const sE = emos.length ? L.toks.map(t => t.w != null ? t.w : t.emo && CAT.byId[t.emo] ? CAT.byId[t.emo].en + "," : "").join(" ").replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "") : s;
-    if (/\d\s*k\b|\d{3,}|\(\d+\)|\bx\s*\d+|\d+\s*x\b/i.test(s) && !RAT.test(s) && !/\.(com|io|net)\b|items?\)/i.test(s) && parseBuyList(sE).items.length) { cand.push(sE); return; }
+    // "70 Honey 🍯", "1000 Help 🪧": the name already written before its picture → once
+    const sE = emos.length ? L.toks.map((t, i) => { if (t.w != null) return t.w; const P = t.emo && CAT.byId[t.emo]; if (!P) return ""; const before = norm(L.toks.slice(0, i).map(x => x.w || "").join(" ")); return before.endsWith(norm(P.en)) || before.endsWith(norm(P.en) + "s") ? "," : P.en + ","; }).join(" ").replace(/^(?:[^\w\s(]+|[eo¢©®])\s+/i, "").replace(/^[•*\-–—·>|\s]+/, "") : s;
+    if (/\d\s*k\b|\d{3,}|\(\d+\)|\bx\s*\d+|\d+\s*x\b|\d\s*x\s*m\.?p\b|\d\s*mp\b/i.test(s) && !RAT.test(s) && !/\.(com|io|net)\b|items?\)/i.test(s) && parseBuyList(sE).items.length) { cand.push(sE); return; }
     if (s && /[a-z]{2}/i.test(s) && (L.conf == null || L.conf >= 70)) { const n = s.replace(/[~]+/g, ""); R.notes.push(n); lastNote = { s: n, li }; }
   });
   if (pend.length && R.groups.length) R.groups[R.groups.length - 1].items.push(...pend.filter(x => x.ref));
@@ -8284,7 +9170,8 @@ function impPosts(R) {
   }
   const sell = R.kind === "achat" ? "achat" : "vente", items = [];
   R.tiles.forEach(t => items.push({ ref: t.ref, unknown: t.ref ? null : t, src: t, view: t.view, m: t.m, q: t.q, p: t.px, pu: t.coin ? "coin" : t.px ? "xmp" : "coin" }));
-  if (R.priced.length) parseBuyList(R.priced.join("\n")).items.forEach(it => { const m = matchProduct(it.name); items.push({ ref: m.p && m.sure ? m.p.id : null, name: m.p && m.sure ? "" : it.name, q: it.q != null ? String(it.q) : "", p: it.p ? String(it.p) : "", pu: "coin" }); });
+  (R.list || []).forEach(x => items.push({ ref: x.ref, name: x.name || "", q: x.q, p: x.p, pu: x.pu }));
+  if (R.priced.length) parseBuyList(R.priced.join("\n")).items.forEach(it => { const m = matchProduct(it.name); items.push({ ref: m.p && m.sure ? m.p.id : null, name: m.p && m.sure ? "" : it.name, q: it.q != null ? String(it.q) : "", p: it.xmp ? String(it.xmp) : it.p ? String(it.p) : "", pu: it.xmp ? "xmp" : "coin" }); });
   if (items.length || !posts.length) posts.push({ type: R.groups.length && !items.length ? sell : R.kind === "trade" ? "vente" : sell, on: true, name: nm(R.kind === "trade" ? "vente" : sell), wants: items, notes: posts.length ? [] : notes });
   return posts;
 }
@@ -8306,6 +9193,26 @@ async function impRun(files, text) {
       }
     }
     if (text && text.trim()) lines.push(...textLines(text));
+    // the picture's own total ("648.300 · 786,77 (555 items)"): what was read must give the same.
+    // When it doesn't, the other readings of a label are tried, one change at a time, while it gets closer.
+    IMP.check = null;
+    { const all = lines.map(L => (L.toks || []).map(t => t.w || "").join(" ")).concat(picNotes);
+      const T = all.map(t => t.match(/(\d{1,3}(?:[.,\s]\d{3})+|\d{4,})\D[^()]*\(\s*(\d[\d,.\s]*)\s*items?\s*\)/i)).find(Boolean);
+      if (T && tiles.length) {
+        const coins = +T[1].replace(/\D/g, ""), items = +T[2].replace(/\D/g, ""), allCoin = tiles.every(t => t.coin);
+        const sumI = () => tiles.reduce((a, t) => a + (+t.q || 0), 0), sumC = () => allCoin ? Math.round(tiles.reduce((a, t) => a + (+t.q || 0) * (+t.px || 0), 0)) : null;
+        const off = () => Math.abs(sumI() - items) * 1e9 + (allCoin ? Math.abs(sumC() - coins) : 0);
+        for (let pass = 0; pass < 6 && off() > 0; pass++) {
+          let best = null, bo = off();
+          tiles.forEach(t => {
+            (t.altQ || []).forEach(v => { const o = t.q; t.q = v; const x = off(); if (x < bo) { bo = x; best = [t, "q", v]; } t.q = o; });
+            (t.altP || []).forEach(v => { const o = t.px; t.px = v; const x = off(); if (x < bo) { bo = x; best = [t, "px", v]; } t.px = o; });
+          });
+          if (!best) break;
+          const [t, k, v] = best, o = t[k]; t[k] = v; (k === "q" ? t.altQ : t.altP).splice((k === "q" ? t.altQ : t.altP).indexOf(v), 1, o);
+        }
+        IMP.check = { items, coins, gotI: sumI(), gotC: sumC(), ok: sumI() === items && (!allCoin || sumC() === coins) };
+      } }
     const R = impParse(lines, tiles, picNotes, text);
     IMP.res = { R, posts: owns.length ? ownPosts(owns).concat(lines.length || tiles.length ? impPosts(R).filter(p => (p.wants || []).length) : []) : impPosts(R) };
     if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
@@ -8342,6 +9249,9 @@ function renderImpNote() {
   box.append(h("div", { class: "impn" }, h("span", { class: "ic" }, "📥"),
     h("div", null, h("b", null, "New post: " + (st.name || TYPES[st.type].name)), h("span", null, "A " + TYPES[st.type].name + " post made from your import" + (chk ? " — " + plural(chk, "item") + " to pick (orange ?)" : " — check it, then share the picture") + ".")),
     h("button", { class: "x", "aria-label": "Close", onclick: () => { IMP_FRESH = null; renderImpNote(); } }, "×"),
+    F.check ? h("div", { class: "impchk" + (F.check.ok ? " ok" : "") }, F.check.ok
+      ? (F.check.gotC != null ? "✓ Checked: the picture says " + fmt(F.check.items) + " items · " + fmt(F.check.coins) + " coins — same as what was read." : "✓ Checked: the picture says " + fmt(F.check.items) + " items — same as what was read.")
+      : "⚠ The picture says " + fmt(F.check.items) + " items · " + fmt(F.check.coins) + " coins, but " + fmt(F.check.gotI) + " items" + (F.check.gotC != null ? " · " + fmt(F.check.gotC) + " coins" : "") + " were read. Check the prices and quantities against the picture.") : null,
     h("div", { class: "pv" }, h("button", { onclick: () => tab("prev") }, "See the picture"), ...others.map(p => h("button", { onclick: () => selectProfile(p.id) }, "Open “" + p.name + "”")))));
 }
 /** Make the post(s) from what was read and open the first one. */
@@ -8382,7 +9292,7 @@ function impCreate() {
   });
   saveCrops();
   if (!first) return;
-  IMP_FRESH = { ids: STATE.list.slice(-made).map(p => p.id) };
+  IMP_FRESH = { ids: STATE.list.slice(-made).map(p => p.id), check: IMP.check };
   IMP.res = null; IMP.text = ""; selectProfile(first.id); tab("items");
   requestAnimationFrame(() => { const on = document.querySelector("#profiles .pchip.on"); if (on) on.classList.add("fresh"); });
   toast((made > 1 ? made + " posts imported ✔" : "Post imported ✔") + (chk ? " — " + plural(chk, "item") + " to pick (?)" : ""));
