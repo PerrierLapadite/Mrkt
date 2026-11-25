@@ -1075,6 +1075,9 @@ details summary{-webkit-tap-highlight-color:transparent}
 .sdrop.compact #catPick>.two{display:none}
 .sdrop.compact #catPick>.filebtn{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;margin:0!important;padding:0;border:0}
 .sdrop:not(.compact) .srcrow .cam{display:none}
+.sdrop .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.sdrop .chips::-webkit-scrollbar{display:none}
+.sdrop .chips>*{flex:none}
 .sdrop.compact .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
 .sdrop.compact .chips::-webkit-scrollbar{display:none}
 .sdrop.compact .chips>*{flex:none}
@@ -1308,33 +1311,460 @@ details summary{-webkit-tap-highlight-color:transparent}
    Le fichier wiki est déduit du nom anglais (ex. « Duct Tape » → Duct_Tape.png).
    La liste est complétée automatiquement au chargement par celle du wiki.
    ===================================================================== */
-const CATS = [
-  {id:"pop",    fr:"⭐ Populaires"},
-  {id:"recent", fr:"🕘 Récents"},
-  {id:"all",    fr:"Tous"},
-  {id:"packs",  fr:"Lots d’extension"},
-  {id:"ext",    fr:"Matériaux & outils"},
-  {id:"crops",  fr:"Cultures"},
-  {id:"trees",  fr:"Arbres & buissons"},
-  {id:"animal", fr:"Produits animaux"},
-  {id:"bakery", fr:"Boulangerie"},
-  {id:"dairy",  fr:"Laiterie & sucre"},
-  {id:"snack",  fr:"Barbecue & plats"},
-  {id:"pies",   fr:"Tartes & gâteaux"},
-  {id:"sweets", fr:"Confiserie & glaces"},
-  {id:"drinks", fr:"Jus & boissons"},
-  {id:"jams",   fr:"Confitures & sauces"},
-  {id:"soups",  fr:"Soupes & salades"},
-  {id:"fastfood",fr:"Sandwichs & snacks"},
-  {id:"asian",  fr:"Sushis, riz & nouilles"},
-  {id:"textile",fr:"Textile"},
-  {id:"home",   fr:"Bougies, fleurs & soins"},
-  {id:"mine",   fr:"Mine & bijoux"},
-  {id:"fish",   fr:"Pêche"},
-  {id:"feed",   fr:"Nourriture animaux"},
-  {id:"other",  fr:"Autres"},
-  {id:"perso",  fr:"Mes produits"}
-];
+/* the groups of the Items tab: as in the game — the fields, trees and animals, then each production building in the order you unlock it */
+const BUILDINGS = [["feed", "Feed Mill"], ["bakery", "Bakery"], ["dairy", "Dairy"], ["sugar-mill", "Sugar Mill"], ["popcorn-pot", "Popcorn Pot"], ["bbq-grill", "BBQ Grill"],
+  ["pie-oven", "Pie Oven"], ["loom", "Loom"], ["sewing-machine", "Sewing Machine"], ["cake-oven", "Cake Oven"], ["mine", "Mine"], ["smelter", "Smelter"], ["juice-press", "Juice Press"],
+  ["fish", "Fishing & lake"], ["ice-cream-maker", "Ice Cream Maker"], ["doner-kebab-stand", "Döner Kebab Stand"], ["jam-maker", "Jam Maker"], ["jeweler", "Jeweler"], ["honey-extractor", "Honey Extractor"],
+  ["coffee-kiosk", "Coffee Kiosk"], ["soup-kitchen", "Soup Kitchen"], ["candle-maker", "Candle Maker"], ["flower-shop", "Flower Shop"], ["candy-machine", "Candy Machine"], ["sauce-maker", "Sauce Maker"],
+  ["sushi-bar", "Sushi Bar"], ["salad-bar", "Salad Bar"], ["sandwich-bar", "Sandwich Bar"], ["smoothie-mixer", "Smoothie Mixer"], ["pasta-maker", "Pasta Maker"], ["essential-oils-lab", "Essential Oils Lab"],
+  ["wok-kitchen", "Wok Kitchen"], ["hat-maker", "Hat Maker"], ["pasta-kitchen", "Pasta Kitchen"], ["hot-dog-stand", "Hot Dog Stand"], ["donut-maker", "Donut Maker"], ["taco-kitchen", "Taco Kitchen"],
+  ["omelet-station", "Omelet Station"], ["tea-stand", "Tea Stand"], ["fondue-pot", "Fondue Pot"], ["bath-kiosk", "Bath Kiosk"], ["deep-fryer", "Deep Fryer"], ["preservation-station", "Preservation Station"],
+  ["pottery-studio", "Pottery Studio"], ["fudge-shop", "Fudge Shop"], ["yogurt-maker", "Yogurt Maker"], ["stew-pot", "Stew Pot"], ["cupcake-maker", "Cupcake Maker"], ["perfumerie", "Perfumerie"],
+  ["waffle-maker", "Waffle Maker"], ["porridge-bar", "Porridge Bar"], ["milkshake-bar", "Milkshake Bar"]];
+const CATS = [{ id: "pop" }, { id: "recent" }, { id: "all" }, { id: "packs" }, { id: "ext" }, { id: "crops" }, { id: "trees" }, { id: "animal" }]
+  .concat(BUILDINGS.map(([id]) => ({ id })), [{ id: "other" }, { id: "perso" }]);
+/* every good of the game and where it's made (field, tree, animal or building) */
+const GOODS_SRC = `
+Affogato|Ice Cream Maker
+Apple|Tree
+Apple Ginger Tea|Tea Stand
+Apple Jam|Jam Maker
+Apple Juice|Juice Press
+Apple Pie|Pie Oven
+Apple Porridge|Porridge Bar
+Asparagus|Field
+Asparagus Quiche|Pie Oven
+Asparagus Soup|Soup Kitchen
+Axe|Tools
+Bacon|Pig
+Bacon And Eggs|Bbq Grill
+Bacon Donut|Donut Maker
+Bacon Fondue|Fondue Pot
+Bacon Fries|Deep Fryer
+Bacon Pie|Pie Oven
+Bacon Toast|Sandwich Bar
+Baked Potato|Bbq Grill
+Banana|Tree
+Banana Bread|Bakery
+Banana Pancakes|Bbq Grill
+Banana Split|Ice Cream Maker
+Bean Dip|Sauce Maker
+Bean Salad|Salad Bar
+Beeswax|Honey Extractor
+Beetroot|Field
+Beetroot Salad|Salad Bar
+Bell Pepper|Field
+Bell Pepper Soup|Soup Kitchen
+Berry Juice|Juice Press
+Berry Smoothie|Smoothie Mixer
+Berry Waffle|Waffle Maker
+Big Sushi Roll|Sushi Bar
+Birthday Bouquet|Flower Shop
+Black Bean|Field
+Black Sesame Smoothie|Smoothie Mixer
+Blackberry|Bush
+Blackberry Jam|Jam Maker
+Blackberry Muffin|Bakery
+Blanket|Sewing Machine
+Blt Salad|Salad Bar
+Blue Lure|Lure Workbench
+Blue Sweater|Loom
+Blue Woolly Hat|Loom
+Blueberry|Bush
+Blueberry Cheesecake|Cake Oven
+Blueberry Chutney|Jam Maker
+Blueberry Muffin|Bakery
+Blueberry Waffle|Waffle Maker
+Bolt|Tools
+Bracelet|Jeweler
+Bread|Bakery
+Breakfast Bowl|Porridge Bar
+Breakfast Waffle|Waffle Maker
+Bright Bouquet|Flower Shop
+Broccoli|Field
+Broccoli Pasta|Pasta Kitchen
+Broccoli Soup|Soup Kitchen
+Brown Sugar|Sugar Mill
+Butter|Dairy
+Buttered Popcorn|Popcorn Pot
+Cabbage|Field
+Cabbage Soup|Soup Kitchen
+Cacao|Tree
+Caffe Latte|Coffee Kiosk
+Caffe Mocha|Coffee Kiosk
+Calming Diffuser|Perfumerie
+Candy Bouquet|Flower Shop
+Canned Fish|Preservation Station
+Caramel Apple|Candy Machine
+Caramel Latte|Coffee Kiosk
+Carrot|Field
+Carrot Cake|Cake Oven
+Carrot Juice|Juice Press
+Carrot Pie|Pie Oven
+Casserole|Pie Oven
+Chamomile|Field
+Chamomile Essential Oil|Essential Oils Lab
+Chamomile Tea|Tea Stand
+Cheese|Dairy
+Cheese Fondue|Fondue Pot
+Cheese Omelet|Omelet Station
+Cheesecake|Cake Oven
+Cherry|Tree
+Cherry Jam|Jam Maker
+Cherry Juice|Juice Press
+Cherry Popsicle|Ice Cream Maker
+Chicken Feed|Feed Mill
+Chickpea|Field
+Chickpea Stew|Stew Pot
+Chili Fudge|Fudge Shop
+Chili Pepper|Field
+Chili Popcorn|Popcorn Pot
+Chili Poppers|Deep Fryer
+Chili Stew|Stew Pot
+Chocolate|Candy Machine
+Chocolate Cake|Cake Oven
+Chocolate Fondue|Fondue Pot
+Chocolate Ice Cream|Ice Cream Maker
+Chocolate Pie|Pie Oven
+Chocolate Popcorn|Popcorn Pot
+Chocolate Roll|Cake Oven
+Chocolate Waffle|Waffle Maker
+Clay|Field
+Clay Mug|Pottery Studio
+Cloche Hat|Hat Maker
+Coal|Mine
+Cocoa Smoothie|Smoothie Mixer
+Coconut|Tree
+Coconut Ice Cream|Ice Cream Maker
+Coffee Bean|Bush
+Coleslaw|Salad Bar
+Colorful Candles|Candle Maker
+Colourful Omelet|Omelet Station
+Cookie|Bakery
+Cookie Cupcake|Cupcake Maker
+Corn|Field
+Corn Bread|Bakery
+Corn Dog|Hot Dog Stand
+Cotton|Field
+Cotton Candy|Candy Machine
+Cotton Fabric|Loom
+Cotton Shirt|Sewing Machine
+Cow Feed|Feed Mill
+Cream|Dairy
+Cream Cake|Cake Oven
+Cream Donut|Donut Maker
+Crunchy Donut|Donut Maker
+Cucumber|Field
+Cucumber Sandwich|Sandwich Bar
+Cucumber Smoothie|Smoothie Mixer
+Diamond Ring|Jeweler
+Dried Fruit|Preservation Station
+Duck Feather|Duck Salon
+Duck Trap|Net Maker
+Duct Tape|Tools
+Dynamite|Tools
+Egg|Chicken
+Egg Sandwich|Sandwich Bar
+Egg Sushi|Sushi Bar
+Eggplant|Field
+Eggplant Parmesan|Pie Oven
+Espresso|Coffee Kiosk
+Exfoliating Soap|Bath Kiosk
+Falafel|Deep Fryer
+Fancy Cake|Cake Oven
+Feta Pie|Pie Oven
+Feta Salad|Salad Bar
+Filled Donut|Donut Maker
+Fish And Chips|Bbq Grill
+Fish Burger|Bbq Grill
+Fish Fillet|Fish
+Fish Pie|Pie Oven
+Fish Skewer|Bbq Grill
+Fish Soup|Soup Kitchen
+Fish Taco|Taco Kitchen
+Fishing Net|Net Maker
+Floral Candle|Candle Maker
+Flower Crown|Hat Maker
+Flower Pendant|Jeweler
+Flower Shawl|Loom
+Fresh Diffuser|Perfumerie
+Fresh Pasta|Pasta Maker
+Fresh Porridge|Porridge Bar
+Fried Candy Bar|Deep Fryer
+Fried Rice|Wok Kitchen
+Fruit Cake|Cake Oven
+Fruit Salad|Salad Bar
+Fruit Sorbet|Ice Cream Maker
+Fruity Milkshake|Milkshake Bar
+Frutti Di Mare Pizza|Bakery
+Garlic|Field
+Garlic Bread|Bbq Grill
+Ginger|Field
+Ginger Essential Oil|Essential Oils Lab
+Gingerbread Cookie|Bakery
+Gnocchi|Pasta Kitchen
+Goat Cheese|Dairy
+Goat Cheese Toast|Sandwich Bar
+Goat Feed|Feed Mill
+Goat Milk|Goat
+Gold Bar|Smelter
+Gold Lure|Lure Workbench
+Gold Ore|Mine
+Gracious Bouquet|Flower Shop
+Grape Jam|Jam Maker
+Grape Juice|Juice Press
+Grapes|Field
+Green Lure|Lure Workbench
+Green Smoothie|Smoothie Mixer
+Green Tea|Tea Stand
+Grilled Asparagus|Bbq Grill
+Grilled Eggplant|Bbq Grill
+Grilled Lamb Skewer|Bbq Grill
+Grilled Onion|Bbq Grill
+Guava|Tree
+Guava Compote|Preservation Station
+Guava Cupcake|Cupcake Maker
+Guava Juice|Juice Press
+Hamburger|Bbq Grill
+Hand Pies|Deep Fryer
+Honey|Honey Extractor
+Honey Apple Cake|Cake Oven
+Honey Face Mask|Bath Kiosk
+Honey Peanuts|Candy Machine
+Honey Popcorn|Popcorn Pot
+Honey Soap|Bath Kiosk
+Honey Tea|Tea Stand
+Honey Toast|Sandwich Bar
+Honeycomb|Beehive
+Hot Chocolate|Coffee Kiosk
+Hot Dog|Hot Dog Stand
+Hummus|Sauce Maker
+Hummus Wrap|Sandwich Bar
+Iced Banana Latte|Coffee Kiosk
+Iced Tea|Tea Stand
+Indigo|Field
+Iron Bar|Smelter
+Iron Bracelet|Jeweler
+Iron Ore|Mine
+Jelly Beans|Candy Machine
+Kimchi|Preservation Station
+Lamb Chop|Lamb
+Lamb Doner Wrap|Doner Kebab Stand
+Lamb Feed|Feed Mill
+Lamb Soup|Soup Kitchen
+Lamb Stir Fry|Wok Kitchen
+Land Deed|Tools
+Lemon|Tree
+Lemon Cake|Cake Oven
+Lemon Candle|Candle Maker
+Lemon Curd|Sauce Maker
+Lemon Essential Oil|Essential Oils Lab
+Lemon Fudge|Fudge Shop
+Lemon Lotion|Bath Kiosk
+Lemon Pie|Pie Oven
+Lemon Tea|Tea Stand
+Lettuce|Field
+Lily|Field
+Lobster Pasta|Pasta Kitchen
+Lobster Skewer|Bbq Grill
+Lobster Soup|Soup Kitchen
+Lobster Sushi|Sushi Bar
+Lobster Tail|Lobster Pool
+Lobster Trap|Net Maker
+Lollipop|Candy Machine
+Macaroon|Bakery
+Mallet|Tools
+Mango|Tree
+Mango Juice|Juice Press
+Marker Stake|Tools
+Marmalade|Jam Maker
+Mayonnaise|Sauce Maker
+Meat Bucket|Feed Mill
+Milk|Cow
+Milk Tea|Tea Stand
+Mint|Field
+Mint Essential Oil|Essential Oils Lab
+Mint Fudge|Fudge Shop
+Mint Ice Cream|Ice Cream Maker
+Mint Tea|Tea Stand
+Mixed Smoothie|Smoothie Mixer
+Mocha Milkshake|Milkshake Bar
+Mushroom|Field
+Mushroom Pasta|Pasta Kitchen
+Mushroom Pot Pie|Pie Oven
+Mushroom Salad|Salad Bar
+Mushroom Soup|Soup Kitchen
+Mystery Net|Net Maker
+Nachos|Taco Kitchen
+Nail|Tools
+Necklace|Jeweler
+Noodle Soup|Soup Kitchen
+Oats|Field
+Olive|Tree
+Olive Dip|Sauce Maker
+Olive Oil|Sauce Maker
+Onion|Field
+Onion Dog|Hot Dog Stand
+Onion Melt|Sandwich Bar
+Onion Soup|Soup Kitchen
+Orange|Tree
+Orange Juice|Juice Press
+Orange Salad|Salad Bar
+Orange Sorbet|Ice Cream Maker
+Orange Tea|Tea Stand
+Pancake|Bbq Grill
+Passion Fruit|Field
+Passion Fruit Jam|Jam Maker
+Passion Fruit Juice|Juice Press
+Passion Fruit Pie|Pie Oven
+Pasta Carbonara|Pasta Kitchen
+Pasta Salad|Salad Bar
+Peach|Tree
+Peach Ice Cream|Ice Cream Maker
+Peach Jam|Jam Maker
+Peach Tart|Pie Oven
+Peanut Butter And Jelly Sandwich|Sandwich Bar
+Peanut Butter Milkshake|Ice Cream Maker
+Peanut Fudge|Fudge Shop
+Peanut Noodles|Wok Kitchen
+Peanuts|Squirrel House
+Peony|Field
+Pickaxe|Tools
+Pickles|Preservation Station
+Pig Feed|Feed Mill
+Pillow|Sewing Machine
+Pineapple|Field
+Pineapple Cake|Cake Oven
+Pineapple Coconut Bars|Bakery
+Pineapple Juice|Juice Press
+Pizza|Bakery
+Plain Cupcake|Cupcake Maker
+Plain Donut|Donut Maker
+Plain Waffle|Waffle Maker
+Plain Yogurt|Yogurt Maker
+Plank|Tools
+Platinum Bar|Smelter
+Platinum Ore|Mine
+Plum|Tree
+Plum Jam|Jam Maker
+Plum Smoothie|Smoothie Mixer
+Pomegranate|Tree
+Pomegranate Cake|Cake Oven
+Pomegranate Tea|Tea Stand
+Popcorn|Popcorn Pot
+Potato|Field
+Potato Bread|Bakery
+Potato Feta Cake|Cake Oven
+Potato Omelet|Omelet Station
+Potato Soup|Soup Kitchen
+Potted Plant|Pottery Studio
+Pumpkin|Field
+Pumpkin Pie|Pie Oven
+Pumpkin Soup|Soup Kitchen
+Purple Lure|Lure Workbench
+Quesadilla|Taco Kitchen
+Raspberry|Bush
+Raspberry Candle|Candle Maker
+Raspberry Jam|Jam Maker
+Raspberry Mocha|Coffee Kiosk
+Raspberry Muffin|Bakery
+Red Berry Cake|Cake Oven
+Red Lure|Lure Workbench
+Red Scarf|Loom
+Refined Coal|Smelter
+Rice|Field
+Rice Ball|Sushi Bar
+Rice Noodles|Pasta Maker
+Rich Fudge|Fudge Shop
+Rich Soap|Bath Kiosk
+Roasted Tomatoes|Bbq Grill
+Rustic Bouquet|Flower Shop
+Salsa|Sauce Maker
+Samosa|Deep Fryer
+Saw|Tools
+Screw|Tools
+Seafood Salad|Salad Bar
+Sesame|Field
+Sesame Brittle|Candy Machine
+Sesame Ice Cream|Ice Cream Maker
+Sheep Feed|Feed Mill
+Shepherds Pie|Pie Oven
+Shovel|Tools
+Silver Bar|Smelter
+Silver Ore|Mine
+Snack Mix|Popcorn Pot
+Soft Bouquet|Flower Shop
+Soothing Pad|Sewing Machine
+Soy Sauce|Sauce Maker
+Soybean|Field
+Spicy Bean Doner|Doner Kebab Stand
+Spicy Bean Taco|Taco Kitchen
+Spicy Fish|Wok Kitchen
+Spicy Pasta|Pasta Kitchen
+Spicy Pizza|Bakery
+Spring Omelet|Omelet Station
+Sprinkled Donut|Donut Maker
+Strawberry|Field
+Strawberry Cake|Cake Oven
+Strawberry Candle|Candle Maker
+Strawberry Ice Cream|Ice Cream Maker
+Strawberry Jam|Jam Maker
+Strawberry Yogurt|Yogurt Maker
+Stuffed Peppers|Bbq Grill
+Sugarcane|Field
+Summer Rolls|Salad Bar
+Summer Salad|Salad Bar
+Sun Hat|Hat Maker
+Sunflower|Field
+Sushi Roll|Sushi Bar
+Sweater|Loom
+Sweet Porridge|Porridge Bar
+Syrup|Sugar Mill
+Taco|Taco Kitchen
+Tart Dressing|Sauce Maker
+Tea Leaf|Field
+Tea Pot|Pottery Studio
+Tnt Barrel|Tools
+Toffee|Candy Machine
+Tofu Dog|Hot Dog Stand
+Tofu Stir Fry|Wok Kitchen
+Tomato|Field
+Tomato Juice|Juice Press
+Tomato Sauce|Sauce Maker
+Tomato Soup|Soup Kitchen
+Top Hat|Hat Maker
+Tower Doner Supreme|Doner Kebab Stand
+Tropical Cupcake|Cupcake Maker
+Tropical Fondue|Fondue Pot
+Tropical Smoothie|Smoothie Mixer
+Tropical Yogurt|Yogurt Maker
+Vanilla Ice Cream|Ice Cream Maker
+Vanilla Milkshake|Milkshake Bar
+Veggie Bagel|Sandwich Bar
+Veggie Bouquet|Flower Shop
+Veggie Lasagna|Pasta Kitchen
+Veggie Platter|Salad Bar
+Violet Dress|Sewing Machine
+Watermelon|Field
+Watermelon Juice|Juice Press
+Wheat|Field
+Wheat Bundle|Feed Mill
+White Sugar|Sugar Mill
+Winter Stew|Stew Pot
+Winter Veggies|Bbq Grill
+Wood Panel|Tools
+Wool|Sheep
+Wooly Chaps|Sewing Machine
+Yogurt Smoothie|Smoothie Mixer
+Zesty Perfume|Perfumerie
+`;
+const SRC2CAT = { field: "crops", tree: "trees", bush: "trees", chicken: "animal", cow: "animal", pig: "animal", sheep: "animal", goat: "animal", lamb: "animal", beehive: "animal", "squirrel house": "animal",
+  fish: "fish", "lobster pool": "fish", "lure workbench": "fish", "net maker": "fish", "duck salon": "fish", tools: "ext", "feed mill": "feed" };
+const GOODS = new Map();
+/** Where a good is made: its group in the Items tab (null = not in the list). */
+function goodCat(n) {
+  if (!GOODS.size) GOODS_SRC.trim().split("\n").forEach(l => { const [nm, src] = l.split("|"); if (nm && src) GOODS.set(slug(nm), SRC2CAT[norm(src)] || slug(src)); });
+  const k = slug(n); return GOODS.get(k) || GOODS.get(k.replace(/s$/, "")) || GOODS.get(k + "s") || null; }
 
 const CATALOG_SRC = `
 ext|Bolt|Boulon|🔩
@@ -1556,13 +1986,13 @@ const PACKS = [
 /* "Mixes": one item made of several that players trade as one — any of them counts (Jam Maker and Juice Press pages, as in the game;
    all the bars of the Smelter). In your inventory they are their items: you have = the sum, a deal takes them from what you have most of. */
 const MIXES = [
-  { en: "First Page Jams", fr: "Confitures page 1 · fp jams · 1st page jams · page 1", e: "🫙", cat: "jams", badge: "1", mix: ["apple-jam", "raspberry-jam", "blackberry-jam", "cherry-jam", "strawberry-jam"] },
-  { en: "Second Page Jams", fr: "Confitures page 2 · sp jams · 2nd page jams · page 2", e: "🫙", cat: "jams", badge: "2", mix: ["peach-jam", "grape-jam", "marmalade", "blueberry-chutney", "plum-jam"] },
-  { en: "Third Page Jams", fr: "Confitures page 3 · tp jams · 3rd page jams · page 3", e: "🫙", cat: "jams", badge: "3", mix: ["passion-fruit-jam"] },
-  { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "drinks", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
-  { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "drinks", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
-  { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "drinks", badge: "3", mix: ["guava-juice", "mango-juice"] },
-  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "mine", badge: "ALL", mix: ["refined-coal", "iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
+  { en: "First Page Jams", fr: "Confitures page 1 · fp jams · 1st page jams · page 1", e: "🫙", cat: "jam-maker", badge: "1", mix: ["apple-jam", "raspberry-jam", "blackberry-jam", "cherry-jam", "strawberry-jam"] },
+  { en: "Second Page Jams", fr: "Confitures page 2 · sp jams · 2nd page jams · page 2", e: "🫙", cat: "jam-maker", badge: "2", mix: ["peach-jam", "grape-jam", "marmalade", "blueberry-chutney", "plum-jam"] },
+  { en: "Third Page Jams", fr: "Confitures page 3 · tp jams · 3rd page jams · page 3", e: "🫙", cat: "jam-maker", badge: "3", mix: ["passion-fruit-jam"] },
+  { en: "First Page Juices", fr: "Jus page 1 · fp juices · 1st page juices · page 1", e: "🧃", cat: "juice-press", badge: "1", mix: ["carrot-juice", "apple-juice", "cherry-juice", "tomato-juice", "berry-juice"] },
+  { en: "Second Page Juices", fr: "Jus page 2 · sp juices · 2nd page juices · page 2", e: "🧃", cat: "juice-press", badge: "2", mix: ["grape-juice", "passion-fruit-juice", "pineapple-juice", "watermelon-juice", "orange-juice"] },
+  { en: "Third Page Juices", fr: "Jus page 3 · tp juices · 3rd page juices · page 3", e: "🧃", cat: "juice-press", badge: "3", mix: ["guava-juice", "mango-juice"] },
+  { en: "All Bars", fr: "Tous les lingots · mixed bars · lingots mélangés", e: "🧱", cat: "smelter", badge: "ALL", mix: ["refined-coal", "iron-bar", "silver-bar", "gold-bar", "platinum-bar"] }
 ];
 const mixOf = x => { const p = x && (typeof x === "string" ? CAT.byId[x] : x.mix ? x : x.ref ? CAT.byId[x.ref] : null); return p && p.mix ? p : null; };
 const isVirt = p => !!(p && (p.parts || p.mix));            // a set or a mix: not an item of the barn itself
@@ -1726,7 +2156,8 @@ function buildCatalog() {
   });
   // "Help": a player helping another (usually a tree to bring back to life) — sold like an item, no game max price
   addProduct({ id: "help", en: "Help", fr: "Aide ~ helps tree help tree helps revive help sign", e: "🪧", cat: "other", src: HELP_SVG, nomp: true });
-  Object.entries(CAT_MOVE).forEach(([id, c]) => { if (CAT.byId[id]) CAT.byId[id].cat = c; });
+  // each built-in good in the group of where it's made (the list above); the rest by its name
+  CAT.list.forEach(p => { if (p.cat === "packs" || p.cat === "ext") return; const c = goodCat(p.en); p.cat = c || (guessCat(p.en, true) !== "other" ? guessCat(p.en, true) : OLD_CAT[p.cat] || p.cat); });
   (store.get("hd5_wiki", { names: [] }).names || []).forEach(addWikiName);
   CUSTOM.forEach(c => addProduct({ id: c.id, en: c.en, fr: c.fr || "", e: c.e || "⭐", cat: "perso", custom: true }));
   MIXES.forEach(m => { const ids = m.mix.filter(id => CAT.byId[id]); if (ids.length) addProduct({ id: slug(m.en), en: m.en, fr: m.fr, e: m.e, cat: m.cat, mix: ids, badge: m.badge }); });
@@ -1735,42 +2166,79 @@ function addWikiName(n) {
   if (!n || WIKI_BLACKLIST.has(n) || /\b(tree|bush|icon|field|coins?|experience|voucher|level|building|machine)\b/i.test(n)) return;
   const id = slug(n);
   if (CAT.byId[id] || MIXES.some(m => slug(m.en) === id)) return;
-  addProduct({ id, en: n, fr: "", e: "📦", cat: guessCat(n), file: n.replace(/ /g, "_"), wiki: true });
+  addProduct({ id, en: n, fr: "", e: "📦", cat: goodCat(n) || guessCat(n), file: n.replace(/ /g, "_"), wiki: true });
 }
 /* ---------- the category of a good read from the wiki (its name says what it is) ---------- */
 var GC_RAW = null;
 const GC_RULES = [
-  ["feed", /\bfeed\b|\btreats?\b|pet food|kibble/],
-  ["fish", /\blure\b|\bnet\b|\btrap\b|\bfillet\b|lobster tail/],
-  ["home", /candle|bouquet|wreath|garland|lotion|\bsoap\b|bath\b|bath bomb|perfume|essential oil|lip balm|potpourri|incense|diffuser|scrub|shampoo|vase|flower crown|corsage|boutonniere|\bdye\b|cosmetic|face mask|\bwax\b/],
-  ["mine", /\bore\b|^(?:iron|silver|gold|platinum|copper|bronze) bar$|\bcoal\b|\b(?:diamond|gold|golden|silver|emerald|ruby|sapphire|pearl|platinum|iron|engagement|amethyst|topaz) ring\b|bracelet|necklace|earring|brooch|crown|tiara|pendant|anklet|cufflink/],
-  ["textile", /shirt|sweater|dress\b|\bhat\b|\bcap\b|scarf|chaps|skirt|jacket|\bcoat\b|\bsocks?\b|gloves?|mittens?|blanket|pillow|quilt|fabric|yarn|ribbon|\bbow\b|\btie\b|\bsuit\b|\bshoes?\b|\bboots?\b|sandals?|purse|\bsilk\b|apron|bandana|\bvest\b|hoodie|cardigan|poncho|tote|backpack|bonnet|beanie|headband|\bveil\b|kimono|overalls/],
-  ["drinks", /juice|smoothie|latte|mocha|espresso|coffee|\btea\b|lemonade|milkshake|\bshake\b|hot chocolate|cocoa|\bpunch\b|\bsoda\b|cider|frapp|cappuccino|\biced\b|chai|kombucha|\bdrink\b|nectar|cooler|float\b|eggnog/],
-  ["sweets", /ice cream|popsicle|candy|lollipop|toffee|^chocolate$|jelly beans?|gumm|fudge|marshmallow|caramel apple|sundae|frozen yogurt|sorbet|gelato|donut|doughnut|macaron|brownie|cupcake|truffle|praline|nougat|churro|pudding|custard|mochi|parfait|cream puff|eclair|candied|bonbon|sweets?\b|banana split|\bsplit\b/],
-  ["pies", /\bpie\b|\bcakes?\b|\btart\b|cheesecake|quiche|strudel|cobbler|crumble|gateau|torte/],
-  ["jams", /\bjam\b|marmalade|chutney|\bcurd\b|\bsauce\b|\boil\b|mayonnaise|ketchup|mustard|vinegar|dressing|^honey$|syrup|\bdip\b|salsa|hummus|pesto|spread|peanut butter|relish|guacamole|preserves?|compote|pickles?|jelly$/],
-  ["soups", /soup|salad|\bstew\b|chowder|broth|casserole|curry|gumbo|gazpacho|bisque|goulash|ragout|ratatouille/],
-  ["asian", /sushi|maki|\brice\b|noodle|ramen|dumpling|\bwok\b|stir.?fry|spring roll|teriyaki|tempura|bento|pad thai|dim sum|gyoza|onigiri|miso|sashimi|udon|pho\b|bibimbap|kimchi|tofu/],
-  ["fastfood", /sandwich|\bwrap\b|d[öo]ner|kebab|gyro|burger|hot ?dog|corn ?dog|taco|burrito|quesadilla|nacho|enchilada|fajita|bagel|fries|onion rings|\bsub\b|panini|nuggets|fish and chips|club|hoagie|slider|tortilla|falafel|pretzel|chips\b/],
-  ["bakery", /bread|muffin|cookie|croissant|\bbuns?\b|biscuit|scone|waffle|pancake|baguette|\bloaf\b|pizza|focaccia|brioche|roll$|danish|cracker|pastry|bun\b|crepe|\btoast\b/],
-  ["dairy", /^(?!grilled|toasted|fried|baked|melted|smoked)(?:\w+ )?(?:cheese|cream|butter|yogh?urt|sugar|milk|feta|mozzarella|ricotta|ghee)$/],
-  ["snack", /popcorn|bbq|grill|roast|skewer|steak|ribs|chicken|bacon|sausage|omelet|\beggs?\b|fondue|potato|baked|pasta|lasagna|spaghetti|macaroni|risotto|noodle|meatball|frittata|hash|platter|nachos|fried|stuffed|souffle|gratin|pot ?pie|chili\b(?! pepper)|mac and|cheese|gnocchi|ravioli|tortellini|penne|fettuccine|carbonara|pierogi|enchilada|empanada/],
+  ["feed", /\bfeed\b|\btreats?\b|pet food|kibble|meat bucket|wheat bundle/],
+  ["fish", /\blure\b|\bnet\b|\btrap\b|\bfillet\b|lobster tail|duck feather/],
+  ["flower-shop", /bouquet|wreath|garland|corsage/],
+  ["candle-maker", /candle/],
+  ["bath-kiosk", /\bsoap\b|lotion|\bbath\b|face mask|scrub|shampoo/],
+  ["perfumerie", /perfume|diffuser|cologne/],
+  ["essential-oils-lab", /essential oil/],
+  ["pottery-studio", /\bmug\b|\bvase\b|tea pot|potted|ceramic|pottery/],
+  ["hat-maker", /\bhat\b|\bcap\b|crown|bonnet|beanie|beret/],
+  ["jeweler", /\bring\b|bracelet|necklace|pendant|earring|brooch|tiara|anklet/],
+  ["smelter", /^(?:iron|silver|gold|platinum|copper|bronze) bar$|refined coal/],
+  ["mine", /\bore\b|^coal$/],
+  ["loom", /fabric|sweater|scarf|shawl|woolly|wolly|yarn/],
+  ["sewing-machine", /shirt|dress|chaps|blanket|pillow|\bpad\b|skirt|jacket|\bcoat\b/],
+  ["milkshake-bar", /milkshake/],
+  ["smoothie-mixer", /smoothie/],
+  ["tea-stand", /\btea\b/],
+  ["coffee-kiosk", /latte|mocha|espresso|coffee|hot chocolate|cappuccino|frapp/],
+  ["juice-press", /juice/],
+  ["ice-cream-maker", /ice cream|popsicle|sorbet|gelato|sundae|banana split|affogato/],
+  ["fudge-shop", /fudge/],
+  ["cupcake-maker", /cupcake/],
+  ["donut-maker", /donut|doughnut/],
+  ["waffle-maker", /waffle/],
+  ["yogurt-maker", /yogh?urt/],
+  ["porridge-bar", /porridge|breakfast bowl|oatmeal/],
+  ["deep-fryer", /fries|fried(?! rice)|falafel|samosa|poppers|hand pies|churro|tempura|onion rings/],
+  ["candy-machine", /candy|lollipop|toffee|^chocolate$|jelly beans?|brittle|caramel apple|marshmallow|gumm|honey peanuts/],
+  ["jam-maker", /\bjam\b|marmalade|chutney/],
+  ["honey-extractor", /^honey$|beeswax/],
+  ["sauce-maker", /\bsauce\b|\bdip\b|\boil\b|mayonnaise|ketchup|mustard|dressing|salsa|hummus|pesto|\bcurd\b/],
+  ["preservation-station", /pickles?|canned|dried fruit|compote|kimchi|preserves?/],
+  ["fondue-pot", /fondue/],
+  ["omelet-station", /omelet/],
+  ["stew-pot", /\bstew\b/],
+  ["soup-kitchen", /soup|chowder|broth|bisque|gumbo/],
+  ["salad-bar", /salad|coleslaw|platter|summer rolls/],
+  ["sushi-bar", /sushi|rice ball|onigiri|nigiri|maki|sashimi/],
+  ["wok-kitchen", /stir.?fry|fried rice|\bwok\b|noodles|spicy fish|dumpling/],
+  ["pasta-maker", /fresh pasta|rice noodles/],
+  ["pasta-kitchen", /pasta|gnocchi|lasagna|carbonara|spaghetti|ravioli|tortellini|penne|macaroni/],
+  ["taco-kitchen", /taco|nachos|quesadilla|burrito|enchilada|fajita/],
+  ["hot-dog-stand", /hot ?dog|corn ?dog|\bdog\b/],
+  ["doner-kebab-stand", /d[öo]ner|kebab|gyro/],
+  ["sandwich-bar", /sandwich|\btoast\b|bagel|\bwrap\b|\bmelt\b|panini/],
+  ["popcorn-pot", /popcorn|snack mix/],
+  ["cake-oven", /\bcakes?\b|cheesecake|\broll$|torte|gateau/],
+  ["pie-oven", /\bpies?\b|\btart\b|quiche|casserole|parmesan/],
+  ["bakery", /bread|muffin|cookie|pizza|macaroon|croissant|\bbuns?\b|biscuit|scone|\bbars$|baguette|brioche|crepe/],
+  ["bbq-grill", /grill|skewer|roast|bbq|pancake|burger|bacon and eggs|baked potato|stuffed|fish and chips|veggies/],
+  ["dairy", /^(?:goat )?(?:cheese|cream|butter)$/],
+  ["sugar-mill", /sugar$|^syrup$/],
 ];
+/** Groups of the earlier versions → their building (built-in goods the list doesn't name). */
+const OLD_CAT = { snack: "bbq-grill", pies: "pie-oven", sweets: "candy-machine", drinks: "juice-press", jams: "jam-maker", textile: "loom", soups: "soup-kitchen", fastfood: "sandwich-bar", asian: "wok-kitchen", home: "candle-maker" };
 const GC_TREE = /apple|berry|cherry|lemon|orange|peach|banana|plum|mango|coconut|guava|pomegranate|passion fruit|olive|cacao|coffee bean|kiwi|\bfig\b|lime|apricot|pear|avocado|\bnut\b|almond|walnut|hazelnut|pecan|cashew|date\b|lychee|papaya|persimmon|grapefruit|nectarine|tangerine/;
 const GC_CROP = /sesame|peanut|\bbeans?\b|\bpeas?\b|lentil|\boats?\b|barley|\brye\b|quinoa|cauliflower|spinach|radish|zucchini|squash|kale|leek|celery|turnip|\byam\b|sweet potato|herb|basil|lavender|tulip|\brose\b|daisy|orchid|cotton|hemp|flax|bamboo|saffron|vanilla|cinnamon|pepper|artichoke|okra|parsnip|corn\b|melon|gourd|sorghum|cumin|ginger|wasabi|lotus/;
 const GC_ANIMAL = /\begg\b|milk|wool|feather|bacon|honeycomb|mussel|lobster$|shrimp|crab|oyster|fleece|silk cocoon|truffle$/;
-function guessCat(n) {
+function guessCat(n, builtIn) {
   const s = norm(n);
   if (!GC_RAW) GC_RAW = new Set(((store.get("hd5_wiki", {}) || {}).raw || []).map(norm));
   // a crop, a fruit or an animal good (from the wiki's crops / animal goods pages)
-  if (GC_RAW.has(s)) return GC_ANIMAL.test(s) ? "animal" : GC_TREE.test(s) ? "trees" : "crops";
+  if (!builtIn && GC_RAW.has(s)) return GC_ANIMAL.test(s) ? "animal" : GC_TREE.test(s) ? "trees" : "crops";
   for (const [c, re] of GC_RULES) if (re.test(s)) return c;
   // a short name with no dish word: a raw good
-  if (s.split(" ").length <= 2) { if (GC_ANIMAL.test(s)) return "animal"; if (GC_TREE.test(s)) return "trees"; if (GC_CROP.test(s)) return "crops"; }
+  if (!builtIn && s.split(" ").length <= 2) { if (GC_ANIMAL.test(s)) return "animal"; if (GC_TREE.test(s)) return "trees"; if (GC_CROP.test(s)) return "crops"; }
   return "other";
 }
-/** Goods whose built-in group was too wide: soups & salads, sushi, burgers… get the new groups. */
-const CAT_MOVE = { "tomato-soup": "soups", "pumpkin-soup": "soups", "blt-salad": "soups", "sushi-roll": "asian", "hamburger": "fastfood", "fish-burger": "fastfood", "fish-and-chips": "fastfood", "beeswax": "home" };
 /** Récupère la liste complète des produits sur le wiki (comme hd.jjtechdev.com), mise en cache 7 jours. */
 async function refreshWikiList(force) {
   const c = store.get("hd5_wiki", { t: 0, names: [] });
@@ -1789,7 +2257,7 @@ async function refreshWikiList(force) {
       store.set("hd5_wiki", { t: Date.now(), names: [...new Set(names)], raw: rawOnly });
       WIKI_RAW = new Set(rawOnly.map(norm)); GC_RAW = null;
       // the goods already listed get their group again (the crops / animal goods lists may be new)
-      CAT.list.forEach(p => { if (p.wiki) p.cat = guessCat(p.en); });
+      CAT.list.forEach(p => { if (p.wiki) p.cat = goodCat(p.en) || guessCat(p.en); });
       const before = CAT.list.length;
       names.forEach(addWikiName);
       if (CAT.list.length !== before) renderResults();
@@ -3360,7 +3828,8 @@ function selectProfile(id) { st = STATE.list.find(p => p.id === id) || STATE.lis
 function renderAll() { betaBar(); renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); if (typeof renderOrder === "function") renderOrder(); }
 
 /* ---------- search ---------- */
-const CAT_EN = { pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods", bakery: "Bakery", dairy: "Dairy & sugar", snack: "Grill & meals", pies: "Pies & cakes", sweets: "Sweets & ice cream", drinks: "Drinks & coffee", jams: "Jams, sauces & dips", soups: "Soups & salads", fastfood: "Sandwiches & snacks", asian: "Sushi, rice & noodles", textile: "Clothes & hats", home: "Candles, flowers & care", mine: "Mine & jewelry", fish: "Fishing", feed: "Animal feed & treats", other: "Other", perso: "My items" };
+const CAT_EN = Object.assign({ pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods" },
+  Object.fromEntries(BUILDINGS), { other: "Other", perso: "My items" });
 let curCat = "pop", resLimit = 16;
 const baseLimit = () => $("#q").value ? 48 : !SETTINGS.dropBig ? 30 : 16;
 function renderCats() {
@@ -3475,10 +3944,9 @@ const FIN_RE = /\b(?:finished|finish|processed|crafted|transformed)\s*(?:product
 const FIN_RE_G = new RegExp(FIN_RE.source, "g");
 function isFinished(p) {
   if (!p || p.parts || p.mix || p.custom || p.nomp || isVirt(p)) return false;
-  if (["crops", "trees", "animal", "feed", "ext", "packs", "fish"].includes(p.cat)) return false;
+  if (["crops", "trees", "animal", "feed", "ext", "packs", "fish", "mine", "smelter", "dairy", "sugar-mill"].includes(p.cat)) return false;
   const n = norm(p.en);
   if (FIN_NOT.has(n) || FIN_NOT_RE.test(n) || WIKI_RAW.has(n)) return false;
-  if (p.cat === "mine") return /ring|bracelet|necklace|earring|brooch|crown|tiara|pendant|watch|cufflink/.test(n);
   return true;
 }
 const lvlCandidates = () => CAT.list.filter(p => p.en && !p.parts && !p.mix && !p.custom && !p.nomp && p.cat !== "ext" && p.cat !== "packs");
@@ -3538,16 +4006,9 @@ function loadLevels(onProg) {
 /** "level 30 to 110", "lvl 80+", "from level 80", "niveau 30 à 110", "up to lvl 20" → { lo, hi }; else null */
 /** "level 30 to 110", "lv 69 and lower", "80+", "under 50", "entre 30 et 60", "1-20, 50+", "pies level 30-60":
     one or more level ranges, and optionally words of a name or a group (pies, juices, crops…). */
-const LVL_CATW = { crop: "crops", crops: "crops", culture: "crops", cultures: "crops", tree: "trees", trees: "trees", bush: "trees", bushes: "trees", fruit: "trees", fruits: "trees", arbre: "trees", arbres: "trees",
-  animal: "animal", animals: "animal", bakery: "bakery", bread: "bakery", breads: "bakery", boulangerie: "bakery", dairy: "dairy", sugar: "dairy", laiterie: "dairy",
-  snack: "snack", snacks: "snack", bbq: "snack", barbecue: "snack", dish: "snack", dishes: "snack", meal: "snack", meals: "snack", plat: "snack", plats: "snack",
-  pie: "pies", pies: "pies", cake: "pies", cakes: "pies", tarte: "pies", tartes: "pies", gateau: "pies", gateaux: "pies", sweet: "sweets", sweets: "sweets", candy: "sweets", candies: "sweets", confiserie: "sweets",
-  drink: "drinks", drinks: "drinks", juice: "drinks", juices: "drinks", jus: "drinks", boisson: "drinks", boissons: "drinks", jam: "jams", jams: "jams", sauce: "jams", sauces: "jams", confiture: "jams", confitures: "jams",
-  soup: "soups", soups: "soups", salad: "soups", salads: "soups", soupe: "soups", soupes: "soups", salade: "soups", salades: "soups",
-  sandwich: "fastfood", sandwiches: "fastfood", burger: "fastfood", burgers: "fastfood", wrap: "fastfood", wraps: "fastfood", taco: "fastfood", tacos: "fastfood",
-  sushi: "asian", sushis: "asian", noodles: "asian", nouilles: "asian", candle: "home", candles: "home", bougie: "home", bougies: "home", flowers: "home", fleurs: "home", bouquet: "home", bouquets: "home",
-  hat: "textile", hats: "textile", chapeau: "textile", chapeaux: "textile", coffee: "drinks", cafe: "drinks", dip: "jams", dips: "jams",
-  textile: "textile", textiles: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", jewels: "mine", bijoux: "mine", fish: "fish", fishing: "fish", peche: "fish", feed: "feed" };
+/** words for a group of goods ("pies", "jus", "soupes"…) → the building(s) that make them */
+const LVL_CATW = { "crop": "crops", "crops": "crops", "culture": "crops", "cultures": "crops", "field": "crops", "fields": "crops", "tree": "trees", "trees": "trees", "bush": "trees", "bushes": "trees", "fruit": "trees", "fruits": "trees", "arbre": "trees", "arbres": "trees", "buisson": "trees", "buissons": "trees", "animal": "animal", "animals": "animal", "animaux": "animal", "feed": "feed", "feeds": "feed", "nourriture": "feed", "bakery": "bakery", "bread": "bakery", "breads": "bakery", "boulangerie": "bakery", "pain": "bakery", "pains": "bakery", "pizza": "bakery", "pizzas": "bakery", "muffin": "bakery", "muffins": "bakery", "cookie": "bakery", "cookies": "bakery", "dairy": "dairy", "laiterie": "dairy", "sugar": "sugar-mill", "sucre": "sugar-mill", "sucrerie": "sugar-mill", "popcorn": "popcorn-pot", "popcorns": "popcorn-pot", "bbq": "bbq-grill", "barbecue": "bbq-grill", "grill": "bbq-grill", "grilled": "bbq-grill", "pie": "pie-oven", "pies": "pie-oven", "tarte": "pie-oven", "tartes": "pie-oven", "cake": "cake-oven", "cakes": "cake-oven", "gateau": "cake-oven", "gateaux": "cake-oven", "loom": "loom", "sewing": "sewing-machine", "couture": "sewing-machine", "mine": "mine", "ore": "mine", "ores": "mine", "minerai": "mine", "minerais": "mine", "bars": "smelter", "lingots": "smelter", "smelter": "smelter", "fonderie": "smelter", "juice": "juice-press", "juices": "juice-press", "jus": "juice-press", "fish": "fish", "fishing": "fish", "peche": "fish", "lure": "fish", "lures": "fish", "leurre": "fish", "leurres": "fish", "ice": "ice-cream-maker", "glace": "ice-cream-maker", "glaces": "ice-cream-maker", "icecream": "ice-cream-maker", "icecreams": "ice-cream-maker", "sorbet": "ice-cream-maker", "sorbets": "ice-cream-maker", "doner": "doner-kebab-stand", "doners": "doner-kebab-stand", "kebab": "doner-kebab-stand", "kebabs": "doner-kebab-stand", "jam": "jam-maker", "jams": "jam-maker", "confiture": "jam-maker", "confitures": "jam-maker", "jewelry": "jeweler", "jewellery": "jeweler", "jewels": "jeweler", "bijoux": "jeweler", "jeweler": "jeweler", "honey": "honey-extractor", "miel": "honey-extractor", "coffee": "coffee-kiosk", "coffees": "coffee-kiosk", "cafe": "coffee-kiosk", "cafes": "coffee-kiosk", "latte": "coffee-kiosk", "soup": "soup-kitchen", "soups": "soup-kitchen", "soupe": "soup-kitchen", "soupes": "soup-kitchen", "candle": "candle-maker", "candles": "candle-maker", "bougie": "candle-maker", "bougies": "candle-maker", "flower": "flower-shop", "flowers": "flower-shop", "fleur": "flower-shop", "fleurs": "flower-shop", "bouquet": "flower-shop", "bouquets": "flower-shop", "candy": "candy-machine", "candies": "candy-machine", "sweets": "candy-machine", "bonbon": "candy-machine", "bonbons": "candy-machine", "sauce": "sauce-maker", "sauces": "sauce-maker", "dip": "sauce-maker", "dips": "sauce-maker", "sushi": "sushi-bar", "sushis": "sushi-bar", "salad": "salad-bar", "salads": "salad-bar", "salade": "salad-bar", "salades": "salad-bar", "sandwich": "sandwich-bar", "sandwiches": "sandwich-bar", "sandwichs": "sandwich-bar", "toast": "sandwich-bar", "toasts": "sandwich-bar", "smoothie": "smoothie-mixer", "smoothies": "smoothie-mixer", "essential": "essential-oils-lab", "wok": "wok-kitchen", "hat": "hat-maker", "hats": "hat-maker", "chapeau": "hat-maker", "chapeaux": "hat-maker", "pasta": "pasta-kitchen", "pastas": "pasta-kitchen", "pates": "pasta-kitchen", "hotdog": "hot-dog-stand", "hotdogs": "hot-dog-stand", "donut": "donut-maker", "donuts": "donut-maker", "beignet": "donut-maker", "beignets": "donut-maker", "taco": "taco-kitchen", "tacos": "taco-kitchen", "omelet": "omelet-station", "omelets": "omelet-station", "omelette": "omelet-station", "omelettes": "omelet-station", "tea": "tea-stand", "teas": "tea-stand", "the": "tea-stand", "fondue": "fondue-pot", "fondues": "fondue-pot", "soap": "bath-kiosk", "soaps": "bath-kiosk", "savon": "bath-kiosk", "savons": "bath-kiosk", "bath": "bath-kiosk", "fried": "deep-fryer", "fryer": "deep-fryer", "frit": "deep-fryer", "frits": "deep-fryer", "preserved": "preservation-station", "conserve": "preservation-station", "conserves": "preservation-station", "pottery": "pottery-studio", "poterie": "pottery-studio", "fudge": "fudge-shop", "fudges": "fudge-shop", "yogurt": "yogurt-maker", "yogurts": "yogurt-maker", "yaourt": "yogurt-maker", "yaourts": "yogurt-maker", "stew": "stew-pot", "stews": "stew-pot", "ragout": "stew-pot", "cupcake": "cupcake-maker", "cupcakes": "cupcake-maker", "perfume": "perfumerie", "perfumes": "perfumerie", "parfum": "perfumerie", "parfums": "perfumerie", "waffle": "waffle-maker", "waffles": "waffle-maker", "gaufre": "waffle-maker", "gaufres": "waffle-maker", "porridge": "porridge-bar", "porridges": "porridge-bar", "milkshake": "milkshake-bar", "milkshakes": "milkshake-bar", "tools": "ext", "materials": "ext", "outils": "ext", "materiaux": "ext", "clothes": ["loom", "sewing-machine"], "textile": ["loom", "sewing-machine"], "textiles": ["loom", "sewing-machine"], "vetements": ["loom", "sewing-machine"], "drinks": ["juice-press", "coffee-kiosk", "tea-stand", "smoothie-mixer", "milkshake-bar"], "drink": ["juice-press", "coffee-kiosk", "tea-stand", "smoothie-mixer", "milkshake-bar"], "boissons": ["juice-press", "coffee-kiosk", "tea-stand", "smoothie-mixer", "milkshake-bar"], "pastries": ["bakery", "cake-oven", "pie-oven"] };
+const catsOf = w => [].concat(LVL_CATW[w] || []);
 const LVL_FILL = new Set("level levels lvl lvls lv lev lvs niveau niveaux niv nv all every everything any the a an of at to i me my we want need give show add get list products product items item things thing stuff unlocked unlock unlocks unlocking les le la l des de du d tous tout toute toutes produits produit objets objet items debloques debloque debloquer au aux en for with please pls inclusive included inclus compris".split(" "));
 function lvlQuery(q) {
   let s = norm(q).replace(/≤|=</g, "<=").replace(/≥|=>/g, ">=").replace(/[–—−~→]|\.{2,}/g, "-").replace(/\bjusqu\w*/g, " upto ").replace(/\bjusque\b/g, " upto ");
@@ -3557,7 +4018,7 @@ function lvlQuery(q) {
   const fin = FIN_RE.test(s); if (fin) s = s.replace(FIN_RE_G, " ");
   const hasK = /\b(?:level|levels|lvl|lvls|lv|lev|niveau|niveaux|niv|nv)\b/.test(s);
   const nums = s.match(/\d{1,3}/g);
-  if (!nums) { if (!fin) return null; const nm = s.split(/[^a-z]+/).filter(w => w && !LVL_FILL.has(w)); return { ranges: [{ lo: 1, hi: 999 }], lo: 1, hi: 999, words: nm, cats: [...new Set(nm.map(w => LVL_CATW[w]).filter(Boolean))], name: nm.filter(w => !LVL_CATW[w]), fin: true }; }
+  if (!nums) { if (!fin) return null; const nm = s.split(/[^a-z]+/).filter(w => w && !LVL_FILL.has(w)); return { ranges: [{ lo: 1, hi: 999 }], lo: 1, hi: 999, words: nm, cats: [...new Set(nm.flatMap(catsOf))], name: nm.filter(w => !LVL_CATW[w]), fin: true }; }
   // without the word "level", only a pure range: "30-110", "80+", "<= 69", "69 and lower"
   const rest = s.replace(/\d{1,3}/g, " ").replace(/[-+<>=,;/&()]/g, " ").split(/\s+/).filter(Boolean);
   const OPW = /^(?:and|or|et|ou|up|upto|until|till|to|a|from|since|starting|start|starts|between|entre|de|des|depuis|partir|apres|after|before|avant|above|over|higher|more|plus|min|minimum|least|au|moins|less|lower|below|under|down|max|maximum|maxi|most|than|que|dessus|dessous|superieur|inferieur|superieurs|inferieurs|sup|inf|onwards|onward|upward|upwards|downward|downwards|beyond|lowest|highest|only|exactly|just|seulement|pile|y|compris)$/;
@@ -3588,7 +4049,7 @@ function lvlQuery(q) {
   ranges.sort((a, b) => a.lo - b.lo);
   const R = { ranges, lo: Math.min(...ranges.map(r => r.lo)), hi: Math.max(...ranges.map(r => r.hi)), words: names, fin };
   // a group ("pies", "jus") or the words of a name
-  R.cats = [...new Set(names.map(w => LVL_CATW[w]).filter(Boolean))];
+  R.cats = [...new Set(names.flatMap(catsOf))];
   R.name = names.filter(w => !LVL_CATW[w]);
   return R;
 }
@@ -3777,7 +4238,7 @@ function clearAllBtn() {
    (trade posts: "all jams 45:89"). Checked before anything changes; later lines win; Undo. ---------- */
 let spOpen = false, spUndo = null;
 const SP_MAX_LINES = 60, SP_MAX_LEN = 3000;
-const SP_CATS = { bakery: "bakery", breads: "bakery", dairy: "dairy", sugar: "dairy", grill: "snack", meals: "snack", snacks: "snack", sweets: "sweets", candies: "sweets", drinks: "drinks", textiles: "textile", textile: "textile", clothes: "textile", mine: "mine", jewelry: "mine", jewellery: "mine", fishing: "fish", fish: "fish", feed: "feed", crops: "crops", trees: "trees", fruits: "trees", animal: "animal", "animal goods": "animal", tools: "ext", materials: "ext" };
+const SP_CATS = { "animal goods": "animal", meals: "bbq-grill", grill: "bbq-grill", snacks: "bbq-grill", breads: "bakery" };
 const SP_FILL = /^(?:all|every|everything|the|my|your|of|each|ea|items?|products?|stuff|things|goods|foods?|kinds?|types?|any|mixed?|mix)$/;
 /** The price at the end (or start) of a rule → { p, pu, rest } — trade: a ratio "45:89" → { rb: 45 (you get), ra: 89 (you give) }. */
 function spPrice(line, trade) {
@@ -3812,8 +4273,8 @@ function spTarget(name, items) {
   if (exact.length && !(all && wd.length > exact.length)) return { items: exact, how: "this item" };
   const fam = orderFamily(n) || orderFamily(c);
   if (fam) { const f = withMix(new Set(fam.map(p => p.id))); if (f.length) return { items: f, how: "family" }; }
-  const cat = SP_CATS[c] || SP_CATS[core[0]];
-  if (cat && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && CAT.byId[w.ref].cat === cat), how: "category" };
+  const sp = SP_CATS[c] || SP_CATS[core[0]], cats = sp ? [sp] : catsOf(c).length ? catsOf(c) : catsOf(core[0]);
+  if (cats.length && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && cats.includes(CAT.byId[w.ref].cat)), how: "category" };
   // a word they share: "mussel" → Mussel Nigiri, Grilled Mussels, Steamed Mussels…
   if (wd.length >= 2) return { items: wd, how: "named “" + c + "”" };
   const r = findMatches(c, items, w => pName(w), 1);
@@ -6286,7 +6747,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "25 Nov 2026 · 21:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "25 Nov 2026 · 22:15";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -9000,7 +9461,7 @@ function impListPost(lines) {
   // does a rule's words name this item? "juice" → every juice; "pies" → the pies group; "chocolate" → the chocolate ones
   const vars = w => [w, w.replace(/s$/, ""), w.replace(/es$/, ""), w.replace(/ies$/, "y")];
   const same1 = (a, b) => vars(a).some(x => vars(b).includes(x));
-  const hits = (p, words) => words.length && words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)) || (typeof LVL_CATW !== "undefined" && LVL_CATW[w] && LVL_CATW[w] === p.cat));
+  const hits = (p, words) => words.length && words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)) || (typeof LVL_CATW !== "undefined" && catsOf(w).includes(p.cat)));
   // "pies 6x": the items named "… pie" if there are any, else the whole group (pies & cakes)
   const byName = (p, words) => words.every(w => toks(p.en + " " + (p.fr || "")).map(norm).some(y => same1(w, y)));
   const allP = items.filter(Boolean).flat().map(x => x.p);
