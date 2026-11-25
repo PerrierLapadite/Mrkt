@@ -1157,22 +1157,23 @@ body.shopmode .tabbar,body.shopmode .ftot,body.shopmode .jump,body.shopmode #min
 .shopv{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(14px + var(--safe-t)) 14px 0;display:flex;flex-direction:column}
 .shead{display:grid;gap:8px;max-width:900px;width:100%;margin:0 auto}
 .shead .sh1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.shead .sh1 b{font:800 24px/1.15 var(--sans)}
+.shead{gap:6px}.shead .sh1 b{font:800 20px/1.15 var(--sans)}.shead .hint{font-size:12.5px}
 .shead .sh1 span{color:var(--mut);font-weight:700;white-space:nowrap}
 .shead .sh2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-weight:600;font-size:14px}
 .stype{font:700 11px var(--sans);letter-spacing:.08em;color:#fff;border-radius:6px;padding:4px 8px;background:var(--t-vente)}
 .stype.achat{background:var(--t-achat)}
 .sbox2{display:grid;gap:8px}
-.sbox2 .inp{min-height:46px;font-size:16px}
-.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-width:900px;width:100%;margin:12px auto 0}
-@media (max-width:440px){.sgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.stile{position:relative;display:grid;justify-items:center;align-content:start;gap:3px;padding:10px 8px;border:1px solid var(--line2);border-radius:14px;background:var(--surface);text-align:center;min-height:150px;color:var(--ink);font:inherit}
-.stile.in{border:2px solid var(--ink);padding:9px 7px;background:var(--surface2)}
-.stile .th.sth{width:64px;height:64px;font-size:40px}
-.snm{font-weight:700;font-size:14px;line-height:1.2}
-.spr{font-weight:800;font-size:13px}
-.sst{color:var(--mut);font-size:12px;font-weight:600}
-.sbadge{position:absolute;top:6px;right:6px;background:var(--ink);color:var(--bg);border-radius:10px;padding:2px 7px;font:800 12px var(--sans)}
+.sbox2{grid-template-columns:minmax(0,1fr) auto;align-items:center}.sbox2 .inp{min-height:42px;font-size:16px}.sbox2 .seg button{padding:0 10px;font-size:13px;white-space:nowrap}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-width:900px;width:100%;margin:10px auto 0}
+@media (max-width:440px){.sgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:350px){.sgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.stile{position:relative;display:grid;justify-items:center;align-content:start;gap:1px;padding:6px 3px 5px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);text-align:center;color:var(--ink);font:inherit;min-width:0}
+.stile.in{border:2px solid var(--ink);padding:5px 2px 4px;background:var(--surface2)}
+.stile .th.sth{width:34px;height:34px;font-size:23px;margin-bottom:2px}
+.snm{font-weight:700;font-size:11.5px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;max-width:100%}
+.spr{font-weight:800;font-size:11px;line-height:1.2}
+.sst{color:var(--mut);font-size:10.5px;font-weight:600;line-height:1.2}
+.sbadge{position:absolute;top:-5px;right:-4px;background:var(--ink);color:var(--bg);border-radius:9px;padding:1px 6px;font:800 11px var(--sans);box-shadow:0 0 0 2px var(--bg)}
 .sempty{grid-column:1/-1;text-align:center;padding:30px 0}
 .sfoot{text-align:center;color:var(--mut);font-size:12px;margin:14px 0}
 .sfoot a{color:inherit;text-decoration:underline}
@@ -6963,7 +6964,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "25 Nov 2026 · 23:55";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "26 Nov 2026 · 00:15";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -10127,17 +10128,18 @@ async function shopMake() {
   } else S[id].at = Date.now();
   shopsSave(S);
   const at = Math.round(S[id].at / 6e4);
-  const data = { v: 1, id, t: st.type, ti: safeTxt(st.title, 60), us: safeTxt(st.user, 40), ki: safeTxt(st.kicker, 80), at, d, bk, th: BT_THEMES[st.bTheme] ? st.bTheme : "", cv: [st.showR !== false ? 1 : 0, st.showB !== false ? 1 : 0], it: rows };
-  const raw = new TextEncoder().encode(JSON.stringify(data)), z = await zipBytes(raw);
-  const url = appBase() + "#shop=" + (z ? "z" + B64U.enc(z) : "j" + B64U.enc(raw));
-  return { url, n: rows.length, id };
+  const raw = shopBin(its, { id, at, d, bk }), z = await zipBytes(raw);
+  const url = appBase() + "#shop=" + (z && z.length < raw.length ? "y" + B64U.enc(z) : "b" + B64U.enc(raw));
+  return { url, n: rows.length, id, title: st.title || (st.type === "achat" ? "What I buy" : "My shop") };
 }
 async function openShopLink() {
   const R = await shopMake();
   if (R.err) return toast(R.err);
   const long = R.url.length > SHOP_DISCORD - 20;
-  const copy = async () => { try { await navigator.clipboard.writeText(R.url); toast("Link copied — send it to your buyer ✔"); } catch (e) { box.select(); toast("Select the link and copy it"); } };
-  const box = h("textarea", { class: "ta shopurl", rows: 3, readOnly: true, value: R.url, onfocus: e => e.target.select() });
+  const md = "[🛒 " + safeTxt(R.title, 50).replace(/[\[\]()]/g, "") + " · " + plural(R.n, "item") + " — tap to order](" + R.url + ")";
+  const copyT = async (t, msg) => { try { await navigator.clipboard.writeText(t); toast(msg); } catch (e) { box.value = t; box.select(); toast("Select the text and copy it"); } };
+  const copy = () => copyT(md, "Copied — paste it in Discord: it shows as one short link ✔");
+  const box = h("textarea", { class: "ta shopurl", rows: 2, readOnly: true, value: R.url, onfocus: e => e.target.select() });
   openSheet("Link for buyers", [
     h("p", { class: "hint" }, st.type === "achat"
       ? "Send it to someone who sells to you: they see what you buy, tap their items (all or a number), can offer a price, and send you back a picture or a link."
@@ -10145,9 +10147,10 @@ async function openShopLink() {
     box,
     h("p", { class: "hint shopinfo" }, plural(R.n, "item") + " · " + fmt(R.url.length) + " characters" + (long ? " — ⚠ longer than a Discord message (2,000 without Nitro): send it in a DM with Nitro, or make the link from a smaller post." : " · fits in a Discord message ✓")),
     h("div", { class: "three" },
-      h("button", { class: "btn pri", onclick: copy }, "Copy"),
-      h("button", { class: "btn", onclick: async () => { try { if (navigator.share) await navigator.share({ url: R.url, title: st.title || "My shop" }); else await copy(); } catch (e) {} } }, "Share"),
+      h("button", { class: "btn pri", onclick: copy }, "Copy for Discord"),
+      h("button", { class: "btn", onclick: () => copyT(R.url, "Link copied ✔") }, "Copy link"),
       h("button", { class: "btn", onclick: () => window.open(R.url, "_blank", "noopener") }, "Try it")),
+    h("p", { class: "hint" }, "“Copy for Discord” pastes a short clickable line — “🛒 " + safeTxt(R.title, 50) + " · " + plural(R.n, "item") + " — tap to order” — the long link stays hidden behind it."),
     h("p", { class: "hint" }, "Their order comes back here: paste their link in Order, or drop their picture with 📷 Picture. Everything is priced again with your prices of that moment — their offers are shown next to yours, you accept them or not. Changed your prices or stock? The old link still works; make a new one so they see the new ones.")]);
 }
 
@@ -10155,10 +10158,71 @@ async function openShopLink() {
 const SHOP = { S: null, cart: new Map(), f: "", only: false, name: "", note: "" };
 async function shopDecode(str) {
   str = String(str || ""); if (str.length > 120000) throw new Error("too long");
-  const u8 = B64U.dec(str.slice(1));
-  const raw = str[0] === "z" ? await unzipBytes(u8, 600000) : str[0] === "j" ? u8 : null;
+  const u8 = B64U.dec(str.slice(1)), k = str[0];
+  if (k === "y" || k === "b") return shopClean(shopBinRead(k === "y" ? await unzipBytes(u8, 300000) : u8));
+  const raw = k === "z" ? await unzipBytes(u8, 600000) : k === "j" ? u8 : null;          // links of the first version
   if (!raw) throw new Error("bad");
   return shopClean(JSON.parse(new TextDecoder().decode(raw)));
+}
+/* ---------- the link, short: a few bytes per item ----------
+   game items = a 3-byte fingerprint of their name (each device finds the item in its own list), the max price only when it
+   isn't the game's table one; the columns (kinds, quantities, prices…) one after the other so the repeats pack well */
+/** The game's max price from the table in the app (the same on every device): sets and mixes from their items. */
+function tableMax(id) {
+  const p = CAT.byId[id]; if (!p) return 0;
+  if (p.parts) { const v = p.parts.map(tableMax); return v.every(x => x > 0) ? packSplit(p, SET_N).reduce((a, x, i) => a + x.n * v[i], 0) : 0; }
+  if (p.mix) { const v = p.mix.map(tableMax); return v.length && v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
+  return p.nomp ? 0 : MAXP_BASE[id] || 0;
+}
+const isBaseRef = ref => { const P = REF_OK(ref) && CAT.byId[ref]; return !!(P && !P.custom && !P.wiki); };
+let BASE_FP = null;
+const baseByFp = k => { if (!BASE_FP) { BASE_FP = new Map(); CAT.list.forEach(p => { if (!p.custom && !p.wiki && REF_OK(p.id)) BASE_FP.set(h24("r:" + p.id), p.id); }); } return BASE_FP.get(k) || null; };
+function shopBin(its, M) {
+  const o = [0x53, 2, ...B64U.dec(M.id), st.type === "achat" ? 1 : 0];
+  vPush(o, M.at); vPush(o, Math.round(M.d * 100)); o.push((st.showR !== false ? 1 : 0) | (st.showB !== false ? 2 : 0));
+  strPush(o, BT_THEMES[st.bTheme] ? st.bTheme : "", 30); strPush(o, safeTxt(st.title, 60), 90); strPush(o, safeTxt(st.user, 40), 60); strPush(o, safeTxt(st.kicker, 80), 120);
+  o.push(M.bk.length); M.bk.forEach(t => { o.push(t[0]); vPush(o, Math.round(t[1] * 100)); vPush(o, Math.round(t[2] * 100)); });
+  vPush(o, its.length);
+  const I = its.map(w => {
+    const base = isBaseRef(w.ref), pu = Math.max(0, PU_L.indexOf(w.pu || "coin")), mp = w.pu === "xmp" ? itemMax(w) : 0;
+    const mf = w.pu !== "xmp" ? 0 : base && mp > 0 && Math.abs(mp - tableMax(w.ref)) < 1e-9 ? 1 : 2;
+    return { w, base, pu, mp, mf };
+  });
+  I.forEach(x => o.push((x.base ? 0 : 1) | x.mf << 1 | x.pu << 3));
+  I.forEach(x => { if (x.base) { const k = h24(shopKey(x.w)); o.push(k >> 16 & 255, k >> 8 & 255, k & 255); } });
+  I.forEach(x => { if (!x.base) { strPush(o, REF_OK(x.w.ref) ? x.w.ref : "", 60); strPush(o, safeTxt(pName(x.w), 40), 60); strPush(o, safeTxt(x.w.e, 8), 24); } });
+  I.forEach(x => vPush(o, Math.max(0, Math.round(num(x.w.q)))));
+  I.forEach(x => vPush(o, Math.round(num(x.w.p) * 100)));
+  I.forEach(x => { if (x.mf === 2) vPush(o, Math.round(x.mp * 100)); });
+  const c = crc32(Uint8Array.from(o)); o.push(c >>> 24, c >>> 16 & 255, c >>> 8 & 255, c & 255);
+  return Uint8Array.from(o);
+}
+/** The short link → the same fields as the first version (then checked by shopClean like any link). */
+function shopBinRead(u) {
+  let p = 0;
+  const b = () => { if (p >= u.length) throw new Error("cut"); return u[p++]; };
+  const v = () => { let x = 0, m = 1; for (let k = 0; k < 8; k++) { const c = b(); x += (c & 127) * m; if (!(c & 128)) return x; m *= 128; } throw new Error("bad"); };
+  const s = () => { const n = b(); if (p + n > u.length) throw new Error("cut"); const t = new TextDecoder().decode(u.subarray(p, p + n)); p += n; return t; };
+  if (u.length < 16 || u[0] !== 0x53 || u[1] !== 2) throw new Error("bad");
+  if (crc32(u, 0, u.length - 4) !== ((u[u.length - 4] << 24 | u[u.length - 3] << 16 | u[u.length - 2] << 8 | u[u.length - 1]) >>> 0)) throw new Error("changed");
+  const id = B64U.enc(u.subarray(2, 8)); p = 8;
+  const t = b() === 1 ? "achat" : "vente", at = v(), d = v() / 100, fl = b(), th = s(), ti = s(), us = s(), ki = s();
+  const nb = b(); if (nb > 8) throw new Error("bad");
+  const bk = []; for (let k = 0; k < nb; k++) bk.push([b(), v() / 100, v() / 100]);
+  const n = v(); if (n > SHOP_MAX) throw new Error("bad");
+  const kinds = []; for (let k = 0; k < n; k++) kinds.push(b());
+  const fps = kinds.map(x => x & 1 ? null : (b() << 16) | (b() << 8) | b());
+  const strs = kinds.map(x => x & 1 ? [s(), s(), s()] : null);
+  const qs = kinds.map(() => v()), ps = kinds.map(() => v() / 100), mps = kinds.map(x => (x >> 1 & 3) === 2 ? v() / 100 : null);
+  if (p !== u.length - 4) throw new Error("bad");
+  const it = kinds.map((x, k) => {
+    const pc = x >> 3 & 3, ref = x & 1 ? strs[k][0] : baseByFp(fps[k]), mf = x >> 1 & 3;
+    const mp = mf === 2 ? mps[k] : mf === 1 && ref ? tableMax(ref) : 0, P = ref && CAT.byId[ref];
+    const name = x & 1 ? strs[k][1] : P ? P.en : "Item " + (k + 1), pr = ps[k];
+    const uu = PU_L[pc] === "xmp" ? pr * mp : isCur(PU_L[pc]) ? pr * CUR[PU_L[pc]].rate : pr;
+    return [ref || 0, x & 1 || !P ? name : 0, qs[k], pr, pc, uu, mp, x & 1 ? strs[k][2] : 0, fps[k]];
+  });
+  return { v: 1, id, t, ti, us, ki, at, d, bk, th, cv: [fl & 1 ? 1 : 0, fl & 2 ? 1 : 0], it };
 }
 /** Only what a link may hold — anything else is dropped, a broken link is refused. */
 function shopClean(j) {
@@ -10173,7 +10237,7 @@ function shopClean(j) {
     if (!name) return null;
     const pc = Number.isInteger(r[4]) && r[4] >= 0 && r[4] < 4 ? r[4] : 0;
     return { i, uid: "s" + i, ref: P ? ref : null, key: ref ? "r:" + ref : "n:" + norm(name), name, e: safeTxt(typeof r[7] === "string" ? r[7] : "", 8) || (P && P.e) || "📦", img: "",
-      q: Math.round(fin(r[2], 1e7)), p: fin(r[3], 1e9), pu: PU_L[pc], u: fin(r[5], 1e10), mp: fin(r[6], 1e9), note: "", oos: 0, hot: 0 };
+      q: Math.round(fin(r[2], 1e7)), p: fin(r[3], 1e9), pu: PU_L[pc], u: fin(r[5], 1e10), mp: fin(r[6], 1e9), note: "", oos: 0, hot: 0, h: Number.isInteger(r[8]) && r[8] >= 0 && r[8] < 0x1000000 ? r[8] : null };
   }).filter(Boolean);
   if (!items.length) throw new Error("empty");
   const bk = (Array.isArray(j.bk) ? j.bk : []).slice(0, 8).map(x => Array.isArray(x) ? { mode: x[0] === 1 ? "order" : "pct", at: fin(x[1], 1e7), pct: fin(x[2], 1000) } : null)
@@ -10245,7 +10309,7 @@ function shopGrid() {
     g.append(h("button", { class: "stile" + (c ? " in" : ""), onclick: () => shopPick(it) },
       thumb(itemState(it), it.e, "sth"),
       h("span", { class: "snm" }, it.name),
-      h("span", { class: "spr" }, shopPriceFull(it)),
+      h("span", { class: "spr" }, shopPriceTxt(it)),
       h("span", { class: "sst" }, it.q > 0 ? (S.t === "achat" ? "wants " : "") + fmt(it.q) + (S.t === "achat" ? "" : " left") : ""),
       c ? h("span", { class: "sbadge" }, "×" + fmt(c.q), c.offer ? " 💬" : "") : null));
   });
@@ -10349,7 +10413,7 @@ function orderCodeOf(S, lines, name, note) {
   if (nm) strPush(o, nm, 48); if (nt) strPush(o, nt, 200);
   vPush(o, lines.length);
   lines.forEach(x => {
-    const it = x.it, k = h24(it.key);
+    const it = x.it, k = it.h != null ? it.h : h24(it.key);
     vPush(o, it.i); o.push(k >> 16 & 255, k >> 8 & 255, k & 255); vPush(o, x.q);
     vPush(o, x.offer > 0 ? Math.round(x.offer * 100) * 4 + PU_L.indexOf(it.pu) + 1 : 0);
   });
@@ -10387,7 +10451,7 @@ function shopMsg() {
   const S = SHOP.S, T = shopTotals(false), T2 = shopTotals(true), url = shopReturnURL();
   const head = (S.t === "achat" ? "What I sell you" : "My order") + " — " + plural(T.lines.length, "item") + " · " + fmt(T.oq) + " pcs" + (T.tot > 0 ? " · " + fmt(T.tot) + " coins" : "") + (T.offers ? " (with my prices: " + fmt(T2.tot) + ")" : "");
   const list = T.lines.map(x => "• " + fmt(x.q) + " " + x.it.name + (x.offer ? " (my price: " + shopPriceTxt(x.it, x.offer) + ")" : ""));
-  const foot = (SHOP.note ? "💬 " + SHOP.note + "\n" : "") + "Open it in Market Manager: " + url;
+  const foot = (SHOP.note ? "💬 " + SHOP.note + "\n" : "") + "[📦 Open my order in Market Manager](" + url + ")";
   let t = head + "\n" + list.join("\n") + "\n" + foot;
   if (t.length > SHOP_DISCORD - 10) t = head + "\n" + foot;                // too long for one message: the link alone carries the order
   return t;
