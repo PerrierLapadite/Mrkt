@@ -1109,6 +1109,49 @@ details summary{-webkit-tap-highlight-color:transparent}
 .pksum{margin-top:10px;font:600 13px var(--sans);color:var(--mut);text-align:center}
 .opicb{margin-top:8px}
 .opicimg{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
+/* small item cards: [picture] name / max price · value · ⋯ · ×, then price × quantity */
+.item.cmp{padding:8px 10px;gap:6px}
+.item.cmp .i1{grid-template-columns:42px minmax(0,1fr);grid-auto-flow:column;grid-auto-columns:auto;gap:8px;align-items:center}
+.item.cmp .i1 .thumbbtn .th,.item.cmp .i1>.th{width:40px;height:40px;font-size:24px}
+.item.cmp .icol{min-width:0;display:grid;gap:1px}
+.item.cmp .icol .name{font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:0;padding:0!important;margin:0}
+.item.cmp .icol .name.fixed{line-height:1.2}
+.item.cmp .thumbbtn{width:42px;height:42px;padding:3px;border-radius:10px}
+.item.cmp .i1{min-height:42px}
+.item.cmp .icol .inp.name{padding:4px 6px!important;font-size:14px;min-height:30px;border-color:var(--line)!important}
+.item.cmp .mpline{margin:0;font-size:11.5px;gap:2px;white-space:nowrap;overflow:hidden}
+.item.cmp .i1 .star:not(.on){display:none}
+.item.cmp .i1 .star.on{width:22px;height:22px;font-size:14px}
+.item.cmp .val{margin:0;font:700 14.5px var(--slab);gap:4px;white-space:nowrap}
+.item.cmp .val.zero{font:600 11px var(--sans);color:var(--mut);white-space:normal;max-width:84px;text-align:right}
+.item.cmp .i1 .ib{width:30px;height:30px}
+.item.cmp .i2 .box input{padding-top:8px;padding-bottom:8px}
+.item.cmp .icol .oostag{justify-self:start;margin-top:2px;font-size:10px;padding:1px 6px}
+.sec-h .cmode{border:1px solid var(--line);background:var(--surface);color:var(--mut);font:700 11.5px var(--sans);border-radius:8px;padding:3px 8px;align-self:center}
+.sec-h .cmode[hidden]{display:none}
+#wantList>.item,#haveList>.item{content-visibility:auto;contain-intrinsic-size:auto 118px}
+.lbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 2px}
+.lbar .spbtn{margin:0}
+.lbar .cmode{border:1px solid var(--line);background:var(--surface);color:var(--mut);font:700 12px var(--sans);border-radius:8px;padding:4px 9px;white-space:nowrap}
+.pvtexts{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:0}
+.pvtexts>summary{cursor:pointer;list-style:none;padding:11px 12px;font:700 14px var(--sans);display:flex;align-items:baseline;gap:8px}
+.pvtexts>summary::-webkit-details-marker{display:none}
+.pvtexts>summary small{font:600 12px var(--sans);color:var(--mut)}
+.pvtexts[open]>summary{border-bottom:1px solid var(--line)}
+.pvt{display:grid;gap:8px;padding:10px 12px 12px}
+#impNote:empty,#itemsScan:empty,#orderScan:empty{display:none}
+.empty.starts{display:grid;gap:10px;text-align:left;padding:14px}
+.empty.starts b{font:700 16px var(--sans);color:var(--ink)}
+.startb{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.startb .btn{min-height:44px;font-weight:700}
+.empty.starts small{color:var(--mut);font-size:12.5px;line-height:1.35}
+.empty.starts .btn{font-style:normal}
+.ftot{position:fixed;left:12px;right:64px;bottom:calc(74px + var(--safe-b));z-index:34;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line2);border-radius:12px;box-shadow:0 8px 24px -10px rgba(0,0,0,.45);padding:4px;max-width:420px}
+.ftot[hidden]{display:none}
+@media (max-width:999px){body[data-tab=items] #p-items{padding-bottom:56px}}
+.ftot .ftl{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 13.5px var(--sans);text-align:left;padding:6px 8px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
+.ftot .ftl b{font-weight:800}
+.ftot .ftp{border:0;border-radius:9px;background:var(--ink);color:var(--bg);font:700 13px var(--sans);padding:8px 12px;white-space:nowrap}
 </style>
 </head>
 <body data-tab="items">
@@ -1157,7 +1200,7 @@ details summary{-webkit-tap-highlight-color:transparent}
         <div class="list" id="haveList"></div>
       </div>
       <div class="stack">
-        <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span><div class="sum" id="summary"></div></div>
+        <div class="sec-h"><div class="ic" id="wantI"></div><h3 id="wantH">I want</h3><span id="wantN"></span><div class="sum" id="summary"></div><button class="cmode" id="cardMode" type="button" title="Small cards / detailed cards" aria-label="Small cards or detailed cards"></button></div>
         <div class="lfilter" id="lfilter" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg><input class="inp" id="lf" type="search" placeholder="Filter my items" autocomplete="off" autocapitalize="off"></div>
         <div class="list" id="wantList"></div>
       </div>
@@ -1296,10 +1339,23 @@ details summary{-webkit-tap-highlight-color:transparent}
         <button class="btn" id="share">Share</button>
         <button class="btn" id="copy">Copy</button>
       </div>
+      <details class="pvtexts" id="pvTexts">
+        <summary>✎ Texts on the picture <small>title, your name, stamp, notes</small></summary>
+        <div class="pvt">
+          <div><label class="lbl">Title</label><input class="inp" data-k="title" placeholder="e.g. Shop open"></div>
+          <div class="two">
+            <div><label class="lbl">Your name</label><input class="inp" data-k="user" placeholder="Discord name"></div>
+            <div><label class="lbl">Stamp</label><input class="inp" data-k="cta" placeholder="e.g. Mix accepted"></div>
+          </div>
+          <div><label class="lbl">Notes</label><textarea class="ta" data-k="details" rows="2" placeholder="One line per point"></textarea></div>
+          <div><label class="lbl">Footer</label><input class="inp" data-k="sub" placeholder="optional"></div>
+        </div>
+      </details>
     </div>
   </aside>
 </main>
 
+<div class="ftot" id="ftot" hidden><button class="ftl" id="ftotL" type="button" aria-label="Back to the top of the list"></button><button class="ftp" id="ftotP" type="button">Preview ›</button></div>
 <div class="jump" id="jump" hidden><button id="jTop" aria-label="Go to top">↑</button><button id="jBot" aria-label="Go to bottom">↓</button></div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-h"><h3 id="sheetT"></h3><button class="ib" id="sheetX" aria-label="Close">✕</button></div><div class="sheet-b" id="sheetB"></div></div>
@@ -2301,10 +2357,15 @@ function search(q, cat) {
     }
     if (sc) out.push([sc - en.length / 100, p]);
   }
-  if (!out.length && nq.length >= 3) for (const p of pool) { // sous-séquence (fautes de frappe légères) si rien trouvé
+  const isGrp = Object.keys(CAT_EN).some(id => !["pop", "recent", "all", "other", "perso"].includes(id) && (norm(CAT_EN[id]) === nq || (nq.length >= 4 && norm(CAT_EN[id]).startsWith(nq)))) || catsOf(nq).length || catsOf(nq.replace(/s$/, "")).length;
+  if (!out.length && nq.length >= 3 && !isGrp) for (const p of pool) { // sous-séquence (fautes de frappe légères) si rien trouvé
     const en = norm(p.en); let i = 0; for (const ch of en) if (ch === nq[i]) i++;
     if (i === nq.length) out.push([100 - en.length / 100, p]);
   }
+  // a building or a group ("bakery", "pie oven", "soups", "jus"): its goods come too, after the names that match
+  const grp = Object.keys(CAT_EN).filter(id => !["pop", "recent", "all", "other", "perso"].includes(id) && (norm(CAT_EN[id]) === nq || (nq.length >= 4 && norm(CAT_EN[id]).startsWith(nq))));
+  const cw = catsOf(nq.replace(/s$/, "")).concat(catsOf(nq)), cats = new Set(grp.concat(cw));
+  if (cats.size) { const seen = new Set(out.map(x => x[1])); CAT.list.forEach(p => { if (cats.has(p.cat) && !seen.has(p) && (!cat || ["all", "pop", "recent"].includes(cat) || p.cat === cat)) out.push([50, p]); }); }
   return out.sort((a, b) => b[0] - a[0]).map(x => x[1]);
 }
 
@@ -3052,7 +3113,7 @@ function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
 /* the beta switch and the colours, above the picture */
 function betaBar() {
   const bar = $("#betaBar"); if (!bar) return; bar.textContent = "";
-  const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); } }, l)));
+  const seg = (opts, cur, set) => h("div", { class: "seg" }, opts.map(([v, l]) => h("button", { class: cur === v ? "on" : "", onclick: () => { set(v); betaBar(); changed(); scheduleDraw(); renderStyle(); } }, l)));
   bar.append(seg([["new", "New render β"], ["old", "Classic"]], st.betaOff ? "old" : "new", v => { st.betaOff = v === "old"; }));
   if (!st.betaOff) bar.append(h("div", { class: "lbl" }, "Sort the items by"), seg([["qty", "Quantity"], ["price", "Price"]], sortKey(), v => { st.sort = v; st.sortV = 1; }));
   if (!st.betaOff) bar.append(seg(Object.entries(BT_THEMES).map(([k, t]) => [k, t.name]), st.bTheme && BT_THEMES[st.bTheme] ? st.bTheme : "cream", v => { st.bTheme = v; }));
@@ -3749,6 +3810,7 @@ function tab(t) {
   $("#impBtn").classList.toggle("on", t === "imp");
   if (t === "imp") renderImport();
   if (t !== "items") closeDrop();
+  ftotPaint();
   requestAnimationFrame(updJump);
   scrollTo({ top: 0 });
 }
@@ -3822,7 +3884,8 @@ function deletePost(p) {
 function newProfileSheet() {
   // a new empty post, or an old one rebuilt from its screenshot / text (Import)
   openSheet("New post", h("div", { class: "menu" }, Object.keys(TYPES).map(t => h("button", { onclick: () => { const p = mkProfile(t); STATE.list.push(p); closeSheet(); selectProfile(p.id); toast("“" + p.name + "” created"); } }, h("i", null, "＋"), TYPES[t].name + " post")),
-    h("button", { onclick: () => { closeSheet(); tab("imp"); } }, h("i", null, "📥"), "From an old post (screenshot or text)")));
+    h("button", { onclick: () => { closeSheet(); tab("imp"); } }, h("i", null, "📥"), "From an old post (screenshot or text)"),
+    st && (st.wants.length || st.have.length) ? h("button", { onclick: () => { closeSheet(); $("#dupP").click(); } }, h("i", null, "⧉"), "A copy of “" + (st.name || "this post") + "” (same items and prices)") : null));
 }
 function selectProfile(id) { st = STATE.list.find(p => p.id === id) || STATE.list[0]; STATE.active = st.id; renderAll(); changed(); }
 function renderAll() { betaBar(); renderProfiles(); renderCats(); renderResults(); renderLists(); renderStyle(); renderDeals(); renderSummary(); scheduleDraw(); if (typeof renderOrder === "function") renderOrder(); }
@@ -3831,6 +3894,8 @@ function renderAll() { betaBar(); renderProfiles(); renderCats(); renderResults(
 const CAT_EN = Object.assign({ pop: "Popular", recent: "Recent", all: "All", packs: "Expansion sets", ext: "Materials & tools", crops: "Crops", trees: "Trees & bushes", animal: "Animal goods" },
   Object.fromEntries(BUILDINGS), { other: "Other", perso: "My items" });
 let curCat = "pop", resLimit = 16;
+// the items you add often come back: the search opens on your recent ones once there are a few
+setTimeout(() => { if ((SETTINGS.recent || []).length >= 4 && curCat === "pop") curCat = "recent"; }, 0);
 const baseLimit = () => $("#q").value ? 48 : !SETTINGS.dropBig ? 30 : 16;
 function renderCats() {
   const c = $("#cats"); c.textContent = "";
@@ -4108,6 +4173,7 @@ function openDrop() { if (!$("#sdrop").hidden) return; dropMode(); $("#sdrop").h
 function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
 $("#q").addEventListener("focus", openDrop);
 $("#sdone").onclick = closeDrop;
+$("#cardMode").onclick = () => { SETTINGS.cardFull = !SETTINGS.cardFull; saveSettings(); renderLists(); };
 // tap a number (a price, a quantity): it's selected, so what you type replaces it — no need to erase first
 let lastTap = { t: null, at: 0 };
 document.addEventListener("pointerdown", e => { lastTap = { t: e.target, at: Date.now() }; }, true);
@@ -4199,11 +4265,29 @@ function renderSummary() {
   }
   $("#wantN").textContent = w.length ? w.length + (w.length > 1 ? " items" : " item") : "";
   $("#haveN").textContent = st.have.length ? st.have.length + (st.have.length > 1 ? " items" : " item") : "";
+  ftotPaint();
 }
+/* deep in a long list: a slim bar above the tabs keeps the count and the total in view (tap it: back to the top) */
+let ftotOut = false;
+function ftotPaint() {
+  const bar = $("#ftot"); if (!bar) return;
+  const w = st.wants.filter(x => (x.name || "").trim() || x.ref);
+  const show = ftotOut && document.body.dataset.tab === "items" && w.length >= 4 && innerWidth < 1000;
+  bar.hidden = !show; if (!show) return;
+  const L = $("#ftotL"); L.textContent = "";
+  L.append(h("b", null, plural(w.length, "item")));
+  if (st.type !== "trade") { const T = totals(); if (T.tot) L.append(" · ", h("i", { class: "coin" }), fmt(Math.round(T.tot))); }
+}
+$("#ftotL").onclick = () => { const e = $("#wantH"); if (e) e.scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("#ftotP").onclick = () => tab("prev");
+addEventListener("scroll", () => { const e = $("#wantH"); if (!e) return; const out = e.getBoundingClientRect().bottom < 60; if (out !== ftotOut) { ftotOut = out; ftotPaint(); } }, { passive: true });
 
 /* ---------- item cards ---------- */
+/* the post's cards: small (default — twice as many on the screen) or detailed */
+const cardsSmall = () => !SETTINGS.cardFull;
 function renderLists() {
   if (typeof renderImpNote === "function") renderImpNote();
+  $("#cardMode").hidden = true;
   const trade = st.type === "trade";
   $("#haveBox").hidden = !trade;
   $("#wantH").textContent = TYPES[st.type].list; $("#wantI").textContent = TYPES[st.type].li;
@@ -4217,8 +4301,23 @@ function renderLists() {
     ratioGroups(st.wants).forEach(g => wl.append(groupCard(g)));
     wl.append(h("button", { class: "btn dashed newgrp", onclick: () => newRatioSheet() }, "+ New ratio group"));
     markTargetGroup();
-  } else { if (st.wants.length > 1) wl.append(samePriceBar()); st.wants.forEach(it => wl.append(itemCard(it))); }
-  if (!st.wants.length) wl.prepend(h("div", { class: "empty card" }, "Use the search to add products."));
+  } else {
+    const mode = h("button", { type: "button", class: "cmode", title: "Small cards / detailed cards", onclick: () => { SETTINGS.cardFull = !SETTINGS.cardFull; saveSettings(); renderLists(); } }, cardsSmall() ? "▤ Detailed" : "☰ Small");
+    if (st.wants.length > 1) wl.append(spOpen ? samePriceBar() : h("div", { class: "lbar" }, samePriceBar(), mode));
+    else if (st.wants.length) wl.append(h("div", { class: "lbar" }, h("span"), mode));
+    st.wants.forEach(it => wl.append(itemCard(it)));
+  }
+  // an empty post: the quickest ways to fill it
+  if (!st.wants.length) {
+    const q = (t, f) => { $("#q").value = t; $("#q").focus(); openDrop(); f && f(); resLimit = baseLimit(); renderResults(); };
+    wl.prepend(h("div", { class: "empty card starts" }, h("b", null, "Fill this post"),
+      h("div", { class: "startb" },
+        h("button", { class: "btn", onclick: () => q("") }, "🔍 Search an item"),
+        h("button", { class: "btn", onclick: () => { $("#q").focus(); openDrop(); setSrc("inv"); } }, "📦 From my barn"),
+        h("button", { class: "btn", onclick: () => q("level 1 to 30") }, "🔢 By level"),
+        h("button", { class: "btn", onclick: () => tab("imp") }, "📥 Import a post")),
+      h("small", null, "Import: a screenshot of a post (yours or another seller's) or its text — the items, quantities and prices come in at once.")));
+  }
   if (st.wants.length > 1) wl.append(clearAllBtn());
   $("#lfilter").hidden = st.wants.length + st.have.length < 7;
   if ($("#lfilter").hidden) $("#lf").value = ""; else applyListFilter();
@@ -4528,15 +4627,20 @@ function itemCard(it) {
       noteArea(it, "Note (optional)"));
     return card;
   }
-  const val = h("div", { class: "val" });
+  const val = h("div", { class: "val" }), cmp = cardsSmall();
   // xMP (read-only, fixed game price): "Max price 87 · 5×MP = 435 each"
   const mp = h("div", { class: "mpline" });
   const upd = () => {
     const v = itemValue(it), src = maxSource(it); val.textContent = ""; val.classList.toggle("zero", !v);
-    if (v) val.append(h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), ...convEls(v));
-    else if (it.pu === "xmp" && num(it.p) && !itemMax(it)) val.append(!it.ref ? "×MP needs a game item" : src === "loading" ? "loading…" : "max price not available");
+    if (v) val.append(...(cmp ? [fmt(v), h("i", { class: "coin" })] : [h("span", { class: "eqs" }, "="), h("i", { class: "coin" }), fmt(v), ...convEls(v)]));
+    else if (it.pu === "xmp" && num(it.p) && !itemMax(it)) val.append(!it.ref ? "×MP needs a game item" : src === "loading" ? "loading…" : "no max price");
     mp.hidden = it.pu !== "xmp"; mp.textContent = "";
-    if (it.pu === "xmp") {
+    if (it.pu === "xmp" && cmp) {
+      // small card: "MP 87 · 435 ea" under the name
+      const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
+      mp.append("MP ", auto ? fmtP(auto) : src === "loading" ? "…" : "—");
+      if (m && num(it.p)) mp.append(" · ", h("b", null, fmtP(num(it.p) * m) + " ea"));
+    } else if (it.pu === "xmp") {
       const auto = it.ref ? maxPrice(it.ref) : 0, m = itemMax(it);
       mp.title = { wiki: "Game max price (wiki)", table: "Game max price", "its 89 materials": "A set = 89 materials (30 / 30 / 29): the sum of their max prices" }[src] || "";
       mp.append("Max price", h("i", { class: "coin" }), auto ? fmtP(auto) : src === "loading" ? "…" : "—");
@@ -4550,6 +4654,18 @@ function itemCard(it) {
     const m = p.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*(?:x|×)\s*(?:mp)?\s*$/i) || p.value.match(/^\s*(?:x|×)\s*(\d+(?:[.,]\d+)?)\s*$/i);
     if (m) { it.pu = "xmp"; it.p = m[1]; p.value = m[1]; ub.repaint(); } else it.p = p.value;
     upd(); changed(); } });
+  if (cmp) {
+    // small card: [picture] name + max price · value · ⋯ · ×  /  price × quantity  (the note only when there is one)
+    card.classList.add("cmp");
+    const head = card.firstChild, nm = head.querySelector(".name");
+    if (nm) { const col = h("div", { class: "icol" }); nm.before(col); col.append(nm, mp); const oo = head.querySelector(".oostag"); if (oo) col.append(oo); }
+    const more = [...head.querySelectorAll(".ib")].find(b => b.getAttribute("aria-label") === "More actions");
+    head.insertBefore(val, more || null);
+    card.append(h("div", { class: "i2" }, h("div", { class: "box" }, p, ub), h("span", { class: "x", "aria-hidden": "true" }, "×"), stepper(it, upd)));
+    if ((it.note || "").trim() || it._noteOpen) { const n = noteArea(it, "Note (optional)"); card.append(n); if (it._noteOpen) { delete it._noteOpen; requestAnimationFrame(() => { const b = n.querySelector("button"); b && b.click(); }); } }
+    upd();
+    return card;
+  }
   card.append(h("div", { class: "i2" }, h("div", { class: "box" }, p, ub), h("span", { class: "x", "aria-hidden": "true" }, "×"), stepper(it, upd)), mp,
     h("div", { class: "i3" }, noteArea(it, "Note (optional)"), val));
   upd();
@@ -4563,7 +4679,9 @@ function itemMenu(it, list) {
     h("div", { class: "menu" },
       h("button", { onclick: () => { closeSheet(); setTimeout(() => pickItemSheet(it), 220); } }, h("i", null, "⇆"), it.ref ? "Change the item" : "Pick the game item"),
       st.type === "trade" && list === st.wants ? h("button", { onclick: () => { closeSheet(); setTimeout(() => newRatioSheet(it), 220); } }, h("i", null, ":"), "Change ratio") : null,
-      st.type === "trade" && list === st.wants && !(it.note || "").trim() ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
+      list === st.wants && !(it.note || "").trim() && (st.type === "trade" || cardsSmall()) ? h("button", { onclick: () => { closeSheet(); it._noteOpen = 1; renderLists(); } }, h("i", null, "✎"), "Add a note") : null,
+      list === st.wants ? h("button", { onclick: act(() => { it.hot = it.hot ? 0 : 1; }) }, h("i", null, "★"), it.hot ? "Don't highlight it any more" : "Highlight it on the picture") : null,
+      list === st.wants && st.type !== "trade" && num(it.p) > 0 && st.wants.length > 1 ? h("button", { onclick: () => { const n = st.wants.length - 1; undoHint("Same price for all"); st.wants.forEach(w => { if (w !== it && !(it.pu === "xmp" && !w.ref)) { w.p = it.p; w.pu = it.pu; } }); closeSheet(); renderLists(); changed(); toastUndo("Every item at " + (it.pu === "xmp" ? fmtR(num(it.p)) + "×MP" : priceLabel(it).split(" · ")[0])); } }, h("i", null, "＝"), "Same price for every item (" + (it.pu === "xmp" ? fmtR(num(it.p)) + "×MP" : priceLabel(it).split(" · ")[0]) + ")") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i - 1, 0, it); }) }, h("i", null, "↑"), "Move up") : null,
       i < list.length - 1 ? h("button", { onclick: act(() => { list.splice(i, 1); list.splice(i + 1, 0, it); }) }, h("i", null, "↓"), "Move down") : null,
       i > 0 ? h("button", { onclick: act(() => { list.splice(i, 1); list.unshift(it); }) }, h("i", null, "⤒"), "Move to top") : null,
@@ -4637,7 +4755,8 @@ function renderCustom() {
     h("p", { class: "hint" }, "Changes show right away in Preview. “Auto” columns keep the picture about twice as tall as wide, the size Discord shows best.")].filter(Boolean));
 }
 function renderStyle() {
-  $$("[data-k]").forEach(i => { i.value = st[i.dataset.k] || ""; i.oninput = () => { st[i.dataset.k] = i.value; if (i.dataset.k === "name") renderProfiles(); changed(); }; });
+  // the same text can be in two places (Style and under the picture): both follow
+  $$("[data-k]").forEach(i => { if (document.activeElement !== i) i.value = st[i.dataset.k] || ""; i.oninput = () => { st[i.dataset.k] = i.value; $$('[data-k="' + i.dataset.k + '"]').forEach(o => { if (o !== i) o.value = i.value; }); if (i.dataset.k === "name") renderProfiles(); changed(); }; });
   $$("#typeSeg button").forEach(b => { b.classList.toggle("on", b.dataset.y === st.type); b.onclick = () => { st.type = b.dataset.y; renderAll(); changed(); }; });
   const th = $("#themes"); th.textContent = "";
   Object.entries(THEMES).forEach(([k, T]) => th.append(h("button", { class: "theme" + (st.theme === k ? " on" : ""), onclick: () => { st.theme = k; renderStyle(); changed(); } }, h("i", { style: `background:${T.paper};--a:${T.acc};--k:${T.ink}` }), T.name)));
@@ -4646,8 +4765,10 @@ function renderStyle() {
   renderCustom();
   $$("#sortSeg button").forEach(b => { b.classList.toggle("on", b.dataset.s === sortKey()); b.onclick = () => { st.sort = b.dataset.s; st.sortV = 1; renderStyle(); changed(); }; });
   $("#haveTitleF").hidden = st.type !== "trade";
+  // Paper and Layout are for the Classic look only (the New look has its colours and sort above the picture)
+  $("#themes").closest(".card").hidden = !st.betaOff; $("#layouts").closest(".card").hidden = !st.betaOff;
 }
-$("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Profile duplicated"); };
+$("#dupP").onclick = () => { const c = clone(st); c.id = uid(); c.name = (st.name || "Profile") + " (copy)"; c.wants.forEach(w => w.uid = uid()); c.have.forEach(w => w.uid = uid()); STATE.list.splice(STATE.list.indexOf(st) + 1, 0, c); selectProfile(c.id); toast("Post duplicated"); };
 let delArm = 0;
 $("#delP").onclick = function () {
   if (STATE.list.length < 2) return toast("Keep at least one profile.");
@@ -5513,6 +5634,7 @@ function renderOrder(force) {
   out.append(tot);
   if (ORDER.dismissed !== ORDER.text && rows.some(L => L.r.w && !L.r.ignored)) out.append(updCard(proposal(rows), trade));
   if (OM() === "pick") renderPick();
+  orderBadge();
   // keep typing in the deal-price box after the refresh
   if (ORDER.editFocus != null) { const e = out.querySelector(`[data-edit="${ORDER.editFocus}"]`); ORDER.editFocus = null; if (e) { e.focus(); const n = e.value.length; try { e.setSelectionRange(n, n); } catch (er) {} } }
 }
@@ -6747,7 +6869,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "25 Nov 2026 · 22:15";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "25 Nov 2026 · 23:00";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -8196,6 +8318,8 @@ const DTYPE = { trade: { t: "Trade", i: "🔁" }, vente: { t: "Sale", i: "💰" 
 const openDeals = () => DEALS.filter(d => d.status === "open");
 const dayKey = t => { const d = new Date(t); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
 const doneToday = d => !!(d.daily && d.daily.log.some(x => dayKey(x.t) === dayKey(Date.now())));
+/** The Order tab shows how many items the order in progress has (you see it from Items). */
+function orderBadge() { const b = $("#tabbar [data-t=order]"); if (!b) return; let i = b.querySelector(".tbdg"); const n = (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).length; if (!i) { i = h("b", { class: "tbdg" }); b.append(i); } i.textContent = n || ""; i.hidden = !n; }
 function dealBadge() { const b = $("#tabbar [data-t=deals]"); if (!b) return; let i = b.querySelector(".tbdg"); const n = openDeals().length; if (!i) { i = h("b", { class: "tbdg" }); b.append(i); } i.textContent = n || ""; i.hidden = !n; }
 /** What you hand over in one delivery (or one day): sold items, items given in a trade. */
 // amounts in what the inventory counts: materials for a set (a sale of "BEM Set ×2" = 178)
