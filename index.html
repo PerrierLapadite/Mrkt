@@ -1157,6 +1157,14 @@ details summary{-webkit-tap-highlight-color:transparent}
 .ftot .ftl{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 13.5px var(--sans);text-align:left;padding:6px 8px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
 .ftot .ftl b{font-weight:800}
 .ftot .ftp{border:0;border-radius:9px;background:var(--ink);color:var(--bg);font:700 13px var(--sans);padding:8px 12px;white-space:nowrap}
+/* tabs at the top: for browsers whose bottom bar covers the page (Chrome / Firefox / Edge on iPhone) */
+@media (max-width:999px){
+  body.tabtop .sbar{top:var(--ttop,61px);margin-top:-12px}
+  body.tabtop .tabbar{position:sticky;top:0;left:auto;right:auto;bottom:auto;margin:-18px -14px 12px;padding:6px 6px;padding-top:max(6px,var(--safe-t));border-top:0;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -18px rgba(0,0,0,.5);z-index:40}
+}
+.metabs{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 4px 2px}
+.metabs b{display:block;font-size:14px}.metabs small{color:var(--mut);font-size:12px}
+.metabs .seg{flex:none}
 </style>
 </head>
 <body data-tab="items">
@@ -2973,6 +2981,17 @@ function btTile(w, x, y, S, T, kind) {
   }
 }
 /** the whole picture */
+/** The picture's size in pixels, capped: past a certain size a phone (an iPhone above all) gives a blank / black picture
+    and can crash the page — a very big post is then drawn a little smaller (same layout, all sharp enough for Discord). */
+const CV_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const CV_MAXPX = CV_IOS ? 5e6 : 12e6, CV_MAXSIDE = CV_IOS ? 4096 : 8000;
+function cvFit(W, H) {
+  const k = Math.min(1, Math.sqrt(CV_MAXPX / (W * H)), CV_MAXSIDE / W, CV_MAXSIDE / H);
+  const w = Math.max(1, Math.round(W * k)), hh = Math.max(1, Math.round(H * k));
+  if (cv.width !== w) cv.width = w; if (cv.height !== hh) cv.height = hh;
+  ctx.setTransform(k, 0, 0, k, 0, 0);
+  return k;
+}
 function drawBeta() {
   const T = BT_THEMES[st.bTheme] || BT_THEMES.cream;
   const type = st.type || "trade", trade = type === "trade";
@@ -3038,10 +3057,10 @@ function drawBeta() {
   if (sub) H += U * .05 + nS * 1.4;
   const urlS = Math.max(34, U * .15);
   H += U * .14 + urlS + M * .75;
-  if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
+  H = Math.round(H); cvFit(W, H);
 
   /* paper */
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
+  ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
   ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
 
   /* head: title, then the type and your name */
@@ -3120,7 +3139,7 @@ function drawBeta() {
   txt(SITE_URL, W / 2, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "center", maxW: IW });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
-  $("#pvSize").textContent = W + " × " + H + " px · " + C + (C > 1 ? " columns" : " column");
+  $("#pvSize").textContent = cv.width + " × " + cv.height + " px · " + C + (C > 1 ? " columns" : " column");
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
 function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
@@ -3504,11 +3523,10 @@ function drawClassic() {
   if ((st.sub || "").trim()) H += 54;
   const zL = Math.min(1.8, Math.max(1, W / 1080)); // site link size grows with wide pictures
   H = Math.round(H + 64 + 54 * zL);
-  if (cv.width !== W) cv.width = W;
-  if (cv.height !== H) cv.height = H;
+  cvFit(W, H);
 
   /* ---------- paper ---------- */
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
+  ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
   ctx.fillStyle = T.paper; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = grain(T); ctx.fillRect(0, 0, W, H);
   const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .45, W / 2, H / 2, Math.max(W, H) * .75);
@@ -3782,7 +3800,7 @@ function drawClassic() {
     rule(W / 2 - tw / 2 - g - l, W / 2 - tw / 2 - g, ly + 1, 1.5, T.mut); rule(W / 2 + tw / 2 + g, W / 2 + tw / 2 + g + l, ly + 1, 1.5, T.mut);
   }
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
-  $("#pvSize").textContent = W + " × " + H + " px";
+  $("#pvSize").textContent = cv.width + " × " + cv.height + " px";
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
 
@@ -6883,7 +6901,14 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "26 Nov 2026 · 02:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "26 Nov 2026 · 03:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
+/** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
+const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
+function tabsApply() {
+  document.body.classList.toggle("tabtop", tabsTop());
+  const b = $("#tabbar"); if (b && tabsTop()) requestAnimationFrame(() => document.documentElement.style.setProperty("--ttop", Math.round(b.getBoundingClientRect().height) + "px"));
+}
+tabsApply();
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -6896,6 +6921,8 @@ function renderMeMenu() {
     go("🕘", "History & stats", HIST.length ? fmt(HIST.length) + " deals" + (S ? " · " + short(Math.round(S.in)) + " coins in" : "") : "Your deals, and what they add up to", () => tab("hist")),
     go("🎨", "Style & backup", "Paper, layout, texts · backup of everything", () => tab("style")),
     h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
+    h("div", { class: "metabs" }, h("div", null, h("b", null, "Tabs"), h("small", null, "At the top if your browser's bar hides them")),
+      h("div", { class: "seg" }, [["bottom", "Bottom"], ["top", "Top"]].map(([k, t]) => h("button", { class: tabsTop() === (k === "top") ? "on" : "", onclick: () => { SETTINGS.tabTop = k === "top"; saveSettings(); tabsApply(); renderMeMenu(); } }, t)))),
     h("p", { class: "mever" }, "Version " + APP_VER + " · if this isn't the latest, reload the page"));
 }
 
