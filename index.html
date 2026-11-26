@@ -623,6 +623,11 @@ body[data-tab=prev] #editor{display:none}
 .srow{display:grid;grid-template-columns:76px minmax(0,1fr) 70px 26px;gap:8px;align-items:center;padding:6px 8px;border-top:1px solid var(--line);background:var(--surface)}
 .srow:first-child{border-top:0}
 .srow.chk{background:rgba(230,169,58,.15)}
+.srow.dup{box-shadow:inset 3px 0 0 #e0533a}
+.srow.flash{animation:srflash 1.4s ease}
+@keyframes srflash{0%,40%{background:rgba(224,83,58,.45)}100%{background:rgba(230,169,58,.15)}}
+.btn.pri.soft{opacity:.55}
+.sblock{margin-top:12px}
 .srow.off{opacity:.45}
 .scrop{width:76px;height:44px;object-fit:contain;border-radius:6px;background:#fff9db}
 .scrop.big{width:100%;height:110px;margin-bottom:8px}
@@ -710,6 +715,7 @@ body[data-tab=prev] #editor{display:none}
 .pchip .pdel{margin:0 -6px 0 2px;width:22px;height:22px;display:inline-grid;place-items:center;border-radius:50%;font:600 17px/1 var(--sans);color:var(--mut);opacity:.7}
 .pchip .pdel:hover{opacity:1;background:var(--line)}
 #undoBtn:disabled{opacity:.35}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .ib.idel{color:var(--mut);font-size:22px;font-weight:500;width:30px!important}
 .ib.idel:hover{color:var(--red,#c0392b)}
 .clrall{margin-top:6px;color:var(--mut)}
@@ -6645,7 +6651,7 @@ function invSet(x, q, quiet, fid) {
   if (p && (p.parts || p.mix)) return;                      // sets live as their materials, mixes as their items
   let i = F.items.find(o => o.k === k);
   if (!i && q <= 0) return;
-  if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name, e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; F.items.push(i); }
+  if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name || String(x.ref || "Item").replace(/-/g, " "), e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; F.items.push(i); }
   if (q <= 0) F.items.splice(F.items.indexOf(i), 1); else { i.q = q; i.t = Date.now(); }
   if (!quiet) saveInv();
 }
@@ -6794,7 +6800,7 @@ function renderInv() {
     list.textContent = "";
     const nq = norm(IV.q);
     let L = invList(scope).filter(i => (IV.f === "all" || i.s === IV.f) && (!nq || norm(i.name).includes(nq) || (i.ref && CAT.byId[i.ref] && norm(CAT.byId[i.ref].fr || "").includes(nq))));
-    L.sort(IV.sort === "most" ? (a, b) => b.q - a.q : IV.sort === "least" ? (a, b) => a.q - b.q : (a, b) => a.name.localeCompare(b.name));
+    L.sort(IV.sort === "most" ? (a, b) => b.q - a.q : IV.sort === "least" ? (a, b) => a.q - b.q : (a, b) => (a.name || "").localeCompare(b.name || ""));
     if (!L.length) list.append(h("p", { class: "hint", style: "padding:12px" }, "Nothing matches."));
     L.forEach(i => {
       const tag = ro ? (i.by || []).map(([n, q]) => n + " " + fmt(q)).join(" · ") : IV.f === "all" ? (i.s === "silo" ? "Silo" : "Barn") : "";
@@ -6877,7 +6883,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "26 Nov 2026 · 00:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "26 Nov 2026 · 02:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -7396,10 +7402,10 @@ function scanCard(where) {
   if (noQ) c.append(h("p", { class: "owarn" }, plural(noQ, "item") + " without a number" + (S.txt ? "" : " (hidden or unreadable)") + ": type how many you have, or untick it."));
   if (S.noPics) c.append(h("p", { class: "owarn" }, "The game pictures couldn't be loaded (no internet?): pick each item by hand."));
   const list = h("div", { class: "slist" });
-  R.forEach(r => {
+  R.forEach((r, ri) => {
     const p = r.ref && CAT.byId[r.ref];
     const qi = h("input", { value: isNaN(r.q) ? "" : r.q, placeholder: "?", inputMode: "numeric", "aria-label": "Quantity", oninput: () => { r.q = qi.value.trim() === "" ? NaN : Math.round(num(qi.value)); } });
-    list.append(h("div", { class: "srow" + (r.on ? "" : " off") + (!r.ref || !r.sure || isNaN(r.q) || isDup(r) ? " chk" : "") },
+    list.append(h("div", { class: "srow" + (r.on ? "" : " off") + (!r.ref || !r.sure || isNaN(r.q) || isDup(r) ? " chk" : "") + (isDup(r) ? " dup" : ""), "data-i": ri },
       r.view ? h("img", { src: r.view, alt: "", class: "scrop" }) : h("span", { class: "scrop stxt", title: r.txt || "" }, r.txt || ""),
       h("button", { class: "spick", onclick: () => scanPick(r, where) }, p ? thumb(prodState(p.id), p.e, "mini") : null, h("span", null, p ? p.en : "Pick the item"), !r.ref || !r.sure || isDup(r) ? h("span", { class: "flag" }, isDup(r) ? "2×" : "?") : null),
       h("div", { class: "oq" }, h("span", null, "×"), qi),
@@ -7419,7 +7425,19 @@ function scanCard(where) {
   else c.append(h("div", { class: "seg" }, h("button", { class: S.mode !== "rep" ? "on" : "", onclick: () => { S.mode = "upd"; redraw(); } }, "Update these items"),
       h("button", { class: S.mode === "rep" ? "on" : "", onclick: () => { S.mode = "rep"; redraw(); } }, "Replace my " + (stores.length === 1 ? stores[0] : "barn & silo"))),
     h("p", { class: "hint" }, S.mode === "rep" ? "Everything else in your " + (stores.join(" & ") || "barn") + " is removed — use it when your screenshots show the whole " + (stores[0] || "barn") + "." : "Only these items change; the rest of your inventory stays."));
-  c.append(h("div", { class: "two" }, h("button", { class: "btn pri", disabled: !n || dups.length > 0, onclick: () => scanSave(where) }, (post ? "Add " : "Save ") + plural(n, "item")), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "Cancel")));
+  // Save never stays silent: what blocks it is said right above it, and a tap shows the line to fix
+  const dupNames = [...new Set(dups.map(r => (CAT.byId[r.ref] || {}).en || r.ref))];
+  if (dups.length) c.append(h("p", { class: "owarn sblock" }, "⚠ To save: " + dupNames.map(x => "“" + x + "”").join(", ") + (dupNames.length > 1 ? " are each" : " is") + " on 2 lines (marked 2×). Tap the wrong line to pick its real item, or untick it."));
+  const trySave = () => {
+    if (dups.length) {
+      const i = R.indexOf(dups[0]), row = c.querySelector('.srow[data-i="' + i + '"]');
+      if (row) { row.scrollIntoView({ behavior: "smooth", block: "center" }); row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash"); }
+      return toast("“" + dupNames[0] + "” is on 2 lines: tap the wrong one and pick its real item, or untick it");
+    }
+    if (!n) return toast("Nothing to save: tick at least one line with an item and a number");
+    scanSave(where);
+  };
+  c.append(h("div", { class: "two" }, h("button", { class: "btn pri" + (!n || dups.length ? " soft" : ""), onclick: trySave }, (post ? "Add " : "Save ") + plural(n, "item")), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "Cancel")));
   return c;
 }
 function scanPick(r, where) {
