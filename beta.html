@@ -1247,6 +1247,13 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
 @media (max-width:340px){.hbtn.undob>span{display:none}.hbtn.undob{padding:0;width:34px!important;justify-content:center}}
 #undoFloat{position:fixed;top:calc(var(--safe-t) + 10px);right:12px;z-index:80;min-height:36px;padding:0 14px;border-radius:999px;border:0;background:var(--acc);color:#fff;font:800 14px var(--sans);box-shadow:var(--sh2);opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .18s,transform .18s}
 #undoFloat.show{opacity:1;transform:none;pointer-events:auto}
+/* the search field inside the add panel (phones): stays at the top of the panel while its content scrolls */
+.sdrop>#sbox{position:sticky;top:-16px;z-index:3;margin:-4px -4px 10px;padding:4px;background:var(--surface);border-radius:16px}
+.sdrop>#sbox svg{left:17px}
+.sdrop>#sbox .clr{right:10px}
+.sdrop>#sbox .inp{box-shadow:none;border:1px solid var(--line2)}
+.sdrop>#sbox .inp:focus{box-shadow:var(--ring)}
+@media (max-width:999px){body.dropopen #sbar .target{margin-top:0}body.dropopen .sdrop{top:calc(100% + 4px)}}
 </style>
 </head>
 <body data-tab="items">
@@ -1275,7 +1282,7 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
         <div class="sdrop card compact" id="sdrop" hidden>
-          <div class="sdhead"><button class="sdq" id="sdq" type="button" aria-label="Add items with the search bar"><b>Add items</b><span>with search bar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><span class="sdh-r"><button class="sdbtn ok" id="sdone2" type="button">Done</button></span></div>
+          <div class="sdhead"><b>Add items</b><span class="sdh-r"><button class="sdbtn ok" id="sdone2" type="button">Done</button></span></div>
           <div class="orrow" id="srcSeg" aria-label="Or add from"><span class="orl">or</span>
             <button data-src="pic" type="button" aria-label="From a picture">📷 Picture</button><button data-src="text" type="button" aria-label="From a text">📝 Text</button><button data-src="inv" type="button" aria-label="From your inventory">📦 Your inventory</button>
           </div>
@@ -4222,7 +4229,15 @@ function dropMode() {
 }
 $("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
 $("#sdone2").onclick = () => closeDrop();
-$("#sdq").onclick = () => { if (SRC.v !== "cat") setSrc("cat"); const q = $("#q"); q.focus(); try { q.scrollIntoView({ block: "nearest" }); } catch (e) {} };   // the arrow points at the bar: tap it to type
+/* On a phone the search field lives inside the add panel, with Picture / Text / Your inventory and the groups: one menu.
+   On a computer it stays the bar at the top (typing opens the panel under it). */
+const SBOX_MQ = matchMedia("(max-width:999px)");
+function sboxPlace() {
+  const b = $("#sbox"), d = $("#sdrop"), hd = d && d.querySelector(".sdhead");
+  if (SBOX_MQ.matches) { if (b.parentNode !== d) hd.after(b); }
+  else if (b.parentNode !== $("#sbar")) $("#addBtn").after(b);
+}
+sboxPlace(); if (SBOX_MQ.addEventListener) SBOX_MQ.addEventListener("change", sboxPlace); else if (SBOX_MQ.addListener) SBOX_MQ.addListener(sboxPlace);
 $("#picImp").onclick = () => { closeDrop(); tab("imp"); };
 $("#catsT").onclick = () => { SETTINGS.catsOpen = !SETTINGS.catsOpen; saveSettings(); resLimit = baseLimit(); renderCats(); renderResults(); };
 /* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
@@ -7308,7 +7323,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 23:45";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "28 Nov 2026 · 00:05";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
