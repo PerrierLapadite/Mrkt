@@ -184,6 +184,9 @@ body[data-tab=prev] #editor{display:none}
 .sprule .sph{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px;align-items:baseline}
 .sprule .sph small{color:var(--mut);font-weight:600}
 .sprule.bad b,.sprule.bad small{color:var(--acc)}
+.spfix{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:6px;font-size:13px;font-weight:600}
+.spfix span{flex:1 1 160px;color:var(--acc)}.spfix.ok span{color:var(--mut)}
+.spfix .btn.sm{min-height:32px;padding:0 10px}
 .sprule .mchips{margin-top:6px}
 .spmsg{font-weight:700;font-size:13px}
 .spundo{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--line2);border-radius:12px;font-size:14px}
@@ -4405,7 +4408,7 @@ function spTarget(name, items) {
   const fam = orderFamily(n) || orderFamily(c);
   if (fam) { const f = withMix(new Set(fam.map(p => p.id))); if (f.length) return { items: f, how: "family" }; }
   const sp = SP_CATS[c] || SP_CATS[core[0]], cats = sp ? [sp] : catsOf(c).length ? catsOf(c) : catsOf(core[0]);
-  if (cats.length && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && cats.includes(CAT.byId[w.ref].cat)), how: "category" };
+  if (cats.length && core.length <= 2) { const ci = items.filter(w => w.ref && CAT.byId[w.ref] && cats.includes(CAT.byId[w.ref].cat)); if (ci.length) return { items: ci, how: "category" }; }
   // a word they share: "mussel" → Mussel Nigiri, Grilled Mussels, Steamed Mussels…
   if (wd.length >= 2) return { items: wd, how: "named “" + c + "”" };
   const r = findMatches(c, items, w => pName(w), 1);
@@ -4413,14 +4416,63 @@ function spTarget(name, items) {
   if (wd.length === 1) return { items: wd, how: "this item" };
   return { items: [], how: "" };
 }
+/* a list of names with one price at the end: "chilli poppers, macaroon, coconut bars, fudge — all this 10xmp",
+   written on one line or on several (the lines without a price wait for the next price) */
+const SP_TAIL = /\s*(?:\b(?:and\s+)?(?:everything|every ?thing|all of (?:them|these|this|it|those)|all (?:this|these|them|those|of them)|them all|these|those|this|all|each|ea|both|for all|for|at|@)\b|[=:@→–—-])\s*$/i;
+const spClean = e => e.replace(/^[\s(\[{"“'«]+|[\s)\]}"”'».!?]+$/g, "").replace(/^(?:and|&|or)\s+/i, "").replace(/\s+/g, " ").trim();
+function spSplit(rest) {
+  const parts = String(rest || "").split(/\s*(?:,(?!\d{3}\b)|\+|\||\n)\s*/).map(spClean).filter(Boolean);
+  if (parts.length) { let l = parts[parts.length - 1], q; do { q = l; l = spClean(l.replace(SP_TAIL, "")); } while (l && l !== q); if (l) parts[parts.length - 1] = l; else parts.pop(); }
+  return parts;
+}
+/** A name with spelling mistakes → the one item of your post it surely means ("chilli poppers" → Chili Popcorn), else null. */
+function spFuzzy(el, items, loose) {
+  const tq = toks(el).filter(t => !SP_FILL.test(t)); if (!tq.length || !items.length) return null;
+  const sim = (a, b) => { if (a === b || same(a, b)) return 1; const m = Math.max(a.length, b.length); let s = 1 - lev(a, b) / m, k = 0; while (k < a.length && k < b.length && a[k] === b[k]) k++; if (k >= 3) s = Math.max(s, .55 + .45 * k / m); return s; };
+  const sc = items.map(w => { const tw = toks(pName(w)); if (!tw.length) return { w, s: 0 };
+    const per = tq.map(t => Math.max(...tw.map(y => sim(t, y)))), a = per.reduce((x, y) => x + y, 0) / tq.length, b = tw.reduce((x, y) => x + Math.max(...tq.map(t => sim(t, y))), 0) / tw.length;
+    return { w, s: Math.min(...per) < (loose ? .4 : .5) ? 0 : a * .65 + b * .35 }; }).sort((x, y) => y.s - x.s);   // every word written must look like a word of the item
+  const ok = sc[0].s >= (loose ? .45 : .62) && (!sc[1] || sc[0].s - sc[1].s >= (loose ? .04 : .1));
+  return ok ? sc[0].w : null;
+}
+/** One name of a list → its items in your post (a group, an item, a spelling guess), or what it might be. */
+function spEl(el, items) {
+  const T = spTarget(el, items); if (T.items.length) return { el, items: T.items, how: T.how };
+  const ands = el.split(/\s+(?:and|&)\s+/i);          // "macaroon and fudge" (but "fish and chips" stays one item, found above)
+  if (ands.length > 1) { const A = ands.map(a => spTarget(a, items)); if (A.every(r => r.items.length)) return { el, items: [...new Set(A.flatMap(r => r.items))], how: "items" }; }
+  // a real item of the game that isn't in your post ("banana bread") is said so — not guessed as another one ("bread")
+  const gm = matchProduct(el), gIn = gm.p && gm.sure && !isVirt(gm.p);
+  const f = gIn ? null : spFuzzy(el, items); if (f) return { el, items: [f], how: "spelling?", guess: true };
+  const r = gIn ? [{ x: gm.p, sc: 9 }] : findMatches(el, CAT.list.filter(p => !isVirt(p)), p => p.en, 1);
+  return { el, items: [], near: spFuzzy(el, items, true), game: r[0] && r[0].sc >= 3 ? r[0].x.en : "" };
+}
 /** The rules of the box → each with its items, price, and what's wrong. Later lines win where they overlap. */
 function spRules(text, items, trade) {
   const out = [];
-  String(text || "").slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES).forEach((line, i) => {
-    const P = spPrice(line, trade), R = { i, line, price: P, items: [], err: "" };
-    if (!P) R.err = trade ? "no ratio — write it like 45:89" : "no price — write it like 5x, 6k, 800, 2r";
+  const lines = String(text || "").slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES);
+  // lines without a price: names waiting for the price written at the end of the list
+  const joined = []; let pend = [];
+  lines.forEach(l => { if (!spPrice(l, trade)) { pend.push(l.replace(/[,\s]+$/, "")); return; } joined.push({ line: pend.length ? pend.concat(l).join(", ") : l, n: pend.length + 1 }); pend = []; });
+  if (pend.length) joined.push({ line: pend.join(", "), n: pend.length, open: true });
+  joined.forEach((J, i) => {
+    const line = J.line, P = spPrice(line, trade), R = { i, line, price: P, items: [], err: "", n: J.n };
+    if (!P) R.err = J.n > 1 ? "no price at the end of this list — e.g. “… all 10x”" : trade ? "no ratio — write it like 45:89" : "no price — write it like 5x, 6k, 800, 2r";
     else if (trade ? !(P.ra > 0 && P.rb > 0 && P.ra <= 1e6 && P.rb <= 1e6) : !(P.p > 0 && P.p <= (P.pu === "coin" ? 1e9 : 1e5))) R.err = "the price isn't valid";
-    else { const T = spTarget(P.rest, items); R.items = T.items; R.how = T.how; if (!T.items.length) R.err = "“" + (P.rest || "?") + "” — no item of your post"; }
+    else {
+      const parts = spSplit(P.rest);
+      if (parts.length <= 1) {
+        const one = parts.length ? parts[0] : spClean(P.rest), E = spEl(one, items);
+        R.items = E.items; R.how = E.how; R.list = [E];
+        if (!E.items.length) { R.err = "“" + (one || "?") + "” — no item of your post"; R.miss = [E]; }
+        if (E.guess) R.guess = [E];
+      } else {
+        R.list = parts.map(e => spEl(e, items)); R.items = [...new Set(R.list.flatMap(E => E.items))];
+        R.miss = R.list.filter(E => !E.items.length); R.guess = R.list.filter(E => E.guess);
+        R.how = plural(parts.length, "name");
+        if (R.miss.length) R.err = R.miss.map(E => "“" + E.el + "”").join(", ") + " — not in your post";
+        R.rest = parts.join(", ");
+      }
+    }
     out.push(R);
   });
   // the last rule for each item is the one used
@@ -4449,6 +4501,19 @@ function samePriceBar() {
     placeholder: trade ? "One rule a line, e.g.\nall jams 45:89\nmussel products 60:89\nall bars 120:89" : "One rule a line, e.g.\nall jams 5x\nmussel products 6k\nall bars 800\neverything 4x" });
   const prev = h("div", { class: "spprev" }), msg = h("div", { class: "spmsg" });
   const apply = h("button", { class: "btn pri", disabled: true }, "Apply");
+  // a fix from the preview: a name replaced (or removed) right in the box
+  const spEdit = (el, to) => {
+    const v = ta.value, re = new RegExp(el.trim().split(/\s+/).map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+"), "i"), m = v.match(re);
+    if (!m) return;
+    let L = v.slice(0, m.index), Rt = v.slice(m.index + m[0].length);
+    if (to) ta.value = L + to + Rt;
+    else {
+      L = L.replace(/[(\[]\s*$/, ""); Rt = Rt.replace(/^\s*[)\]]/, "");
+      if (/,\s*$/.test(L)) L = L.replace(/\s*,\s*$/, ""); else Rt = Rt.replace(/^\s*,\s*/, "");
+      ta.value = (L + (L && !/\s$/.test(L) && Rt && !/^[\s,]/.test(Rt) ? " " : "") + Rt).replace(/[ \t]{2,}/g, " ").replace(/^[ \t]+|[ \t]+$/gm, "").replace(/\n{2,}/g, "\n");
+    }
+    show(); grow();
+  };
   let cur = { rules: [], last: new Map() };
   const show = () => {
     st.spText = ta.value.slice(0, SP_MAX_LEN); saveSoon();
@@ -4456,11 +4521,18 @@ function samePriceBar() {
     cur.rules.forEach(R => {
       const ch = R.err ? null : R.used.map(w => { const after = trade ? null : unitPrice({ ref: w.ref, p: String(R.price.p), pu: R.price.pu });
         return h("span", { class: "mchip" + (R.used.length < R.items.length ? "" : "") }, thumb(itemState(w), w.e, "mini"), pName(w), !trade && R.price.pu !== "coin" && after ? h("small", null, " " + fmtP(after) + " ea") : null); });
-      const over = R.err ? 0 : R.items.length - R.used.length;
+      const over = R.err ? 0 : R.items.length - R.used.length, list = R.list && R.list.length > 1;
+      const fix = (R.miss || []).map(E => h("div", { class: "spfix" }, h("span", null, "“" + E.el + "”" + (E.game && (!E.near || E.game !== pName(E.near)) ? " — " + E.game + " isn't in your post" : " — not found")),
+        E.near ? h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, pName(E.near)) }, "Use “" + pName(E.near) + "”") : null,
+        h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, null) }, "Remove")));
+      const guess = (R.guess || []).filter(E => E.items[0]).map(E => h("div", { class: "spfix ok" }, h("span", null, "“" + E.el + "” → " + pName(E.items[0]) + "?"),
+        h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, pName(E.items[0])) }, "Yes"), h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, null) }, "Remove")));
+      const head = R.err ? "⚠ " + (list || R.n > 1 ? (R.price ? spLabel(R.price, trade) + " for a list of " + plural(R.list ? R.list.length : R.n, "name") : "A list without a price") : R.line)
+        : (list ? plural(R.list.length, "name") : R.how === "every item" ? "Every item" : R.price.rest || "Every item") + " → " + spLabel(R.price, trade);
       prev.append(h("div", { class: "sprule" + (R.err ? " bad" : "") },
-        h("div", { class: "sph" }, h("b", null, R.err ? "⚠ " + R.line : (R.how === "every item" ? "Every item" : R.price.rest || "Every item") + " → " + spLabel(R.price, trade)),
-          R.err ? h("small", null, R.err) : h("small", null, plural(R.used.length, "item") + (R.how && R.how !== "every item" ? " · " + R.how : "") + (over ? " · " + over + " set by a later line" : ""))),
-        ch && ch.length ? h("div", { class: "mchips" }, ch) : null));
+        h("div", { class: "sph" }, h("b", null, head),
+          R.err ? h("small", null, R.miss && R.miss.length ? (R.items.length ? plural(R.items.length, "item") + " found · " : "") + plural(R.miss.length, "name") + " to fix ↓" : R.err) : h("small", null, plural(R.used.length, "item") + (R.how && R.how !== "every item" && !list ? " · " + R.how : "") + (over ? " · " + over + " set by a later line" : ""))),
+        ch && ch.length ? h("div", { class: "mchips" }, ch) : null, ...fix, ...guess));
     });
     const n = cur.last.size, same = [...cur.last].filter(([uid, R]) => { const w = items.find(x => x.uid === uid); return w && (trade ? num(w.ra) === R.price.ra && num(w.rb) === R.price.rb : num(w.p) === R.price.p && (w.pu || "coin") === R.price.pu); }).length;
     const bad = cur.rules.filter(R => R.err).length, keep = items.length - n;
@@ -4486,6 +4558,9 @@ function samePriceBar() {
   const chips = h("div", { class: "mchips spsug" }, sug.map(s => h("button", { type: "button", class: "mchip", onclick: () => {
     const v = ta.value.replace(/\s+$/, ""); ta.value = (v ? v + "\n" : "") + s.label + " "; ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) {} show(); } }, s.label, h("small", null, " " + s.n))));
   ta.addEventListener("input", debounce(show, 120));
+  // the box grows with a long list (up to about 9 lines), so the whole list stays in view
+  const grow = () => { ta.style.height = "auto"; ta.style.height = Math.min(Math.max(ta.scrollHeight + 2, 96), 250) + "px"; };
+  ta.addEventListener("input", grow); requestAnimationFrame(grow);
   const card = h("div", { class: "card ratiobar spcard" },
     h("div", { class: "rb-t" }, h("b", null, trade ? "Ratios by group" : "Prices by group"), h("button", { type: "button", "aria-label": "Close", onclick: () => { spOpen = false; renderLists(); } }, "✕")),
     h("p", { class: "hint" }, trade ? "One rule a line: a group of your items, then the ratio as on Discord (45:89 = 45 of them for 89 of yours). Later lines win." : "One rule a line: a group of your items, then the price — 5x (×MP), 6k, 800, 2r (rings), 1b (blankets). Later lines win."),
@@ -6901,7 +6976,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "26 Nov 2026 · 03:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 16:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
@@ -6987,6 +7062,27 @@ function qcLine(raw) {
   if (P && P.parts) qcPack(L, P);
   return L;
 }
+/** A list with one price at the end → one calculation per item:
+    "chilli popcorn, 20 macaroon, fudge all this 10xmp" → "chilli popcorn 10xmp", "20 macaroon 10xmp", "fudge 10xmp".
+    Lines without a price wait for the next price (a list written on several lines). */
+function qcExpand(text) {
+  const out = [], pend = [];
+  String(text || "").split(/\r?\n/).forEach(raw => {
+    const t = raw.trim(); if (!t) return;
+    const L = qcLine(t);
+    if (L && L.math) { out.push(...pend.splice(0)); out.push(t); return; }
+    if (!L || L.price == null) { pend.push(t.replace(/[,\s]+$/, "")); return; }
+    const all = pend.splice(0).concat(t).join(", "), parts = all.split(/\s*(?:,(?!\d{3}\b)|\+)\s*/).map(spClean).filter(Boolean);
+    const isTot = /(?:^|\s)for\s+\d[\d.,]*\s*[km]?\s*(?:coins?|c|g)?\s*$/i.test(t) || /\b(?:in\s*total|total|for\s*all)\s*$/i.test(t);
+    if (parts.length <= 1 || isTot) { out.push(all); return; }          // a total "for 1.5m" over a list: as written (it says what's wrong)
+    const LL = qcLine(parts.pop());
+    let nm = LL.name || "", q0; do { q0 = nm; nm = spClean(nm.replace(SP_TAIL, "")); } while (nm && nm !== q0);
+    const pt = LL.unit === "xmp" ? fmtRt(LL.price) + "xmp" : LL.unit === "ring" ? LL.price + " rings" : LL.unit === "blanket" ? LL.price + " blankets" : String(LL.price);
+    parts.forEach(e => { const E = qcLine(e); out.push(E && (E.math || E.price != null) ? e : e + " " + pt); });
+    if (nm) out.push((LL.q !== 1 ? LL.q + " " : "") + nm + " " + pt);
+  });
+  return out.concat(pend);
+}
 /** A set: its materials (89 a set: 30 Bolt + 30 Plank + 29 Duct Tape) and what each part is worth, in whole coins adding up to the total. */
 function qcPack(L, P) {
   const n = Math.round(L.q * SET_N); L.mats = n; if (!n) return;
@@ -7017,7 +7113,7 @@ function openCalc() {
   const paint = () => {
     SETTINGS.calc = ta.value; SETTINGS.calcPct = pct.value; saveSettings();
     out.textContent = "";
-    const Ls = ta.value.split(/\r?\n/).map(qcLine).filter(Boolean);
+    const Ls = qcExpand(ta.value).map(qcLine).filter(Boolean);
     if (!Ls.length) { out.append(h("p", { class: "hint" }, "Quantity, item, price. “ea” = each, “for 1.5m” = for all of them. Prices in coins (150k, 2.5k, 1.5m), rings, blankets or ×MP. Plain math works too: 150k*10.")); return; }
     let sum = 0, n = 0, items = 0;
     Ls.forEach(L => {
