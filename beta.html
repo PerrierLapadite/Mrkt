@@ -1223,7 +1223,7 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
 .catsT svg{width:18px;height:18px;flex:none;transition:transform .2s var(--ease);color:var(--mut)}
 .catsT.open svg{transform:rotate(90deg)}
 .catsT+.chips{margin-top:8px}
-#cats[hidden],#catsT[hidden]{display:none!important}
+#cats[hidden],#catsT[hidden],#catPick.folded #results,#catPick.folded .two{display:none!important}
 </style>
 </head>
 <body data-tab="items">
@@ -4151,8 +4151,10 @@ function newRatioSheet(it) {
 }
 function markTargetGroup() { $$(".grp").forEach(g => g.classList.toggle("target", SETTINGS.to !== "have" && g.dataset.key === curAddKey())); }
 const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have : st.wants;
+/** Groups folded and nothing typed: the items stay put away too — only the "From item groups ›" line shows. */
+function foldSync() { const f = SRC.v === "cat" && !$("#q").value && !SETTINGS.catsOpen; $("#catPick").classList.toggle("folded", f); $("#sbig").hidden = SRC.v === "pic" || f; }
 function renderResults() {
-  const q = $("#q").value;
+  const q = $("#q").value; foldSync();
   $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q || !SETTINGS.catsOpen; $("#catsT").hidden = !!q;
   const LQ = lvlQuery(q); $("#results").classList.toggle("lvlmode", !!LQ);
   if (LQ) { const box = $("#results"); box.textContent = ""; renderLvlResults(LQ, box); return; }
@@ -4184,7 +4186,7 @@ function dropMode() {
 $("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
 $("#sdone2").onclick = () => closeDrop();
 $("#picImp").onclick = () => { closeDrop(); tab("imp"); };
-$("#catsT").onclick = () => { SETTINGS.catsOpen = !SETTINGS.catsOpen; saveSettings(); renderCats(); };
+$("#catsT").onclick = () => { SETTINGS.catsOpen = !SETTINGS.catsOpen; saveSettings(); resLimit = baseLimit(); renderCats(); renderResults(); };
 /* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
 let LVL = (() => { try { return store.get("hd5_lvl") || {}; } catch (e) { return {}; } })();   // id → level (0 = none found)
 const LVL_ST = { loading: false, done: 0, total: 0, p: null, fail: false };
@@ -4409,7 +4411,7 @@ function setSrc(v) {
   SRC.v = v; $$("#srcSeg button").forEach(b => { b.classList.toggle("on", b.dataset.src === v); b.setAttribute("aria-selected", b.dataset.src === v ? "true" : "false"); });
   $("#catPick").hidden = v !== "cat"; $("#invPick").hidden = v !== "inv"; $("#textPick").hidden = v !== "text"; $("#picPick").hidden = v !== "pic";
   $("#q").placeholder = v === "inv" ? "Search my inventory" : v === "text" ? "Search a product (or write below)" : "Search a product to add";
-  srcHint(); $("#sbig").hidden = v === "pic";
+  srcHint(); foldSync();
   if (v === "pic") return;
   if (v === "inv") renderInvPick(); else if (v === "text") { renderPaste(); setTimeout(() => { const t = $("#pasteIn"); if (t) t.focus({ preventScroll: true }); }, 60); } else renderResults();
 }
@@ -7268,7 +7270,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 22:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 22:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
