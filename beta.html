@@ -1208,6 +1208,22 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
 .sdmore svg{width:26px;height:26px;padding:2px 10px;box-sizing:content-box;border-radius:999px;background:var(--surface2);border:1px solid var(--line);transition:transform .2s var(--ease)}
 .sdmore.up svg{transform:rotate(180deg)}
 .sdmore:active svg{background:var(--line)}
+/* phone: "Add items to my post" opens the panel (no keyboard); the search field shows once it's open */
+.addbtn{display:none}
+@media (max-width:999px){
+  .addbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border-radius:14px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);font:800 16px var(--sans);cursor:pointer}
+  .addbtn .ap{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font:800 18px/1 var(--sans)}
+  body:not(.dropopen) #sbox{display:none}
+  body.dropopen #addBtn{display:none}
+}
+/* "From item groups › Recent": one line; open, the groups in a row you swipe */
+.catsT{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:0 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:700 13.5px var(--sans);cursor:pointer;text-align:left}
+.catsT>span{flex:none;color:var(--mut)}
+.catsT>b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-weight:800}
+.catsT svg{width:18px;height:18px;flex:none;transition:transform .2s var(--ease);color:var(--mut)}
+.catsT.open svg{transform:rotate(90deg)}
+.catsT+.chips{margin-top:8px}
+#cats[hidden],#catsT[hidden]{display:none!important}
 </style>
 </head>
 <body data-tab="items">
@@ -1228,6 +1244,7 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
     <!-- ===== ITEMS ===== -->
     <section class="panel" id="p-items">
       <div class="sbar" id="sbar">
+        <button class="addbtn" id="addBtn" type="button"><span class="ap">＋</span>Add items to my post</button>
         <div class="sbox" id="sbox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input class="inp" id="q" type="search" placeholder="Search a product to add" autocomplete="off" autocapitalize="off" enterkeyhint="done">
@@ -1247,7 +1264,8 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
             <button class="pickbig" type="button" id="picImp"><span class="si">📥</span><span><b>A whole post (Discord screenshot)</b><small>Someone’s post or your old one: its items, quantities and prices become a new post.</small></span></button>
           </div>
           <div id="catPick">
-          <div class="chips" id="cats"></div>
+          <button class="catsT" id="catsT" type="button" aria-expanded="false"><span>From item groups</span><b id="catsCur"></b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          <div class="chips" id="cats" hidden></div>
           <div class="grid" id="results"></div>
           <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
           </div>
@@ -3964,7 +3982,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet()
 
 function tab(t) {
   if (t === "me") { openMe(); return; }   // the profile is a menu that drops from its button
-  if (t === "paste") { tab("items"); $("#sdrop").hidden = false; setSrc("text"); return; }   // "From a text" is in the Items search panel
+  if (t === "paste") { tab("items"); openDrop(); setSrc("text"); return; }   // "From a text" is in the Items search panel
   if (t === "search") { tab("inv"); $("#srCard").open = true; requestAnimationFrame(() => $("#srCard").scrollIntoView({ behavior: "smooth", block: "start" })); return; }   // Search is a card of the inventory page
   document.body.dataset.tab = t;
   $$("#tabbar [data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
@@ -4073,6 +4091,10 @@ function renderCats() {
     if ((k.id === "perso" || k.id === "other") && !CAT.list.some(p => p.cat === k.id)) return;
     c.append(h("button", { class: "chip" + (curCat === k.id ? " on" : ""), onclick: () => { curCat = k.id; resLimit = 16; renderCats(); renderResults(); } }, CAT_EN[k.id] || k.id));
   });
+  // the groups fold into one line, "From item groups › Recent": tap it to choose another group
+  const on = c.querySelector(".chip.on"); $("#catsCur").textContent = on ? on.textContent : "";
+  const open = !!SETTINGS.catsOpen; c.hidden = !open; $("#catsT").classList.toggle("open", open); $("#catsT").setAttribute("aria-expanded", open ? "true" : "false");
+  if (open && on) requestAnimationFrame(() => { try { on.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {} });
   renderTarget();
 }
 /* ---------- trade: where new items go (I have, or a ratio group) ---------- */
@@ -4116,7 +4138,7 @@ function newRatioSheet(it) {
     closeSheet();
     if (it && it.uid) { it.ra = r.ra; it.rb = r.rb; it.give = r.give; renderLists(); renderTarget(); changed(); toast(it.name + " → " + ratioLabel(r.ra, r.rb)); return; }
     setAddR(r); toast("Now tap products to add them at " + ratioLabel(r.ra, r.rb));
-    $("#q").focus({ preventScroll: true }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" });
+    openDrop(); $("#sbar").scrollIntoView({ block: "start", behavior: "smooth" });
   };
   const existing = it && it.uid ? ratioGroups(st.wants.filter(w => (w.name || "").trim() || w.ref)).filter(g => !g.none && g.key !== ratioKey(it)) : [];
   openSheet(it && it.uid ? "Ratio for " + (it.name || "item") : "New ratio", [
@@ -4131,7 +4153,7 @@ function markTargetGroup() { $$(".grp").forEach(g => g.classList.toggle("target"
 const targetList = () => st.type === "trade" && SETTINGS.to === "have" ? st.have : st.wants;
 function renderResults() {
   const q = $("#q").value;
-  $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q;
+  $("#sbox").classList.toggle("has", !!q); $("#cats").hidden = !!q || !SETTINGS.catsOpen; $("#catsT").hidden = !!q;
   const LQ = lvlQuery(q); $("#results").classList.toggle("lvlmode", !!LQ);
   if (LQ) { const box = $("#results"); box.textContent = ""; renderLvlResults(LQ, box); return; }
   const res = search(q, q ? "all" : curCat), box = $("#results");
@@ -4162,6 +4184,7 @@ function dropMode() {
 $("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
 $("#sdone2").onclick = () => closeDrop();
 $("#picImp").onclick = () => { closeDrop(); tab("imp"); };
+$("#catsT").onclick = () => { SETTINGS.catsOpen = !SETTINGS.catsOpen; saveSettings(); renderCats(); };
 /* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
 let LVL = (() => { try { return store.get("hd5_lvl") || {}; } catch (e) { return {}; } })();   // id → level (0 = none found)
 const LVL_ST = { loading: false, done: 0, total: 0, p: null, fail: false };
@@ -4338,8 +4361,10 @@ function renderLvlResults(R, box) {
 }
 
 /* drop-down results: open while searching, close with Done / Esc / tap outside */
-function openDrop() { if (!$("#sdrop").hidden) return; dropMode(); $("#sdrop").hidden = false; srcHint(); if (SRC.v === "pic") return; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
-function closeDrop() { $("#sdrop").hidden = true; $("#q").blur(); }
+function openDrop() { if (!$("#sdrop").hidden) return; document.body.classList.add("dropopen"); dropMode(); $("#sdrop").hidden = false; srcHint(); if (SRC.v === "pic") return; if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "text") renderPaste(); else { renderCats(); renderResults(); } }
+function closeDrop() { $("#sdrop").hidden = true; document.body.classList.remove("dropopen"); $("#q").blur(); }
+// on a phone the bar is a button: it opens the panel without the keyboard — tap the search field inside to type
+$("#addBtn").onclick = () => openDrop();
 $("#q").addEventListener("focus", openDrop);
 $("#sdone").onclick = closeDrop;
 $("#cardMode").onclick = () => { SETTINGS.cardFull = !SETTINGS.cardFull; saveSettings(); renderLists(); };
@@ -4378,7 +4403,7 @@ function srcHint() {
   const e = $("#srcHint"); if (!e) return; e.textContent = "";
   const t = { inv: "What you have, with its quantity — tap to add it as it is.", text: "Paste a list (Discord, notes…): one item a line, with its quantity and price.", pic: "Let the site read a picture for you." }[SRC.v];
   e.hidden = !t; if (!t) return;
-  e.append(t + " ", h("button", { type: "button", class: "backsrc", onclick: () => { setSrc("cat"); $("#q").focus({ preventScroll: true }); } }, "← Back to the search"));
+  e.append(t + " ", h("button", { type: "button", class: "backsrc", onclick: () => setSrc("cat") }, "← Back to the search"));
 }
 function setSrc(v) {
   SRC.v = v; $$("#srcSeg button").forEach(b => { b.classList.toggle("on", b.dataset.src === v); b.setAttribute("aria-selected", b.dataset.src === v ? "true" : "false"); });
@@ -4487,11 +4512,11 @@ function renderLists() {
   }
   // an empty post: the quickest ways to fill it
   if (!st.wants.length) {
-    const q = (t, f) => { $("#q").value = t; $("#q").focus(); openDrop(); f && f(); resLimit = baseLimit(); renderResults(); };
+    const q = (t, f) => { $("#q").value = t; openDrop(); $("#q").focus(); f && f(); resLimit = baseLimit(); renderResults(); };
     wl.prepend(h("div", { class: "empty card starts" }, h("b", null, "Fill this post"),
       h("div", { class: "startb" },
         h("button", { class: "btn", onclick: () => q("") }, "🔍 Search an item"),
-        h("button", { class: "btn", onclick: () => { $("#q").focus(); openDrop(); setSrc("inv"); } }, "📦 From my barn"),
+        h("button", { class: "btn", onclick: () => { openDrop(); setSrc("inv"); } }, "📦 From my barn"),
         h("button", { class: "btn", onclick: () => q("level 1 to 30") }, "🔢 By level"),
         h("button", { class: "btn", onclick: () => tab("imp") }, "📥 Import a post")),
       h("small", null, "Import: a screenshot of a post (yours or another seller's) or its text — the items, quantities and prices come in at once.")));
@@ -4751,7 +4776,7 @@ function groupCard(g) {
     h("button", { onclick: () => { closeSheet(); addHere(); } }, h("i", null, "＋"), "Add items to this group"),
     g.none ? null : h("button", { onclick: () => { closeSheet(); setTimeout(() => bulkSheet(g), 220); } }, h("i", null, "⇣"), g.bulk ? "Bulk ratio: " + bulkLabel(g) : "Bulk ratio (for big deals)"),
     h("button", { class: "danger", onclick: () => { if (!confirm("Remove the " + g.items.length + " items of this group?")) return; st.wants = st.wants.filter(w => !g.items.includes(w)); closeSheet(); renderLists(); renderTarget(); renderResults(); changed(); } }, h("i", null, "×"), "Remove this group and its items"))) }, "⋯");
-  const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give, bulk: g.bulk }); $("#sbox").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(() => $("#q").focus({ preventScroll: true }), 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
+  const addHere = () => { setAddR(g.none ? null : { ra: a.value, rb: b.value, give: g.give, bulk: g.bulk }); $("#sbar").scrollIntoView({ block: "start", behavior: "smooth" }); setTimeout(openDrop, 350); toast("Tap products to add them " + (g.none ? "without ratio" : "at " + ratioLabel(a.value, b.value))); };
   put(card,
     h("div", { class: "grp-h" }, h("div", { class: "rin" }, b, h("span", { class: "colon" }, ":"), a, giveBtn), menu),
     g.bulk ? h("button", { class: "bulkr", title: "Bulk ratio — tap to change", onclick: () => bulkSheet(g) }, h("b", null, "Bulk"), " " + bulkLabel(g)) : null,
@@ -7243,7 +7268,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 22:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 22:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
