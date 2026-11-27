@@ -184,6 +184,9 @@ body[data-tab=prev] #editor{display:none}
 .sprule .sph{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px;align-items:baseline}
 .sprule .sph small{color:var(--mut);font-weight:600}
 .sprule.bad b,.sprule.bad small{color:var(--acc)}
+.spfix{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:6px;font-size:13px;font-weight:600}
+.spfix span{flex:1 1 160px;color:var(--acc)}.spfix.ok span{color:var(--mut)}
+.spfix .btn.sm{min-height:32px;padding:0 10px}
 .sprule .mchips{margin-top:6px}
 .spmsg{font-weight:700;font-size:13px}
 .spundo{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--line2);border-radius:12px;font-size:14px}
@@ -623,6 +626,11 @@ body[data-tab=prev] #editor{display:none}
 .srow{display:grid;grid-template-columns:76px minmax(0,1fr) 70px 26px;gap:8px;align-items:center;padding:6px 8px;border-top:1px solid var(--line);background:var(--surface)}
 .srow:first-child{border-top:0}
 .srow.chk{background:rgba(230,169,58,.15)}
+.srow.dup{box-shadow:inset 3px 0 0 #e0533a}
+.srow.flash{animation:srflash 1.4s ease}
+@keyframes srflash{0%,40%{background:rgba(224,83,58,.45)}100%{background:rgba(230,169,58,.15)}}
+.btn.pri.soft{opacity:.55}
+.sblock{margin-top:12px}
 .srow.off{opacity:.45}
 .scrop{width:76px;height:44px;object-fit:contain;border-radius:6px;background:#fff9db}
 .scrop.big{width:100%;height:110px;margin-bottom:8px}
@@ -710,6 +718,7 @@ body[data-tab=prev] #editor{display:none}
 .pchip .pdel{margin:0 -6px 0 2px;width:22px;height:22px;display:inline-grid;place-items:center;border-radius:50%;font:600 17px/1 var(--sans);color:var(--mut);opacity:.7}
 .pchip .pdel:hover{opacity:1;background:var(--line)}
 #undoBtn:disabled{opacity:.35}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .ib.idel{color:var(--mut);font-size:22px;font-weight:500;width:30px!important}
 .ib.idel:hover{color:var(--red,#c0392b)}
 .clrall{margin-top:6px;color:var(--mut)}
@@ -1152,67 +1161,17 @@ details summary{-webkit-tap-highlight-color:transparent}
 .ftot .ftl{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 13.5px var(--sans);text-align:left;padding:6px 8px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
 .ftot .ftl b{font-weight:800}
 .ftot .ftp{border:0;border-radius:9px;background:var(--ink);color:var(--bg);font:700 13px var(--sans);padding:8px 12px;white-space:nowrap}
-/* buyer link: the shop a buyer sees */
-body.shopmode{overflow:hidden}
-body.shopmode .tabbar,body.shopmode .ftot,body.shopmode .jump,body.shopmode #mini{display:none!important}
-.shopv{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(14px + var(--safe-t)) 14px 0;display:flex;flex-direction:column}
-.shead{display:grid;gap:8px;max-width:900px;width:100%;margin:0 auto}
-.shead .sh1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.shead{gap:6px}.shead .sh1 b{font:800 20px/1.15 var(--sans)}.shead .hint{font-size:12.5px}
-.shead .sh1 span{color:var(--mut);font-weight:700;white-space:nowrap}
-.shead .sh2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-weight:600;font-size:14px}
-.stype{font:700 11px var(--sans);letter-spacing:.08em;color:#fff;border-radius:6px;padding:4px 8px;background:var(--t-vente)}
-.stype.achat{background:var(--t-achat)}
-.sbox2{display:grid;gap:8px}
-.sbox2{grid-template-columns:minmax(0,1fr) auto;align-items:center}.sbox2 .inp{min-height:42px;font-size:16px}.sbox2 .seg button{padding:0 10px;font-size:13px;white-space:nowrap}
-.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-width:900px;width:100%;margin:10px auto 0}
-@media (max-width:440px){.sgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (max-width:350px){.sgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.stile{position:relative;display:grid;justify-items:center;align-content:start;gap:1px;padding:6px 3px 5px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);text-align:center;color:var(--ink);font:inherit;min-width:0}
-.stile.in{border:2px solid var(--ink);padding:5px 2px 4px;background:var(--surface2)}
-.stile .th.sth{width:34px;height:34px;font-size:23px;margin-bottom:2px}
-.snm{font-weight:700;font-size:11.5px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;max-width:100%}
-.spr{font-weight:800;font-size:11px;line-height:1.2}
-.sst{color:var(--mut);font-size:10.5px;font-weight:600;line-height:1.2}
-.sbadge{position:absolute;top:-5px;right:-4px;background:var(--ink);color:var(--bg);border-radius:9px;padding:1px 6px;font:800 11px var(--sans);box-shadow:0 0 0 2px var(--bg)}
-.sempty{grid-column:1/-1;text-align:center;padding:30px 0}
-.sfoot{text-align:center;color:var(--mut);font-size:12px;margin:14px 0}
-.sfoot a{color:inherit;text-decoration:underline}
-.scart{position:sticky;bottom:0;margin:auto -14px 0;padding:10px 14px calc(10px + var(--safe-b));background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line2);display:flex;justify-content:center}
-.scart .btn{max-width:600px;display:flex;justify-content:space-between;gap:8px;min-height:52px}
-.scart .hint{padding:10px 0}
-.spick{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-.spick>div{display:grid;gap:2px;font-family:var(--sans)}.spick b{font-size:17px}
-.th.sthb{width:72px;height:72px;font-size:44px;flex:none}
-.sall{min-height:52px;font-size:16px;margin-bottom:12px}
-.sqrow{display:grid;grid-template-columns:48px minmax(0,1fr) 48px auto;gap:8px}
-.sqin{text-align:center;font-size:18px;font-weight:700}
-.schips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.sline{margin:8px 0 0}
-.soffer{margin-top:12px;border:1px solid var(--line2);border-radius:12px;padding:10px 12px}
-.soffer summary{font-weight:700;cursor:pointer}
-.soffer .box{display:flex;gap:8px;align-items:center;margin:10px 0 6px}
-.soffer .au{color:var(--mut);font-weight:700;white-space:nowrap}
-.slines{display:grid;gap:6px;margin:12px 0}
-.sline2{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding-bottom:6px}
-.slb{flex:1;display:flex;gap:8px;align-items:center;text-align:left;background:none;border:0;padding:4px 0;color:var(--ink);min-width:0;font:inherit}
-.slb>span{display:grid;min-width:0}
-.slb small{color:var(--mut)}
-.slv{font-weight:800;white-space:nowrap}
-.stot{margin:6px 0 12px}
-.soff b{color:var(--acc)}
-.sbroken{max-width:480px;margin:20vh auto;display:grid;gap:12px;text-align:center}
-.shopurl{font:12px/1.35 ui-monospace,Menlo,monospace;word-break:break-all}
-.shoplinkb{width:100%;margin-top:8px}
-.obuyer{display:grid;gap:8px}
-.obh{display:flex;gap:10px;align-items:center}
-.obh>span{font-size:22px}
-.obh>div{flex:1;display:grid}
-.obh small{color:var(--mut)}
-.obnote{margin:0;font-weight:600}
-.oboff{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:8px}
-.oboff .brk{display:flex;justify-content:space-between;gap:10px;font-weight:600}
-.oboff .btn.on{background:var(--ink);color:var(--bg)}
+/* tabs at the top: for browsers whose bottom bar covers the page (Chrome / Firefox / Edge on iPhone) */
+@media (max-width:999px){
+  body.tabtop .sbar{top:var(--ttop,61px);margin-top:-12px}
+  body.tabtop .tabbar{position:sticky;top:0;left:auto;right:auto;bottom:auto;margin:-18px -14px 12px;padding:6px 6px;padding-top:max(6px,var(--safe-t));border-top:0;border-bottom:1px solid var(--line);box-shadow:0 10px 24px -18px rgba(0,0,0,.5);z-index:40}
+}
+.metabs{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 4px 2px}
+.metabs b{display:block;font-size:14px}.metabs small{color:var(--mut);font-size:12px}
+.metabs .seg{flex:none}
+/* small phones (iPhone SE…): the unit is its icon only, so a price like 15000 stays readable */
+@media (max-width:360px){.box .u .ut{display:none}.box .u{padding-left:10px;padding-right:10px}}
+header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past them (320 px screens) */
 </style>
 </head>
 <body data-tab="items">
@@ -1336,7 +1295,6 @@ body.shopmode .tabbar,body.shopmode .ftot,body.shopmode .jump,body.shopmode #min
       <div class="card fieldset">
         <div class="ch"><h2>Order calculator</h2></div>
         <p class="hint" id="orderFor"></p>
-        <button class="btn sm shoplinkb" id="shopLinkBtn2" title="A buyer taps what they want in your post and sends you back a picture or a link — paste it here">🔗 Send a link for buyers</button>
         <div class="seg omodes" id="oModeSeg"><button data-om="text" class="on">✍️ Their message</button><button data-om="pick">👆 Tap my items</button></div>
         <div id="oPick" hidden></div>
         <div id="oText">
@@ -1401,7 +1359,6 @@ body.shopmode .tabbar,body.shopmode .ftot,body.shopmode .jump,body.shopmode #min
         <button class="btn" id="share">Share</button>
         <button class="btn" id="copy">Copy</button>
       </div>
-      <button class="btn shoplinkb" id="shopLinkBtn" title="A link where a buyer taps the items they want and sends you their order">🔗 Link for buyers</button>
       <details class="pvtexts" id="pvTexts">
         <summary>✎ Texts on the picture <small>title, your name, stamp, notes</small></summary>
         <div class="pvt">
@@ -2208,9 +2165,31 @@ const fmtR = n => (Math.abs(n) < 100 ? Math.round(n * 10) / 10 : Math.round(n)).
 // ?demo = read-only copy used by guide.html: never reads or writes the visitor's posts (only shared caches)
 const DEMO = /[?&]demo\b/.test(location.search), CACHE_KEY = /^hd5_(urls|wiki|maxp|maxp10)$/;
 var UND = null;   // the global undo (set up at the end, once everything is loaded)
+/* saved data: unreadable data is kept aside (never overwritten); a full storage frees the caches, then says so */
+const STORE_BAD = [];
+let storeWarnT = 0;
 const store = {
-  get(k, d) { if (DEMO && !CACHE_KEY.test(k)) return d; try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { if (DEMO && !CACHE_KEY.test(k)) return true; try { const j = JSON.stringify(v); localStorage.setItem(k, j); if (UND) undoSeen(k, j); return true; } catch (e) { return false; } }
+  get(k, d) {
+    if (DEMO && !CACHE_KEY.test(k)) return d;
+    let v = null; try { v = localStorage.getItem(k); } catch (e) { return d; }
+    if (v == null) return d;
+    try { return JSON.parse(v); }
+    catch (e) { if (!CACHE_KEY.test(k)) { try { if (localStorage.getItem(k + "_unreadable") == null) localStorage.setItem(k + "_unreadable", v); } catch (e2) {} STORE_BAD.push(k); } return d; }
+  },
+  set(k, v) {
+    if (DEMO && !CACHE_KEY.test(k)) return true;
+    let j; try { j = JSON.stringify(v); } catch (e) { return false; }
+    for (let a = 0; a < 2; a++) {
+      try { localStorage.setItem(k, j); if (UND) undoSeen(k, j); return true; }
+      catch (e) {
+        if (CACHE_KEY.test(k) || k === "hd5_impcrop") return false;          // a cache: nothing lost
+        if (a === 0) { ["hd5_urls", "hd5_impcrop", "hd5_wiki"].forEach(c => { if (c !== k) try { localStorage.removeItem(c); } catch (e2) {} }); continue; }   // room made: try again
+        if (Date.now() - storeWarnT > 20000) { storeWarnT = Date.now(); setTimeout(() => toast("⚠ Storage full — this change isn't saved. Export a backup (Style tab), then remove old deals or posts."), 0); }
+        return false;
+      }
+    }
+    return false;
+  }
 };
 let toastT = 0;
 function toast(t) { const m = $("#toast"); m.textContent = t; m.classList.remove("act"); m.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show"), 2600); }
@@ -2755,8 +2734,8 @@ let VAL_UPD = [];
 const maxLoaded = debounce(() => { VAL_UPD.forEach(f => { try { f(); } catch (e) {} }); scheduleDraw(); renderSummary(); if (typeof renderOrder === "function") renderOrder(); }, 120);
 function normItem(it) {
   if (!it.uid) it.uid = uid();
-  ["name", "note", "e", "img", "q", "p", "ra", "rb"].forEach(k => { if (it[k] == null) it[k] = ""; });
-  if (!it.pu) it.pu = "coin";
+  ["name", "note", "e", "img", "q", "p", "ra", "rb"].forEach(k => { it[k] = it[k] == null ? "" : typeof it[k] === "string" ? it[k] : String(it[k]); });
+  if (!["coin", "xmp", "ring", "blanket"].includes(it.pu)) it.pu = "coin";
   if (!it.ru) it.ru = "ring";
   if (!it.mode) {
     const m = String(it.tag || "").match(/^\s*(\d+(?:\.\d+)?)\s*[:\/]\s*(\d+(?:\.\d+)?)\s*$/);
@@ -2795,7 +2774,12 @@ function ratioFix(p) {
   (p.wants || []).forEach(w => fix(w, w.give));
   if (p.addR) fix(p.addR, p.addR.give);
 }
-function normProfile(p) { const d = defaults(p.type || "trade");
+const isObj = x => !!x && typeof x === "object" && !Array.isArray(x);
+function normProfile(p) {
+  if (!TYPES[p.type]) p.type = "trade";
+  p.wants = Array.isArray(p.wants) ? p.wants.filter(isObj) : []; p.have = Array.isArray(p.have) ? p.have.filter(isObj) : [];
+  if (p.id == null || typeof p.id !== "string") p.id = p.id != null ? String(p.id) : uid();
+  const d = defaults(p.type);
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
   if (!Array.isArray(p.bulk)) p.bulk = [];
   // game items always show their real name and picture
@@ -2807,8 +2791,9 @@ function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.rv2) { ratioFix(p); p.rv2 = 1; }
   if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "showR", "showB", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
-let CUSTOM = store.get("hd5_custom", []);
-let SETTINGS = Object.assign({ recent: [], to: "wants" }, store.get("hd5_settings", {}));
+let CUSTOM = store.get("hd5_custom", []); CUSTOM = Array.isArray(CUSTOM) ? CUSTOM.filter(x => x && typeof x === "object" && x.id && x.en) : [];
+let SETTINGS = Object.assign({ recent: [], to: "wants" }, (x => x && typeof x === "object" && !Array.isArray(x) ? x : {})(store.get("hd5_settings", {})));
+if (!Array.isArray(SETTINGS.recent)) SETTINGS.recent = [];
 delete SETTINGS.ring;
 let STATE = null, st = null;
 
@@ -2846,6 +2831,7 @@ function migrateOld() {
 }
 function loadState() {
   STATE = store.get("hd5_state", null);
+  if (STATE && Array.isArray(STATE.list)) STATE.list = STATE.list.filter(isObj);
   if (!STATE || !Array.isArray(STATE.list) || !STATE.list.length) {
     STATE = migrateOld() || { active: null, list: [mkProfile("trade"), mkProfile("vente"), mkProfile("achat")] };
     if (store.get("tp4", null)) setTimeout(() => toast("Your previous profiles were imported ✔"), 800);
@@ -2854,10 +2840,14 @@ function loadState() {
   st = STATE.list.find(p => p.id === STATE.active) || STATE.list[0];
   STATE.active = st.id;
 }
-const saveSoon = debounce(() => { if (!store.set("hd5_state", STATE)) toast("Storage full: export a backup (Style tab)."); }, 400);
+const saveSoon = debounce(() => { store.set("hd5_state", STATE); }, 400);
 const saveSettings = () => store.set("hd5_settings", SETTINGS);
 /* deals marked as done in the Order tab (newest first) */
 let HIST = store.get("hd5_hist", []); if (!Array.isArray(HIST)) HIST = [];
+/** History / deals as saved, or from a backup: only well-formed entries (a broken one can't break the page). */
+function histClean(a) { return (Array.isArray(a) ? a : []).filter(isObj).map(e => { if (!Array.isArray(e.lines)) e.lines = []; e.lines = e.lines.filter(isObj); if (e.gives != null) e.gives = Array.isArray(e.gives) ? e.gives.filter(isObj) : []; if (!(num(e.t) > 0)) e.t = 0; return e; }); }
+function dealsClean(a) { return (Array.isArray(a) ? a : []).filter(d => isObj(d) && isObj(d.e) && ["trade", "vente", "achat"].includes(d.e.type)).map(d => { if (!Array.isArray(d.e.lines)) d.e.lines = []; d.e.lines = d.e.lines.filter(isObj); if (d.daily && !Array.isArray(d.daily.log)) d.daily.log = []; return d; }); }
+HIST = histClean(HIST);
 const saveHist = () => { if (HIST.length > 1000) HIST.length = 1000; store.set("hd5_hist", HIST); };
 function changed() { scheduleDraw(); saveSoon(); renderSummary(); }
 function pushRecent(id) { if (!id) return; SETTINGS.recent = [id, ...(SETTINGS.recent || []).filter(x => x !== id)].slice(0, 18); saveSettings(); }
@@ -3019,14 +3009,7 @@ function btTile(w, x, y, S, T, kind) {
   }
   // a short note: bottom-left, small
   const note = (w.note || "").trim();
-  if (note && !oos && !w._offer) txt(note, x + S * .06, y + S - S * .09, { f: "700", s: S * .085, c: T.mut, maxW: S * .42 });
-  // their price (an order from your buyer link): a pill under the price band
-  if (w._offer && !oos) {
-    const t = "Offer " + w._offer, fs = S * .078, ph = fs * 1.7; font("800", fs);
-    const tw = Math.min(ctx.measureText(t).width, S * .74), px = x + S * .05, py = y + (top ? bandH : 0) + S * .035;
-    rr(px, py, tw + fs * 1.3, ph, ph / 2); ctx.fillStyle = T.acc; ctx.fill();
-    txt(t, px + fs * .65, py + ph / 2 + 1, { f: "800", s: fs, c: "#ffffff", maxW: S * .74 });
-  }
+  if (note && !oos) txt(note, x + S * .06, y + S - S * .09, { f: "700", s: S * .085, c: T.mut, maxW: S * .42 });
   // sold out / no longer needed: a full-width band across the middle, strong colour, big letters
   if (oos) {
     const lab = st.type === "achat" || kind === "trade" || kind === "tq" ? "NOT NEEDED" : kind === "have" ? "GONE" : "SOLD OUT";
@@ -3038,6 +3021,17 @@ function btTile(w, x, y, S, T, kind) {
   }
 }
 /** the whole picture */
+/** The picture's size in pixels, capped: past a certain size a phone (an iPhone above all) gives a blank / black picture
+    and can crash the page — a very big post is then drawn a little smaller (same layout, all sharp enough for Discord). */
+const CV_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const CV_MAXPX = CV_IOS ? 5e6 : 12e6, CV_MAXSIDE = CV_IOS ? 4096 : 8000;
+function cvFit(W, H) {
+  const k = Math.min(1, Math.sqrt(CV_MAXPX / (W * H)), CV_MAXSIDE / W, CV_MAXSIDE / H);
+  const w = Math.max(1, Math.round(W * k)), hh = Math.max(1, Math.round(H * k));
+  if (cv.width !== w) cv.width = w; if (cv.height !== hh) cv.height = hh;
+  ctx.setTransform(k, 0, 0, k, 0, 0);
+  return k;
+}
 function drawBeta() {
   const T = BT_THEMES[st.bTheme] || BT_THEMES.cream;
   const type = st.type || "trade", trade = type === "trade";
@@ -3103,10 +3097,10 @@ function drawBeta() {
   if (sub) H += U * .05 + nS * 1.4;
   const urlS = Math.max(34, U * .15);
   H += U * .14 + urlS + M * .75;
-  if (W !== cv.width) cv.width = W; H = Math.round(H); if (H !== cv.height) cv.height = H;
+  H = Math.round(H); cvFit(W, H);
 
   /* paper */
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
+  ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
   ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
 
   /* head: title, then the type and your name */
@@ -3185,7 +3179,7 @@ function drawBeta() {
   txt(SITE_URL, W / 2, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "center", maxW: IW });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
-  $("#pvSize").textContent = W + " × " + H + " px · " + C + (C > 1 ? " columns" : " column");
+  $("#pvSize").textContent = cv.width + " × " + cv.height + " px · " + C + (C > 1 ? " columns" : " column") + (mpMissing().length ? " · ⏳ max prices loading" : "");
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
 function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
@@ -3569,11 +3563,10 @@ function drawClassic() {
   if ((st.sub || "").trim()) H += 54;
   const zL = Math.min(1.8, Math.max(1, W / 1080)); // site link size grows with wide pictures
   H = Math.round(H + 64 + 54 * zL);
-  if (cv.width !== W) cv.width = W;
-  if (cv.height !== H) cv.height = H;
+  cvFit(W, H);
 
   /* ---------- paper ---------- */
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
+  ctx.globalAlpha = 1; ctx.shadowColor = "transparent";
   ctx.fillStyle = T.paper; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = grain(T); ctx.fillRect(0, 0, W, H);
   const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .45, W / 2, H / 2, Math.max(W, H) * .75);
@@ -3847,7 +3840,7 @@ function drawClassic() {
     rule(W / 2 - tw / 2 - g - l, W / 2 - tw / 2 - g, ly + 1, 1.5, T.mut); rule(W / 2 + tw / 2 + g, W / 2 + tw / 2 + g + l, ly + 1, 1.5, T.mut);
   }
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
-  $("#pvSize").textContent = W + " × " + H + " px";
+  $("#pvSize").textContent = cv.width + " × " + cv.height + " px";
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
 
@@ -4452,7 +4445,7 @@ function spTarget(name, items) {
   const fam = orderFamily(n) || orderFamily(c);
   if (fam) { const f = withMix(new Set(fam.map(p => p.id))); if (f.length) return { items: f, how: "family" }; }
   const sp = SP_CATS[c] || SP_CATS[core[0]], cats = sp ? [sp] : catsOf(c).length ? catsOf(c) : catsOf(core[0]);
-  if (cats.length && core.length <= 2) return { items: items.filter(w => w.ref && CAT.byId[w.ref] && cats.includes(CAT.byId[w.ref].cat)), how: "category" };
+  if (cats.length && core.length <= 2) { const ci = items.filter(w => w.ref && CAT.byId[w.ref] && cats.includes(CAT.byId[w.ref].cat)); if (ci.length) return { items: ci, how: "category" }; }
   // a word they share: "mussel" → Mussel Nigiri, Grilled Mussels, Steamed Mussels…
   if (wd.length >= 2) return { items: wd, how: "named “" + c + "”" };
   const r = findMatches(c, items, w => pName(w), 1);
@@ -4460,14 +4453,63 @@ function spTarget(name, items) {
   if (wd.length === 1) return { items: wd, how: "this item" };
   return { items: [], how: "" };
 }
+/* a list of names with one price at the end: "chilli poppers, macaroon, coconut bars, fudge — all this 10xmp",
+   written on one line or on several (the lines without a price wait for the next price) */
+const SP_TAIL = /\s*(?:\b(?:and\s+)?(?:everything|every ?thing|all of (?:them|these|this|it|those)|all (?:this|these|them|those|of them)|them all|these|those|this|all|each|ea|both|for all|for|at|@)\b|[=:@→–—-])\s*$/i;
+const spClean = e => e.replace(/^[\s(\[{"“'«]+|[\s)\]}"”'».!?]+$/g, "").replace(/^(?:and|&|or)\s+/i, "").replace(/\s+/g, " ").trim();
+function spSplit(rest) {
+  const parts = String(rest || "").split(/\s*(?:,(?!\d{3}\b)|\+|\||\n)\s*/).map(spClean).filter(Boolean);
+  if (parts.length) { let l = parts[parts.length - 1], q; do { q = l; l = spClean(l.replace(SP_TAIL, "")); } while (l && l !== q); if (l) parts[parts.length - 1] = l; else parts.pop(); }
+  return parts;
+}
+/** A name with spelling mistakes → the one item of your post it surely means ("chilli poppers" → Chili Popcorn), else null. */
+function spFuzzy(el, items, loose) {
+  const tq = toks(el).filter(t => !SP_FILL.test(t)); if (!tq.length || !items.length) return null;
+  const sim = (a, b) => { if (a === b || same(a, b)) return 1; const m = Math.max(a.length, b.length); let s = 1 - lev(a, b) / m, k = 0; while (k < a.length && k < b.length && a[k] === b[k]) k++; if (k >= 3) s = Math.max(s, .55 + .45 * k / m); return s; };
+  const sc = items.map(w => { const tw = toks(pName(w)); if (!tw.length) return { w, s: 0 };
+    const per = tq.map(t => Math.max(...tw.map(y => sim(t, y)))), a = per.reduce((x, y) => x + y, 0) / tq.length, b = tw.reduce((x, y) => x + Math.max(...tq.map(t => sim(t, y))), 0) / tw.length;
+    return { w, s: Math.min(...per) < (loose ? .4 : .5) ? 0 : a * .65 + b * .35 }; }).sort((x, y) => y.s - x.s);   // every word written must look like a word of the item
+  const ok = sc[0].s >= (loose ? .45 : .62) && (!sc[1] || sc[0].s - sc[1].s >= (loose ? .04 : .1));
+  return ok ? sc[0].w : null;
+}
+/** One name of a list → its items in your post (a group, an item, a spelling guess), or what it might be. */
+function spEl(el, items) {
+  const T = spTarget(el, items); if (T.items.length) return { el, items: T.items, how: T.how };
+  const ands = el.split(/\s+(?:and|&)\s+/i);          // "macaroon and fudge" (but "fish and chips" stays one item, found above)
+  if (ands.length > 1) { const A = ands.map(a => spTarget(a, items)); if (A.every(r => r.items.length)) return { el, items: [...new Set(A.flatMap(r => r.items))], how: "items" }; }
+  // a real item of the game that isn't in your post ("banana bread") is said so — not guessed as another one ("bread")
+  const gm = matchProduct(el), gIn = gm.p && gm.sure && !isVirt(gm.p);
+  const f = gIn ? null : spFuzzy(el, items); if (f) return { el, items: [f], how: "spelling?", guess: true };
+  const r = gIn ? [{ x: gm.p, sc: 9 }] : findMatches(el, CAT.list.filter(p => !isVirt(p)), p => p.en, 1);
+  return { el, items: [], near: spFuzzy(el, items, true), game: r[0] && r[0].sc >= 3 ? r[0].x.en : "" };
+}
 /** The rules of the box → each with its items, price, and what's wrong. Later lines win where they overlap. */
 function spRules(text, items, trade) {
   const out = [];
-  String(text || "").slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES).forEach((line, i) => {
-    const P = spPrice(line, trade), R = { i, line, price: P, items: [], err: "" };
-    if (!P) R.err = trade ? "no ratio — write it like 45:89" : "no price — write it like 5x, 6k, 800, 2r";
+  const lines = discordClean(text).slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES);
+  // lines without a price: names waiting for the price written at the end of the list
+  const joined = []; let pend = [];
+  lines.forEach(l => { if (!spPrice(l, trade)) { pend.push(l.replace(/[,\s]+$/, "")); return; } joined.push({ line: pend.length ? pend.concat(l).join(", ") : l, n: pend.length + 1 }); pend = []; });
+  if (pend.length) joined.push({ line: pend.join(", "), n: pend.length, open: true });
+  joined.forEach((J, i) => {
+    const line = J.line, P = spPrice(line, trade), R = { i, line, price: P, items: [], err: "", n: J.n };
+    if (!P) R.err = J.n > 1 ? "no price at the end of this list — e.g. “… all 10x”" : trade ? "no ratio — write it like 45:89" : "no price — write it like 5x, 6k, 800, 2r";
     else if (trade ? !(P.ra > 0 && P.rb > 0 && P.ra <= 1e6 && P.rb <= 1e6) : !(P.p > 0 && P.p <= (P.pu === "coin" ? 1e9 : 1e5))) R.err = "the price isn't valid";
-    else { const T = spTarget(P.rest, items); R.items = T.items; R.how = T.how; if (!T.items.length) R.err = "“" + (P.rest || "?") + "” — no item of your post"; }
+    else {
+      const parts = spSplit(P.rest);
+      if (parts.length <= 1) {
+        const one = parts.length ? parts[0] : spClean(P.rest), E = spEl(one, items);
+        R.items = E.items; R.how = E.how; R.list = [E];
+        if (!E.items.length) { R.err = "“" + (one || "?") + "” — no item of your post"; R.miss = [E]; }
+        if (E.guess) R.guess = [E];
+      } else {
+        R.list = parts.map(e => spEl(e, items)); R.items = [...new Set(R.list.flatMap(E => E.items))];
+        R.miss = R.list.filter(E => !E.items.length); R.guess = R.list.filter(E => E.guess);
+        R.how = plural(parts.length, "name");
+        if (R.miss.length) R.err = R.miss.map(E => "“" + E.el + "”").join(", ") + " — not in your post";
+        R.rest = parts.join(", ");
+      }
+    }
     out.push(R);
   });
   // the last rule for each item is the one used
@@ -4496,6 +4538,19 @@ function samePriceBar() {
     placeholder: trade ? "One rule a line, e.g.\nall jams 45:89\nmussel products 60:89\nall bars 120:89" : "One rule a line, e.g.\nall jams 5x\nmussel products 6k\nall bars 800\neverything 4x" });
   const prev = h("div", { class: "spprev" }), msg = h("div", { class: "spmsg" });
   const apply = h("button", { class: "btn pri", disabled: true }, "Apply");
+  // a fix from the preview: a name replaced (or removed) right in the box
+  const spEdit = (el, to) => {
+    const v = ta.value, re = new RegExp(el.trim().split(/\s+/).map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+"), "i"), m = v.match(re);
+    if (!m) return;
+    let L = v.slice(0, m.index), Rt = v.slice(m.index + m[0].length);
+    if (to) ta.value = L + to + Rt;
+    else {
+      L = L.replace(/[(\[]\s*$/, ""); Rt = Rt.replace(/^\s*[)\]]/, "");
+      if (/,\s*$/.test(L)) L = L.replace(/\s*,\s*$/, ""); else Rt = Rt.replace(/^\s*,\s*/, "");
+      ta.value = (L + (L && !/\s$/.test(L) && Rt && !/^[\s,]/.test(Rt) ? " " : "") + Rt).replace(/[ \t]{2,}/g, " ").replace(/^[ \t]+|[ \t]+$/gm, "").replace(/\n{2,}/g, "\n");
+    }
+    show(); grow();
+  };
   let cur = { rules: [], last: new Map() };
   const show = () => {
     st.spText = ta.value.slice(0, SP_MAX_LEN); saveSoon();
@@ -4503,11 +4558,18 @@ function samePriceBar() {
     cur.rules.forEach(R => {
       const ch = R.err ? null : R.used.map(w => { const after = trade ? null : unitPrice({ ref: w.ref, p: String(R.price.p), pu: R.price.pu });
         return h("span", { class: "mchip" + (R.used.length < R.items.length ? "" : "") }, thumb(itemState(w), w.e, "mini"), pName(w), !trade && R.price.pu !== "coin" && after ? h("small", null, " " + fmtP(after) + " ea") : null); });
-      const over = R.err ? 0 : R.items.length - R.used.length;
+      const over = R.err ? 0 : R.items.length - R.used.length, list = R.list && R.list.length > 1;
+      const fix = (R.miss || []).map(E => h("div", { class: "spfix" }, h("span", null, "“" + E.el + "”" + (E.game && (!E.near || E.game !== pName(E.near)) ? " — " + E.game + " isn't in your post" : " — not found")),
+        E.near ? h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, pName(E.near)) }, "Use “" + pName(E.near) + "”") : null,
+        h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, null) }, "Remove")));
+      const guess = (R.guess || []).filter(E => E.items[0]).map(E => h("div", { class: "spfix ok" }, h("span", null, "“" + E.el + "” → " + pName(E.items[0]) + "?"),
+        h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, pName(E.items[0])) }, "Yes"), h("button", { type: "button", class: "btn sm", onclick: () => spEdit(E.el, null) }, "Remove")));
+      const head = R.err ? "⚠ " + (list || R.n > 1 ? (R.price ? spLabel(R.price, trade) + " for a list of " + plural(R.list ? R.list.length : R.n, "name") : "A list without a price") : R.line)
+        : (list ? plural(R.list.length, "name") : R.how === "every item" ? "Every item" : R.price.rest || "Every item") + " → " + spLabel(R.price, trade);
       prev.append(h("div", { class: "sprule" + (R.err ? " bad" : "") },
-        h("div", { class: "sph" }, h("b", null, R.err ? "⚠ " + R.line : (R.how === "every item" ? "Every item" : R.price.rest || "Every item") + " → " + spLabel(R.price, trade)),
-          R.err ? h("small", null, R.err) : h("small", null, plural(R.used.length, "item") + (R.how && R.how !== "every item" ? " · " + R.how : "") + (over ? " · " + over + " set by a later line" : ""))),
-        ch && ch.length ? h("div", { class: "mchips" }, ch) : null));
+        h("div", { class: "sph" }, h("b", null, head),
+          R.err ? h("small", null, R.miss && R.miss.length ? (R.items.length ? plural(R.items.length, "item") + " found · " : "") + plural(R.miss.length, "name") + " to fix ↓" : R.err) : h("small", null, plural(R.used.length, "item") + (R.how && R.how !== "every item" && !list ? " · " + R.how : "") + (over ? " · " + over + " set by a later line" : ""))),
+        ch && ch.length ? h("div", { class: "mchips" }, ch) : null, ...fix, ...guess));
     });
     const n = cur.last.size, same = [...cur.last].filter(([uid, R]) => { const w = items.find(x => x.uid === uid); return w && (trade ? num(w.ra) === R.price.ra && num(w.rb) === R.price.rb : num(w.p) === R.price.p && (w.pu || "coin") === R.price.pu); }).length;
     const bad = cur.rules.filter(R => R.err).length, keep = items.length - n;
@@ -4533,6 +4595,9 @@ function samePriceBar() {
   const chips = h("div", { class: "mchips spsug" }, sug.map(s => h("button", { type: "button", class: "mchip", onclick: () => {
     const v = ta.value.replace(/\s+$/, ""); ta.value = (v ? v + "\n" : "") + s.label + " "; ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) {} show(); } }, s.label, h("small", null, " " + s.n))));
   ta.addEventListener("input", debounce(show, 120));
+  // the box grows with a long list (up to about 9 lines), so the whole list stays in view
+  const grow = () => { ta.style.height = "auto"; ta.style.height = Math.min(Math.max(ta.scrollHeight + 2, 96), 250) + "px"; };
+  ta.addEventListener("input", grow); requestAnimationFrame(grow);
   const card = h("div", { class: "card ratiobar spcard" },
     h("div", { class: "rb-t" }, h("b", null, trade ? "Ratios by group" : "Prices by group"), h("button", { type: "button", "aria-label": "Close", onclick: () => { spOpen = false; renderLists(); } }, "✕")),
     h("p", { class: "hint" }, trade ? "One rule a line: a group of your items, then the ratio as on Discord (45:89 = 45 of them for 89 of yours). Later lines win." : "One rule a line: a group of your items, then the price — 5x (×MP), 6k, 800, 2r (rings), 1b (blankets). Later lines win."),
@@ -4663,7 +4728,7 @@ function stepper(it, after) {
   return h("div", { class: "box step" }, h("button", { type: "button", "aria-label": "Less", onclick: () => bump(-1) }, "−"), inp, h("button", { type: "button", "aria-label": "More", onclick: () => bump(1) }, "+"));
 }
 function unitBtn(it, key, opts, after) {
-  const labels = { coin: () => [h("i", { class: "coin" }), "coins"], ring: () => [ringEl(), "rings"], blanket: () => [blanketEl(), "blankets"], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
+  const labels = { coin: () => [h("i", { class: "coin" }), h("span", { class: "ut" }, "coins")], ring: () => [ringEl(), h("span", { class: "ut" }, "rings")], blanket: () => [blanketEl(), h("span", { class: "ut" }, "blankets")], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
   const b = h("button", { type: "button", class: "u", title: "Change unit" });
   const paint = () => { b.textContent = ""; b.append(...labels[it[key]]()); };
   b.onclick = () => { it[key] = opts[(opts.indexOf(it[key]) + 1) % opts.length]; paint(); after(); changed(); };
@@ -4866,9 +4931,19 @@ $("#resetP").onclick = function () {
 const fname = () => (slug(st.name || "post") || "post") + ".png";
 function getBlob() { draw(); return new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error("blob")), "image/png"); } catch (e) { rej(e); } }); }
 function saveBlob(b, name) { const u = URL.createObjectURL(b), a = h("a", { href: u, download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); }
-async function download() { try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed — reload the page and try again."); } }
+/** The picture's total needs every max price: items still waiting for theirs (wiki slow / offline) → said before it's sent.
+    A second tap within 6 s sends it anyway. */
+let mpGoT = 0;
+function mpMissing() { if (st.type === "trade" || st.showTotal === false) return []; return st.wants.filter(w => !w.oos && w.ref && w.pu === "xmp" && num(w.p) > 0 && !(unitPrice(w) > 0)).map(w => pName(w)); }
+function mpGate() {
+  const miss = mpMissing(); if (!miss.length || Date.now() - mpGoT < 6000) { mpGoT = 0; return true; }
+  mpGoT = Date.now(); toast("⏳ Max price not loaded yet for " + miss.slice(0, 3).join(", ") + (miss.length > 3 ? " +" + (miss.length - 3) : "") + " — the total would be too low. Wait a moment (connection?), or tap again to send it anyway.");
+  return false;
+}
+async function download() { if (!mpGate()) return; try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed — reload the page and try again."); } }
 $("#dl").onclick = download;
 $("#share").onclick = async () => {
+  if (!mpGate()) return;
   try {
     const f = new File([await getBlob()], fname(), { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] });
@@ -4876,6 +4951,7 @@ $("#share").onclick = async () => {
   } catch (e) { if (!e || e.name !== "AbortError") toast("Couldn’t share"); }
 };
 $("#copy").onclick = async () => {
+  if (!mpGate()) return;
   try { if (!window.ClipboardItem) throw 0; await navigator.clipboard.write([new ClipboardItem({ "image/png": getBlob() })]); toast("Copied — paste it in Discord ✔"); }
   catch (e) { toast("Copy isn’t supported here: use Download."); }
 };
@@ -4889,15 +4965,21 @@ $("#bkOut").onclick = () => {
 $("#bkIn").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try {
+    if (f.size > 60e6) { toast("This file is too big to be a backup."); return; }
     const o = JSON.parse(await f.text());
-    if (o.app === "hd-studio" && o.state && Array.isArray(o.state.list)) {
-      STATE = o.state; CUSTOM = o.custom || []; store.set("hd5_custom", CUSTOM);
-      if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; saveSettings(); }
-      Object.entries(o.images || {}).forEach(([k, v]) => { USERIMG.set(k, v); IDB.put(k, v); });
+    if (o && o.app === "hd-studio" && o.state && Array.isArray(o.state.list)) {
+      // everything checked first: a bad file changes nothing
+      const list = o.state.list.filter(isObj); if (!list.length) throw 0;
+      const S2 = Object.assign({}, o.state, { list }); S2.list.forEach(normProfile);
+      const C2 = Array.isArray(o.custom) ? o.custom.filter(x => isObj(x) && x.id && x.en) : [];
+      const H2 = histClean(o.history), D2 = dealsClean(o.deals);
+      STATE = S2; CUSTOM = C2; store.set("hd5_custom", CUSTOM);
+      if (isObj(o.settings)) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; if (!Array.isArray(SETTINGS.recent)) SETTINGS.recent = []; saveSettings(); }
+      Object.entries(isObj(o.images) ? o.images : {}).forEach(([k, v]) => { if (typeof v === "string" && /^data:image\//.test(v)) { USERIMG.set(k, v); IDB.put(k, v); } });
       if (o.inventory && (Array.isArray(o.inventory.items) || Array.isArray(o.inventory.farms))) { INV = o.inventory; invFix(); saveInv(); }
-      if (Array.isArray(o.deals)) { const have = new Set(DEALS.map(d => d.id)); DEALS = DEALS.concat(o.deals.filter(d => d && !have.has(d.id))); saveDeals(); }
+      if (D2.length) { const have = new Set(DEALS.map(d => d.id)); DEALS = DEALS.concat(D2.filter(d => !have.has(d.id))); saveDeals(); }
       if (Array.isArray(o.scanLearn)) { LEARN = o.scanLearn; store.set("hd5_scanlearn", LEARN); }
-      if (Array.isArray(o.history)) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(o.history.filter(e => e && !have.has(e.id))).sort((a, b) => b.t - a.t); saveHist(); }
+      if (H2.length) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(H2.filter(e => !have.has(e.id))).sort((a, b) => (b.t || 0) - (a.t || 0)); saveHist(); }
     } else if (Array.isArray(o.l)) { store.set("tp4", o); localStorage.removeItem("hd5_state"); loadState(); }
     else throw 0;
     STATE.list.forEach(normProfile);
@@ -4920,11 +5002,12 @@ async function loadLocalManifest() {
   loadState();
   buildCatalog();
   await loadLocalManifest();
-  renderAll(); tab("items"); shopBoot();
+  renderAll(); tab("items");
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
   if (document.fonts && document.fonts.load) Promise.all(["500", "600", "700", "800", "italic 500", "italic 600"].map(w => document.fonts.load(w + " 30px Inter"))).then(scheduleDraw).catch(() => {});
   if (!DEMO) setTimeout(() => refreshWikiList(false), 1500);
   window.addEventListener("pagehide", () => store.set("hd5_state", STATE));
+  if (STORE_BAD.length) setTimeout(() => toast("⚠ Some saved data couldn't be read (" + [...new Set(STORE_BAD)].map(k => k.replace("hd5_", "")).join(", ") + ") — a copy was kept on this device."), 1200);
   window.hdReady = true; dispatchEvent(new Event("hdready"));
 })();
 
@@ -5024,12 +5107,14 @@ function orderPay(text) {
 function parseOrder(text) {
   const out = [], post = (typeof st !== "undefined" && st ? st.wants : []).filter(w => (w.name || "").trim() || w.ref).map(w => pName(w));
   const whole = (c, n) => { const qt = toks(c); return qt.length >= toks(n).length && matchInfo(qt, n, 1).sc > 0; };
-  let T = emoNames(String(text || "")).replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
+  let T = emoNames(discordClean(text).replace(/^[ \t*_>]*(?:buying|selling|wtb|wts|lf|looking for)[ \t*_]*[:\-–][ \t]*/gim, "").replace(/^[ \t]*#[ \t]*\d+[.):]?[ \t]+/gm, "").replace(/[(\[][ \t]*[x×]?[ \t]*(\d{1,6})[ \t]*(?:[x×]|pcs?)?[ \t]*[)\]]/gi, " x$1 ")).replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
     .replace(/\b(page|pg|p)\s*([1-3])\b(?!\s*(?:x|×|pcs?)\b)/gi, "$1$2").replace(/[?!]+|\.(?=\s+[a-z])|\s+\.(?=[a-z])/gi, "\n");
   // "10 of each" / "10 each" / "x10 each": the quantity of every item without one
   let each = null;
   // (not a price: "x20 450 each", "4k each")
-  T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m; each = +n; return pre + " , "; })
+  T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m;
+      const seg = all.slice(0, off).split(/[\n,;]/).pop(); if (/\d/.test(seg) && /[a-z]{2,}/i.test(seg)) return m;   // "20 bread 40 each": a price, not "40 of each"
+      each = +n; return pre + " , "; })
     .replace(/\beach\s*(?:x\s*)?(\d{1,3})\b/gi, (m, n) => { each = +n; return " , "; });
   // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity.
   // Each one is kept as a mark on its line (\u0002p…\u0003): the order shows it, and uses it when it isn't your post's price.
@@ -5038,6 +5123,15 @@ function parseOrder(text) {
   const numIn = t => (String(t).match(/\d[\d.,]*\s*k?/i) || [""])[0];
   const P = "\\d(?:[\\d.,]*\\d)?\\s*k?\\s*(?:coins?|c)?", END = "(?=\\s*(?:$|[,;\\n|]|\\s(?:and|&|\\+)\\s))";
   T = T
+    // a price for the whole line: "20 apple pie for 2 rings", "12 bem sets for 1.5m", "30 bread for 25k" → per item
+    .replace(/^([ \t]*(?:[x×][ \t]*)?(\d[\d.,]*)[ \t]*(?:[x×][ \t]*)?[a-z][^\n,;]*?)[ \t]+for[ \t]+(\d[\d.,]*)[ \t]*(k|m|rings?|dr|diamond[ \t]*rings?|r|blankets?|bl|b|coins?|c)?(?:[ \t]+(?:total|in total|all))?[ \t]*$/gim, (m, a, q, v, u) => {
+      const n = num(q.replace(/,(?=\d{3}\b)/g, "")), x = num(v.replace(/,(?=\d{3}\b)/g, "").replace(",", ".")), U = (u || "").toLowerCase();
+      if (!(n > 0) || !(x > 0) || (!U && x < 50)) return m;                // "for 2" alone isn't a price
+      const coins = /^(?:rings?|dr|diamond\s*rings?|r)$/.test(U) ? x * RING_RATE : /^(?:blankets?|bl|b)$/.test(U) ? x * BLANKET_RATE : U === "k" ? x * 1000 : U === "m" ? x * 1e6 : x;
+      return a + mark(coins / n, "c"); })
+    // "20 apple pie 2 rings" / "… 1 blanket": a price in rings or blankets after the quantity and the name (each)
+    .replace(/^([ \t]*(?:[x×][ \t]*)?\d[\d.,]*[ \t]*(?:[x×][ \t]*)?[a-z][^\n,;]*?)[ \t]+(\d+(?:[.,]\d+)?)[ \t]*(rings?|dr|diamond[ \t]*rings?|r|blankets?|bl|b)(?:[ \t]*(?:each|ea))?[ \t]*$/gim, (m, a, v, u) =>
+      a + mark(num(v.replace(",", ".")) * (/^(?:rings?|dr|diamond\s*rings?|r)$/i.test(u) ? RING_RATE : BLANKET_RATE), "c"))
     // ×MP prices are not quantities: "3,5x" / "3.5x" (a quantity is never a decimal), "5xmp", "5x mp", "@ 8x"
     .replace(/(^|[\s(@])(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*(?:mp|max\s*price|max)\b|mp\b)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
     .replace(/(^|[\s(@])(\d+[.,]\d+)\s*[x×](?![a-z0-9])/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
@@ -5054,12 +5148,23 @@ function parseOrder(text) {
     .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+(\d[\d.,]*\s*(?:k|coins?))(?=\s*(?:$|[,;\n|]))/gim, (m, a, v) => a + mark(coinV(v), "c"))
     // "Diamond rings x180 5x": the quantity is already there, the "5x" after it is the price
     .replace(/^(?=[^\n]*[a-z][^\n]*\s@?\d{1,2}\s*[x×]\s*$)([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×](?=\s*[a-z])|^\s*\d+\s+(?=[a-z]))[^\n]*?)\s+@?(\d{1,2})\s*[x×](?=\s*$)/gim, (m, a, v) => a + mark(num(v), "x"));
+  // a stray "ea" / "each" left after a price mark
+  T = T.replace(/(\u0003)[ \t]*(?:each|ea|apiece)\b/gi, "$1");
   T.split(/\r?\n|;|•|·|\|/).forEach(line => {
     // pieces: commas (not "1,500"), then "and" / "&" / "+" unless it's one name of your post ("bacon and eggs")
-    line.split(/,(?!\d{3}\b)|\s+\/\s+/).forEach(chunk => {
+    let chunks = line.split(/,(?!\d{3}\b)|\s+\/\s+/);
+    // "chilli popcorn, macaroon, fudge all this 10xmp": the price at the end is for every name of the list
+    if (chunks.length >= 2) {
+      const last = chunks[chunks.length - 1], lm = last.match(/\u0002p[\d.]+[xc]\u0003\s*$/);
+      if (lm && chunks.slice(0, -1).every(c => !/\u0002p/.test(c) && /[a-z]/i.test(c))) {
+        let nm = last.slice(0, lm.index), q0; do { q0 = nm; nm = nm.replace(SP_TAIL, ""); } while (nm !== q0 && nm.trim());
+        chunks = chunks.slice(0, -1).map(c => c + " " + lm[0]).concat(nm.trim() ? [nm + " " + lm[0]] : []);
+      }
+    }
+    chunks.forEach(chunk => {
       let parts = [chunk];
       if (/\s(?:and|&|\+|plus|n|also|with)\s/i.test(chunk)) {
-        const bare = c => orderWords(c.trim().replace(/^(?:\d[\d.,]*\s*x?\s+|x\s*\d+\s+)/i, "").replace(/\s+(?:x\s*)?\d[\d.,]*\s*x?$/i, "")).s;
+        const bare = c => orderWords(c.replace(/\u0002p[\d.]+[xc]\u0003/g, " ").trim().replace(/^(?:\d[\d.,]*\s*x?\s+|x\s*\d+\s+)/i, "").replace(/\s+(?:x\s*)?\d[\d.,]*\s*x?$/i, "")).s;
         const andNames = post.concat(CAT.list.map(p => p.en)).filter(n => / and | & /i.test(" " + n + " "));
         const sp = chunk.split(/(\s+(?:and|&|\+|plus|n|also|with)\s+)/i); parts = [sp[0]];
         for (let i = 1; i < sp.length; i += 2) {
@@ -5083,6 +5188,8 @@ function parseOrder(text) {
           const W2 = orderWords(pc.name);                                    // "10 of the feta pie", "x5 pls"
           const name = W2.s || pc.name, all = W.all || W2.all;
           if (!pc.q && orderChat(name, post)) return;                    // "Heyyyy", "was wondering if you're interested in…"
+          if (/^(?:each|ea|apiece|pcs?|pieces?|x|items?|stuff|things?|it|them|this|that|total|coins?|price|prices|k|m)$/i.test(norm(name).trim())) return;   // "1.5k each" alone
+          if (!pc.q && /^(?:selling|buying|wts|wtb|lf|for sale|sale|shop(?: open)?|open|trading|trade|price ?list|prices|my shop|have|need|want|offer(?:ing)?)$/i.test(norm(name).replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim())) return;   // a header
           const segs = !pc.q && !all ? orderSegment(name, post) : [name];
           segs.forEach(nm => out.push(Object.assign({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }, msgP ? { mp: msgP } : {})));
         }));
@@ -5375,6 +5482,8 @@ function resolveLine(L) {
   const lib = findMatches(L.name, CAT.list, p => p.en, 1)[0];
   const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "", 2).filter(m => !m.miss || (!(lib && lib.sc >= 4) && orderKeyWord(L.name, pName(m.x))));
   if (r.length) return { w: r[0].x, sure: !r[0].miss && !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
+  // one word that is a word of your items' names: "pies" → your Apple Pie (to check when several fit)
+  { const qt = toks(L.name); if (qt.length === 1 && qt[0].length >= 3) { const c1 = post.filter(x => toks(pName(x)).some(t => same(t, qt[0]))); if (c1.length) return { w: c1[0], sure: false, alts: c1.slice(1, 6) }; } }
   // "apple jam" with First Page Jams in your post: that jam, inside the mix
   { const mp0 = lib && !lib.miss ? lib.x : (() => { const m = matchProduct(L.name); return m && m.p && m.sure ? m.p : null; })();
     const inMix = mp0 && !mp0.mix && post.find(x => { const m = mixOf(x); return m && m.mix.includes(mp0.id); });
@@ -5383,7 +5492,7 @@ function resolveLine(L) {
     okMp = mp && mp.p && slug(mp.p.en)[0] === slug(L.name)[0] && sub(slug(L.name).replace(/-/g, ""), slug(mp.p.en).replace(/-/g, "")), inP = c ? post.find(x => x.ref === c.x.id) : okMp && post.find(x => x.ref === mp.p.id);
   if (inP) return { w: inP, sure: false };                              // "mlk": a short typo found in the catalog, and it's in your post
   // selling / buying: an item of the game that isn't in your post is added anyway, for this order only (tap to undo)
-  if (c && !c.miss && !L.noExtra && st.type !== "trade" && !c.x.custom && c.x.id !== (ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref)) && !/^(?:for|in|with|paid|pay(?:ing)?|trad\w*|swap\w*)\b/i.test(String(L.raw || "").trim())) { L.extra = extraNew(c.x.id); L.extra.auto = 1; return { w: extraItem(L), sure: true, extra: true }; }
+  if (c && !c.miss && !L.noExtra && st.type !== "trade" && !c.x.custom && !(toks(L.name).length === 1 && orderFamily(L.name)) && c.x.id !== (ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref)) && !/^(?:for|in|with|paid|pay(?:ing)?|trad\w*|swap\w*)\b/i.test(String(L.raw || "").trim())) { L.extra = extraNew(c.x.id); L.extra.auto = 1; return { w: extraItem(L), sure: true, extra: true }; }
   return { w: null, prod: c ? c.x : null };
 }
 /* ---------- items added for one order only (not in your post: the post never changes) ---------- */
@@ -5481,7 +5590,7 @@ function priceLabel(w) {
 
 /* ---------- each post keeps its own order: the text, the picks and quantities, who it's for, kept on this device ---------- */
 let ODRAFT = (() => { try { return store.get("hd5_odraft") || {}; } catch (e) { return {}; } })(), odT = 0;
-const ORD_KEEP = ["payRef", "payMode", "payEach", "payRound", "tmpOff", "buyer"];
+const ORD_KEEP = ["payRef", "payMode", "payEach", "payRound", "tmpOff"];
 function orderDraftSave() {
   clearTimeout(odT); odT = 0;
   if (ORDER.deal || !ORDER.pid || !STATE) return;               // a deal open in Order is saved in Deals, not here
@@ -5491,22 +5600,14 @@ function orderDraftSave() {
   const ids = new Set(STATE.list.map(x => x.id)); Object.keys(ODRAFT).forEach(k => { if (!ids.has(k) && Date.now() - (ODRAFT[k].t || 0) > 864e5 * 30) delete ODRAFT[k]; });
   try { store.set("hd5_odraft", ODRAFT); } catch (e) {}
 }
-/* ---------- pinned orders: the lines of an order from a buyer link are kept as they are (not read again from the text),
-   so an item named "Box 2 x3" or "Food for lobs" can't be misread. Edit the text by hand → it's read as a message again. ---------- */
-function pinFor(text) { const P = (ORDER.pins || []).find(x => x.text === text); return P && st && st.type !== "trade" ? P.lines : null; }
-function pinSet(text, lines) {
-  const L = lines.map(l => ({ raw: l.raw, name: l.r && l.r.w ? pName(l.r.w) : l.name || l.raw, q: l.q, pick: l.pick || (l.r && l.r.w && !l.r.extra ? l.r.w.uid : null), qEdit: l.qEdit ? 1 : 0, qGuess: !!(l.qGuess && !l.qEdit), offer: l.offer || null, extra: l.extra || null, noExtra: l.noExtra || 0 }));
-  ORDER.pins = [{ text, lines: L }].concat((ORDER.pins || []).filter(x => x.text !== text)).slice(0, 6);
-}
-function pinLoad(S) { ORDER.pins = []; if (S && S.pin && Array.isArray(S.lines)) pinSet(S.text || "", S.lines.map(l => Object.assign({}, l, { qGuess: !!l.qGuess }))); }
 const orderDraftSoon = () => { clearTimeout(odT); odT = setTimeout(orderDraftSave, 300); };
 /** Another post (or the first time): save the order on screen, show that post's own. */
 function orderDraftSwitch() {
   if (!st || ORDER.deal || ORDER.pid === st.id) return;
   if (ORDER.pid) orderDraftSave();
   const S = ODRAFT[st.id] || { text: "", lines: [], who: "" };
-  ORDER.pid = st.id; ORDER.text = S.text || ""; ORDER.who = S.who || ""; pinLoad(S);
-  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra, offer: l.offer || null }));
+  ORDER.pid = st.id; ORDER.text = S.text || ""; ORDER.who = S.who || "";
+  ORDER.prev = (S.lines || []).map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra }));
   ORDER.done = S.done || null; ORDER.dismissed = null; ORDER.undoEdit = null; ORDER.lastI = null; ORDER.scan = null;
   ORD_KEEP.forEach(k => { ORDER[k] = S[k] != null ? S[k] : k === "payEach" ? "" : k === "tmpOff" ? false : null; });
   ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null;
@@ -5525,9 +5626,7 @@ function renderOrder(force) {
   $("#orderFor").textContent = "Prices from your post “" + (st.name || TYPES[st.type].name) + "” (" + TYPES[st.type].name.toLowerCase() + ")" + (trade ? " — ratios" : "");
   // paid in an item ("food for lobs"): read from the message; your choices stay while the message is the same
   if (ORDER.payText !== ORDER.text) { ORDER.payText = ORDER.text; ORDER.payAuto = st.type !== "trade" ? orderPay(ORDER.text) : null; if (ORDER.payRef !== undefined && !(ORDER.text || "").trim()) ORDER.payRef = null; ORDER.payMode = null; ORDER.payRound = null; ORDER.payEach = ""; if (ORDER.payAuto) ORDER.payRef = null; }
-  const PIN = pinFor(ORDER.text);
-  if (PIN) { ORDER.intent = null; ORDER.setPick = null; }
-  ORDER.lines = (PIN ? PIN.map(l => Object.assign({ qGuess: false }, l)) : orderLines(ORDER.text)).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, extra: ORDER.prev[i].extra, noExtra: ORDER.prev[i].noExtra, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix, offer: ORDER.prev[i].offer } : {}));
+  ORDER.lines = orderLines(ORDER.text).map((L, i) => Object.assign(L, (ORDER.prev || [])[i] && ORDER.prev[i].raw === L.raw ? { pick: ORDER.prev[i].pick, q: ORDER.prev[i].qEdit ? ORDER.prev[i].q : L.q, qEdit: ORDER.prev[i].qEdit, pp: ORDER.prev[i].pp, _edit: ORDER.prev[i]._edit, extra: ORDER.prev[i].extra, noExtra: ORDER.prev[i].noExtra, mixIn: ORDER.prev[i].mixIn, _mix: ORDER.prev[i]._mix } : {}));
   // a price written in the message: used for that line when it isn't your post's (tap "Post price" to go back)
   if (!trade) ORDER.lines.forEach((L, i) => {
     const pv = (ORDER.prev || [])[i], same = pv && pv.raw === L.raw; if (same && pv.ppOff) L.ppOff = true;
@@ -5541,8 +5640,9 @@ function renderOrder(force) {
   adv();
   const out = $("#orderOut"); out.textContent = "";
   if (ORDER.deal) out.append(dealBar());
+  if (!ORDER.lines.length) { ORDER.total = 0; ORDER.sub = 0; }
   if (!ORDER.lines.length && ORDER.setPick && ORDER.intent && ORDER.intent.sets) { out.append(setPickCard(ORDER.setPick, ORDER.intent)); return; }
-  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
+  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, (ORDER.text || "").trim() ? "No item found in this message — write e.g. “20 apple pie” or “apple pie x20”, one item per line or with commas." : "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
   // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
   const capOn = ORDER.capStock !== false, avail = new Map(); ORDER.oq = 0;
   // no quantity given → the whole quantity of the item in your post (minus what other lines already ask for)
@@ -5630,8 +5730,6 @@ function renderOrder(force) {
       else if (L.ppOff) row.append(h("div", { class: "omsg off" }, h("span", null, "💬 Their price: " + mpS + " — your price is used"),
         h("button", { class: "btn sm", onclick: () => { L.ppOff = false; L.pp = null; renderOrder(); } }, "Use theirs")));
     }
-    // their price, sent with their order from your buyer link: accept it or keep yours
-    if (w && !trade && L.offer && num(L.offer.p) > 0 && !L._edit) row.append(offerBand(L, w));
     // a mix received in a trade: which of its items, as they come in the game
     if (w && trade && L._mix && mixOf(w)) {
       const mw = mixOf(w), MI = mixIn(L, mw), c = L.mixIn || (L.mixIn = {});
@@ -5656,7 +5754,6 @@ function renderOrder(force) {
     }
     list.append(row);
   });
-  if (ORDER.buyer && (ORDER.text || "").trim()) { const bc = buyerCard(rows); if (bc) out.append(bc); }
   out.append(list);
   // what you can't sell (not enough left) / don't need (more than you want)
   const shorts = trade ? [] : rows.filter(L => L.r.w && L.r.short > 0);
@@ -5901,9 +5998,7 @@ function lineRaw(L, q) { const w = L.r && L.r.w; return cleanLine(w ? pName(w) :
 /** Replace the order lines (keeps the picks, typed quantities and special prices of each line). */
 function orderSet(lines, text) {
   const I = ORDER.intent, keep = I && I.any && text == null ? "\n" + [I.ratio ? "ratio " + I.ratio.txt : "", I.sets ? I.sets + " sets" : ""].filter(Boolean).join(", ") : "";
-  const wasPin = !!pinFor(ORDER.text);
   ORDER.text = text != null ? text : lines.map(L => L.raw).join("\n") + keep;
-  if (wasPin && text == null) pinSet(ORDER.text, lines);           // an order from a buyer link stays exact through your edits
   ORDER.prev = lines; $("#orderIn").value = ORDER.text; renderOrder();
 }
 function editOrder(what, lines) {
@@ -5978,18 +6073,16 @@ function pickSheet(L) {
     h("button", { class: "btn dashed", onclick: () => choose(null) }, "Ignore this line")
   ]);
 }
-$("#orderIn").addEventListener("input", e => { if (/#o=[A-Za-z0-9_-]{16}/.test(e.target.value) && orderLinkIn(e.target.value)) return; ORDER.text = e.target.value; orderDraftSoon(); renderOrderSoon(); });
+$("#orderIn").addEventListener("input", e => { ORDER.text = e.target.value; orderDraftSoon(); renderOrderSoon(); });
 addEventListener("pagehide", () => { if (odT) orderDraftSave(); });
 document.addEventListener("visibilitychange", () => { if (document.hidden && odT) orderDraftSave(); });
-$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); if (/#o=[A-Za-z0-9_-]{16}/.test(t) && orderLinkIn(t)) return; ORDER.buyer = null; $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
+$("#orderPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (!t) return toast("Clipboard is empty"); $("#orderIn").value = t; ORDER.text = t; ORDER.prev = []; ORDER.tmpOff = false; ORDER.lastOff = false; renderOrder(); } catch (e) { toast("Long-press the box and choose Paste"); $("#orderIn").focus(); } };
 $("#orderShot").onclick = () => $("#orderFile").click();
 $("#orderFile").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) orderPicture(f); };
 /** Order from any picture: a post picture (tiles with a quantity and a price), a screenshot of a message or a list
     → one line per item ("32 Caramel Apple @ 5xmp"). A barn / silo screenshot or a video → the barn reader. */
 async function orderPicture(files) {
   if (files.some(isVideo)) return scanFiles(files, "order");
-  // a picture from your buyer link: its code is the exact order
-  for (const f of files) { try { const O = await readOrderCodeFile(f); if (O && buyerOrderLoad(O, "picture")) return; } catch (e) {} }
   scanWhere = "order"; scanPut("order", { busy: true, msg: "Reading the picture…" }); renderOrderScan();
   const say = m => { if (SCN.stop) throw new Error("stopped"); updScan(m); };
   let got = null;
@@ -6115,7 +6208,7 @@ function pickSum() {
   const n = (ORDER.lines || []).filter(L => L.r && L.r.w && !L.r.ignored).length;
   el.textContent = n ? plural(n, "item") + " picked — set the quantities in the lines below" + (st.type !== "trade" && ORDER.total ? " · total " + fmt(Math.round(ORDER.total)) : "") : "Tap the items they want. Tap again to take one out.";
 }
-$("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.buyer = null; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
+$("#orderClear").onclick = () => { $("#orderIn").value = ""; ORDER.text = ""; ORDER.prev = []; ORDER.tmpOff = false; renderOrder(); };
 
 /* =====================================================================
    ORDER · ADVANCED — add a group of post items to the order by rules
@@ -6544,10 +6637,13 @@ const PASTE = { text: "", picks: {} };
 const NUM = "(\\d+(?:[.,]\\d+)?\\s*k?)";
 /** One line → { name, q, p, pu, ra, rb, have } — prices: 1500 · @1500 · 1.5k · 1r / 1 ring / 💍 · 2b / 2 blankets · 5xmp; qty: x20 · 20x · 20 pcs; ratio: 50:89. */
 function parseListLine(raw, sec) {
-  let s = " " + raw.replace(/💍/g, " r ").replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+•·]|\d+[.)])\s+/, " ").replace(/\s+/g, " ") + " ";
+  let s = " " + raw.replace(/[(\[][ \t]*[x×]?[ \t]*(\d{1,6})[ \t]*(?:[x×]|pcs?)?[ \t]*[)\]]/gi, " x$1 ").replace(/💍/g, " r ").replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+•·]|\d+[.)])\s+/, " ").replace(/\s+/g, " ") + " ";
   const o = { raw: raw.trim(), q: "", p: "", pu: "coin", ra: "", rb: "", have: sec === "have", oos: /~~[^~]+~~/.test(raw) };
   s = s.replace(/~~/g, " ");
   const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], " "); return true; } return false; };
+  s = s.replace(/^\s*(?:selling|buying|wts|wtb|lf|looking\s+for|for\s+sale)\b\s*[:\-–]?\s*/i, " ");
+  take(new RegExp("(?:@|\\bfor\\b|\\bat\\b)\\s*" + NUM + "\\s*(?:x|×)(?![a-z0-9])", "i"), m => { o.p = m[1]; o.pu = "xmp"; });
+  if (!o.p) take(/\s(\d+[.,]\d+)\s*(?:x|×)(?![a-z0-9])/i, m => { o.p = m[1]; o.pu = "xmp"; });
   take(/^\s*(?:i\s*have|have|offer(?:ing)?|giving)\s*[:\-–]\s*/i, () => { o.have = true; });
   take(/\s(?:i\s*want|want|wtb|looking\s*for)\s*[:\-–]\s*/i, () => { o.have = false; });
   take(/(\d+(?:[.,]\d+)?)\s*[:/]\s*(\d+(?:[.,]\d+)?)/, m => { o.rb = m[1]; o.ra = m[2]; });     // "50:89" = 50 of it for 89 of yours
@@ -6556,8 +6652,12 @@ function parseListLine(raw, sec) {
   take(new RegExp("\\s" + NUM + "\\s*(?:b|bl|blankets?)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; o.pu = "blanket"; });
   if (!o.p) take(new RegExp("(?:@|\\bfor\\b|\\bprice\\b|\\bat\\b)\\s*" + NUM, "i"), m => { o.p = m[1]; }) ||
     take(new RegExp("\\s" + NUM + "\\s*(?:c|coins?|ea|each|/u|/ea|per\\s*unit)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; });
+  // "honey 4x" alone on its line (a seller's list): a small "Nx" with no other number is the price in ×MP
+  if (!o.p && !o.ra && !/(?:^|\s)(?:x|×)\s*\d/i.test(s) && (s.match(/\d+(?:[.,]\d+)?/g) || []).length === 1) take(/\s(\d{1,2}(?:[.,]\d+)?)\s*(?:x|×)(?=\s|$|[,.;])/i, m => { if (num(m[1].replace(",", ".")) <= 20) { o.p = m[1]; o.pu = "xmp"; } else s = s.replace(" ", " " + m[0]); });
   take(new RegExp("(?:\\s|^)(?:x|×)\\s*" + NUM + "(?=\\s|$|[,.;])", "i"), m => { o.q = m[1]; }) ||
     take(new RegExp("\\s" + NUM + "\\s*(?:x|×|pcs?|pieces?)(?=\\s|$|[,.;])", "i"), m => { o.q = m[1]; });
+  // the quantity is there ("x120", "120"): a "5x" left is the price in ×MP
+  if (!o.p && !o.ra) { const hasQ = !!o.q || /(?:^|\s)\d+(?:\s|$)/.test(s.replace(/\s\d+\s*(?:x|×)(?=\s|$)/i, " ")); if (hasQ) take(/\s(\d+(?:[.,]\d+)?)\s*(?:x|×)(?=\s|$|[,.;])/i, m => { o.p = m[1]; o.pu = "xmp"; }); }
   // bare numbers: quantity first, then price
   const bare = [...s.matchAll(/(?:^|\s)(\d+(?:[.,]\d+)?\s*k?)(?=\s|$|[,.;])/gi)].map(m => m[1]);
   bare.forEach(n => {
@@ -6571,11 +6671,24 @@ function parseListLine(raw, sec) {
 }
 function parseList(text) {
   const out = []; let sec = "want";
-  String(text || "").split(/\r?\n|;/).forEach(raw => {
+  discordClean(text).split(/\r?\n|;/).forEach(raw => {
     const t = raw.replace(/[*_`~>#:]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/\s+/g, " ").trim().toLowerCase();
     if (!t) return;
     if (/^(i have|have|offering|offer|my stock|giving)$/.test(t)) { sec = "have"; return; }
     if (/^(i want|want|wanted|what i want|looking for|wtb|wts|selling|buying|for sale|shop|items?)$/.test(t)) { sec = "want"; return; }
+    // several items on one line: "apple pie x20, cheesecake x10" · "20 apple pie + 10 bread" · "macaroon, fudge, lemon pie 10xmp" (one price for all)
+    const parts = raw.split(/\s*(?:,(?!\d{3}\b)|\s\+\s)\s*/), named = x => /[a-z]{3,}/i.test(x.replace(/\b(?:x|mp|xmp|k|each|ea|rings?|blankets?|coins?|dr|bl)\b|\d+[a-z]{0,3}\b/gi, ""));
+    const ratios = (raw.match(/\d\s*[:/]\s*\d/g) || []).length;
+    if (parts.length >= 2 && parts.filter(named).length >= 2 && (!ratios || ratios === parts.filter(named).length || parts.filter(x => /\d\s*[:/]\s*\d/.test(x)).length === 1 && /\d\s*[:/]\s*\d/.test(parts[parts.length - 1]))) {
+      const os = parts.filter(x => x.trim()).map(x => parseListLine(x, sec)), last = os[os.length - 1];
+      if (last && last.p && os.slice(0, -1).every(o => !o.p)) {
+        let nm = last.name, q0; do { q0 = nm; nm = nm.replace(SP_TAIL, "").trim(); } while (nm && nm !== q0); last.name = nm;
+        os.forEach(o => { o.p = last.p; o.pu = last.pu; });
+      }
+      if (last && last.ra && os.slice(0, -1).every(o => !o.ra)) os.forEach(o => { o.ra = last.ra; o.rb = last.rb; });   // one ratio for the list
+      os.forEach(o => { if (o.name && /[a-z]/i.test(o.name)) out.push(o); });
+      return;
+    }
     const o = parseListLine(raw, sec);
     if (!o.name || !/[a-z]/i.test(o.name)) return;
     out.push(o);
@@ -6675,8 +6788,9 @@ function invFix() {
   if (!INV || typeof INV !== "object") INV = {};
   if (!Array.isArray(INV.farms)) INV.farms = [{ id: "f1", name: "My farm", items: Array.isArray(INV.items) ? INV.items : [] }];
   delete INV.items;
+  INV.farms = INV.farms.filter(isObj);
   if (!INV.farms.length) INV.farms.push({ id: "f1", name: "My farm", items: [] });
-  INV.farms.forEach(f => { if (!Array.isArray(f.items)) f.items = []; });
+  INV.farms.forEach((f, i) => { if (f.id == null) f.id = "f" + (i + 1); if (typeof f.name !== "string") f.name = "Farm " + (i + 1); f.items = (Array.isArray(f.items) ? f.items : []).filter(x => isObj(x) && (x.ref || x.name)); f.items.forEach(x => { x.q = Math.max(0, Math.round(num(x.q))) || 0; if (x.name != null && typeof x.name !== "string") x.name = String(x.name); }); });
   if (!INV.farms.some(f => f.id === INV.cur)) INV.cur = INV.farms[0].id;
   if (!INV.farms.some(f => f.id === INV.deal)) INV.deal = INV.cur;
 }
@@ -6733,7 +6847,7 @@ function invSet(x, q, quiet, fid) {
   if (p && (p.parts || p.mix)) return;                      // sets live as their materials, mixes as their items
   let i = F.items.find(o => o.k === k);
   if (!i && q <= 0) return;
-  if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name, e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; F.items.push(i); }
+  if (!i) { i = { k, ref: x.ref || null, name: p ? p.en : x.name || String(x.ref || "Item").replace(/-/g, " "), e: p ? p.e : x.e || "📦", s: invStore(x.ref), q: 0 }; F.items.push(i); }
   if (q <= 0) F.items.splice(F.items.indexOf(i), 1); else { i.q = q; i.t = Date.now(); }
   if (!quiet) saveInv();
 }
@@ -6882,7 +6996,7 @@ function renderInv() {
     list.textContent = "";
     const nq = norm(IV.q);
     let L = invList(scope).filter(i => (IV.f === "all" || i.s === IV.f) && (!nq || norm(i.name).includes(nq) || (i.ref && CAT.byId[i.ref] && norm(CAT.byId[i.ref].fr || "").includes(nq))));
-    L.sort(IV.sort === "most" ? (a, b) => b.q - a.q : IV.sort === "least" ? (a, b) => a.q - b.q : (a, b) => a.name.localeCompare(b.name));
+    L.sort(IV.sort === "most" ? (a, b) => b.q - a.q : IV.sort === "least" ? (a, b) => a.q - b.q : (a, b) => (a.name || "").localeCompare(b.name || ""));
     if (!L.length) list.append(h("p", { class: "hint", style: "padding:12px" }, "Nothing matches."));
     L.forEach(i => {
       const tag = ro ? (i.by || []).map(([n, q]) => n + " " + fmt(q)).join(" · ") : IV.f === "all" ? (i.s === "silo" ? "Silo" : "Barn") : "";
@@ -6949,8 +7063,8 @@ function invTextSheet() {
 }
 function invTextRows(text) {
   const seen = new Map(), rows = [];
-  parseList(String(text || "").replace(/,(?!\d{3}\b)/g, "\n")).forEach(o => {
-    const r = findMatches(o.name, CAT.list.filter(p => !isVirt(p)), p => p.en), m = matchProduct(o.name), p = m.p ? (isVirt(m.p) ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
+  parseList(discordClean(text).replace(/,(?!\d{3}\b)/g, "\n").replace(/\s\+\s/g, "\n")).forEach(o => {
+    const r = findMatches(o.name, CAT.list.filter(p => !isVirt(p)), p => p.en, 1), m = matchProduct(o.name), p = m.p ? (isVirt(m.p) ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
     const q = o.q === "" ? NaN : Math.round(num(o.q));
     const row = { view: null, txt: o.raw, q, qSure: !isNaN(q), m: r.slice(0, 6).map(x => ({ ref: x.x.id, c: 0 })), ref: p ? p.id : null, sure: !!(p && m.sure), on: !!p, shot: 0 };
     if (row.ref && seen.has(row.ref)) { const o2 = seen.get(row.ref); if (!isNaN(q)) { o2.q = q; o2.qSure = true; o2.txt = o.raw; } return; }   // twice in the list → the last number
@@ -6965,7 +7079,14 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "26 Nov 2026 · 00:15";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 19:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
+/** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
+const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
+function tabsApply() {
+  document.body.classList.toggle("tabtop", tabsTop());
+  const b = $("#tabbar"); if (b && tabsTop()) requestAnimationFrame(() => document.documentElement.style.setProperty("--ttop", Math.round(b.getBoundingClientRect().height) + "px"));
+}
+tabsApply();
 function renderMeMenu() {
   const m = $("#meMenu"); if (m.hidden) return; m.textContent = "";
   const go = (icon, title, sub, fn) => h("button", { class: "meit", role: "menuitem", onclick: () => { closeMe(); fn(); } }, h("span", { class: "mi" }, icon), h("span", { class: "mt" }, h("b", null, title), h("small", null, sub)), h("span", { class: "mg" }, "›"));
@@ -6978,6 +7099,8 @@ function renderMeMenu() {
     go("🕘", "History & stats", HIST.length ? fmt(HIST.length) + " deals" + (S ? " · " + short(Math.round(S.in)) + " coins in" : "") : "Your deals, and what they add up to", () => tab("hist")),
     go("🎨", "Style & backup", "Paper, layout, texts · backup of everything", () => tab("style")),
     h("a", { class: "meit", role: "menuitem", href: "guide.html", target: "_blank", rel: "noopener", onclick: closeMe }, h("span", { class: "mi" }, "📖"), h("span", { class: "mt" }, h("b", null, "Guide"), h("small", null, "How everything works")), h("span", { class: "mg" }, "↗")),
+    h("div", { class: "metabs" }, h("div", null, h("b", null, "Tabs"), h("small", null, "At the top if your browser's bar hides them")),
+      h("div", { class: "seg" }, [["bottom", "Bottom"], ["top", "Top"]].map(([k, t]) => h("button", { class: tabsTop() === (k === "top") ? "on" : "", onclick: () => { SETTINGS.tabTop = k === "top"; saveSettings(); tabsApply(); renderMeMenu(); } }, t)))),
     h("p", { class: "mever" }, "Version " + APP_VER + " · if this isn't the latest, reload the page"));
 }
 
@@ -7042,6 +7165,27 @@ function qcLine(raw) {
   if (P && P.parts) qcPack(L, P);
   return L;
 }
+/** A list with one price at the end → one calculation per item:
+    "chilli popcorn, 20 macaroon, fudge all this 10xmp" → "chilli popcorn 10xmp", "20 macaroon 10xmp", "fudge 10xmp".
+    Lines without a price wait for the next price (a list written on several lines). */
+function qcExpand(text) {
+  const out = [], pend = [];
+  discordClean(text).split(/\r?\n/).forEach(raw => {
+    const t = raw.trim(); if (!t) return;
+    const L = qcLine(t);
+    if (L && L.math) { out.push(...pend.splice(0)); out.push(t); return; }
+    if (!L || L.price == null) { pend.push(t.replace(/[,\s]+$/, "")); return; }
+    const all = pend.splice(0).concat(t).join(", "), parts = all.split(/\s*(?:,(?!\d{3}\b)|\+)\s*/).map(spClean).filter(Boolean);
+    const isTot = /(?:^|\s)for\s+\d[\d.,]*\s*[km]?\s*(?:coins?|c|g)?\s*$/i.test(t) || /\b(?:in\s*total|total|for\s*all)\s*$/i.test(t);
+    if (parts.length <= 1 || isTot) { out.push(all); return; }          // a total "for 1.5m" over a list: as written (it says what's wrong)
+    const LL = qcLine(parts.pop());
+    let nm = LL.name || "", q0; do { q0 = nm; nm = spClean(nm.replace(SP_TAIL, "")); } while (nm && nm !== q0);
+    const pt = LL.unit === "xmp" ? fmtRt(LL.price) + "xmp" : LL.unit === "ring" ? LL.price + " rings" : LL.unit === "blanket" ? LL.price + " blankets" : String(LL.price);
+    parts.forEach(e => { const E = qcLine(e); out.push(E && (E.math || E.price != null) ? e : e + " " + pt); });
+    if (nm) out.push((LL.q !== 1 ? LL.q + " " : "") + nm + " " + pt);
+  });
+  return out.concat(pend);
+}
 /** A set: its materials (89 a set: 30 Bolt + 30 Plank + 29 Duct Tape) and what each part is worth, in whole coins adding up to the total. */
 function qcPack(L, P) {
   const n = Math.round(L.q * SET_N); L.mats = n; if (!n) return;
@@ -7072,7 +7216,7 @@ function openCalc() {
   const paint = () => {
     SETTINGS.calc = ta.value; SETTINGS.calcPct = pct.value; saveSettings();
     out.textContent = "";
-    const Ls = ta.value.split(/\r?\n/).map(qcLine).filter(Boolean);
+    const Ls = qcExpand(ta.value).map(qcLine).filter(Boolean);
     if (!Ls.length) { out.append(h("p", { class: "hint" }, "Quantity, item, price. “ea” = each, “for 1.5m” = for all of them. Prices in coins (150k, 2.5k, 1.5m), rings, blankets or ×MP. Plain math works too: 150k*10.")); return; }
     let sum = 0, n = 0, items = 0;
     Ls.forEach(L => {
@@ -7484,10 +7628,10 @@ function scanCard(where) {
   if (noQ) c.append(h("p", { class: "owarn" }, plural(noQ, "item") + " without a number" + (S.txt ? "" : " (hidden or unreadable)") + ": type how many you have, or untick it."));
   if (S.noPics) c.append(h("p", { class: "owarn" }, "The game pictures couldn't be loaded (no internet?): pick each item by hand."));
   const list = h("div", { class: "slist" });
-  R.forEach(r => {
+  R.forEach((r, ri) => {
     const p = r.ref && CAT.byId[r.ref];
     const qi = h("input", { value: isNaN(r.q) ? "" : r.q, placeholder: "?", inputMode: "numeric", "aria-label": "Quantity", oninput: () => { r.q = qi.value.trim() === "" ? NaN : Math.round(num(qi.value)); } });
-    list.append(h("div", { class: "srow" + (r.on ? "" : " off") + (!r.ref || !r.sure || isNaN(r.q) || isDup(r) ? " chk" : "") },
+    list.append(h("div", { class: "srow" + (r.on ? "" : " off") + (!r.ref || !r.sure || isNaN(r.q) || isDup(r) ? " chk" : "") + (isDup(r) ? " dup" : ""), "data-i": ri },
       r.view ? h("img", { src: r.view, alt: "", class: "scrop" }) : h("span", { class: "scrop stxt", title: r.txt || "" }, r.txt || ""),
       h("button", { class: "spick", onclick: () => scanPick(r, where) }, p ? thumb(prodState(p.id), p.e, "mini") : null, h("span", null, p ? p.en : "Pick the item"), !r.ref || !r.sure || isDup(r) ? h("span", { class: "flag" }, isDup(r) ? "2×" : "?") : null),
       h("div", { class: "oq" }, h("span", null, "×"), qi),
@@ -7507,7 +7651,19 @@ function scanCard(where) {
   else c.append(h("div", { class: "seg" }, h("button", { class: S.mode !== "rep" ? "on" : "", onclick: () => { S.mode = "upd"; redraw(); } }, "Update these items"),
       h("button", { class: S.mode === "rep" ? "on" : "", onclick: () => { S.mode = "rep"; redraw(); } }, "Replace my " + (stores.length === 1 ? stores[0] : "barn & silo"))),
     h("p", { class: "hint" }, S.mode === "rep" ? "Everything else in your " + (stores.join(" & ") || "barn") + " is removed — use it when your screenshots show the whole " + (stores[0] || "barn") + "." : "Only these items change; the rest of your inventory stays."));
-  c.append(h("div", { class: "two" }, h("button", { class: "btn pri", disabled: !n || dups.length > 0, onclick: () => scanSave(where) }, (post ? "Add " : "Save ") + plural(n, "item")), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "Cancel")));
+  // Save never stays silent: what blocks it is said right above it, and a tap shows the line to fix
+  const dupNames = [...new Set(dups.map(r => (CAT.byId[r.ref] || {}).en || r.ref))];
+  if (dups.length) c.append(h("p", { class: "owarn sblock" }, "⚠ To save: " + dupNames.map(x => "“" + x + "”").join(", ") + (dupNames.length > 1 ? " are each" : " is") + " on 2 lines (marked 2×). Tap the wrong line to pick its real item, or untick it."));
+  const trySave = () => {
+    if (dups.length) {
+      const i = R.indexOf(dups[0]), row = c.querySelector('.srow[data-i="' + i + '"]');
+      if (row) { row.scrollIntoView({ behavior: "smooth", block: "center" }); row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash"); }
+      return toast("“" + dupNames[0] + "” is on 2 lines: tap the wrong one and pick its real item, or untick it");
+    }
+    if (!n) return toast("Nothing to save: tick at least one line with an item and a number");
+    scanSave(where);
+  };
+  c.append(h("div", { class: "two" }, h("button", { class: "btn pri" + (!n || dups.length ? " soft" : ""), onclick: trySave }, (post ? "Add " : "Save ") + plural(n, "item")), h("button", { class: "btn", onclick: () => { scanPut(where, null); redraw(); } }, "Cancel")));
   return c;
 }
 function scanPick(r, where) {
@@ -7900,6 +8056,16 @@ function emojiChar(ch) {
   return EMOJI_ITEM.get(String(ch).replace(/\uFE0F/g, "")) || null;
 }
 /** Emojis → the item names ("💍" → Diamond Ring, ":hd_mayo:" → Mayonnaise), the others go: "💍 🫒 4k each" → "Diamond Ring, Olive Oil 4k each". */
+/** What Discord adds around a message: mentions, channel links, web links, invisible / direction characters, spoilers,
+    a ring / blanket / coin emoji used as the unit ("1 <:ring:…>" → "1 rings"; "<:ring:…> 1 ring" → "1 ring"). */
+function discordClean(t) {
+  return String(t == null ? "" : t)
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff\u00ad]/g, "").replace(/[\u00a0\u2007\u202f]/g, " ")
+    .replace(/<(?:@[!&]?|#)\d+>/g, " ").replace(/\bhttps?:\/\/\S+/gi, " ").replace(/\|\|/g, " ")
+    .replace(/(\d[\d.,]*\s*k?)\s*<a?:\w*?(ring|blanket|coin)s?\w*:\d+>/gi, (m, n, u) => n + " " + u.toLowerCase() + "s")
+    .replace(/<a?:\w*?(?:ring|blanket|coin)s?\w*:\d+>\s*(?=\d[\d.,]*\s*(?:k\b|rings?|blankets?|coins?|r\b|b\b|bl\b|dr\b))/gi, " ")
+    .replace(/\r\n?/g, "\n");
+}
 function emoNames(s) {
   // "Help 🪧": the name is already written just before its picture → not twice
   const put = (p, str, off) => !p ? " " : (() => { const b = norm(String(str).slice(0, off)), n = norm(p.en); return b.endsWith(n) || b.endsWith(n + "s") ? " " : " " + p.en + "\u0002 "; })();
@@ -7910,20 +8076,23 @@ const words = s => s.trim().split(/\s+/).filter(Boolean);
 /** Read a free-form buying post: "(10) nachos, bacon fries 3k", "15 marmalade, 10 peach jam 5k each", "egg / lobster / big roll sushi 4k each"… */
 function parseBuyList(text) {
   const items = []; let defQ = null;
-  String(text || "").split(/\r?\n/).forEach((raw, li) => {
+  discordClean(text).split(/\n/).forEach((raw, li) => {
     let s = emoNames(raw).replace(/[*_`~>#|]/g, " ").replace(EMO, " ").replace(/^\s*(?:[-–—•·◦▪➤]|\d+[.)](?=\s))\s*/, "").replace(/\s+/g, " ").trim(), m;
     // what a screenshot reader often gets wrong: "Ak each" = 4k each, "4K" = 4k
     s = s.replace(/\b[Aa](?=[kK]\b)/g, "4").replace(/(\d)\s*K\b/g, "$1k").replace(/^[^\w(]+/, "");
     if (!s || !/[a-z]/i.test(s)) return;
     const qm = s.match(/quantit(?:y|ies)\D*(\d+)(?:\s*(?:-|–|to)\s*(\d+))?/i);
     if (qm) { defQ = +(qm[2] || qm[1]); if (!/[,/]/.test(s)) return; }
-    if (/^(?:buying|selling|wtb|wts|for\s+sale|on\s+sale|sale|looking\s+for|lf|need(?:ing)?|want(?:ing)?|paying)\b/i.test(s) && !/[,/]/.test(s)) return; // a title line ("Selling", "WTS:")
+    if (/^(?:buying|selling|wtb|wts|for\s+sale|on\s+sale|sale|looking\s+for|lf|need(?:ing)?|want(?:ing)?|paying)\b/i.test(s) && !/[,/]/.test(s) && !/\d\s*(?:[x×](?:\s*mp)?|k|m|coins?|each|ea)\s+and\s+/i.test(s)) return; // a title line ("Selling", "WTS:")
+    if (/^(?:shop\s+open|open|dm(?:\s+me)?|ping(?:\s+me)?|dm\s*\/\s*ping|thanks?|thx|ty|bulk\b.*|ratio\b.*|prices?)\s*[!.:]*$/i.test(s.replace(/[^\w\s:!./+%-]/g, "").trim())) return;   // "Shop open 🎉", "DM me"
+    // "all jams 3x and all bars 2x": "and" after a price starts a new item
+    s = s.replace(/(\d\s*(?:[x×](?:\s*mp)?|k|m|coins?|each|ea|rings?|blankets?))\s+and\s+/gi, "$1, ");
     s = s.replace(/^(?:i\s*am\s*|i'?m\s*)?(?:buying|selling|wtb|wts|for\s+sale|looking\s+for|lf|need(?:ing)?|paying)\b\s*:?\s*/i, "");           // "Buying 💍, 🦞 5k" → the items
     let lineQ = null, lineP = null;
     if ((m = s.match(/^\(\s*(\d+)\s*\+?\s*\)\s*/))) { lineQ = +m[1]; s = s.slice(m[0].length); }
     if ((m = s.match(/^(\d+(?:[.,]\d+)?\s*[km])\s*(?:each|ea|apiece)?\b[\s:,\-–]*/i))) { lineP = num(m[1].replace(/\s/g, "")); s = s.slice(m[0].length); }
     // pieces, keeping what separated them ("/" = variants of the same thing)
-    const parts = s.split(/(\s*(?:,|\/|;|\.\s+(?=[a-z]))\s*)/i), segs = [];
+    const parts = s.split(/(\s*(?:,(?!\d{3}\b)|\/|;|\.\s+(?=[a-z]))\s*)/i), segs = [];
     for (let i = 0; i < parts.length; i += 2) if (parts[i] && parts[i].trim()) segs.push({ t: parts[i].trim(), sep: i ? parts[i - 1].trim()[0] || "," : "" });
     let pend = []; const line = [];
     segs.forEach(({ t, sep }) => {
@@ -7932,9 +8101,16 @@ function parseBuyList(text) {
       // or in max price: "3xmp", "3mxp", "3 x mp", "5x max", "4mp"
       if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*m\.?\s*p|m\s*[x×]\s*p|[x×]\s*max(?:\s*price)?|m\.?p)\.?\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { xm = num(m[1]); x = x.slice(0, m.index); }
       else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*([km])\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { p = num(m[1] + m[2]); x = x.slice(0, m.index); }
-      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d{3,6})\s*(?:coins?|c)?\s*(?:each|ea|apiece)\.?\s*$/i))) { p = num(m[1]); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d{1,6}|\d{1,3}(?:,\d{3})+)\s*(?:coins?|c)?\s*(?:each|ea|apiece)\.?\s*$/i))) { p = num(m[1].replace(/,/g, "")); x = x.slice(0, m.index); }
+      // "@ 5x", "for 3x" (×MP) · "@ 1,500" / "@ 800" (coins) · "@ 1 ring", "2 blankets" (each)
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))\s*(\d+(?:[.,]\d+)?)\s*[x×]\.?\s*(?:each|ea)?\s*$/i))) { xm = num(m[1].replace(",", ".")); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*(rings?|dr|diamond\s*rings?|blankets?|bl)\.?\s*(?:each|ea)?\s*$/i))) { p = num(m[1].replace(",", ".")) * (/^(?:rings?|dr|diamond)/i.test(m[2]) ? RING_RATE : BLANKET_RATE); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))\s*(\d{1,6}|\d{1,3}(?:,\d{3})+)\s*(?:coins?|c)?\.?\s*$/i))) { p = num(m[1].replace(/,/g, "")); x = x.slice(0, m.index); }
+      // a small "3x" after the name (a buying / selling post): ×MP — a quantity is written "x30", "30x" with 30 > 12, or before the name
+      else if ((m = x.match(/[a-z)]\s+(\d{1,2}(?:[.,]\d+)?)\s*[x×]\s*$/i)) && num(m[1].replace(",", ".")) <= 12) { xm = num(m[1].replace(",", ".")); x = x.slice(0, m.index + 1); }
       if ((m = x.match(/^\(?\s*(\d+)\s*\+?\s*\)?\s*(?:x|×|pcs?)?\s+(?=[a-z])/i))) { q = +m[1]; x = x.slice(m[0].length); }
       else if ((m = x.match(/\s(?:x|×)\s*(\d+)\s*$|\s(\d+)\s*(?:x|×|pcs?)\s*$/i))) { q = +(m[1] || m[2]); x = x.slice(0, m.index); }
+      else if ((p != null || xm != null) && (m = x.match(/[a-z)]\s+(\d{1,6})\s*$/i))) { q = +m[1]; x = x.slice(0, m.index + 1); }   // "Apple pie 120 @ 5x"
       const cut = x.split(/!+|:|\s[-–]\s|[-–]\s/); x = cut[cut.length - 1];             // "SAUCES!! olive oil", "Salad Bar stuff- BLT"
       x = x.replace(/\b(?:each|ea|also|pls|please|any|some)\b/gi, " ").replace(/[()[\]!?.]/g, " ").replace(/\s+/g, " ").trim();
       const setP = () => { if (p != null) pend.forEach(o => o.p = p); else if (xm != null) pend.forEach(o => o.xmp = xm); pend = []; };
@@ -8093,8 +8269,10 @@ function srCommands(text) {
 }
 
 /** The post → info (kind, author, notes, what they give) + the asks: coins (price each), ratios (need:have), picture tiles. */
+/** "Want: apple pie 45:89, cheesecake 60:89": one ratio a line, so each item keeps its own. */
+const ratioLines = t => discordClean(t).split("\n").map(l => (l.match(/\d\s*:\s*\d/g) || []).length >= 2 && /,/.test(l) ? l.split(/,(?=[^,]*[a-z][^,]*\d\s*:\s*\d)/i).map(x => x.trim()).join("\n") : l).join("\n");
 function srParse() {
-  const C = srCommands(SR.text || ""), text = C.rest.join("\n"), R = impParse(textLines(text), [], [], text), asks = C.asks.slice();
+  const C = srCommands(ratioLines(SR.text || "")), text = C.rest.join("\n"), R = impParse(textLines(text), [], [], text), asks = C.asks.slice();
   const info = { kind: C.asks.length ? "trade" : R.kind, author: R.author || SR.author, notes: R.notes.slice(0, 6), gives: C.gives.slice(), offer: [], cmd: C.asks.length > 0 };
   // trade groups: "Need 🫙🫙 45:89 // 40:89 for 10 sets+" — you give 45, you get 89 (materials of a set)
   R.groups.forEach((g, gi) => {
@@ -8408,6 +8586,7 @@ $("#srFile").onchange = e => { const f = [...e.target.files]; e.target.value = "
    ===================================================================== */
 let DEALS = store.get("hd5_deals", []);
 if (!Array.isArray(DEALS)) DEALS = [];
+DEALS = dealsClean(DEALS);
 const DL = { undo: null, showDone: false };
 const saveDeals = () => { store.set("hd5_deals", DEALS); dealBadge(); };
 const DTYPE = { trade: { t: "Trade", i: "🔁" }, vente: { t: "Sale", i: "💰" }, achat: { t: "Purchase", i: "🛒" } };
@@ -8707,7 +8886,7 @@ dealBadge();
 /* ---------- a deal open in Order: work on it there, switch to another one, send it back (with all, some or none of the changes) ---------- */
 /** The order on screen, as a deal keeps it. */
 function orderState() {
-  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? Object.assign({ p: L.pp.p, pu: L.pp.pu }, L.pp.msg ? { msg: 1 } : L.pp.offer ? { offer: 1 } : {}) : null, offer: L.offer && num(L.offer.p) > 0 ? { p: L.offer.p, pu: L.offer.pu } : null, ppOff: L.ppOff ? 1 : 0, extra: L.extra || null, noExtra: L.noExtra ? 1 : 0, qGuess: L.qGuess ? 1 : 0, name: L.r && L.r.w ? pName(L.r.w) : L.name })), pin: pinFor(ORDER.text) ? 1 : 0 };
+  return { pid: st.id, text: ORDER.text || "", who: ORDER.who || "", lines: (ORDER.lines || []).map(L => ({ raw: L.raw, pick: L.pick || (L.r && L.r.w ? L.r.w.uid : null), q: L.q, qEdit: L.qEdit ? 1 : 0, pp: L.pp && num(L.pp.p) > 0 ? Object.assign({ p: L.pp.p, pu: L.pp.pu }, L.pp.msg ? { msg: 1 } : {}) : null, ppOff: L.ppOff ? 1 : 0, extra: L.extra || null, noExtra: L.noExtra ? 1 : 0, name: L.r && L.r.w ? pName(L.r.w) : L.name })) };
 }
 /** A deal → an order (deals saved from Order come back exactly; the others are rebuilt from their items). */
 function dealOrder(d) {
@@ -8721,7 +8900,7 @@ function dealOrder(d) {
 }
 function orderLoad(S) {
   if (S.pid && S.pid !== st.id && STATE.list.some(p => p.id === S.pid)) selectProfile(S.pid);
-  ORDER.text = S.text; pinLoad(S); ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra, offer: l.offer || null })); ORDER.who = S.who || "";
+  ORDER.text = S.text; ORDER.prev = S.lines.map(l => ({ raw: l.raw, pick: l.pick, q: l.q, qEdit: l.qEdit, pp: l.pp, ppOff: l.ppOff, extra: l.extra || null, noExtra: l.noExtra })); ORDER.who = S.who || "";
   ORDER.done = null; ORDER.dismissed = null; ORDER.undoEdit = null; $("#orderIn").value = S.text; renderOrder(true);
 }
 const coreOf = S => JSON.stringify({ text: S.text, lines: S.lines.map(l => [l.raw, l.pick, l.q, l.pp && l.pp.p, l.pp && l.pp.pu]), who: S.who || "" });
@@ -9536,7 +9715,7 @@ const ownItem = r => Object.assign(r.ref ? { ref: r.ref, src: r.src || null } : 
 const RAT = /(\d+(?:[.,]\d+)?)\s*[:：]\s*(\d+(?:[.,]\d+)?)/;
 /** Lines of copied Discord text → the same tokens as a screenshot (:emoji: names, ~~struck~~). */
 function textLines(text) {
-  return String(text || "").split(/\r?\n/).map(raw => {
+  return discordClean(text).split(/\r?\n/).map(raw => {
     raw = raw.replace(/\*+|`+|(^|\s)__|__(\s|$)/g, "$1$2").replace(/^\s*>+\s?/, "");   // **bold**, `code`, __underline__, > quotes
     const toks = []; let strike = false, x = 0;
     raw = raw.replace(EMOS_RE, m => " " + m + " ");
@@ -9832,6 +10011,23 @@ function impParse(lines, tiles, picNotes, text) {
   return R;
 }
 /** Parsed post → the posts to create (a trade post, and/or a selling / buying post). */
+/** How much a reading found: items known, with a price / ratio, with a quantity. */
+function postScore(posts) { return (posts || []).reduce((a, P) => a + (P.wants || []).reduce((b, x) => b + (x.ref ? 1 : x.name ? .2 : 0) + (num(x.p) > 0 || num(x.ra) > 0 ? .5 : 0) + (num(x.q) > 0 ? .25 : 0), 0) + (P.have || []).filter(x => x.ref).length * .5, 0); }
+/** A pasted post read one line at a time (each line: item, quantity, price or ratio) → posts for the import. */
+function listPosts(text) {
+  const junk = /^(?:dm|dm me|ping|ping me|dm\/ping|ratio|bulk|thanks?|thx|ty|shop open|open|selling|buying|wts|wtb|lf|trading|trade|have|want|need|my shop|prices?)\b/i;
+  const all = parseList(text), glob = all.find(o => o.ra && /^ratio\b/i.test(o.name || "")), os = all.filter(o => !junk.test(o.name || "") && /[a-z]{3,}/i.test(o.name || ""));
+  if (!os.length) return null;
+  const t = discordClean(text).toLowerCase(), trade = os.some(o => o.have) || os.some(o => o.ra) || !!glob;
+  const kind = trade ? "trade" : /\b(?:buying|wtb|looking for|lf)\b/.test(t) ? "achat" : "vente";
+  const it = o => { const m = matchProduct(o.name), ok = !!(m.p && m.sure); return { ref: ok ? m.p.id : null, name: ok ? "" : o.name, q: o.q || "", p: o.p || "", pu: o.pu || "coin", oos: o.oos ? 1 : 0 }; };
+  if (kind === "trade") {
+    const have = os.filter(o => o.have).map(it);
+    const wants = os.filter(o => !o.have).map(o => Object.assign(it(o), { ra: String(o.ra || (glob && glob.ra) || ""), rb: String(o.rb || (glob && glob.rb) || ""), gi: 0, gis: [0], bulk: null, note: "" }));
+    return [{ type: "trade", on: true, name: TYPES.trade.name + " · imported", have: have.length ? have : [{ name: "My items" }], wants, notes: [] }];
+  }
+  return [{ type: kind, on: true, name: TYPES[kind].name + " · imported", wants: os.map(it), notes: [] }];
+}
 function impPosts(R) {
   const posts = [], notes = R.notes.filter(n => n.length < 140).slice(0, 8);
   const nm = t => TYPES[t].name + (R.author ? " · " + R.author : " · imported");
@@ -9873,7 +10069,7 @@ async function impRun(files, text) {
         lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes); if (r.own) owns.push(r.own);
       }
     }
-    if (text && text.trim()) lines.push(...textLines(text));
+    if (text && text.trim()) lines.push(...textLines(ratioLines(text)));
     // the picture's own total ("648.300 · 786,77 (555 items)"): what was read must give the same.
     // When it doesn't, the other readings of a label are tried, one change at a time, while it gets closer.
     IMP.check = null;
@@ -9896,6 +10092,8 @@ async function impRun(files, text) {
       } }
     const R = impParse(lines, tiles, picNotes, text);
     IMP.res = { R, posts: owns.length ? ownPosts(owns).concat(lines.length || tiles.length ? impPosts(R).filter(p => (p.wants || []).length) : []) : impPosts(R) };
+    // only a text: it's also read one line at a time (as "Paste a list" does) — the reading that finds more is kept
+    if (!(files && files.length) && text && text.trim() && !(R.list && R.list.length)) { const P2 = listPosts(text); if (P2 && postScore(P2) > postScore(IMP.res.posts) + .5) IMP.res.posts = P2; }
     if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
   } catch (e) {
     const m = (e && e.message) || String(e);
@@ -10003,6 +10201,9 @@ function undoSeen(k, j) {
   if (!merge) {
     UND.stack.push({ base: Object.assign({}, UND.base), keys: [], label: UND.hint || "", tab: document.body.dataset.tab, t: now });
     if (UND.stack.length > 40) UND.stack.shift();
+    // a big account (many posts, a long history): the oldest steps go first, so the copies stay under ~12 MB of text (phones)
+    const size = () => { const seen = new Set(); let n = 0; UND.stack.concat(UND.redo || []).forEach(S => Object.values(S.base || {}).forEach(v => { if (typeof v === "string" && !seen.has(v)) { seen.add(v); n += v.length; } })); return n; };
+    while (UND.stack.length > 3 && size() > 12e6) UND.stack.shift();
     UND.redo = []; UND.cut = false;
   }
   const cur = UND.stack[UND.stack.length - 1];
@@ -10058,633 +10259,6 @@ $("#undoBtn").onclick = undoLast;
 // starts once your posts are loaded (the app starts asynchronously)
 function undoInit() { if (UND || !STATE) return; UND = { base: { state: JSON.stringify(STATE), inv: JSON.stringify(INV), hist: JSON.stringify(HIST), deals: JSON.stringify(DEALS) }, stack: [], redo: [], lastT: 0, cut: true, hint: "", busy: false }; undoPaint(); }
 if (window.hdReady) undoInit(); else addEventListener("hdready", undoInit, { once: true });
-
-/* =====================================================================
-   20. BUYER LINK — your post as a little shop. The buyer opens the link, taps the items they want
-   (all or a number), can offer another price, and sends you back a picture or a link.
-   Drop either in Order: the items are found again in your post and everything is priced again
-   with YOUR current prices — their offers are only shown, you choose to accept them or not.
-   ===================================================================== */
-const SHOP_MAX = 250, SHOP_DISCORD = 2000, PU_L = ["coin", "xmp", "ring", "blanket"];
-const B64U = {
-  enc(u8) { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); },
-  dec(t) {
-    t = String(t || ""); if (!/^[A-Za-z0-9_-]*$/.test(t) || t.length % 4 === 1) throw new Error("bad code");
-    const s = atob(t.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((t.length + 3) % 4)), u = new Uint8Array(s.length);
-    for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
-    return u;
-  }
-};
-const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
-function crc32(u8, a, b) { let c = 0xFFFFFFFF; for (let i = a || 0, e = b == null ? u8.length : b; i < e; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
-/** 24-bit fingerprint of an item ("r:apple-pie", "n:my thing"): finds it again in your post without its name in the code. */
-function h24(s) { let x = 0x811c9dc5; for (const ch of String(s)) { x ^= ch.codePointAt(0); x = Math.imul(x, 0x01000193) >>> 0; } return x & 0xFFFFFF; }
-const REF_OK = r => typeof r === "string" && /^[a-z0-9][a-z0-9-]{0,59}$/.test(r);
-const shopKey = w => REF_OK(w.ref) ? "r:" + w.ref : "n:" + norm(safeTxt(pName(w), 40));
-/** Text from a link: no control or direction characters, no line breaks, limited length. */
-const safeTxt = (s, n) => String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2066-\u2069\ufeff]/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
-const r2 = n => Math.round(n * 100) / 100;
-async function zipBytes(u8) {
-  if (typeof CompressionStream !== "function") return null;
-  try { return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer()); } catch (e) { return null; }
-}
-/** Unzips at most `max` bytes (a crafted link can't fill the memory). */
-async function unzipBytes(u8, max) {
-  const rd = new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw")).getReader(), parts = []; let n = 0;
-  for (;;) {
-    const { done, value } = await rd.read(); if (done) break;
-    n += value.length; if (n > max) { try { rd.cancel(); } catch (e) {} throw new Error("too big"); }
-    parts.push(value);
-  }
-  const out = new Uint8Array(n); let o = 0; parts.forEach(p => { out.set(p, o); o += p.length; }); return out;
-}
-const appBase = () => location.href.split("#")[0];
-const shopWhen = m => new Date(m * 6e4).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-
-/* ---------- your side: the links you made (kept on this device, so an order is read back exactly) ---------- */
-function shopsLoad() { const s = store.get("hd5_shops", {}); return s && typeof s === "object" && !Array.isArray(s) ? s : {}; }
-function shopsSave(S) {
-  const ks = Object.keys(S).sort((a, b) => (S[b].at || 0) - (S[a].at || 0));
-  ks.slice(80).forEach(k => delete S[k]);                                // the 80 latest links are enough
-  try { store.set("hd5_shops", S); } catch (e) {}
-}
-const shopSnap = id => { const S = shopsLoad(); return Object.prototype.hasOwnProperty.call(S, id) ? S[id] : null; };
-/** The link of the post on screen: its items as they are now (sold out ones left out). */
-async function shopMake() {
-  if (st.type === "trade") return { err: "Buyer links are for selling and buying posts — trades use ratios." };
-  const its = sortedWants().filter(w => !w.oos).slice(0, SHOP_MAX);
-  if (!its.length) return { err: "Your post has no item in stock." };
-  const rows = its.map(w => {
-    const P = w.ref && CAT.byId[w.ref], base = P && !P.custom && !P.wiki, pu = Math.max(0, PU_L.indexOf(w.pu || "coin"));
-    return [REF_OK(w.ref) ? w.ref : 0, base ? 0 : safeTxt(pName(w), 40), Math.max(0, Math.round(num(w.q))), r2(num(w.p)), pu, r2(unitPrice(w)), r2(w.pu === "xmp" ? itemMax(w) : 0), base ? 0 : safeTxt(w.e, 8) || 0];
-  });
-  const bk = st.type === "achat" ? bulkTiers(st).map(t => [t.mode === "order" ? 1 : 0, t.at, t.pct]) : [], d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc)));
-  const sig = crc32(new TextEncoder().encode(JSON.stringify([st.type, rows, d, bk, st.title, st.user])));
-  const S = shopsLoad();
-  // same post, nothing changed since the last link: the same link
-  let id = Object.keys(S).find(k => S[k].pid === st.id && S[k].sig === sig);
-  if (!id) {
-    do id = B64U.enc(crypto.getRandomValues(new Uint8Array(6))); while (S[id]);
-    S[id] = { pid: st.id, at: Date.now(), sig, items: its.map(w => [w.uid, h24(shopKey(w)), shopKey(w), num(w.q), num(w.p), w.pu || "coin"]) };
-  } else S[id].at = Date.now();
-  shopsSave(S);
-  const at = Math.round(S[id].at / 6e4);
-  const raw = shopBin(its, { id, at, d, bk }), z = await zipBytes(raw);
-  const url = appBase() + "#shop=" + (z && z.length < raw.length ? "y" + B64U.enc(z) : "b" + B64U.enc(raw));
-  return { url, n: rows.length, id, title: st.title || (st.type === "achat" ? "What I buy" : "My shop") };
-}
-async function openShopLink() {
-  const R = await shopMake();
-  if (R.err) return toast(R.err);
-  const long = R.url.length > SHOP_DISCORD - 20;
-  const md = "[🛒 " + safeTxt(R.title, 50).replace(/[\[\]()]/g, "") + " · " + plural(R.n, "item") + " — tap to order](" + R.url + ")";
-  const copyT = async (t, msg) => { try { await navigator.clipboard.writeText(t); toast(msg); } catch (e) { box.value = t; box.select(); toast("Select the text and copy it"); } };
-  const copy = () => copyT(md, "Copied — paste it in Discord: it shows as one short link ✔");
-  const box = h("textarea", { class: "ta shopurl", rows: 2, readOnly: true, value: R.url, onfocus: e => e.target.select() });
-  openSheet("Link for buyers", [
-    h("p", { class: "hint" }, st.type === "achat"
-      ? "Send it to someone who sells to you: they see what you buy, tap their items (all or a number), can offer a price, and send you back a picture or a link."
-      : "Send it to a buyer: they see your post, tap the items they want (all or a number), can offer a price, and send you back a picture or a link."),
-    box,
-    h("p", { class: "hint shopinfo" }, plural(R.n, "item") + " · " + fmt(R.url.length) + " characters" + (long ? " — ⚠ longer than a Discord message (2,000 without Nitro): send it in a DM with Nitro, or make the link from a smaller post." : " · fits in a Discord message ✓")),
-    h("div", { class: "three" },
-      h("button", { class: "btn pri", onclick: copy }, "Copy for Discord"),
-      h("button", { class: "btn", onclick: () => copyT(R.url, "Link copied ✔") }, "Copy link"),
-      h("button", { class: "btn", onclick: () => window.open(R.url, "_blank", "noopener") }, "Try it")),
-    h("p", { class: "hint" }, "“Copy for Discord” pastes a short clickable line — “🛒 " + safeTxt(R.title, 50) + " · " + plural(R.n, "item") + " — tap to order” — the long link stays hidden behind it."),
-    h("p", { class: "hint" }, "Their order comes back here: paste their link in Order, or drop their picture with 📷 Picture. Everything is priced again with your prices of that moment — their offers are shown next to yours, you accept them or not. Changed your prices or stock? The old link still works; make a new one so they see the new ones.")]);
-}
-
-/* ---------- their side: the shop ---------- */
-const SHOP = { S: null, cart: new Map(), f: "", only: false, name: "", note: "" };
-async function shopDecode(str) {
-  str = String(str || ""); if (str.length > 120000) throw new Error("too long");
-  const u8 = B64U.dec(str.slice(1)), k = str[0];
-  if (k === "y" || k === "b") return shopClean(shopBinRead(k === "y" ? await unzipBytes(u8, 300000) : u8));
-  const raw = k === "z" ? await unzipBytes(u8, 600000) : k === "j" ? u8 : null;          // links of the first version
-  if (!raw) throw new Error("bad");
-  return shopClean(JSON.parse(new TextDecoder().decode(raw)));
-}
-/* ---------- the link, short: a few bytes per item ----------
-   game items = a 3-byte fingerprint of their name (each device finds the item in its own list), the max price only when it
-   isn't the game's table one; the columns (kinds, quantities, prices…) one after the other so the repeats pack well */
-/** The game's max price from the table in the app (the same on every device): sets and mixes from their items. */
-function tableMax(id) {
-  const p = CAT.byId[id]; if (!p) return 0;
-  if (p.parts) { const v = p.parts.map(tableMax); return v.every(x => x > 0) ? packSplit(p, SET_N).reduce((a, x, i) => a + x.n * v[i], 0) : 0; }
-  if (p.mix) { const v = p.mix.map(tableMax); return v.length && v.every(x => x > 0) ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
-  return p.nomp ? 0 : MAXP_BASE[id] || 0;
-}
-const isBaseRef = ref => { const P = REF_OK(ref) && CAT.byId[ref]; return !!(P && !P.custom && !P.wiki); };
-let BASE_FP = null;
-const baseByFp = k => { if (!BASE_FP) { BASE_FP = new Map(); CAT.list.forEach(p => { if (!p.custom && !p.wiki && REF_OK(p.id)) BASE_FP.set(h24("r:" + p.id), p.id); }); } return BASE_FP.get(k) || null; };
-function shopBin(its, M) {
-  const o = [0x53, 2, ...B64U.dec(M.id), st.type === "achat" ? 1 : 0];
-  vPush(o, M.at); vPush(o, Math.round(M.d * 100)); o.push((st.showR !== false ? 1 : 0) | (st.showB !== false ? 2 : 0));
-  strPush(o, BT_THEMES[st.bTheme] ? st.bTheme : "", 30); strPush(o, safeTxt(st.title, 60), 90); strPush(o, safeTxt(st.user, 40), 60); strPush(o, safeTxt(st.kicker, 80), 120);
-  o.push(M.bk.length); M.bk.forEach(t => { o.push(t[0]); vPush(o, Math.round(t[1] * 100)); vPush(o, Math.round(t[2] * 100)); });
-  vPush(o, its.length);
-  const I = its.map(w => {
-    const base = isBaseRef(w.ref), pu = Math.max(0, PU_L.indexOf(w.pu || "coin")), mp = w.pu === "xmp" ? itemMax(w) : 0;
-    const mf = w.pu !== "xmp" ? 0 : base && mp > 0 && Math.abs(mp - tableMax(w.ref)) < 1e-9 ? 1 : 2;
-    return { w, base, pu, mp, mf };
-  });
-  I.forEach(x => o.push((x.base ? 0 : 1) | x.mf << 1 | x.pu << 3));
-  I.forEach(x => { if (x.base) { const k = h24(shopKey(x.w)); o.push(k >> 16 & 255, k >> 8 & 255, k & 255); } });
-  I.forEach(x => { if (!x.base) { strPush(o, REF_OK(x.w.ref) ? x.w.ref : "", 60); strPush(o, safeTxt(pName(x.w), 40), 60); strPush(o, safeTxt(x.w.e, 8), 24); } });
-  I.forEach(x => vPush(o, Math.max(0, Math.round(num(x.w.q)))));
-  I.forEach(x => vPush(o, Math.round(num(x.w.p) * 100)));
-  I.forEach(x => { if (x.mf === 2) vPush(o, Math.round(x.mp * 100)); });
-  const c = crc32(Uint8Array.from(o)); o.push(c >>> 24, c >>> 16 & 255, c >>> 8 & 255, c & 255);
-  return Uint8Array.from(o);
-}
-/** The short link → the same fields as the first version (then checked by shopClean like any link). */
-function shopBinRead(u) {
-  let p = 0;
-  const b = () => { if (p >= u.length) throw new Error("cut"); return u[p++]; };
-  const v = () => { let x = 0, m = 1; for (let k = 0; k < 8; k++) { const c = b(); x += (c & 127) * m; if (!(c & 128)) return x; m *= 128; } throw new Error("bad"); };
-  const s = () => { const n = b(); if (p + n > u.length) throw new Error("cut"); const t = new TextDecoder().decode(u.subarray(p, p + n)); p += n; return t; };
-  if (u.length < 16 || u[0] !== 0x53 || u[1] !== 2) throw new Error("bad");
-  if (crc32(u, 0, u.length - 4) !== ((u[u.length - 4] << 24 | u[u.length - 3] << 16 | u[u.length - 2] << 8 | u[u.length - 1]) >>> 0)) throw new Error("changed");
-  const id = B64U.enc(u.subarray(2, 8)); p = 8;
-  const t = b() === 1 ? "achat" : "vente", at = v(), d = v() / 100, fl = b(), th = s(), ti = s(), us = s(), ki = s();
-  const nb = b(); if (nb > 8) throw new Error("bad");
-  const bk = []; for (let k = 0; k < nb; k++) bk.push([b(), v() / 100, v() / 100]);
-  const n = v(); if (n > SHOP_MAX) throw new Error("bad");
-  const kinds = []; for (let k = 0; k < n; k++) kinds.push(b());
-  const fps = kinds.map(x => x & 1 ? null : (b() << 16) | (b() << 8) | b());
-  const strs = kinds.map(x => x & 1 ? [s(), s(), s()] : null);
-  const qs = kinds.map(() => v()), ps = kinds.map(() => v() / 100), mps = kinds.map(x => (x >> 1 & 3) === 2 ? v() / 100 : null);
-  if (p !== u.length - 4) throw new Error("bad");
-  const it = kinds.map((x, k) => {
-    const pc = x >> 3 & 3, ref = x & 1 ? strs[k][0] : baseByFp(fps[k]), mf = x >> 1 & 3;
-    const mp = mf === 2 ? mps[k] : mf === 1 && ref ? tableMax(ref) : 0, P = ref && CAT.byId[ref];
-    const name = x & 1 ? strs[k][1] : P ? P.en : "Item " + (k + 1), pr = ps[k];
-    const uu = PU_L[pc] === "xmp" ? pr * mp : isCur(PU_L[pc]) ? pr * CUR[PU_L[pc]].rate : pr;
-    return [ref || 0, x & 1 || !P ? name : 0, qs[k], pr, pc, uu, mp, x & 1 ? strs[k][2] : 0, fps[k]];
-  });
-  return { v: 1, id, t, ti, us, ki, at, d, bk, th, cv: [fl & 1 ? 1 : 0, fl & 2 ? 1 : 0], it };
-}
-/** Only what a link may hold — anything else is dropped, a broken link is refused. */
-function shopClean(j) {
-  if (!j || typeof j !== "object" || j.v !== 1 || !Array.isArray(j.it)) throw new Error("bad");
-  const t = j.t === "achat" ? "achat" : j.t === "vente" ? "vente" : null, id = String(j.id || "");
-  if (!t || !/^[A-Za-z0-9_-]{8}$/.test(id)) throw new Error("bad");
-  const fin = (v, max) => { v = Number(v); return Number.isFinite(v) && v > 0 ? Math.min(v, max) : 0; };
-  const items = j.it.slice(0, SHOP_MAX).map((r, i) => {
-    if (!Array.isArray(r)) return null;
-    const ref = REF_OK(r[0]) ? r[0] : null, P = ref && CAT.byId[ref];
-    const name = safeTxt(typeof r[1] === "string" ? r[1] : "", 40) || (P ? P.en : "");
-    if (!name) return null;
-    const pc = Number.isInteger(r[4]) && r[4] >= 0 && r[4] < 4 ? r[4] : 0;
-    return { i, uid: "s" + i, ref: P ? ref : null, key: ref ? "r:" + ref : "n:" + norm(name), name, e: safeTxt(typeof r[7] === "string" ? r[7] : "", 8) || (P && P.e) || "📦", img: "",
-      q: Math.round(fin(r[2], 1e7)), p: fin(r[3], 1e9), pu: PU_L[pc], u: fin(r[5], 1e10), mp: fin(r[6], 1e9), note: "", oos: 0, hot: 0, h: Number.isInteger(r[8]) && r[8] >= 0 && r[8] < 0x1000000 ? r[8] : null };
-  }).filter(Boolean);
-  if (!items.length) throw new Error("empty");
-  const bk = (Array.isArray(j.bk) ? j.bk : []).slice(0, 8).map(x => Array.isArray(x) ? { mode: x[0] === 1 ? "order" : "pct", at: fin(x[1], 1e7), pct: fin(x[2], 1000) } : null)
-    .filter(x => x && x.at > 0 && x.pct > 0).map(x => x.mode === "pct" ? Object.assign(x, { at: Math.min(100, x.at) }) : x);
-  const cv = Array.isArray(j.cv) ? j.cv : [1, 1];
-  return { id, t, ti: safeTxt(j.ti, 60), us: safeTxt(j.us, 40), ki: safeTxt(j.ki, 80), at: fin(j.at, 1e9), d: t === "achat" ? 0 : Math.min(100, fin(j.d, 100)), bk,
-    th: typeof j.th === "string" && Object.prototype.hasOwnProperty.call(BT_THEMES, j.th) ? j.th : "", showR: cv[0] !== 0, showB: cv[1] !== 0, items, byI: new Map(items.map(x => [x.i, x])) };
-}
-const shopCap = it => it.q > 0 ? it.q : 1e6;                       // no quantity in the post: no limit
-/** One unit in coins, at the post's price or at a price they offer (in the same unit). */
-function shopUnit(it, offer) {
-  if (!(offer > 0)) return it.u;
-  if (it.pu === "xmp") return it.mp > 0 ? offer * it.mp : 0;
-  if (isCur(it.pu)) return offer * CUR[it.pu].rate;
-  return offer;
-}
-const shopPriceTxt = (it, p) => { p = p == null ? it.p : p; if (!(p > 0)) return "no price"; return it.pu === "xmp" ? fmtRt(p) + "×MP" : isCur(it.pu) ? curTxt(it.pu, p) : fmtP(p); };
-const shopPriceFull = (it, p) => { const t = shopPriceTxt(it, p), u = shopUnit(it, p == null ? 0 : p); return it.pu === "coin" || !(u > 0) ? t + (it.pu === "coin" && u > 0 ? " ea" : "") : t + " · " + fmtP(u) + " ea"; };
-/** Their order, priced like Order does it: buying posts add the bulk bonus per line, selling posts take the discount off the total. */
-function shopTotals(withOffers) {
-  const S = SHOP.S, lines = [...SHOP.cart].map(([i, c]) => ({ it: S.byI.get(i), q: c.q, offer: c.offer || 0 })).filter(x => x.it && x.q > 0);
-  const oq = lines.reduce((a, x) => a + x.q, 0);
-  const hit = (t, q, wq) => t.mode === "order" ? oq >= t.at : wq > 0 && q / wq >= t.at / 100 - 1e-9;
-  let sub = 0, base = 0;
-  lines.forEach(x => {
-    const u = withOffers && x.offer > 0 ? shopUnit(x.it, x.offer) : x.it.u, b = u * x.q;
-    const bonus = S.t === "achat" ? S.bk.reduce((m, t) => hit(t, x.q, x.it.q) ? Math.max(m, t.pct) : m, 0) : 0;
-    x.u = u; x.bonus = bonus; x.v = b * (1 + bonus / 100); base += b; sub += x.v;
-  });
-  const tot = S.d > 0 ? sub * (1 - S.d / 100) : sub;
-  return { lines, oq, sub, base, tot, bonus: sub - base, noPrice: lines.filter(x => !(x.u > 0)).length, offers: lines.filter(x => x.offer > 0).length };
-}
-function shopSave() {
-  const S = SHOP.S; if (!S) return;
-  try { store.set("hd5_cart_" + S.id, { c: [...SHOP.cart].map(([i, c]) => [i, c.q, c.offer || 0]), name: SHOP.name, note: SHOP.note, t: Date.now() }); store.set("hd5_buyer", SHOP.name); } catch (e) {}
-}
-function shopOpen(S) {
-  SHOP.S = S; SHOP.cart = new Map(); SHOP.f = ""; SHOP.only = false;
-  const C = store.get("hd5_cart_" + S.id, null) || {};
-  (Array.isArray(C.c) ? C.c : []).forEach(r => { const it = Array.isArray(r) && S.byI.get(r[0]); const q = Math.min(shopCap(it || {}), Math.round(num(r[1]))); if (it && q > 0) SHOP.cart.set(it.i, { q, offer: num(r[2]) > 0 ? num(r[2]) : 0 }); });
-  SHOP.name = safeTxt(C.name != null ? C.name : store.get("hd5_buyer", ""), 32); SHOP.note = safeTxt(C.note, 140);
-  document.body.classList.add("shopmode");
-  let v = $("#shopV"); if (!v) { v = h("div", { id: "shopV", class: "shopv" }); document.body.append(v); }
-  v.textContent = "";
-  const buy = S.t === "achat", who = S.us || (buy ? "the buyer" : "the seller");
-  const search = h("input", { class: "inp", type: "search", placeholder: "Search an item", "aria-label": "Search an item", autocomplete: "off", oninput: e => { SHOP.f = e.target.value; shopGrid(); } });
-  v.append(
-    h("header", { class: "shead" },
-      h("div", { class: "sh1" }, h("b", null, S.ti || (buy ? "Wanted" : "Shop")), S.us ? h("span", null, S.us) : null),
-      h("div", { class: "sh2" }, h("span", { class: "stype " + S.t }, buy ? "BUYING" : "SELLING"), S.ki ? h("span", null, S.ki) : null),
-      h("p", { class: "hint" }, (buy ? "Tap what you sell to " + who + ", choose how many" : "Tap what you want, choose how many") + ", then send your order to " + who + "." + (S.at ? " Prices of " + shopWhen(S.at) + "." : "")),
-      h("div", { class: "sbox2" }, search, h("div", { class: "seg", id: "shopSeg" }, h("button", { class: "on", "data-o": "0", onclick: () => { SHOP.only = false; shopGrid(); } }, "All"), h("button", { "data-o": "1", onclick: () => { SHOP.only = true; shopGrid(); } }, "In my order")))),
-    h("div", { class: "sgrid", id: "shopGrid" }),
-    h("p", { class: "sfoot" }, "Made with Market Manager · ", h("a", { href: appBase(), onclick: e => { e.preventDefault(); shopLeave(); } }, "make your own posts")),
-    h("div", { class: "scart", id: "shopBar" }));
-  shopGrid();
-}
-function shopLeave() { history.replaceState(null, "", appBase()); document.body.classList.remove("shopmode"); const v = $("#shopV"); if (v) v.remove(); SHOP.S = null; closeSheet(); renderAll(); tab("items"); }
-function shopGrid() {
-  const S = SHOP.S, g = $("#shopGrid"); if (!S || !g) return;
-  $$("#shopSeg button").forEach(b => b.classList.toggle("on", (b.dataset.o === "1") === SHOP.only));
-  const f = norm(SHOP.f).trim();
-  let list = S.items.filter(it => !SHOP.only || SHOP.cart.has(it.i));
-  if (f) { const m = findMatches(SHOP.f, list, it => it.name, 1).map(a => a.x); list = m.length ? m : list.filter(it => norm(it.name).includes(f)); }
-  g.textContent = "";
-  if (!list.length) g.append(h("p", { class: "hint sempty" }, SHOP.only ? "Nothing in your order yet — tap an item." : "No item found."));
-  list.forEach(it => {
-    const c = SHOP.cart.get(it.i);
-    g.append(h("button", { class: "stile" + (c ? " in" : ""), onclick: () => shopPick(it) },
-      thumb(itemState(it), it.e, "sth"),
-      h("span", { class: "snm" }, it.name),
-      h("span", { class: "spr" }, shopPriceTxt(it)),
-      h("span", { class: "sst" }, it.q > 0 ? (S.t === "achat" ? "wants " : "") + fmt(it.q) + (S.t === "achat" ? "" : " left") : ""),
-      c ? h("span", { class: "sbadge" }, "×" + fmt(c.q), c.offer ? " 💬" : "") : null));
-  });
-  shopBar();
-}
-function shopBar() {
-  const b = $("#shopBar"); if (!b) return; b.textContent = "";
-  const T = shopTotals(false), buy = SHOP.S.t === "achat";
-  if (!T.lines.length) { b.append(h("span", { class: "hint" }, buy ? "Tap the items you sell" : "Tap the items you want")); return; }
-  b.append(h("button", { class: "btn pri full", onclick: shopCartSheet },
-    h("span", null, "🛒 " + plural(T.lines.length, "item") + " · " + fmt(T.oq) + " pcs"),
-    h("b", null, T.tot > 0 ? fmt(T.tot) + " coins" : "Review"), h("span", null, "→")));
-}
-/** Tap an item: all of it, or a number — and maybe your price. */
-function shopPick(it) {
-  const S = SHOP.S, c = SHOP.cart.get(it.i), cap = shopCap(it), buy = S.t === "achat";
-  let q = c ? c.q : "", offer = c && c.offer ? String(c.offer) : "";
-  const qi = h("input", { class: "inp sqin", inputMode: "numeric", placeholder: "How many?", value: q, "aria-label": "Quantity", oninput: () => upd() });
-  const oi = h("input", { class: "inp", inputMode: "decimal", placeholder: it.pu === "xmp" ? "e.g. 4" : "e.g. " + fmtP(it.p > 0 ? Math.max(1, Math.round(it.p * .9)) : 100), value: offer, "aria-label": "Your price", oninput: () => upd() });
-  const info = h("p", { class: "hint sline" }), err = h("p", { class: "owarn", hidden: true });
-  const readQ = () => { const t = qi.value.trim(); if (!t) return 0; const n = Math.round(num(t.replace(/[\s,]/g, ""))); return n > 0 ? n : -1; };
-  const readO = () => {
-    let t = oi.value.trim().replace(/\s*(?:×|x)\s*(?:mp)?$/i, ""); if (!t) return 0;
-    t = /^\d{1,3}(?:[ ,]\d{3})+(?:\.\d+)?$/.test(t) ? t.replace(/[ ,]/g, "") : t.replace(",", ".");   // 1,500 coins · 4,5 ×MP
-    const n = /^\d+(?:\.\d+)?$/.test(t) ? Number(t) : NaN; return Number.isFinite(n) && n > 0 && n <= 1e9 ? r2(n) : -1;
-  };
-  const upd = () => {
-    const n = readQ(), o = readO(); err.hidden = true;
-    if (n > cap) { err.hidden = false; err.textContent = "Only " + fmt(cap) + " " + (buy ? "wanted" : "available") + " — it will be " + fmt(cap) + "."; }
-    else if (n < 0) { err.hidden = false; err.textContent = "Type a whole number, e.g. 20"; }
-    else if (o < 0) { err.hidden = false; err.textContent = "Type a price, e.g. " + (it.pu === "xmp" ? "4 (×MP)" : "1500"); }
-    const qq = Math.min(Math.max(0, n), cap);
-    info.textContent = !(qq > 0) ? "" : !(it.u > 0) ? fmt(qq) + " · no price in the post" + (o > 0 && shopUnit(it, o) > 0 ? " · at your price: " + fmt(shopUnit(it, o) * qq) + " coins" : "")
-      : fmt(qq) + " × " + fmtP(it.u) + " = " + fmt(it.u * qq) + " coins" + (o > 0 && shopUnit(it, o) > 0 ? " · at your price: " + fmt(shopUnit(it, o) * qq) : "");
-  };
-  const put = n => {
-    const o = readO(); if (o < 0) { upd(); return oi.focus(); }
-    if (!(n > 0)) { upd(); return qi.focus(); }
-    const same = o > 0 && Math.abs(o - it.p) < 1e-9;
-    SHOP.cart.set(it.i, { q: Math.min(n, cap), offer: o > 0 && !same ? o : 0 }); shopSave(); closeSheet(); shopGrid();
-    toast(fmt(Math.min(n, cap)) + " " + it.name + (c ? " — updated" : " added") + " ✔");
-  };
-  const step = d => { const n = Math.max(0, readQ()) + d; qi.value = Math.max(1, Math.min(cap, n)); upd(); };
-  const chips = [10, 25, 50, 100].filter(n => n < cap);
-  openSheet(it.name, [
-    h("div", { class: "spick" }, thumb(itemState(it), it.e, "sthb"),
-      h("div", null, h("b", null, it.name), h("span", null, shopPriceFull(it)), h("span", { class: "hint" }, it.q > 0 ? (buy ? fmt(it.q) + " wanted" : fmt(it.q) + " available") : "no quantity given"))),
-    it.q > 0 ? h("button", { class: "btn pri full sall", onclick: () => put(cap) }, (buy ? "All they want · " : "All · ") + fmt(cap)) : null,
-    h("label", { class: "lbl" }, it.q > 0 ? "Or a number" : "How many"),
-    h("div", { class: "sqrow" }, h("button", { class: "btn", "aria-label": "Less", onclick: () => step(-1) }, "−"), qi, h("button", { class: "btn", "aria-label": "More", onclick: () => step(1) }, "+"),
-      h("button", { class: "btn pri", onclick: () => put(Math.min(readQ(), cap)) }, c ? "Update" : "Add")),
-    chips.length ? h("div", { class: "schips" }, chips.map(n => h("button", { class: "btn sm", onclick: () => { qi.value = n; upd(); } }, fmt(n)))) : null,
-    info, err,
-    h("details", { class: "soffer", open: !!offer },
-      h("summary", null, "💬 Offer another price"),
-      h("div", { class: "box" }, oi, h("span", { class: "au" }, it.pu === "xmp" ? "×MP" : isCur(it.pu) ? CUR[it.pu].many + " ea" : "coins ea")),
-      h("p", { class: "hint" }, "Their price: " + shopPriceFull(it) + ". Your offer is shown to " + (S.us || "them") + " next to their price — they accept it or not.")),
-    c ? h("button", { class: "btn dashed full", style: "margin-top:10px", onclick: () => { SHOP.cart.delete(it.i); shopSave(); closeSheet(); shopGrid(); toast(it.name + " removed"); } }, "Remove from my order") : null]);
-  upd();
-  if (!c) setTimeout(() => { if (it.q <= 0) qi.focus(); }, 60);
-}
-function shopCartSheet() {
-  const S = SHOP.S, buy = S.t === "achat", T = shopTotals(false), T2 = shopTotals(true);
-  if (!T.lines.length) { closeSheet(); return toast("Your order is empty"); }
-  const name = h("input", { class: "inp", maxLength: 32, placeholder: "Your Discord name", value: SHOP.name, oninput: e => { SHOP.name = safeTxt(e.target.value, 32); shopSave(); } });
-  const note = h("textarea", { class: "ta", rows: 2, maxLength: 140, placeholder: "A message (optional)", value: SHOP.note, oninput: e => { SHOP.note = safeTxt(e.target.value, 140); shopSave(); } });
-  const rows = T.lines.map(x => h("div", { class: "sline2" },
-    h("button", { class: "slb", onclick: () => shopPick(x.it) }, thumb(itemState(x.it), x.it.e, "mini"),
-      h("span", null, h("b", null, fmt(x.q) + " " + x.it.name), h("small", null, shopPriceTxt(x.it) + (x.offer ? " · 💬 my price " + shopPriceTxt(x.it, x.offer) : "") + (x.bonus ? " · +" + fmtR(x.bonus) + "% bulk" : "")))),
-    h("span", { class: "slv" }, x.u > 0 ? fmt(x.v) : "—"),
-    h("button", { class: "odel", "aria-label": "Remove", onclick: () => { SHOP.cart.delete(x.it.i); shopSave(); shopGrid(); shopCartSheet(); } }, "×")));
-  const tot = h("div", { class: "card ototal stot" },
-    S.d > 0 ? h("div", { class: "brk" }, h("span", null, "Subtotal"), h("span", null, fmt(T.sub))) : null,
-    S.d > 0 ? h("div", { class: "brk" }, h("span", null, "Their discount −" + fmtR(S.d) + "%"), h("span", null, "−" + fmt(Math.round(T.sub) - Math.round(T.tot)))) : null,
-    T.bonus > 0 ? h("div", { class: "brk bulkl" }, h("span", null, "Bulk bonus"), h("span", null, "+" + fmt(Math.round(T.sub) - Math.round(T.base)))) : null,
-    h("div", { class: "k" }, buy ? "You receive" : "Total to pay"),
-    h("div", { class: "v big" }, h("i", { class: "coin" }), fmt(T.tot)),
-    T.offers ? h("div", { class: "brk soff" }, h("span", null, "💬 With my prices"), h("b", null, fmt(T2.tot))) : null,
-    T.noPrice ? h("p", { class: "owarn" }, plural(T.noPrice, "item") + " without a price — ask " + (S.us || "them") + ".") : null,
-    h("p", { class: "hint" }, "Worked out with their prices of " + (S.at ? shopWhen(S.at) : "the link") + ". They check it again on their side."));
-  openSheet("My order · " + fmt(T.oq) + " pcs", [
-    h("label", { class: "lbl" }, "Your name"), name,
-    h("div", { class: "slines" }, rows), tot,
-    h("label", { class: "lbl" }, "Message"), note,
-    h("label", { class: "lbl", style: "margin-top:12px" }, "Send it to " + (S.us || (buy ? "the buyer" : "the seller"))),
-    h("div", { class: "three" },
-      h("button", { class: "btn pri", onclick: shopPicSheet }, "🖼️ Picture"),
-      h("button", { class: "btn", onclick: shopCopyMsg }, "🔗 Link"),
-      h("button", { class: "btn", onclick: shopShareLink }, "Share")),
-    h("p", { class: "hint" }, "The picture has a code at the bottom and the link holds your order: " + (S.us || "they") + " drop" + (S.us ? "s" : "") + " either in Market Manager and get your exact order."),
-    h("button", { class: "btn dashed full", style: "margin-top:10px", onclick: () => { SHOP.cart.clear(); shopSave(); closeSheet(); shopGrid(); toast("Order cleared"); } }, "Clear my order")]);
-}
-
-/* ---------- the order code: what they picked, in a few bytes (link and picture) ----------
-   "M" 1 · link id (6) · flags · [name] · [message] · count · per item: index, fingerprint (3), quantity, offer · CRC-32 */
-function vPush(o, v) { v = Math.max(0, Math.floor(v)); while (v >= 128) { o.push((v % 128) | 128); v = Math.floor(v / 128); } o.push(v); }
-function strPush(o, s, max) { const b = new TextEncoder().encode(s); let n = Math.min(b.length, max); while (n > 0 && n < b.length && (b[n] & 0xC0) === 0x80) n--; o.push(n); for (let i = 0; i < n; i++) o.push(b[i]); }
-function orderCodeOf(S, lines, name, note) {
-  const o = [0x4D, 1, ...B64U.dec(S.id)], nm = safeTxt(name, 32), nt = safeTxt(note, 140);
-  o.push((nm ? 1 : 0) | (nt ? 2 : 0) | (S.t === "achat" ? 4 : 0));
-  if (nm) strPush(o, nm, 48); if (nt) strPush(o, nt, 200);
-  vPush(o, lines.length);
-  lines.forEach(x => {
-    const it = x.it, k = it.h != null ? it.h : h24(it.key);
-    vPush(o, it.i); o.push(k >> 16 & 255, k >> 8 & 255, k & 255); vPush(o, x.q);
-    vPush(o, x.offer > 0 ? Math.round(x.offer * 100) * 4 + PU_L.indexOf(it.pu) + 1 : 0);
-  });
-  const c = crc32(Uint8Array.from(o)); o.push(c >>> 24, c >>> 16 & 255, c >>> 8 & 255, c & 255);
-  return Uint8Array.from(o);
-}
-/** Reads a code back — anything wrong (cut, changed, not ours) → null. Bytes after the CRC (picture padding) are ignored. */
-function orderCodeRead(u) {
-  try {
-    let p = 0;
-    const b = () => { if (p >= u.length) throw 0; return u[p++]; };
-    const v = () => { let x = 0, m = 1; for (let k = 0; k < 8; k++) { const c = b(); x += (c & 127) * m; if (!(c & 128)) return x; m *= 128; } throw 0; };
-    const s = () => { const n = b(); if (p + n > u.length) throw 0; const t = new TextDecoder("utf-8", { fatal: false }).decode(u.subarray(p, p + n)); p += n; return t; };
-    if (b() !== 0x4D || b() !== 1) return null;
-    const id = B64U.enc(u.subarray(2, 8)); p = 8;
-    const fl = b(), name = fl & 1 ? safeTxt(s(), 32) : "", note = fl & 2 ? safeTxt(s(), 140) : "";
-    const n = v(); if (n > SHOP_MAX) return null;
-    const items = [];
-    for (let k = 0; k < n; k++) {
-      const i = v(), hh = (b() << 16) | (b() << 8) | b(), q = v(), of = v();
-      if (i >= SHOP_MAX || !(q > 0) || q > 1e7) return null;
-      let offer = null;
-      if (of > 0) { const x = of - 1, pu = PU_L[x % 4], pr = Math.floor(x / 4) / 100; if (!(pr > 0) || pr > 1e9) return null; offer = { p: pr, pu }; }
-      items.push({ i, h: hh, q, offer });
-    }
-    const end = p, c = ((b() << 24) | (b() << 16) | (b() << 8) | b()) >>> 0;
-    if (c !== crc32(u, 0, end)) return null;
-    return { shop: id, type: fl & 4 ? "achat" : "vente", name, note, items };
-  } catch (e) { return null; }
-}
-const shopCode = () => { const T = shopTotals(false); return orderCodeOf(SHOP.S, T.lines, SHOP.name, SHOP.note); };
-const shopReturnURL = () => appBase() + "#o=" + B64U.enc(shopCode());
-/** The message to paste in Discord: a short readable list, then the link (the link is what counts). */
-function shopMsg() {
-  const S = SHOP.S, T = shopTotals(false), T2 = shopTotals(true), url = shopReturnURL();
-  const head = (S.t === "achat" ? "What I sell you" : "My order") + " — " + plural(T.lines.length, "item") + " · " + fmt(T.oq) + " pcs" + (T.tot > 0 ? " · " + fmt(T.tot) + " coins" : "") + (T.offers ? " (with my prices: " + fmt(T2.tot) + ")" : "");
-  const list = T.lines.map(x => "• " + fmt(x.q) + " " + x.it.name + (x.offer ? " (my price: " + shopPriceTxt(x.it, x.offer) + ")" : ""));
-  const foot = (SHOP.note ? "💬 " + SHOP.note + "\n" : "") + "[📦 Open my order in Market Manager](" + url + ")";
-  let t = head + "\n" + list.join("\n") + "\n" + foot;
-  if (t.length > SHOP_DISCORD - 10) t = head + "\n" + foot;                // too long for one message: the link alone carries the order
-  return t;
-}
-async function shopCopyMsg() {
-  const t = shopMsg();
-  try { await navigator.clipboard.writeText(t); toast("Copied — paste it in your DM ✔"); }
-  catch (e) { openSheet("Your order", [h("textarea", { class: "ta", rows: 8, readOnly: true, value: t, onfocus: e => e.target.select() }), h("p", { class: "hint" }, "Select all and copy, then paste it in your DM.")]); }
-}
-async function shopShareLink() { const t = shopMsg(); try { if (navigator.share) await navigator.share({ text: t }); else await shopCopyMsg(); } catch (e) {} }
-
-/* ---------- the order picture: like the post, the order's items and total, their offers, and the code underneath ---------- */
-function shopPicPost() {
-  const S = SHOP.S, T = shopTotals(false), T2 = shopTotals(true); if (!T.lines.length) return null;
-  const items = T.lines.map((x, k) => ({ uid: "b" + k, ref: x.it.ref, name: x.it.name, e: x.it.e, img: "", q: String(x.q), p: String(x.it.p), pu: x.it.pu, note: "", oos: 0, hot: 0, _offer: x.offer ? shopPriceTxt(x.it, x.offer) : "" }));
-  const notes = [];
-  if (T.offers) { notes.push("My prices: " + T.lines.filter(x => x.offer).map(x => x.it.name + " " + shopPriceTxt(x.it, x.offer) + " (yours " + shopPriceTxt(x.it) + ")").join(" · ")); notes.push("Total with my prices: " + fmt(T2.tot) + " coins"); }
-  if (SHOP.note) notes.push("“" + SHOP.note + "”");
-  return {
-    type: S.t, bTheme: S.th || "cream", title: (S.t === "achat" ? "I sell you · " : "Order · ") + fmt(T.oq) + (T.oq > 1 ? " items" : " item"),
-    kicker: (SHOP.name ? "From " + SHOP.name : "") + (S.us ? (SHOP.name ? " · " : "") + "for " + S.us : "") + (S.ti ? " · “" + S.ti + "”" : ""), user: "",
-    cta: "", sub: "", details: notes.join("\n"), showTotal: true, showR: S.showR, showB: S.showB, bulk: [], disc: 0, sort: "manual", betaOff: false, wants: items, have: [],
-    _tot: { sub: S.d > 0 ? T.sub : T.tot, disc: S.d, tot: T.tot, rings: T.tot / RING_RATE, blankets: T.tot / BLANKET_RATE }
-  };
-}
-const CODE_COLS = 72;                                    // the frame (1) + 70 data cells + the frame (1)
-const codeMask = k => ((k * 2654435761) >>> 13) & 1;      // spreads black and white evenly (no long black runs inside)
-function codeBits(bytes) { const bits = []; bytes.forEach(B => { for (let k = 7; k >= 0; k--) bits.push(B >> k & 1); }); return bits; }
-/** The picture + a white band with the code: a black frame, then rows of black / white squares. */
-function withOrderCode(src, bytes) {
-  const W = src.width, cs = Math.max(8, Math.floor(W / 86)), dc = CODE_COLS - 2, bits = codeBits(bytes), dr = Math.ceil(bits.length / dc), R = dr + 2;
-  const gw = CODE_COLS * cs, lab = Math.round(cs * 1.5), pad = cs * 3, bandH = pad + lab + cs * 2 + R * cs + pad;
-  const c = document.createElement("canvas"); c.width = W; c.height = src.height + bandH;
-  const g = c.getContext("2d"); g.drawImage(src, 0, 0);
-  const y0 = src.height; g.fillStyle = "#ffffff"; g.fillRect(0, y0, W, bandH);
-  g.fillStyle = "#8a8a8a"; g.font = "700 " + lab + "px system-ui, -apple-system, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillText("ORDER CODE · Market Manager › Order › 📷 Picture", W / 2, y0 + pad + lab / 2, W - 2 * cs);
-  const gx = Math.round((W - gw) / 2), gy = y0 + pad + lab + cs * 2;
-  g.fillStyle = "#000000";
-  g.fillRect(gx, gy, gw, cs); g.fillRect(gx, gy + (R - 1) * cs, gw, cs); g.fillRect(gx, gy, cs, R * cs); g.fillRect(gx + gw - cs, gy, cs, R * cs);
-  for (let r = 0; r < dr; r++) for (let k = 0; k < dc; k++) { const i = r * dc + k, bit = (i < bits.length ? bits[i] : 0) ^ codeMask(i); if (bit) g.fillRect(gx + (k + 1) * cs, gy + (r + 1) * cs, cs, cs); }
-  return c;
-}
-/** Finds the code in any picture (the original, a resized copy, a screenshot of it) and reads it. */
-function readOrderCodePixels(D, W, H) {
-  const L = new Uint8Array(W * H);
-  for (let i = 0, j = 0; i < L.length; i++, j += 4) L[i] = (D[j] * 77 + D[j + 1] * 150 + D[j + 2] * 29) >> 8;
-  const dk = 100, minRun = Math.max(CODE_COLS * 2.5, W * .2);
-  // rows where a long dark line starts (the top of the frame is one)
-  const runs = new Array(H).fill(null);
-  for (let y = 0; y < H; y++) {
-    let best = null, a = -1, gap = 0, o = y * W;
-    for (let x = 0; x <= W; x++) {
-      const d = x < W && L[o + x] < dk;
-      if (d) { if (a < 0) a = x; gap = 0; }
-      else if (a >= 0) { gap++; if (gap > 2 || x === W) { const b = x - gap; if (b - a + 1 >= minRun && (!best || b - a > best[1] - best[0])) best = [a, b]; a = -1; gap = 0; } }
-    }
-    runs[y] = best;
-  }
-  const cands = [];
-  for (let y = 0; y < H; y++) { const r = runs[y], p = y ? runs[y - 1] : null; if (r && !(p && Math.abs(p[0] - r[0]) <= 3 && Math.abs(p[1] - r[1]) <= 3)) cands.push(y); }
-  const at = (x, y) => L[Math.max(0, Math.min(H - 1, Math.round(y))) * W + Math.max(0, Math.min(W - 1, Math.round(x)))];
-  const avg = (x, y, r) => { let s = 0, n = 0; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { s += at(x + dx, y + dy); n++; } return s / n; };
-  for (const y0 of cands.reverse().slice(0, 60)) {
-    const [a, b] = runs[y0], cw = (b - a + 1) / CODE_COLS; if (cw < 2.4) continue;
-    // down the left and right sides of the frame
-    const down = x => { let y = y0, miss = 0; while (y < H) { if (L[y * W + x] < dk) miss = 0; else if (++miss > 2) break; y++; } return y - miss - 1; };
-    const yl = down(Math.round(a + cw / 2)), yr = down(Math.round(b - cw / 2));
-    if (Math.abs(yl - yr) > cw) continue;
-    const fh = (yl + yr) / 2 - y0 + 1, R = Math.round(fh / cw);
-    if (R < 3 || Math.abs(fh / cw - R) > .4) continue;
-    const ch = fh / R, cx = k => a + (k + .5) * cw, cy = r => y0 + (r + .5) * ch, rad = Math.max(0, Math.floor(Math.min(cw, ch) / 5));
-    // black = the frame, white = just outside it
-    let blk = 0, wht = 0, nb = 0;
-    for (let k = 0; k < CODE_COLS; k += 7) { blk += avg(cx(k), cy(0), rad) + avg(cx(k), cy(R - 1), rad); nb += 2; }
-    blk /= nb; wht = (avg(a - cw * 1.2, cy(R >> 1), rad) + avg(b + cw * 1.2, cy(R >> 1), rad)) / 2;
-    if (wht - blk < 60) continue;
-    const thr = (blk + wht) / 2, dc = CODE_COLS - 2, bits = [];
-    let ok = true;
-    for (let k = 0; k < CODE_COLS && ok; k += 3) if (avg(cx(k), cy(R - 1), rad) > thr) ok = false;     // the bottom of the frame
-    if (!ok) continue;
-    for (let r = 1; r < R - 1; r++) for (let k = 1; k <= dc; k++) { const i = bits.length; bits.push((avg(cx(k), cy(r), rad) < thr ? 1 : 0) ^ codeMask(i)); }
-    const u = new Uint8Array(bits.length >> 3); for (let i = 0; i < u.length; i++) { let v = 0; for (let k = 0; k < 8; k++) v = v << 1 | bits[i * 8 + k]; u[i] = v; }
-    const O = orderCodeRead(u); if (O) return O;
-  }
-  return null;
-}
-async function readOrderCodeFile(f) {
-  const im = await loadFileImg(f), w0 = im.naturalWidth || im.width, h0 = im.naturalHeight || im.height, k = Math.min(1, 2600 / Math.max(w0, 1), 5200 / Math.max(h0, 1));
-  const W = Math.max(1, Math.round(w0 * k)), H = Math.max(1, Math.round(h0 * k)), c = document.createElement("canvas"); c.width = W; c.height = H;
-  const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(im, 0, 0, W, H);
-  try { URL.revokeObjectURL(im.src); } catch (e) {}
-  return readOrderCodePixels(g.getImageData(0, 0, W, H).data, W, H);
-}
-function shopPicCanvas() {
-  const P = shopPicPost(); if (!P) return null;
-  const S0 = st; let c = null;
-  st = P; try { drawBeta(); c = withOrderCode(cv, shopCode()); } finally { st = S0; try { draw(); } catch (e) {} }
-  return c;
-}
-function shopPicSheet() {
-  let c = shopPicCanvas(); if (!c) return toast("Your order is empty");
-  let url = c.toDataURL("image/png");
-  const img = h("img", { class: "opicimg", src: url, alt: "Picture of my order" });
-  // pictures of the items still loading: drawn again a moment later
-  [700, 2000].forEach(ms => setTimeout(() => { if (!SHOP.S) return; const c2 = shopPicCanvas(); if (!c2) return; const u2 = c2.toDataURL("image/png"); if (u2 !== url) { url = u2; img.src = u2; } }, ms));
-  const name = () => (slug("order " + (SHOP.name || "") + " " + (SHOP.S.us || "")) || "order") + ".png";
-  openSheet("Picture of my order", [img,
-    h("div", { class: "three", style: "margin-top:10px" },
-      h("button", { class: "btn pri", onclick: async () => { try { if (!window.ClipboardItem) throw 0; await navigator.clipboard.write([new ClipboardItem({ "image/png": urlBlob(url) })]); toast("Copied — paste it in your DM ✔"); } catch (e) { toast("Copy isn’t supported here: use Share or Save."); } } }, "Copy"),
-      h("button", { class: "btn", onclick: async () => { try { const f = new File([await urlBlob(url)], name(), { type: "image/png" }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); else { saveBlob(f, name()); toast("Sharing unavailable: picture downloaded"); } } catch (e) { if (!e || e.name !== "AbortError") toast("Couldn’t share"); } } }, "Share"),
-      h("button", { class: "btn", onclick: async () => { saveBlob(await urlBlob(url), name()); toast("Picture downloaded ✔"); } }, "Save")),
-    h("p", { class: "hint" }, "Send the whole picture (don't crop the code at the bottom): " + (SHOP.S.us || "they") + " drop" + (SHOP.S.us ? "s" : "") + " it in Market Manager and get your exact order."),
-    h("button", { class: "btn full", style: "margin-top:8px", onclick: shopCartSheet }, "← Back to my order")]);
-}
-
-/* ---------- your side again: an order from a buyer link, into Order ---------- */
-const keyName = k => { k = String(k || ""); if (k.startsWith("r:")) { const P = CAT.byId[k.slice(2)]; return P ? P.en : k.slice(2).replace(/-/g, " "); } return k.slice(2).replace(/\b\w/g, c => c.toUpperCase()); };
-const ppTxt = (p, pu) => !(num(p) > 0) ? "no price" : pu === "xmp" ? fmtRt(num(p)) + "×MP" : isCur(pu) ? curTxt(pu, num(p)) : fmtP(num(p));
-/** Their code → lines of Order: each item found again in your post (by the link's own list, else by its fingerprint). */
-function buyerOrderLines(O, post, snap) {
-  const items = post.wants.filter(w => (w.name || "").trim() || w.ref), fp = new Map();
-  items.forEach(w => { const k = h24(shopKey(w)); if (!fp.has(k)) fp.set(k, []); fp.get(k).push(w); });
-  const lines = [], byW = new Map(), changes = [], gone = [];
-  O.items.forEach(x => {
-    const si = snap && Array.isArray(snap.items) ? snap.items[x.i] : null, okSi = si && si[1] === x.h;
-    let w = okSi ? items.find(y => y.uid === si[0]) || null : null;
-    if (w && h24(shopKey(w)) !== x.h) w = null;                     // that line of your post is now another item
-    if (!w) { const c = fp.get(x.h) || []; w = c.length === 1 ? c[0] : c.find(y => !y.oos) || c[0] || null; }
-    const name = w ? pName(w) : okSi ? keyName(si[2]) : "";
-    if (!w) { gone.push(name || "an item"); if (!name) return; }
-    if (w && okSi && ((si[5] || "coin") !== (w.pu || "coin") || Math.abs(num(si[4]) - num(w.p)) > 1e-9)) changes.push(name + ": " + ppTxt(si[4], si[5]) + " → " + ppTxt(w.p, w.pu));
-    const offer = x.offer ? { p: String(x.offer.p), pu: x.offer.pu } : null;
-    if (w && byW.has(w)) { const L = byW.get(w); L.q += x.q; L.raw = cleanLine(name) + " x" + L.q; if (offer && !L.offer) L.offer = offer; return; }
-    const L = { raw: cleanLine(name) + " x" + x.q, name, pick: w ? w.uid : "-", q: x.q, qEdit: 1, offer };   // gone from your post: shown, not counted (tap to pick)
-    if (w) byW.set(w, L);
-    lines.push(L);
-  });
-  return { lines, changes: [...new Set(changes)], gone };
-}
-function buyerOrderLoad(O, via) {
-  if (!O || !STATE) return false;
-  if (ORDER.deal) { closeActive(false, () => buyerOrderLoad(O, via)); return true; }
-  const snap = shopSnap(O.shop), warn = [];
-  let post = snap ? STATE.list.find(p => p.id === snap.pid) : null;
-  if (snap && !post) warn.push("The post of this link was deleted — the items are looked for in “" + (st.name || "your post") + "”.");
-  if (!post) {
-    // a link made on another device: the post on screen if it's the right kind, else your post of that kind
-    const same = STATE.list.filter(p => p.type === O.type);
-    post = st.type === O.type ? st : same[0] || null;
-    if (!post) { toast("This order is for a " + (O.type === "achat" ? "buying" : "selling") + " post — you have none on this device."); return false; }
-    if (!snap) warn.push("Link made on another device: the items were found by name in “" + (post.name || TYPES[post.type].name) + "”" + (same.length > 1 ? " — not the right post? Switch post and load it again." : "."));
-  }
-  if (post !== st) selectProfile(post.id);
-  orderDraftSwitch();                                                  // the order of that post is on screen before it's replaced
-  const R = buyerOrderLines(O, st, snap);
-  if (!R.lines.length) { toast("None of these items is in your post anymore"); return false; }
-  if (R.gone.length) warn.push(plural(R.gone.length, "item") + " of their order " + (R.gone.length > 1 ? "aren't" : "isn't") + " in your post anymore" + (R.gone.filter(Boolean).length ? ": " + R.gone.filter(Boolean).join(", ") : "") + ".");
-  const before = { text: ORDER.text || "", prev: (ORDER.prev || []).map(L => Object.assign({}, L)) };
-  ORDER.text = R.lines.map(L => L.raw).join("\n"); pinSet(ORDER.text, R.lines); ORDER.prev = R.lines; ORDER.who = O.name || "";
-  ORDER.done = null; ORDER.dismissed = null; ORDER.tmpOff = false; ORDER.lastOff = false; ORDER.scan = null;
-  ORDER.buyer = { name: O.name, note: O.note, via, at: snap ? snap.at : 0, warn, changes: R.changes, n: R.lines.length };
-  ORDER.undoEdit = before.text.trim() ? { what: "Order from " + (O.name || "a buyer") + " loaded", text: before.text, prev: before.prev, after: ORDER.text } : null;
-  $("#orderIn").value = ORDER.text;
-  tab("order"); renderOrder(true); orderDraftSoon(); renderOrderScan();
-  toast("Order " + (O.name ? "from " + O.name + " " : "") + "loaded · " + plural(R.lines.length, "item") + (R.lines.some(L => L.offer) ? " · with their prices to check" : ""));
-  return true;
-}
-/** A buyer link pasted in Order ("…#o=…", alone or in their message). */
-function orderLinkIn(text) {
-  const m = String(text || "").match(/#o=([A-Za-z0-9_-]{16,4000})/); if (!m) return false;
-  let O = null; try { O = orderCodeRead(B64U.dec(m[1])); } catch (e) { O = null; }
-  if (!O) { toast("This order link is broken — ask them to copy it again (the whole link)"); return false; }
-  return buyerOrderLoad(O, "link");
-}
-/** The card on top of an order from a buyer link: who, their message, what changed, their offers (accept all / none). */
-function buyerCard(rows) {
-  const B = ORDER.buyer; if (!B) return null;
-  const trade = st.type === "trade", val = (L, pp) => priceLine(Object.assign({}, L, { pp })).v || 0;
-  let A = 0, Bt = 0, n = 0, acc = 0;
-  if (!trade) rows.forEach(L => {
-    if (!L.r.w || L.r.ignored) return;
-    const keep = L.pp && num(L.pp.p) > 0 && !offerOn(L) ? L.pp : null, has = L.offer && num(L.offer.p) > 0;
-    A += val(L, keep); Bt += has ? val(L, { p: L.offer.p, pu: L.offer.pu, offer: 1 }) : val(L, keep);
-    if (has) { n++; if (offerOn(L)) acc++; }
-  });
-  const d = st.type === "achat" ? 0 : Math.min(100, Math.max(0, num(st.disc))), k = d > 0 && ORDER.applyDisc ? 1 - d / 100 : 1;
-  const set = on => { ORDER.lines.forEach(L => { if (!L.offer || !(num(L.offer.p) > 0)) return; if (on) { L.pp = { p: L.offer.p, pu: L.offer.pu, offer: 1 }; L.ppOff = false; } else if (offerOn(L)) L.pp = null; }); renderOrder(); toast(on ? "Their prices accepted" : "Your prices are used"); };
-  return h("div", { class: "card obuyer" },
-    h("div", { class: "obh" }, h("span", null, "🛒"), h("div", null, h("b", null, "Order " + (B.name ? "from " + B.name : "from a buyer")),
-      h("small", null, "From your buyer link" + (B.via === "picture" ? " (picture)" : "") + (B.at ? " of " + shopWhen(B.at / 6e4) : "") + " · priced again with your prices")),
-      h("button", { class: "odel", "aria-label": "Hide", title: "Hide", onclick: () => { ORDER.buyer = null; renderOrder(); } }, "×")),
-    B.note ? h("p", { class: "obnote" }, "💬 “" + B.note + "”") : null,
-    ...(B.warn || []).map(t => h("p", { class: "owarn" }, "⚠ " + t)),
-    B.changes && B.changes.length ? h("p", { class: "owarn" }, "Your prices changed since that link — your current prices are used: " + B.changes.join(" · ")) : null,
-    n ? h("div", { class: "oboff" },
-      h("div", { class: "brk" }, h("span", null, "With your prices"), h("b", null, fmt(A * k))),
-      h("div", { class: "brk" }, h("span", null, "💬 With their prices (" + n + ")"), h("b", null, fmt(Bt * k) + " (" + (Bt - A >= 0 ? "+" : "−") + fmt(Math.abs(Bt - A) * k) + ")")),
-      h("div", { class: "two" }, h("button", { class: "btn sm" + (acc === n ? " on" : ""), onclick: () => set(true) }, "Accept all"), h("button", { class: "btn sm", onclick: () => set(false) }, acc ? "Refuse all" : "Keep mine"))) : null);
-}
-/** Is the line priced at their offer right now? */
-const offerOn = L => !!(L.offer && L.pp && L.pp.offer && num(L.pp.p) === num(L.offer.p) && L.pp.pu === L.offer.pu);
-/** Their offer under a line: what the line would be at their price, accept / back to yours. */
-function offerBand(L, w) {
-  const of = L.offer, on = offerOn(L), ow = Object.assign({}, w, { p: of.p, pu: of.pu });
-  const val = pp => priceLine(Object.assign({}, L, { pp })).v || 0;
-  const mine = val(L.pp && !on && num(L.pp.p) > 0 ? L.pp : null), theirs = val({ p: of.p, pu: of.pu, offer: 1 }), dv = theirs - mine;
-  const u = unitPrice(ow), lab = ppTxt(of.p, of.pu) + (of.pu !== "coin" && u ? " (" + fmtP(u) + " ea)" : "");
-  const diff = " · line " + fmt(theirs) + (Math.round(dv) ? " (" + (dv > 0 ? "+" : "−") + fmt(Math.abs(dv)) + ")" : "");
-  if (on) return h("div", { class: "omsg ok" }, h("span", null, "💬 Their price accepted: ", h("b", null, lab), " — yours: " + priceLabel(w).split(" · ")[0]),
-    h("button", { class: "btn sm", onclick: () => { L.pp = null; renderOrder(); } }, "Use mine"));
-  return h("div", { class: "omsg" }, h("span", null, "💬 Their price: ", h("b", null, lab), diff),
-    h("button", { class: "btn sm", onclick: () => { L.pp = { p: of.p, pu: of.pu, offer: 1 }; L.ppOff = false; L._edit = false; renderOrder(); } }, "Accept"));
-}
-/** Opened from a link: "#shop=…" → the shop; "#o=…" (their order, tapped by you) → Order. */
-async function shopBoot() {
-  const hs = location.hash || "";
-  if (hs.startsWith("#shop=")) {
-    try { shopOpen(await shopDecode(hs.slice(6))); }
-    catch (e) {
-      document.body.classList.add("shopmode");
-      const v = h("div", { id: "shopV", class: "shopv" }, h("div", { class: "card sbroken" }, h("h2", null, "This link doesn't work"),
-        h("p", null, "It's cut or changed. Ask for the link again and copy all of it."), h("button", { class: "btn pri", onclick: shopLeave }, "Open Market Manager")));
-      document.body.append(v);
-    }
-  } else if (hs.startsWith("#o=")) {
-    history.replaceState(null, "", appBase());
-    orderLinkIn(hs);
-  }
-}
-addEventListener("hashchange", () => { if (/^#(?:shop|o)=/.test(location.hash)) { const v = $("#shopV"); if (v) v.remove(); document.body.classList.remove("shopmode"); shopBoot(); } });
-[["#shopLinkBtn"], ["#shopLinkBtn2"]].forEach(([s]) => { const b = $(s); if (b) b.onclick = () => openShopLink(); });
 </script>
 <!-- Images des produits : wiki communautaire Hay Day (hayday.fandom.com). Hay Day et ses visuels appartiennent à Supercell. -->
 </body>
