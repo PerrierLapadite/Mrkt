@@ -1168,6 +1168,9 @@ details summary{-webkit-tap-highlight-color:transparent}
 .metabs{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 4px 2px}
 .metabs b{display:block;font-size:14px}.metabs small{color:var(--mut);font-size:12px}
 .metabs .seg{flex:none}
+/* small phones (iPhone SE…): the unit is its icon only, so a price like 15000 stays readable */
+@media (max-width:360px){.box .u .ut{display:none}.box .u{padding-left:10px;padding-right:10px}}
+header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past them (320 px screens) */
 </style>
 </head>
 <body data-tab="items">
@@ -2161,9 +2164,31 @@ const fmtR = n => (Math.abs(n) < 100 ? Math.round(n * 10) / 10 : Math.round(n)).
 // ?demo = read-only copy used by guide.html: never reads or writes the visitor's posts (only shared caches)
 const DEMO = /[?&]demo\b/.test(location.search), CACHE_KEY = /^hd5_(urls|wiki|maxp|maxp10)$/;
 var UND = null;   // the global undo (set up at the end, once everything is loaded)
+/* saved data: unreadable data is kept aside (never overwritten); a full storage frees the caches, then says so */
+const STORE_BAD = [];
+let storeWarnT = 0;
 const store = {
-  get(k, d) { if (DEMO && !CACHE_KEY.test(k)) return d; try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { if (DEMO && !CACHE_KEY.test(k)) return true; try { const j = JSON.stringify(v); localStorage.setItem(k, j); if (UND) undoSeen(k, j); return true; } catch (e) { return false; } }
+  get(k, d) {
+    if (DEMO && !CACHE_KEY.test(k)) return d;
+    let v = null; try { v = localStorage.getItem(k); } catch (e) { return d; }
+    if (v == null) return d;
+    try { return JSON.parse(v); }
+    catch (e) { if (!CACHE_KEY.test(k)) { try { if (localStorage.getItem(k + "_unreadable") == null) localStorage.setItem(k + "_unreadable", v); } catch (e2) {} STORE_BAD.push(k); } return d; }
+  },
+  set(k, v) {
+    if (DEMO && !CACHE_KEY.test(k)) return true;
+    let j; try { j = JSON.stringify(v); } catch (e) { return false; }
+    for (let a = 0; a < 2; a++) {
+      try { localStorage.setItem(k, j); if (UND) undoSeen(k, j); return true; }
+      catch (e) {
+        if (CACHE_KEY.test(k) || k === "hd5_impcrop") return false;          // a cache: nothing lost
+        if (a === 0) { ["hd5_urls", "hd5_impcrop", "hd5_wiki"].forEach(c => { if (c !== k) try { localStorage.removeItem(c); } catch (e2) {} }); continue; }   // room made: try again
+        if (Date.now() - storeWarnT > 20000) { storeWarnT = Date.now(); setTimeout(() => toast("⚠ Storage full — this change isn't saved. Export a backup (Style tab), then remove old deals or posts."), 0); }
+        return false;
+      }
+    }
+    return false;
+  }
 };
 let toastT = 0;
 function toast(t) { const m = $("#toast"); m.textContent = t; m.classList.remove("act"); m.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show"), 2600); }
@@ -2708,8 +2733,8 @@ let VAL_UPD = [];
 const maxLoaded = debounce(() => { VAL_UPD.forEach(f => { try { f(); } catch (e) {} }); scheduleDraw(); renderSummary(); if (typeof renderOrder === "function") renderOrder(); }, 120);
 function normItem(it) {
   if (!it.uid) it.uid = uid();
-  ["name", "note", "e", "img", "q", "p", "ra", "rb"].forEach(k => { if (it[k] == null) it[k] = ""; });
-  if (!it.pu) it.pu = "coin";
+  ["name", "note", "e", "img", "q", "p", "ra", "rb"].forEach(k => { it[k] = it[k] == null ? "" : typeof it[k] === "string" ? it[k] : String(it[k]); });
+  if (!["coin", "xmp", "ring", "blanket"].includes(it.pu)) it.pu = "coin";
   if (!it.ru) it.ru = "ring";
   if (!it.mode) {
     const m = String(it.tag || "").match(/^\s*(\d+(?:\.\d+)?)\s*[:\/]\s*(\d+(?:\.\d+)?)\s*$/);
@@ -2748,7 +2773,12 @@ function ratioFix(p) {
   (p.wants || []).forEach(w => fix(w, w.give));
   if (p.addR) fix(p.addR, p.addR.give);
 }
-function normProfile(p) { const d = defaults(p.type || "trade");
+const isObj = x => !!x && typeof x === "object" && !Array.isArray(x);
+function normProfile(p) {
+  if (!TYPES[p.type]) p.type = "trade";
+  p.wants = Array.isArray(p.wants) ? p.wants.filter(isObj) : []; p.have = Array.isArray(p.have) ? p.have.filter(isObj) : [];
+  if (p.id == null || typeof p.id !== "string") p.id = p.id != null ? String(p.id) : uid();
+  const d = defaults(p.type);
   if (!p.v8) { if (p.layout === "list") p.layout = "auto"; p.v8 = 1; }
   if (!Array.isArray(p.bulk)) p.bulk = [];
   // game items always show their real name and picture
@@ -2760,8 +2790,9 @@ function normProfile(p) { const d = defaults(p.type || "trade");
   if (!p.rv2) { ratioFix(p); p.rv2 = 1; }
   if (!p.v7) { for (const k in OLD_DEFAULTS) if (OLD_DEFAULTS[k].includes(p[k])) p[k] = ""; if (p.ctaE === "🔥" || p.ctaE === "🛒" || p.ctaE === "💰") p.ctaE = ""; p.v7 = 1; } for (const k of ["totUnit", "showR", "showB", "disc", "discLabel", "details", "showTotal", "sort", "layout", "defRa", "defRb"]) if (p[k] == null) p[k] = d[k]; if (p.sort === "price") p.sort = "value"; delete p.lang; (p.have || (p.have = [])).forEach(normItem); (p.wants || (p.wants = [])).forEach(normItem); return p; }
 
-let CUSTOM = store.get("hd5_custom", []);
-let SETTINGS = Object.assign({ recent: [], to: "wants" }, store.get("hd5_settings", {}));
+let CUSTOM = store.get("hd5_custom", []); CUSTOM = Array.isArray(CUSTOM) ? CUSTOM.filter(x => x && typeof x === "object" && x.id && x.en) : [];
+let SETTINGS = Object.assign({ recent: [], to: "wants" }, (x => x && typeof x === "object" && !Array.isArray(x) ? x : {})(store.get("hd5_settings", {})));
+if (!Array.isArray(SETTINGS.recent)) SETTINGS.recent = [];
 delete SETTINGS.ring;
 let STATE = null, st = null;
 
@@ -2799,6 +2830,7 @@ function migrateOld() {
 }
 function loadState() {
   STATE = store.get("hd5_state", null);
+  if (STATE && Array.isArray(STATE.list)) STATE.list = STATE.list.filter(isObj);
   if (!STATE || !Array.isArray(STATE.list) || !STATE.list.length) {
     STATE = migrateOld() || { active: null, list: [mkProfile("trade"), mkProfile("vente"), mkProfile("achat")] };
     if (store.get("tp4", null)) setTimeout(() => toast("Your previous profiles were imported ✔"), 800);
@@ -2807,10 +2839,14 @@ function loadState() {
   st = STATE.list.find(p => p.id === STATE.active) || STATE.list[0];
   STATE.active = st.id;
 }
-const saveSoon = debounce(() => { if (!store.set("hd5_state", STATE)) toast("Storage full: export a backup (Style tab)."); }, 400);
+const saveSoon = debounce(() => { store.set("hd5_state", STATE); }, 400);
 const saveSettings = () => store.set("hd5_settings", SETTINGS);
 /* deals marked as done in the Order tab (newest first) */
 let HIST = store.get("hd5_hist", []); if (!Array.isArray(HIST)) HIST = [];
+/** History / deals as saved, or from a backup: only well-formed entries (a broken one can't break the page). */
+function histClean(a) { return (Array.isArray(a) ? a : []).filter(isObj).map(e => { if (!Array.isArray(e.lines)) e.lines = []; e.lines = e.lines.filter(isObj); if (e.gives != null) e.gives = Array.isArray(e.gives) ? e.gives.filter(isObj) : []; if (!(num(e.t) > 0)) e.t = 0; return e; }); }
+function dealsClean(a) { return (Array.isArray(a) ? a : []).filter(d => isObj(d) && isObj(d.e) && ["trade", "vente", "achat"].includes(d.e.type)).map(d => { if (!Array.isArray(d.e.lines)) d.e.lines = []; d.e.lines = d.e.lines.filter(isObj); if (d.daily && !Array.isArray(d.daily.log)) d.daily.log = []; return d; }); }
+HIST = histClean(HIST);
 const saveHist = () => { if (HIST.length > 1000) HIST.length = 1000; store.set("hd5_hist", HIST); };
 function changed() { scheduleDraw(); saveSoon(); renderSummary(); }
 function pushRecent(id) { if (!id) return; SETTINGS.recent = [id, ...(SETTINGS.recent || []).filter(x => x !== id)].slice(0, 18); saveSettings(); }
@@ -3142,7 +3178,7 @@ function drawBeta() {
   txt(SITE_URL, W / 2, H - M * .75 - urlS * .5, { f: "800", s: urlS, c: T.mut, al: "center", maxW: IW });
 
   const mc = $("#miniCv"); if (mc) { const k = mc.width / W; if (mc.height !== Math.round(H * k)) mc.height = Math.round(H * k); mc.getContext("2d").drawImage(cv, 0, 0, mc.width, mc.height); }
-  $("#pvSize").textContent = cv.width + " × " + cv.height + " px · " + C + (C > 1 ? " columns" : " column");
+  $("#pvSize").textContent = cv.width + " × " + cv.height + " px · " + C + (C > 1 ? " columns" : " column") + (mpMissing().length ? " · ⏳ max prices loading" : "");
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
 function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
@@ -4449,7 +4485,7 @@ function spEl(el, items) {
 /** The rules of the box → each with its items, price, and what's wrong. Later lines win where they overlap. */
 function spRules(text, items, trade) {
   const out = [];
-  const lines = String(text || "").slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES);
+  const lines = discordClean(text).slice(0, SP_MAX_LEN).split(/\r?\n|;/).map(l => l.replace(/^\s*(?:[-–—•·*]|\d+[.)])\s+/, "").trim()).filter(Boolean).slice(0, SP_MAX_LINES);
   // lines without a price: names waiting for the price written at the end of the list
   const joined = []; let pend = [];
   lines.forEach(l => { if (!spPrice(l, trade)) { pend.push(l.replace(/[,\s]+$/, "")); return; } joined.push({ line: pend.length ? pend.concat(l).join(", ") : l, n: pend.length + 1 }); pend = []; });
@@ -4691,7 +4727,7 @@ function stepper(it, after) {
   return h("div", { class: "box step" }, h("button", { type: "button", "aria-label": "Less", onclick: () => bump(-1) }, "−"), inp, h("button", { type: "button", "aria-label": "More", onclick: () => bump(1) }, "+"));
 }
 function unitBtn(it, key, opts, after) {
-  const labels = { coin: () => [h("i", { class: "coin" }), "coins"], ring: () => [ringEl(), "rings"], blanket: () => [blanketEl(), "blankets"], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
+  const labels = { coin: () => [h("i", { class: "coin" }), h("span", { class: "ut" }, "coins")], ring: () => [ringEl(), h("span", { class: "ut" }, "rings")], blanket: () => [blanketEl(), h("span", { class: "ut" }, "blankets")], xmp: () => [h("b", { class: "xmp" }, "×MP")], none: () => ["—"] };
   const b = h("button", { type: "button", class: "u", title: "Change unit" });
   const paint = () => { b.textContent = ""; b.append(...labels[it[key]]()); };
   b.onclick = () => { it[key] = opts[(opts.indexOf(it[key]) + 1) % opts.length]; paint(); after(); changed(); };
@@ -4894,9 +4930,19 @@ $("#resetP").onclick = function () {
 const fname = () => (slug(st.name || "post") || "post") + ".png";
 function getBlob() { draw(); return new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error("blob")), "image/png"); } catch (e) { rej(e); } }); }
 function saveBlob(b, name) { const u = URL.createObjectURL(b), a = h("a", { href: u, download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); }
-async function download() { try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed — reload the page and try again."); } }
+/** The picture's total needs every max price: items still waiting for theirs (wiki slow / offline) → said before it's sent.
+    A second tap within 6 s sends it anyway. */
+let mpGoT = 0;
+function mpMissing() { if (st.type === "trade" || st.showTotal === false) return []; return st.wants.filter(w => !w.oos && w.ref && w.pu === "xmp" && num(w.p) > 0 && !(unitPrice(w) > 0)).map(w => pName(w)); }
+function mpGate() {
+  const miss = mpMissing(); if (!miss.length || Date.now() - mpGoT < 6000) { mpGoT = 0; return true; }
+  mpGoT = Date.now(); toast("⏳ Max price not loaded yet for " + miss.slice(0, 3).join(", ") + (miss.length > 3 ? " +" + (miss.length - 3) : "") + " — the total would be too low. Wait a moment (connection?), or tap again to send it anyway.");
+  return false;
+}
+async function download() { if (!mpGate()) return; try { saveBlob(await getBlob(), fname()); toast("Image downloaded ✔"); } catch (e) { toast("Export failed — reload the page and try again."); } }
 $("#dl").onclick = download;
 $("#share").onclick = async () => {
+  if (!mpGate()) return;
   try {
     const f = new File([await getBlob()], fname(), { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] });
@@ -4904,6 +4950,7 @@ $("#share").onclick = async () => {
   } catch (e) { if (!e || e.name !== "AbortError") toast("Couldn’t share"); }
 };
 $("#copy").onclick = async () => {
+  if (!mpGate()) return;
   try { if (!window.ClipboardItem) throw 0; await navigator.clipboard.write([new ClipboardItem({ "image/png": getBlob() })]); toast("Copied — paste it in Discord ✔"); }
   catch (e) { toast("Copy isn’t supported here: use Download."); }
 };
@@ -4917,15 +4964,21 @@ $("#bkOut").onclick = () => {
 $("#bkIn").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try {
+    if (f.size > 60e6) { toast("This file is too big to be a backup."); return; }
     const o = JSON.parse(await f.text());
-    if (o.app === "hd-studio" && o.state && Array.isArray(o.state.list)) {
-      STATE = o.state; CUSTOM = o.custom || []; store.set("hd5_custom", CUSTOM);
-      if (o.settings) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; saveSettings(); }
-      Object.entries(o.images || {}).forEach(([k, v]) => { USERIMG.set(k, v); IDB.put(k, v); });
+    if (o && o.app === "hd-studio" && o.state && Array.isArray(o.state.list)) {
+      // everything checked first: a bad file changes nothing
+      const list = o.state.list.filter(isObj); if (!list.length) throw 0;
+      const S2 = Object.assign({}, o.state, { list }); S2.list.forEach(normProfile);
+      const C2 = Array.isArray(o.custom) ? o.custom.filter(x => isObj(x) && x.id && x.en) : [];
+      const H2 = histClean(o.history), D2 = dealsClean(o.deals);
+      STATE = S2; CUSTOM = C2; store.set("hd5_custom", CUSTOM);
+      if (isObj(o.settings)) { SETTINGS = Object.assign(SETTINGS, o.settings); delete SETTINGS.ring; if (!Array.isArray(SETTINGS.recent)) SETTINGS.recent = []; saveSettings(); }
+      Object.entries(isObj(o.images) ? o.images : {}).forEach(([k, v]) => { if (typeof v === "string" && /^data:image\//.test(v)) { USERIMG.set(k, v); IDB.put(k, v); } });
       if (o.inventory && (Array.isArray(o.inventory.items) || Array.isArray(o.inventory.farms))) { INV = o.inventory; invFix(); saveInv(); }
-      if (Array.isArray(o.deals)) { const have = new Set(DEALS.map(d => d.id)); DEALS = DEALS.concat(o.deals.filter(d => d && !have.has(d.id))); saveDeals(); }
+      if (D2.length) { const have = new Set(DEALS.map(d => d.id)); DEALS = DEALS.concat(D2.filter(d => !have.has(d.id))); saveDeals(); }
       if (Array.isArray(o.scanLearn)) { LEARN = o.scanLearn; store.set("hd5_scanlearn", LEARN); }
-      if (Array.isArray(o.history)) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(o.history.filter(e => e && !have.has(e.id))).sort((a, b) => b.t - a.t); saveHist(); }
+      if (H2.length) { const have = new Set(HIST.map(e => e.id)); HIST = HIST.concat(H2.filter(e => !have.has(e.id))).sort((a, b) => (b.t || 0) - (a.t || 0)); saveHist(); }
     } else if (Array.isArray(o.l)) { store.set("tp4", o); localStorage.removeItem("hd5_state"); loadState(); }
     else throw 0;
     STATE.list.forEach(normProfile);
@@ -4953,6 +5006,7 @@ async function loadLocalManifest() {
   if (document.fonts && document.fonts.load) Promise.all(["500", "600", "700", "800", "italic 500", "italic 600"].map(w => document.fonts.load(w + " 30px Inter"))).then(scheduleDraw).catch(() => {});
   if (!DEMO) setTimeout(() => refreshWikiList(false), 1500);
   window.addEventListener("pagehide", () => store.set("hd5_state", STATE));
+  if (STORE_BAD.length) setTimeout(() => toast("⚠ Some saved data couldn't be read (" + [...new Set(STORE_BAD)].map(k => k.replace("hd5_", "")).join(", ") + ") — a copy was kept on this device."), 1200);
   window.hdReady = true; dispatchEvent(new Event("hdready"));
 })();
 
@@ -5052,12 +5106,14 @@ function orderPay(text) {
 function parseOrder(text) {
   const out = [], post = (typeof st !== "undefined" && st ? st.wants : []).filter(w => (w.name || "").trim() || w.ref).map(w => pName(w));
   const whole = (c, n) => { const qt = toks(c); return qt.length >= toks(n).length && matchInfo(qt, n, 1).sc > 0; };
-  let T = emoNames(String(text || "")).replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
+  let T = emoNames(discordClean(text).replace(/^[ \t*_>]*(?:buying|selling|wtb|wts|lf|looking for)[ \t*_]*[:\-–][ \t]*/gim, "").replace(/^[ \t]*#[ \t]*\d+[.):]?[ \t]+/gm, "").replace(/[(\[][ \t]*[x×]?[ \t]*(\d{1,6})[ \t]*(?:[x×]|pcs?)?[ \t]*[)\]]/gi, " x$1 ")).replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
     .replace(/\b(page|pg|p)\s*([1-3])\b(?!\s*(?:x|×|pcs?)\b)/gi, "$1$2").replace(/[?!]+|\.(?=\s+[a-z])|\s+\.(?=[a-z])/gi, "\n");
   // "10 of each" / "10 each" / "x10 each": the quantity of every item without one
   let each = null;
   // (not a price: "x20 450 each", "4k each")
-  T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m; each = +n; return pre + " , "; })
+  T = T.replace(/(^|[\s,;:(])(?:x\s*)?(\d{1,3})\s*(?:x\s*)?(?:of\s+)?(?:each|of\s+every\s*(?:one|thing)|of\s+all|each\s+one)\b\)?/gi, (m, pre, n, off, all) => { if (/(?:x\s*\d+|\d+\s*x)\s*$/i.test(all.slice(Math.max(0, off - 12), off))) return m;
+      const seg = all.slice(0, off).split(/[\n,;]/).pop(); if (/\d/.test(seg) && /[a-z]{2,}/i.test(seg)) return m;   // "20 bread 40 each": a price, not "40 of each"
+      each = +n; return pre + " , "; })
     .replace(/\beach\s*(?:x\s*)?(\d{1,3})\b/gi, (m, n) => { each = +n; return " , "; });
   // prices written with the items are not quantities: "(450 ea)", "@450", "at 1.5k each", "450 each" after a quantity.
   // Each one is kept as a mark on its line (\u0002p…\u0003): the order shows it, and uses it when it isn't your post's price.
@@ -5066,6 +5122,15 @@ function parseOrder(text) {
   const numIn = t => (String(t).match(/\d[\d.,]*\s*k?/i) || [""])[0];
   const P = "\\d(?:[\\d.,]*\\d)?\\s*k?\\s*(?:coins?|c)?", END = "(?=\\s*(?:$|[,;\\n|]|\\s(?:and|&|\\+)\\s))";
   T = T
+    // a price for the whole line: "20 apple pie for 2 rings", "12 bem sets for 1.5m", "30 bread for 25k" → per item
+    .replace(/^([ \t]*(?:[x×][ \t]*)?(\d[\d.,]*)[ \t]*(?:[x×][ \t]*)?[a-z][^\n,;]*?)[ \t]+for[ \t]+(\d[\d.,]*)[ \t]*(k|m|rings?|dr|diamond[ \t]*rings?|r|blankets?|bl|b|coins?|c)?(?:[ \t]+(?:total|in total|all))?[ \t]*$/gim, (m, a, q, v, u) => {
+      const n = num(q.replace(/,(?=\d{3}\b)/g, "")), x = num(v.replace(/,(?=\d{3}\b)/g, "").replace(",", ".")), U = (u || "").toLowerCase();
+      if (!(n > 0) || !(x > 0) || (!U && x < 50)) return m;                // "for 2" alone isn't a price
+      const coins = /^(?:rings?|dr|diamond\s*rings?|r)$/.test(U) ? x * RING_RATE : /^(?:blankets?|bl|b)$/.test(U) ? x * BLANKET_RATE : U === "k" ? x * 1000 : U === "m" ? x * 1e6 : x;
+      return a + mark(coins / n, "c"); })
+    // "20 apple pie 2 rings" / "… 1 blanket": a price in rings or blankets after the quantity and the name (each)
+    .replace(/^([ \t]*(?:[x×][ \t]*)?\d[\d.,]*[ \t]*(?:[x×][ \t]*)?[a-z][^\n,;]*?)[ \t]+(\d+(?:[.,]\d+)?)[ \t]*(rings?|dr|diamond[ \t]*rings?|r|blankets?|bl|b)(?:[ \t]*(?:each|ea))?[ \t]*$/gim, (m, a, v, u) =>
+      a + mark(num(v.replace(",", ".")) * (/^(?:rings?|dr|diamond\s*rings?|r)$/i.test(u) ? RING_RATE : BLANKET_RATE), "c"))
     // ×MP prices are not quantities: "3,5x" / "3.5x" (a quantity is never a decimal), "5xmp", "5x mp", "@ 8x"
     .replace(/(^|[\s(@])(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*(?:mp|max\s*price|max)\b|mp\b)/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
     .replace(/(^|[\s(@])(\d+[.,]\d+)\s*[x×](?![a-z0-9])/gim, (m, a, v) => a + mark(num(v.replace(",", ".")), "x"))
@@ -5082,12 +5147,23 @@ function parseOrder(text) {
     .replace(/^(\s*(?:x\s*)?\d[\d.,]*\s*(?:x\s*)?[a-z][^\n,;]*?)\s+(\d[\d.,]*\s*(?:k|coins?))(?=\s*(?:$|[,;\n|]))/gim, (m, a, v) => a + mark(coinV(v), "c"))
     // "Diamond rings x180 5x": the quantity is already there, the "5x" after it is the price
     .replace(/^(?=[^\n]*[a-z][^\n]*\s@?\d{1,2}\s*[x×]\s*$)([^\n]*?(?:\b[x×]\s*\d+|\b\d+\s*[x×](?=\s*[a-z])|^\s*\d+\s+(?=[a-z]))[^\n]*?)\s+@?(\d{1,2})\s*[x×](?=\s*$)/gim, (m, a, v) => a + mark(num(v), "x"));
+  // a stray "ea" / "each" left after a price mark
+  T = T.replace(/(\u0003)[ \t]*(?:each|ea|apiece)\b/gi, "$1");
   T.split(/\r?\n|;|•|·|\|/).forEach(line => {
     // pieces: commas (not "1,500"), then "and" / "&" / "+" unless it's one name of your post ("bacon and eggs")
-    line.split(/,(?!\d{3}\b)|\s+\/\s+/).forEach(chunk => {
+    let chunks = line.split(/,(?!\d{3}\b)|\s+\/\s+/);
+    // "chilli popcorn, macaroon, fudge all this 10xmp": the price at the end is for every name of the list
+    if (chunks.length >= 2) {
+      const last = chunks[chunks.length - 1], lm = last.match(/\u0002p[\d.]+[xc]\u0003\s*$/);
+      if (lm && chunks.slice(0, -1).every(c => !/\u0002p/.test(c) && /[a-z]/i.test(c))) {
+        let nm = last.slice(0, lm.index), q0; do { q0 = nm; nm = nm.replace(SP_TAIL, ""); } while (nm !== q0 && nm.trim());
+        chunks = chunks.slice(0, -1).map(c => c + " " + lm[0]).concat(nm.trim() ? [nm + " " + lm[0]] : []);
+      }
+    }
+    chunks.forEach(chunk => {
       let parts = [chunk];
       if (/\s(?:and|&|\+|plus|n|also|with)\s/i.test(chunk)) {
-        const bare = c => orderWords(c.trim().replace(/^(?:\d[\d.,]*\s*x?\s+|x\s*\d+\s+)/i, "").replace(/\s+(?:x\s*)?\d[\d.,]*\s*x?$/i, "")).s;
+        const bare = c => orderWords(c.replace(/\u0002p[\d.]+[xc]\u0003/g, " ").trim().replace(/^(?:\d[\d.,]*\s*x?\s+|x\s*\d+\s+)/i, "").replace(/\s+(?:x\s*)?\d[\d.,]*\s*x?$/i, "")).s;
         const andNames = post.concat(CAT.list.map(p => p.en)).filter(n => / and | & /i.test(" " + n + " "));
         const sp = chunk.split(/(\s+(?:and|&|\+|plus|n|also|with)\s+)/i); parts = [sp[0]];
         for (let i = 1; i < sp.length; i += 2) {
@@ -5111,6 +5187,8 @@ function parseOrder(text) {
           const W2 = orderWords(pc.name);                                    // "10 of the feta pie", "x5 pls"
           const name = W2.s || pc.name, all = W.all || W2.all;
           if (!pc.q && orderChat(name, post)) return;                    // "Heyyyy", "was wondering if you're interested in…"
+          if (/^(?:each|ea|apiece|pcs?|pieces?|x|items?|stuff|things?|it|them|this|that|total|coins?|price|prices|k|m)$/i.test(norm(name).trim())) return;   // "1.5k each" alone
+          if (!pc.q && /^(?:selling|buying|wts|wtb|lf|for sale|sale|shop(?: open)?|open|trading|trade|price ?list|prices|my shop|have|need|want|offer(?:ing)?)$/i.test(norm(name).replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim())) return;   // a header
           const segs = !pc.q && !all ? orderSegment(name, post) : [name];
           segs.forEach(nm => out.push(Object.assign({ raw: segs.length > 1 ? raw + " · " + nm : raw, name: nm, all: segs.length > 1 ? false : all, q: pc.q ? Math.round(num(pc.q.replace(/\s/g, ""))) : 1, qGuess: !pc.q }, msgP ? { mp: msgP } : {})));
         }));
@@ -5403,6 +5481,8 @@ function resolveLine(L) {
   const lib = findMatches(L.name, CAT.list, p => p.en, 1)[0];
   const r = findMatches(L.name, post, w => w.name || (CAT.byId[w.ref] || {}).en || "", 2).filter(m => !m.miss || (!(lib && lib.sc >= 4) && orderKeyWord(L.name, pName(m.x))));
   if (r.length) return { w: r[0].x, sure: !r[0].miss && !(r[1] && r[1].sc >= r[0].sc - .01), alts: r.slice(1, 6).map(a => a.x) };
+  // one word that is a word of your items' names: "pies" → your Apple Pie (to check when several fit)
+  { const qt = toks(L.name); if (qt.length === 1 && qt[0].length >= 3) { const c1 = post.filter(x => toks(pName(x)).some(t => same(t, qt[0]))); if (c1.length) return { w: c1[0], sure: false, alts: c1.slice(1, 6) }; } }
   // "apple jam" with First Page Jams in your post: that jam, inside the mix
   { const mp0 = lib && !lib.miss ? lib.x : (() => { const m = matchProduct(L.name); return m && m.p && m.sure ? m.p : null; })();
     const inMix = mp0 && !mp0.mix && post.find(x => { const m = mixOf(x); return m && m.mix.includes(mp0.id); });
@@ -5411,7 +5491,7 @@ function resolveLine(L) {
     okMp = mp && mp.p && slug(mp.p.en)[0] === slug(L.name)[0] && sub(slug(L.name).replace(/-/g, ""), slug(mp.p.en).replace(/-/g, "")), inP = c ? post.find(x => x.ref === c.x.id) : okMp && post.find(x => x.ref === mp.p.id);
   if (inP) return { w: inP, sure: false };                              // "mlk": a short typo found in the catalog, and it's in your post
   // selling / buying: an item of the game that isn't in your post is added anyway, for this order only (tap to undo)
-  if (c && !c.miss && !L.noExtra && st.type !== "trade" && !c.x.custom && c.x.id !== (ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref)) && !/^(?:for|in|with|paid|pay(?:ing)?|trad\w*|swap\w*)\b/i.test(String(L.raw || "").trim())) { L.extra = extraNew(c.x.id); L.extra.auto = 1; return { w: extraItem(L), sure: true, extra: true }; }
+  if (c && !c.miss && !L.noExtra && st.type !== "trade" && !c.x.custom && !(toks(L.name).length === 1 && orderFamily(L.name)) && c.x.id !== (ORDER.payRef || (ORDER.payAuto && ORDER.payAuto.ref)) && !/^(?:for|in|with|paid|pay(?:ing)?|trad\w*|swap\w*)\b/i.test(String(L.raw || "").trim())) { L.extra = extraNew(c.x.id); L.extra.auto = 1; return { w: extraItem(L), sure: true, extra: true }; }
   return { w: null, prod: c ? c.x : null };
 }
 /* ---------- items added for one order only (not in your post: the post never changes) ---------- */
@@ -5559,8 +5639,9 @@ function renderOrder(force) {
   adv();
   const out = $("#orderOut"); out.textContent = "";
   if (ORDER.deal) out.append(dealBar());
+  if (!ORDER.lines.length) { ORDER.total = 0; ORDER.sub = 0; }
   if (!ORDER.lines.length && ORDER.setPick && ORDER.intent && ORDER.intent.sets) { out.append(setPickCard(ORDER.setPick, ORDER.intent)); return; }
-  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
+  if (!ORDER.lines.length) { out.append(h("div", { class: "empty card" }, (ORDER.text || "").trim() ? "No item found in this message — write e.g. “20 apple pie” or “apple pie x20”, one item per line or with commas." : "Paste the message above — one item per line. No quantity = the whole quantity in your post.")); return; }
   // stock check: how many of each item your post still has (selling) or still wants (buying); lines share it in order
   const capOn = ORDER.capStock !== false, avail = new Map(); ORDER.oq = 0;
   // no quantity given → the whole quantity of the item in your post (minus what other lines already ask for)
@@ -6555,10 +6636,13 @@ const PASTE = { text: "", picks: {} };
 const NUM = "(\\d+(?:[.,]\\d+)?\\s*k?)";
 /** One line → { name, q, p, pu, ra, rb, have } — prices: 1500 · @1500 · 1.5k · 1r / 1 ring / 💍 · 2b / 2 blankets · 5xmp; qty: x20 · 20x · 20 pcs; ratio: 50:89. */
 function parseListLine(raw, sec) {
-  let s = " " + raw.replace(/💍/g, " r ").replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+•·]|\d+[.)])\s+/, " ").replace(/\s+/g, " ") + " ";
+  let s = " " + raw.replace(/[(\[][ \t]*[x×]?[ \t]*(\d{1,6})[ \t]*(?:[x×]|pcs?)?[ \t]*[)\]]/gi, " x$1 ").replace(/💍/g, " r ").replace(/[*_`~>#]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/^\s*(?:[-–—+•·]|\d+[.)])\s+/, " ").replace(/\s+/g, " ") + " ";
   const o = { raw: raw.trim(), q: "", p: "", pu: "coin", ra: "", rb: "", have: sec === "have", oos: /~~[^~]+~~/.test(raw) };
   s = s.replace(/~~/g, " ");
   const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], " "); return true; } return false; };
+  s = s.replace(/^\s*(?:selling|buying|wts|wtb|lf|looking\s+for|for\s+sale)\b\s*[:\-–]?\s*/i, " ");
+  take(new RegExp("(?:@|\\bfor\\b|\\bat\\b)\\s*" + NUM + "\\s*(?:x|×)(?![a-z0-9])", "i"), m => { o.p = m[1]; o.pu = "xmp"; });
+  if (!o.p) take(/\s(\d+[.,]\d+)\s*(?:x|×)(?![a-z0-9])/i, m => { o.p = m[1]; o.pu = "xmp"; });
   take(/^\s*(?:i\s*have|have|offer(?:ing)?|giving)\s*[:\-–]\s*/i, () => { o.have = true; });
   take(/\s(?:i\s*want|want|wtb|looking\s*for)\s*[:\-–]\s*/i, () => { o.have = false; });
   take(/(\d+(?:[.,]\d+)?)\s*[:/]\s*(\d+(?:[.,]\d+)?)/, m => { o.rb = m[1]; o.ra = m[2]; });     // "50:89" = 50 of it for 89 of yours
@@ -6567,8 +6651,12 @@ function parseListLine(raw, sec) {
   take(new RegExp("\\s" + NUM + "\\s*(?:b|bl|blankets?)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; o.pu = "blanket"; });
   if (!o.p) take(new RegExp("(?:@|\\bfor\\b|\\bprice\\b|\\bat\\b)\\s*" + NUM, "i"), m => { o.p = m[1]; }) ||
     take(new RegExp("\\s" + NUM + "\\s*(?:c|coins?|ea|each|/u|/ea|per\\s*unit)(?=\\s|$|[,.;])", "i"), m => { o.p = m[1]; });
+  // "honey 4x" alone on its line (a seller's list): a small "Nx" with no other number is the price in ×MP
+  if (!o.p && !o.ra && !/(?:^|\s)(?:x|×)\s*\d/i.test(s) && (s.match(/\d+(?:[.,]\d+)?/g) || []).length === 1) take(/\s(\d{1,2}(?:[.,]\d+)?)\s*(?:x|×)(?=\s|$|[,.;])/i, m => { if (num(m[1].replace(",", ".")) <= 20) { o.p = m[1]; o.pu = "xmp"; } else s = s.replace(" ", " " + m[0]); });
   take(new RegExp("(?:\\s|^)(?:x|×)\\s*" + NUM + "(?=\\s|$|[,.;])", "i"), m => { o.q = m[1]; }) ||
     take(new RegExp("\\s" + NUM + "\\s*(?:x|×|pcs?|pieces?)(?=\\s|$|[,.;])", "i"), m => { o.q = m[1]; });
+  // the quantity is there ("x120", "120"): a "5x" left is the price in ×MP
+  if (!o.p && !o.ra) { const hasQ = !!o.q || /(?:^|\s)\d+(?:\s|$)/.test(s.replace(/\s\d+\s*(?:x|×)(?=\s|$)/i, " ")); if (hasQ) take(/\s(\d+(?:[.,]\d+)?)\s*(?:x|×)(?=\s|$|[,.;])/i, m => { o.p = m[1]; o.pu = "xmp"; }); }
   // bare numbers: quantity first, then price
   const bare = [...s.matchAll(/(?:^|\s)(\d+(?:[.,]\d+)?\s*k?)(?=\s|$|[,.;])/gi)].map(m => m[1]);
   bare.forEach(n => {
@@ -6582,11 +6670,24 @@ function parseListLine(raw, sec) {
 }
 function parseList(text) {
   const out = []; let sec = "want";
-  String(text || "").split(/\r?\n|;/).forEach(raw => {
+  discordClean(text).split(/\r?\n|;/).forEach(raw => {
     const t = raw.replace(/[*_`~>#:]/g, " ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ").replace(/\s+/g, " ").trim().toLowerCase();
     if (!t) return;
     if (/^(i have|have|offering|offer|my stock|giving)$/.test(t)) { sec = "have"; return; }
     if (/^(i want|want|wanted|what i want|looking for|wtb|wts|selling|buying|for sale|shop|items?)$/.test(t)) { sec = "want"; return; }
+    // several items on one line: "apple pie x20, cheesecake x10" · "20 apple pie + 10 bread" · "macaroon, fudge, lemon pie 10xmp" (one price for all)
+    const parts = raw.split(/\s*(?:,(?!\d{3}\b)|\s\+\s)\s*/), named = x => /[a-z]{3,}/i.test(x.replace(/\b(?:x|mp|xmp|k|each|ea|rings?|blankets?|coins?|dr|bl)\b|\d+[a-z]{0,3}\b/gi, ""));
+    const ratios = (raw.match(/\d\s*[:/]\s*\d/g) || []).length;
+    if (parts.length >= 2 && parts.filter(named).length >= 2 && (!ratios || ratios === parts.filter(named).length || parts.filter(x => /\d\s*[:/]\s*\d/.test(x)).length === 1 && /\d\s*[:/]\s*\d/.test(parts[parts.length - 1]))) {
+      const os = parts.filter(x => x.trim()).map(x => parseListLine(x, sec)), last = os[os.length - 1];
+      if (last && last.p && os.slice(0, -1).every(o => !o.p)) {
+        let nm = last.name, q0; do { q0 = nm; nm = nm.replace(SP_TAIL, "").trim(); } while (nm && nm !== q0); last.name = nm;
+        os.forEach(o => { o.p = last.p; o.pu = last.pu; });
+      }
+      if (last && last.ra && os.slice(0, -1).every(o => !o.ra)) os.forEach(o => { o.ra = last.ra; o.rb = last.rb; });   // one ratio for the list
+      os.forEach(o => { if (o.name && /[a-z]/i.test(o.name)) out.push(o); });
+      return;
+    }
     const o = parseListLine(raw, sec);
     if (!o.name || !/[a-z]/i.test(o.name)) return;
     out.push(o);
@@ -6686,8 +6787,9 @@ function invFix() {
   if (!INV || typeof INV !== "object") INV = {};
   if (!Array.isArray(INV.farms)) INV.farms = [{ id: "f1", name: "My farm", items: Array.isArray(INV.items) ? INV.items : [] }];
   delete INV.items;
+  INV.farms = INV.farms.filter(isObj);
   if (!INV.farms.length) INV.farms.push({ id: "f1", name: "My farm", items: [] });
-  INV.farms.forEach(f => { if (!Array.isArray(f.items)) f.items = []; });
+  INV.farms.forEach((f, i) => { if (f.id == null) f.id = "f" + (i + 1); if (typeof f.name !== "string") f.name = "Farm " + (i + 1); f.items = (Array.isArray(f.items) ? f.items : []).filter(x => isObj(x) && (x.ref || x.name)); f.items.forEach(x => { x.q = Math.max(0, Math.round(num(x.q))) || 0; if (x.name != null && typeof x.name !== "string") x.name = String(x.name); }); });
   if (!INV.farms.some(f => f.id === INV.cur)) INV.cur = INV.farms[0].id;
   if (!INV.farms.some(f => f.id === INV.deal)) INV.deal = INV.cur;
 }
@@ -6960,8 +7062,8 @@ function invTextSheet() {
 }
 function invTextRows(text) {
   const seen = new Map(), rows = [];
-  parseList(String(text || "").replace(/,(?!\d{3}\b)/g, "\n")).forEach(o => {
-    const r = findMatches(o.name, CAT.list.filter(p => !isVirt(p)), p => p.en), m = matchProduct(o.name), p = m.p ? (isVirt(m.p) ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
+  parseList(discordClean(text).replace(/,(?!\d{3}\b)/g, "\n").replace(/\s\+\s/g, "\n")).forEach(o => {
+    const r = findMatches(o.name, CAT.list.filter(p => !isVirt(p)), p => p.en, 1), m = matchProduct(o.name), p = m.p ? (isVirt(m.p) ? null : m.p) : r[0] && r[0].x;   // a set (BEM…) lives as its materials: to pick
     const q = o.q === "" ? NaN : Math.round(num(o.q));
     const row = { view: null, txt: o.raw, q, qSure: !isNaN(q), m: r.slice(0, 6).map(x => ({ ref: x.x.id, c: 0 })), ref: p ? p.id : null, sure: !!(p && m.sure), on: !!p, shot: 0 };
     if (row.ref && seen.has(row.ref)) { const o2 = seen.get(row.ref); if (!isNaN(q)) { o2.q = q; o2.qSure = true; o2.txt = o.raw; } return; }   // twice in the list → the last number
@@ -6976,7 +7078,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 16:50";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 19:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
@@ -7067,7 +7169,7 @@ function qcLine(raw) {
     Lines without a price wait for the next price (a list written on several lines). */
 function qcExpand(text) {
   const out = [], pend = [];
-  String(text || "").split(/\r?\n/).forEach(raw => {
+  discordClean(text).split(/\r?\n/).forEach(raw => {
     const t = raw.trim(); if (!t) return;
     const L = qcLine(t);
     if (L && L.math) { out.push(...pend.splice(0)); out.push(t); return; }
@@ -7953,6 +8055,16 @@ function emojiChar(ch) {
   return EMOJI_ITEM.get(String(ch).replace(/\uFE0F/g, "")) || null;
 }
 /** Emojis → the item names ("💍" → Diamond Ring, ":hd_mayo:" → Mayonnaise), the others go: "💍 🫒 4k each" → "Diamond Ring, Olive Oil 4k each". */
+/** What Discord adds around a message: mentions, channel links, web links, invisible / direction characters, spoilers,
+    a ring / blanket / coin emoji used as the unit ("1 <:ring:…>" → "1 rings"; "<:ring:…> 1 ring" → "1 ring"). */
+function discordClean(t) {
+  return String(t == null ? "" : t)
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff\u00ad]/g, "").replace(/[\u00a0\u2007\u202f]/g, " ")
+    .replace(/<(?:@[!&]?|#)\d+>/g, " ").replace(/\bhttps?:\/\/\S+/gi, " ").replace(/\|\|/g, " ")
+    .replace(/(\d[\d.,]*\s*k?)\s*<a?:\w*?(ring|blanket|coin)s?\w*:\d+>/gi, (m, n, u) => n + " " + u.toLowerCase() + "s")
+    .replace(/<a?:\w*?(?:ring|blanket|coin)s?\w*:\d+>\s*(?=\d[\d.,]*\s*(?:k\b|rings?|blankets?|coins?|r\b|b\b|bl\b|dr\b))/gi, " ")
+    .replace(/\r\n?/g, "\n");
+}
 function emoNames(s) {
   // "Help 🪧": the name is already written just before its picture → not twice
   const put = (p, str, off) => !p ? " " : (() => { const b = norm(String(str).slice(0, off)), n = norm(p.en); return b.endsWith(n) || b.endsWith(n + "s") ? " " : " " + p.en + "\u0002 "; })();
@@ -7963,20 +8075,23 @@ const words = s => s.trim().split(/\s+/).filter(Boolean);
 /** Read a free-form buying post: "(10) nachos, bacon fries 3k", "15 marmalade, 10 peach jam 5k each", "egg / lobster / big roll sushi 4k each"… */
 function parseBuyList(text) {
   const items = []; let defQ = null;
-  String(text || "").split(/\r?\n/).forEach((raw, li) => {
+  discordClean(text).split(/\n/).forEach((raw, li) => {
     let s = emoNames(raw).replace(/[*_`~>#|]/g, " ").replace(EMO, " ").replace(/^\s*(?:[-–—•·◦▪➤]|\d+[.)](?=\s))\s*/, "").replace(/\s+/g, " ").trim(), m;
     // what a screenshot reader often gets wrong: "Ak each" = 4k each, "4K" = 4k
     s = s.replace(/\b[Aa](?=[kK]\b)/g, "4").replace(/(\d)\s*K\b/g, "$1k").replace(/^[^\w(]+/, "");
     if (!s || !/[a-z]/i.test(s)) return;
     const qm = s.match(/quantit(?:y|ies)\D*(\d+)(?:\s*(?:-|–|to)\s*(\d+))?/i);
     if (qm) { defQ = +(qm[2] || qm[1]); if (!/[,/]/.test(s)) return; }
-    if (/^(?:buying|selling|wtb|wts|for\s+sale|on\s+sale|sale|looking\s+for|lf|need(?:ing)?|want(?:ing)?|paying)\b/i.test(s) && !/[,/]/.test(s)) return; // a title line ("Selling", "WTS:")
+    if (/^(?:buying|selling|wtb|wts|for\s+sale|on\s+sale|sale|looking\s+for|lf|need(?:ing)?|want(?:ing)?|paying)\b/i.test(s) && !/[,/]/.test(s) && !/\d\s*(?:[x×](?:\s*mp)?|k|m|coins?|each|ea)\s+and\s+/i.test(s)) return; // a title line ("Selling", "WTS:")
+    if (/^(?:shop\s+open|open|dm(?:\s+me)?|ping(?:\s+me)?|dm\s*\/\s*ping|thanks?|thx|ty|bulk\b.*|ratio\b.*|prices?)\s*[!.:]*$/i.test(s.replace(/[^\w\s:!./+%-]/g, "").trim())) return;   // "Shop open 🎉", "DM me"
+    // "all jams 3x and all bars 2x": "and" after a price starts a new item
+    s = s.replace(/(\d\s*(?:[x×](?:\s*mp)?|k|m|coins?|each|ea|rings?|blankets?))\s+and\s+/gi, "$1, ");
     s = s.replace(/^(?:i\s*am\s*|i'?m\s*)?(?:buying|selling|wtb|wts|for\s+sale|looking\s+for|lf|need(?:ing)?|paying)\b\s*:?\s*/i, "");           // "Buying 💍, 🦞 5k" → the items
     let lineQ = null, lineP = null;
     if ((m = s.match(/^\(\s*(\d+)\s*\+?\s*\)\s*/))) { lineQ = +m[1]; s = s.slice(m[0].length); }
     if ((m = s.match(/^(\d+(?:[.,]\d+)?\s*[km])\s*(?:each|ea|apiece)?\b[\s:,\-–]*/i))) { lineP = num(m[1].replace(/\s/g, "")); s = s.slice(m[0].length); }
     // pieces, keeping what separated them ("/" = variants of the same thing)
-    const parts = s.split(/(\s*(?:,|\/|;|\.\s+(?=[a-z]))\s*)/i), segs = [];
+    const parts = s.split(/(\s*(?:,(?!\d{3}\b)|\/|;|\.\s+(?=[a-z]))\s*)/i), segs = [];
     for (let i = 0; i < parts.length; i += 2) if (parts[i] && parts[i].trim()) segs.push({ t: parts[i].trim(), sep: i ? parts[i - 1].trim()[0] || "," : "" });
     let pend = []; const line = [];
     segs.forEach(({ t, sep }) => {
@@ -7985,9 +8100,16 @@ function parseBuyList(text) {
       // or in max price: "3xmp", "3mxp", "3 x mp", "5x max", "4mp"
       if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*(?:[x×]\s*m\.?\s*p|m\s*[x×]\s*p|[x×]\s*max(?:\s*price)?|m\.?p)\.?\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { xm = num(m[1]); x = x.slice(0, m.index); }
       else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*([km])\s*(?:each|ea|apiece|per)?\.?\s*$/i))) { p = num(m[1] + m[2]); x = x.slice(0, m.index); }
-      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d{3,6})\s*(?:coins?|c)?\s*(?:each|ea|apiece)\.?\s*$/i))) { p = num(m[1]); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d{1,6}|\d{1,3}(?:,\d{3})+)\s*(?:coins?|c)?\s*(?:each|ea|apiece)\.?\s*$/i))) { p = num(m[1].replace(/,/g, "")); x = x.slice(0, m.index); }
+      // "@ 5x", "for 3x" (×MP) · "@ 1,500" / "@ 800" (coins) · "@ 1 ring", "2 blankets" (each)
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))\s*(\d+(?:[.,]\d+)?)\s*[x×]\.?\s*(?:each|ea)?\s*$/i))) { xm = num(m[1].replace(",", ".")); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))?\s*(\d+(?:[.,]\d+)?)\s*(rings?|dr|diamond\s*rings?|blankets?|bl)\.?\s*(?:each|ea)?\s*$/i))) { p = num(m[1].replace(",", ".")) * (/^(?:rings?|dr|diamond)/i.test(m[2]) ? RING_RATE : BLANKET_RATE); x = x.slice(0, m.index); }
+      else if ((m = x.match(/(?:\s*@|\s+(?:for|at))\s*(\d{1,6}|\d{1,3}(?:,\d{3})+)\s*(?:coins?|c)?\.?\s*$/i))) { p = num(m[1].replace(/,/g, "")); x = x.slice(0, m.index); }
+      // a small "3x" after the name (a buying / selling post): ×MP — a quantity is written "x30", "30x" with 30 > 12, or before the name
+      else if ((m = x.match(/[a-z)]\s+(\d{1,2}(?:[.,]\d+)?)\s*[x×]\s*$/i)) && num(m[1].replace(",", ".")) <= 12) { xm = num(m[1].replace(",", ".")); x = x.slice(0, m.index + 1); }
       if ((m = x.match(/^\(?\s*(\d+)\s*\+?\s*\)?\s*(?:x|×|pcs?)?\s+(?=[a-z])/i))) { q = +m[1]; x = x.slice(m[0].length); }
       else if ((m = x.match(/\s(?:x|×)\s*(\d+)\s*$|\s(\d+)\s*(?:x|×|pcs?)\s*$/i))) { q = +(m[1] || m[2]); x = x.slice(0, m.index); }
+      else if ((p != null || xm != null) && (m = x.match(/[a-z)]\s+(\d{1,6})\s*$/i))) { q = +m[1]; x = x.slice(0, m.index + 1); }   // "Apple pie 120 @ 5x"
       const cut = x.split(/!+|:|\s[-–]\s|[-–]\s/); x = cut[cut.length - 1];             // "SAUCES!! olive oil", "Salad Bar stuff- BLT"
       x = x.replace(/\b(?:each|ea|also|pls|please|any|some)\b/gi, " ").replace(/[()[\]!?.]/g, " ").replace(/\s+/g, " ").trim();
       const setP = () => { if (p != null) pend.forEach(o => o.p = p); else if (xm != null) pend.forEach(o => o.xmp = xm); pend = []; };
@@ -8146,8 +8268,10 @@ function srCommands(text) {
 }
 
 /** The post → info (kind, author, notes, what they give) + the asks: coins (price each), ratios (need:have), picture tiles. */
+/** "Want: apple pie 45:89, cheesecake 60:89": one ratio a line, so each item keeps its own. */
+const ratioLines = t => discordClean(t).split("\n").map(l => (l.match(/\d\s*:\s*\d/g) || []).length >= 2 && /,/.test(l) ? l.split(/,(?=[^,]*[a-z][^,]*\d\s*:\s*\d)/i).map(x => x.trim()).join("\n") : l).join("\n");
 function srParse() {
-  const C = srCommands(SR.text || ""), text = C.rest.join("\n"), R = impParse(textLines(text), [], [], text), asks = C.asks.slice();
+  const C = srCommands(ratioLines(SR.text || "")), text = C.rest.join("\n"), R = impParse(textLines(text), [], [], text), asks = C.asks.slice();
   const info = { kind: C.asks.length ? "trade" : R.kind, author: R.author || SR.author, notes: R.notes.slice(0, 6), gives: C.gives.slice(), offer: [], cmd: C.asks.length > 0 };
   // trade groups: "Need 🫙🫙 45:89 // 40:89 for 10 sets+" — you give 45, you get 89 (materials of a set)
   R.groups.forEach((g, gi) => {
@@ -8461,6 +8585,7 @@ $("#srFile").onchange = e => { const f = [...e.target.files]; e.target.value = "
    ===================================================================== */
 let DEALS = store.get("hd5_deals", []);
 if (!Array.isArray(DEALS)) DEALS = [];
+DEALS = dealsClean(DEALS);
 const DL = { undo: null, showDone: false };
 const saveDeals = () => { store.set("hd5_deals", DEALS); dealBadge(); };
 const DTYPE = { trade: { t: "Trade", i: "🔁" }, vente: { t: "Sale", i: "💰" }, achat: { t: "Purchase", i: "🛒" } };
@@ -9589,7 +9714,7 @@ const ownItem = r => Object.assign(r.ref ? { ref: r.ref, src: r.src || null } : 
 const RAT = /(\d+(?:[.,]\d+)?)\s*[:：]\s*(\d+(?:[.,]\d+)?)/;
 /** Lines of copied Discord text → the same tokens as a screenshot (:emoji: names, ~~struck~~). */
 function textLines(text) {
-  return String(text || "").split(/\r?\n/).map(raw => {
+  return discordClean(text).split(/\r?\n/).map(raw => {
     raw = raw.replace(/\*+|`+|(^|\s)__|__(\s|$)/g, "$1$2").replace(/^\s*>+\s?/, "");   // **bold**, `code`, __underline__, > quotes
     const toks = []; let strike = false, x = 0;
     raw = raw.replace(EMOS_RE, m => " " + m + " ");
@@ -9885,6 +10010,23 @@ function impParse(lines, tiles, picNotes, text) {
   return R;
 }
 /** Parsed post → the posts to create (a trade post, and/or a selling / buying post). */
+/** How much a reading found: items known, with a price / ratio, with a quantity. */
+function postScore(posts) { return (posts || []).reduce((a, P) => a + (P.wants || []).reduce((b, x) => b + (x.ref ? 1 : x.name ? .2 : 0) + (num(x.p) > 0 || num(x.ra) > 0 ? .5 : 0) + (num(x.q) > 0 ? .25 : 0), 0) + (P.have || []).filter(x => x.ref).length * .5, 0); }
+/** A pasted post read one line at a time (each line: item, quantity, price or ratio) → posts for the import. */
+function listPosts(text) {
+  const junk = /^(?:dm|dm me|ping|ping me|dm\/ping|ratio|bulk|thanks?|thx|ty|shop open|open|selling|buying|wts|wtb|lf|trading|trade|have|want|need|my shop|prices?)\b/i;
+  const all = parseList(text), glob = all.find(o => o.ra && /^ratio\b/i.test(o.name || "")), os = all.filter(o => !junk.test(o.name || "") && /[a-z]{3,}/i.test(o.name || ""));
+  if (!os.length) return null;
+  const t = discordClean(text).toLowerCase(), trade = os.some(o => o.have) || os.some(o => o.ra) || !!glob;
+  const kind = trade ? "trade" : /\b(?:buying|wtb|looking for|lf)\b/.test(t) ? "achat" : "vente";
+  const it = o => { const m = matchProduct(o.name), ok = !!(m.p && m.sure); return { ref: ok ? m.p.id : null, name: ok ? "" : o.name, q: o.q || "", p: o.p || "", pu: o.pu || "coin", oos: o.oos ? 1 : 0 }; };
+  if (kind === "trade") {
+    const have = os.filter(o => o.have).map(it);
+    const wants = os.filter(o => !o.have).map(o => Object.assign(it(o), { ra: String(o.ra || (glob && glob.ra) || ""), rb: String(o.rb || (glob && glob.rb) || ""), gi: 0, gis: [0], bulk: null, note: "" }));
+    return [{ type: "trade", on: true, name: TYPES.trade.name + " · imported", have: have.length ? have : [{ name: "My items" }], wants, notes: [] }];
+  }
+  return [{ type: kind, on: true, name: TYPES[kind].name + " · imported", wants: os.map(it), notes: [] }];
+}
 function impPosts(R) {
   const posts = [], notes = R.notes.filter(n => n.length < 140).slice(0, 8);
   const nm = t => TYPES[t].name + (R.author ? " · " + R.author : " · imported");
@@ -9926,7 +10068,7 @@ async function impRun(files, text) {
         lines.push(...r.lines); tiles.push(...r.tiles); picNotes.push(...r.picNotes); if (r.own) owns.push(r.own);
       }
     }
-    if (text && text.trim()) lines.push(...textLines(text));
+    if (text && text.trim()) lines.push(...textLines(ratioLines(text)));
     // the picture's own total ("648.300 · 786,77 (555 items)"): what was read must give the same.
     // When it doesn't, the other readings of a label are tried, one change at a time, while it gets closer.
     IMP.check = null;
@@ -9949,6 +10091,8 @@ async function impRun(files, text) {
       } }
     const R = impParse(lines, tiles, picNotes, text);
     IMP.res = { R, posts: owns.length ? ownPosts(owns).concat(lines.length || tiles.length ? impPosts(R).filter(p => (p.wants || []).length) : []) : impPosts(R) };
+    // only a text: it's also read one line at a time (as "Paste a list" does) — the reading that finds more is kept
+    if (!(files && files.length) && text && text.trim() && !(R.list && R.list.length)) { const P2 = listPosts(text); if (P2 && postScore(P2) > postScore(IMP.res.posts) + .5) IMP.res.posts = P2; }
     if (!IMP.res.posts.some(p => (p.wants || []).length || (p.have || []).filter(x => x.ref || x.unknown || (x.name && x.name !== "My items")).length)) IMP.res.err = "Nothing found to import. Try the original screenshot, or paste the text of the post (Discord: long-press → Copy Text).";
   } catch (e) {
     const m = (e && e.message) || String(e);
@@ -10056,6 +10200,9 @@ function undoSeen(k, j) {
   if (!merge) {
     UND.stack.push({ base: Object.assign({}, UND.base), keys: [], label: UND.hint || "", tab: document.body.dataset.tab, t: now });
     if (UND.stack.length > 40) UND.stack.shift();
+    // a big account (many posts, a long history): the oldest steps go first, so the copies stay under ~12 MB of text (phones)
+    const size = () => { const seen = new Set(); let n = 0; UND.stack.concat(UND.redo || []).forEach(S => Object.values(S.base || {}).forEach(v => { if (typeof v === "string" && !seen.has(v)) { seen.add(v); n += v.length; } })); return n; };
+    while (UND.stack.length > 3 && size() > 12e6) UND.stack.shift();
     UND.redo = []; UND.cut = false;
   }
   const cur = UND.stack[UND.stack.length - 1];
