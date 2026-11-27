@@ -1344,6 +1344,7 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
       <div class="card fieldset">
         <div class="ch"><h2>Backup</h2></div>
         <div class="two"><button class="btn" id="bkOut">Export</button><label class="btn filebtn">Import<input type="file" id="bkIn" accept=".json,application/json"></label></div>
+        <button class="btn" id="picPack" title="The game pictures on your own site, for networks where the wiki is blocked">🖼️ Pictures for your site</button>
         <button class="btn dashed" id="resetP">Reset this post</button>
       </div>
     </section>
@@ -2426,8 +2427,54 @@ function search(q, cat) {
 const WIKI_API = "https://hayday.fandom.com/api.php";
 const PROXY = u => "https://wsrv.nl/?url=" + encodeURIComponent(u.replace(/^https?:\/\//, "")) + "&w=256&h=256&fit=contain&output=png";
 let URLS = store.get("hd5_urls", { t: Date.now(), m: {} });
-if (Date.now() - URLS.t > 21 * 864e5) URLS = { t: Date.now(), m: {} };
+if (!URLS || typeof URLS !== "object" || !URLS.m || Date.now() - URLS.t > 21 * 864e5) URLS = { t: Date.now(), m: {} };
+// v2: an empty answer (wiki busy / blocked once) no longer sticks for 3 weeks
+if (URLS.v !== 2) { for (const k in URLS.m) if (!URLS.m[k]) delete URLS.m[k]; URLS.v = 2; }
 let LOCAL = new Set();       // images présentes dans le dossier images/ du dépôt
+let ATLAS = null;            // images/atlas.json: the game pictures in a few sheets, on your own site (made with "Pictures for your site")
+function md5(str) {
+  const u = new TextEncoder().encode(str), n = ((u.length + 8) >>> 6) + 1, w = new Uint32Array(n * 16);
+  for (let i = 0; i < u.length; i++) w[i >> 2] |= u[i] << ((i % 4) * 8);
+  w[u.length >> 2] |= 0x80 << ((u.length % 4) * 8); w[n * 16 - 2] = u.length * 8;
+  const K = [], S = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
+  for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) >>> 0;
+  let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+  for (let o = 0; o < w.length; o += 16) {
+    let a = a0, b = b0, c = c0, d = d0;
+    for (let i = 0; i < 64; i++) {
+      let f, g; const r = i >> 4;
+      if (r === 0) { f = (b & c) | (~b & d); g = i; } else if (r === 1) { f = (d & b) | (~d & c); g = (5 * i + 1) % 16; } else if (r === 2) { f = b ^ c ^ d; g = (3 * i + 5) % 16; } else { f = c ^ (b | ~d); g = (7 * i) % 16; }
+      const t = d; d = c; c = b; const x = (a + f + K[i] + w[o + g]) | 0, s = S[r * 4 + (i % 4)]; b = (b + ((x << s) | (x >>> (32 - s)))) | 0; a = t;
+    }
+    a0 = (a0 + a) | 0; b0 = (b0 + b) | 0; c0 = (c0 + c) | 0; d0 = (d0 + d) | 0;
+  }
+  return [a0, b0, c0, d0].map(v => [0, 8, 16, 24].map(s => ((v >>> s) & 255).toString(16).padStart(2, "0")).join("")).join("");
+}
+/** A wiki picture's own address, without asking the wiki: MediaWiki keeps File:X.png in images/a/ab/X.png (ab = md5 of the name). */
+function wikiDirect(file) {
+  const n = String(file).replace(/ /g, "_"), k = n.charAt(0).toUpperCase() + n.slice(1) + ".png", hh = md5(k);
+  return "https://static.wikia.nocookie.net/hayday/images/" + hh[0] + "/" + hh.slice(0, 2) + "/" + encodeURIComponent(k);
+}
+const altCase = f => f.split("_").map((w, i) => i ? w.toLowerCase() : w).join("_");
+/** How the game pictures load on this device: none at all → said once (the wiki may be blocked on this network). */
+const IMG_STAT = { ok: 0, fail: 0, told: false };
+function imgStat(ok) {
+  IMG_STAT[ok ? "ok" : "fail"]++;
+  if (!IMG_STAT.told && !IMG_STAT.ok && IMG_STAT.fail >= 6 && !ATLAS) { IMG_STAT.told = true; setTimeout(() => toast("⚠ The game pictures can't load on this connection (the Hay Day wiki looks blocked) — emojis are shown instead."), 400); }
+}
+const ATLAS_SHEETS = new Map();
+/** One picture cut from the sheets of your own site (same site: nothing can block it). */
+function atlasPic(id) {
+  const a = ATLAS && ATLAS.ids && ATLAS.ids[id]; if (!a) return Promise.resolve(null);
+  const [si, col, row] = a, src = "images/" + ATLAS.sheets[si];
+  if (!ATLAS_SHEETS.has(src)) ATLAS_SHEETS.set(src, new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src + "?v=" + (ATLAS.v || 1); }));
+  return ATLAS_SHEETS.get(src).then(im => {
+    if (!im) return null;
+    const S = ATLAS.size, c = document.createElement("canvas"); c.width = c.height = S;
+    c.getContext("2d").drawImage(im, col * S, row * S, S, S, 0, 0, S, S);
+    try { return c.toDataURL("image/png"); } catch (e) { return null; }
+  });
+}
 let API_DOWN = false;
 const IMGS = new Map();     // clé → état de chargement
 let pend = new Map(), pendT = 0;
@@ -2444,9 +2491,11 @@ function resolveFile(file) {
 async function queryFiles(files) {
   const out = {};
   for (let i = 0; i < files.length; i += 50) {
-    const chunk = files.slice(i, i + 50);
-    const r = await fetch(WIKI_API + "?" + new URLSearchParams({ action: "query", prop: "imageinfo", iiprop: "url", redirects: "1", format: "json", origin: "*", titles: chunk.map(f => "File:" + f + ".png").join("|") }));
-    const j = await r.json(), q = j.query || {}, map = {};
+    const chunk = files.slice(i, i + 50), ac = typeof AbortController === "function" ? new AbortController() : null, tm = ac && setTimeout(() => ac.abort(), 9000);
+    const r = await fetch(WIKI_API + "?" + new URLSearchParams({ action: "query", prop: "imageinfo", iiprop: "url", redirects: "1", format: "json", origin: "*", titles: chunk.map(f => "File:" + f + ".png").join("|") }), ac ? { signal: ac.signal } : {});
+    if (tm) clearTimeout(tm);
+    const j = await r.json(); if (!j || !j.query) throw new Error("wiki answer without data");   // busy / blocked: nothing is kept
+    const q = j.query, map = {};
     (q.normalized || []).forEach(n => map[n.from] = n.to);
     (q.redirects || []).forEach(n => map[n.from] = n.to);
     const byTitle = {};
@@ -2474,15 +2523,17 @@ async function flushResolve() {
 
 function newState() { return { ok: false, fail: false, el: null, src: "", subs: new Set() }; }
 function notify(s) { scheduleDraw(); s.subs.forEach(fn => { try { fn(s); } catch (e) {} }); s.subs.clear(); }
-function loadChain(s, cands) {
+function loadChain(s, cands, game) {
   let i = 0;
   const next = () => {
-    if (i >= cands.length) { s.fail = true; notify(s); return; }
-    const src = cands[i++], im = new Image();
+    if (i >= cands.length) { s.fail = true; if (game) imgStat(false); notify(s); return; }
+    const src = cands[i++], im = new Image(); let done = false;
+    // a source that never answers (blocked, very slow): the next one after 9 s
+    const tm = setTimeout(() => { if (!done) { done = true; im.onload = im.onerror = null; next(); } }, 9000);
     if (!src.startsWith("data:")) im.crossOrigin = "anonymous";
     im.decoding = "async";
-    im.onload = () => { if (!im.naturalWidth) return next(); s.el = im; s.src = src; s.ok = true; notify(s); };
-    im.onerror = next;
+    im.onload = () => { if (done) return; done = true; clearTimeout(tm); if (!im.naturalWidth) return next(); s.el = im; s.src = src; s.ok = true; if (game) imgStat(true); notify(s); };
+    im.onerror = () => { if (done) return; done = true; clearTimeout(tm); next(); };
     im.src = src;
   };
   next();
@@ -2501,13 +2552,16 @@ function prodState(id) {
     if (p.src) { loadChain(s, [p.src]); return; }
     if (p.parts && !ov) return composePack(s, p);
     if (p.mix) return composeMix(s, p);
+    const own = await atlasPic(id); if (own) cands.push(own);                     // your own site first
     if (LOCAL.has(id)) cands.push("images/" + id + ".png");
     if (p.file) {
-      const u = await resolveFile(p.file);
+      const u = await resolveFile(p.file), d = wikiDirect(p.file), a = altCase(p.file), d2 = a !== p.file ? wikiDirect(a) : null;
       if (u) cands.push(u, PROXY(u));
-      else if (u === null) cands.push(PROXY("hayday.fandom.com/wiki/Special:FilePath/" + encodeURIComponent(p.file) + ".png"));
+      // the wiki didn't give the address (busy, blocked, unknown): its address worked out here, then through the relay
+      if (!u || u !== d) { if (u !== d) cands.push(d); if (d2) cands.push(d2); cands.push(PROXY(d)); if (d2) cands.push(PROXY(d2)); }
+      cands.push(PROXY("hayday.fandom.com/wiki/Special:FilePath/" + encodeURIComponent(p.file) + ".png"));
     }
-    loadChain(s, cands);
+    loadChain(s, [...new Set(cands)], !own);
   })();
   return s;
 }
@@ -4962,6 +5016,7 @@ $("#bkOut").onclick = () => {
   saveBlob(new Blob([JSON.stringify({ app: "hd-studio", v: 9, state: STATE, settings: SETTINGS, custom: CUSTOM, images: imgs, history: HIST, inventory: INV, scanLearn: LEARN, deals: DEALS })], { type: "application/json" }), "hayday-studio-backup.json");
   toast("Backup exported ✔");
 };
+$("#picPack").onclick = () => openPicturePack();
 $("#bkIn").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try {
@@ -4994,6 +5049,63 @@ $("#bkIn").onchange = async e => {
    ===================================================================== */
 async function loadLocalManifest() {
   try { const r = await fetch("images/manifest.json", { cache: "no-cache" }); if (r.ok) { const j = await r.json(); LOCAL = new Set(j.ids || []); } } catch (e) {}
+  try { const r = await fetch("images/atlas.json", { cache: "no-cache" }); if (r.ok) { const j = await r.json(); if (j && j.ids && Array.isArray(j.sheets) && j.size > 0) ATLAS = j; } } catch (e) {}
+}
+/* ---------- the game pictures, for your own site: a few sheets + an index, made on a device where they load.
+   Put the "images" folder next to index.html on GitHub: from then on every visitor gets the pictures from your site. ---------- */
+function zipStore(files) {
+  const T = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; T[n] = c >>> 0; }
+  const crc = u => { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = T[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  const enc = new TextEncoder(), out = [], cen = []; let off = 0;
+  files.forEach(f => {
+    const nm = enc.encode(f.name), d = f.data, c = crc(d), L = new DataView(new ArrayBuffer(30)), C = new DataView(new ArrayBuffer(46));
+    [[0, 0x04034b50, 4], [4, 20, 2], [6, 0, 2], [8, 0, 2], [10, 0, 2], [12, 0x5B21, 2], [14, c, 4], [18, d.length, 4], [22, d.length, 4], [26, nm.length, 2], [28, 0, 2]].forEach(([o, v, z]) => z === 4 ? L.setUint32(o, v, true) : L.setUint16(o, v, true));
+    [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0, 2], [10, 0, 2], [12, 0, 2], [14, 0x5B21, 2], [16, c, 4], [20, d.length, 4], [24, d.length, 4], [28, nm.length, 2], [30, 0, 2], [32, 0, 2], [34, 0, 2], [36, 0, 2], [38, 0, 4], [42, off, 4]].forEach(([o, v, z]) => z === 4 ? C.setUint32(o, v, true) : C.setUint16(o, v, true));
+    out.push(new Uint8Array(L.buffer), nm, d); cen.push(new Uint8Array(C.buffer), nm); off += 30 + nm.length + d.length;
+  });
+  const cs = cen.reduce((a, x) => a + x.length, 0), E = new DataView(new ArrayBuffer(22));
+  [[0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2], [10, files.length, 2], [12, cs, 4], [16, off, 4], [20, 0, 2]].forEach(([o, v, z]) => z === 4 ? E.setUint32(o, v, true) : E.setUint16(o, v, true));
+  return new Blob([...out, ...cen, new Uint8Array(E.buffer)], { type: "application/zip" });
+}
+async function makePicturePack(say) {
+  const S = 192, per = 10, ids = CAT.list.filter(p => !p.custom && !p.parts && !p.mix && p.file).map(p => p.id);
+  const sheets = [], index = {}, miss = [];
+  ids.forEach(id => prodState(id));                                     // all at once: much faster than one by one
+  const wait = st => new Promise(res => { if (st.ok || st.fail) return res(); st.subs.add(() => res()); setTimeout(res, 20000); });
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i], st = prodState(id); say("Loading the pictures… " + (i + 1) + " / " + ids.length); await wait(st);
+    if (!st.ok || !st.el) { miss.push(id); continue; }
+    // one picture at a time on its own canvas: a picture the browser won't let us copy can't spoil a whole sheet
+    const one = document.createElement("canvas"); one.width = one.height = S; const g = one.getContext("2d"), im = st.el, w = im.naturalWidth || im.width, hh = im.naturalHeight || im.height, k = Math.min(S * .94 / w, S * .94 / hh);
+    g.imageSmoothingQuality = "high"; g.drawImage(im, (S - w * k) / 2, (S - hh * k) / 2, w * k, hh * k);
+    try { g.getImageData(0, 0, 1, 1); } catch (e) { miss.push(id); continue; }
+    const n = Object.keys(index).length, si = Math.floor(n / (per * per)), cell = n % (per * per), col = cell % per, row = Math.floor(cell / per);
+    if (!sheets[si]) { const c = document.createElement("canvas"); c.width = c.height = S * per; sheets[si] = c; }
+    sheets[si].getContext("2d").drawImage(one, col * S, row * S); index[id] = [si, col, row];
+  }
+  if (!Object.keys(index).length) throw new Error("no picture could be loaded on this device");
+  say("Making the files…");
+  const files = [];
+  for (let i = 0; i < sheets.length; i++) { const b = await new Promise(r => sheets[i].toBlob(r, "image/png")); files.push({ name: "images/atlas-" + i + ".png", data: new Uint8Array(await b.arrayBuffer()) }); sheets[i].width = sheets[i].height = 0; }
+  files.push({ name: "images/atlas.json", data: new TextEncoder().encode(JSON.stringify({ v: Date.now(), size: S, sheets: sheets.map((x, i) => "atlas-" + i + ".png"), ids: index })) });
+  return { zip: zipStore(files), n: Object.keys(index).length, miss, files: files.length };
+}
+function openPicturePack() {
+  const msg = h("p", { class: "hint" }), go = h("button", { class: "btn pri full" }, "Make the pictures pack");
+  go.onclick = async () => {
+    go.disabled = true;
+    try {
+      const R = await makePicturePack(t => { msg.textContent = t; });
+      saveBlob(R.zip, "market-manager-pictures.zip");
+      msg.textContent = "✔ " + R.n + " pictures in " + (R.files - 1) + " sheets" + (R.miss.length ? " · " + R.miss.length + " couldn't be loaded here (they stay as the wiki gives them)" : "") + ". Now unzip it and upload the “images” folder to your GitHub repository, next to index.html.";
+    } catch (e) { msg.textContent = "⚠ " + (e.message || e) + " — try on a device where the pictures show, or on Wi-Fi."; }
+    go.disabled = false;
+  };
+  openSheet("Pictures for your site", [
+    h("p", { class: "hint" }, "The game pictures come from the Hay Day wiki. Some networks block it — then people see emojis. Make this pack on a device where the pictures show, put it on your GitHub site, and every visitor gets the pictures from your own site."),
+    h("ol", { class: "hint", style: "margin:6px 0 12px;padding-left:20px" }, h("li", null, "Tap the button: about 200–500 pictures load (1–2 minutes)."), h("li", null, "You get market-manager-pictures.zip — open it: an “images” folder with a few files."), h("li", null, "On GitHub, in your repository (where index.html is): Add file → Upload files → drop the files of the “images” folder into a folder named images.")),
+    go, msg,
+    ATLAS ? h("p", { class: "hint" }, "✔ Your site already has a pack (" + Object.keys(ATLAS.ids).length + " pictures). Make a new one when new items come out.") : null]);
 }
 (async function init() {
   await IDB.open();
@@ -7079,7 +7191,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 19:30";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 21:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
@@ -7520,8 +7632,11 @@ function smallPic(id, ms) {
     const p = CAT.byId[id]; let done = false; const fin = v => { if (!done) { done = true; res(v); } };
     setTimeout(() => fin(null), ms || 12000);
     try {
-      const u = p && p.file ? await resolveFile(p.file) : null; if (!u) return fin(null);
-      const cands = [u + "/revision/latest/scale-to-width-down/96", PROXY(u).replace("w=256&h=256", "w=96&h=96")];
+      if (!p || !p.file) return fin(null);
+      const u = await resolveFile(p.file), d = wikiDirect(p.file), cands = [];
+      // the wiki's address, else its address worked out here, then the relay, then the pack on your own site
+      [u, d].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).forEach(x => cands.push(x + "/revision/latest/scale-to-width-down/96", PROXY(x).replace("w=256&h=256", "w=96&h=96")));
+      const own = await atlasPic(id); if (own) cands.push(own);
       const next = () => { const src = cands.shift(); if (!src) return fin(null); const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => im.naturalWidth ? fin(im) : next(); im.onerror = next; im.src = src; };
       next();
     } catch (e) { fin(null); }
