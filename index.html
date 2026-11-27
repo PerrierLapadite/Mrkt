@@ -2987,8 +2987,18 @@ const THEMES = {
 const SANS = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 const EMOJI_F = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
 const cv = $("#cv"), ctx = cv.getContext("2d");
-let drawRq = 0;
-function scheduleDraw() { if (drawRq) return; drawRq = requestAnimationFrame(() => { drawRq = 0; draw(); }); }
+/* The picture is only drawn when you can see it (the Preview tab, or the side preview on a computer): a big post costs a
+   phone a few hundred ms per drawing, and each game picture that arrives used to redraw it — the page froze for seconds.
+   Hidden: it is just marked to redo. Shown: redrawn at most every ~2× what the last drawing cost (pictures arriving in a burst = one drawing). */
+let drawRq = 0, drawDirty = false, drawCost = 0, drawEnd = 0;
+const cvShown = () => document.body.dataset.tab === "prev" || innerWidth >= 1000;
+function scheduleDraw() {
+  if (!cvShown()) { drawDirty = true; return; }
+  if (drawRq) return;
+  const wait = Math.max(0, drawEnd + Math.min(1500, drawCost * 2) - performance.now());
+  drawRq = setTimeout(() => requestAnimationFrame(() => { drawRq = 0; if (cvShown()) draw(); else drawDirty = true; }), wait) || 1;
+}
+addEventListener("resize", debounce(() => { if (drawDirty && cvShown()) scheduleDraw(); }, 200));
 
 /* ---------- text ---------- */
 /** f: "D" = display (heaviest weight), otherwise a weight, add "i" for italic (e.g. "600i"). */
@@ -3302,7 +3312,11 @@ function drawBeta() {
   $("#pvSize").textContent = cv.width + " × " + cv.height + " px · " + C + (C > 1 ? " columns" : " column") + (mpMissing().length ? " · ⏳ max prices loading" : "");
   $("#pvCount").textContent = wants.length + (wants.length > 1 ? " items" : " item") + (!trade && TT.tot ? " · " + fmt(TT.tot) + " coins" : "");
 }
-function draw() { return st.betaOff ? drawClassic() : drawBeta(); }
+function draw() {
+  const t = performance.now(); drawDirty = false;
+  // the cost counted up to the next frame: the phone paints the canvas after the script, and that part is the heavy one
+  try { return st.betaOff ? drawClassic() : drawBeta(); } finally { drawEnd = performance.now(); drawCost = drawEnd - t; requestAnimationFrame(() => { const n = performance.now(); if (n - t < 2000) { drawCost = n - t; drawEnd = n; } }); }
+}
 /* the beta switch and the colours, above the picture */
 function betaBar() {
   const bar = $("#betaBar"); if (!bar) return; bar.textContent = "";
@@ -7276,7 +7290,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 23:00";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 23:20";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
