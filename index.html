@@ -1199,7 +1199,7 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
 .pickbig input[type=file]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 .sdrop.compact #sdone{display:none}
 /* under the title: the search is the main way; "or from" your barn, a picture, a text */
-.orrow{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:center;gap:6px}
+.orrow{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,.85fr) minmax(0,1.5fr);align-items:center;gap:6px}
 .orrow .orl{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-right:2px}
 .orrow button{min-height:36px;padding:0 6px;overflow:hidden;text-overflow:ellipsis;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:700 13px var(--sans);white-space:nowrap}
 .orrow button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -1229,12 +1229,34 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
 .catsT.open svg{transform:rotate(90deg)}
 .catsT+.chips{margin-top:8px}
 #cats[hidden],#catsT[hidden],#catPick.folded #results,#catPick.folded .two{display:none!important}
+/* Undo / Redo: a discreet red underlined line up top (shown only when there is something to undo); Redo under it */
+.undog{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:1px;flex:none;min-width:0;margin-right:2px}
+.ulink{--ured:#c0392b;background:none;border:0;padding:2px 0;color:var(--ured);font:700 12px/1.15 var(--sans);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;cursor:pointer;white-space:nowrap;opacity:.9}
+.ulink:hover{opacity:1}
+.ulink:disabled{display:none}
+.ulink.redo{color:var(--mut);font-weight:600}
+.ulink.redo[hidden]{display:none}
+@media (prefers-color-scheme:dark){.ulink{--ured:#ff7a66}}
+.ulink .us{display:none}
+@media (max-width:360px){.ulink .ul{display:none}.ulink .us{display:inline}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#undoMsg{position:fixed;right:12px;z-index:80;max-width:min(80vw,360px);padding:7px 12px;border-radius:999px;background:var(--ink);color:var(--bg);font:700 13px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:var(--sh2);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .18s,transform .18s}
+#undoMsg.show{opacity:1;transform:none}
+#undoFloat{position:fixed;top:calc(var(--safe-t) + 8px);right:12px;z-index:80;padding:4px 8px;border-radius:8px;background:var(--bg);opacity:0;pointer-events:none;transition:opacity .18s}
+#undoFloat.show{opacity:.95;pointer-events:auto}
+/* the search field inside the add panel (phones): stays at the top of the panel while its content scrolls */
+.sdrop>#sbox{position:sticky;top:-16px;z-index:3;margin:-4px -4px 10px;padding:4px;background:var(--surface);border-radius:16px}
+.sdrop>#sbox svg{left:17px}
+.sdrop>#sbox .clr{right:10px}
+.sdrop>#sbox .inp{box-shadow:none;border:1px solid var(--line2)}
+.sdrop>#sbox .inp:focus{box-shadow:var(--ring)}
+@media (max-width:999px){body.dropopen #sbar .target{margin-top:0}body.dropopen .sdrop{top:calc(100% + 4px)}}
 </style>
 </head>
 <body data-tab="items">
 <div id="meMenu" class="mepop" hidden role="menu" aria-label="Menu"></div>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><button class="hbtn" id="undoBtn" aria-label="Undo" title="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button class="hbtn" id="calcBtn" aria-label="Quick calc" title="Quick calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 15.5h.01M12 15.5h.01M15.5 15.5v2"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 12.5 7.4 6h17.2l2.4 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 12.5a2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0 2.75 2.75 0 0 0 5.5 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.5 16.5V26h17v-9.5M13 26v-5.5h6V26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><h1 id="brandT">Market Manager</h1><span class="tools"><button class="hbtn" id="helpBtn" hidden aria-label="How it works" title="How it works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.2-1.5 2.2v.4"/><path d="M12 18h.01"/></svg></button><button class="hbtn" id="impBtn" hidden aria-label="Import an old post" title="Import an old post (screenshot or text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/></svg></button><span class="undog"><button class="ulink" id="undoBtn" type="button" title="Undo" disabled><span class="ul">Undo last action</span><span class="us">Undo</span></button><button class="ulink redo" id="redoBtn" type="button" title="Redo" hidden>Redo</button></span><span class="sr" id="undoSay" aria-live="polite"></span><button class="hbtn" id="calcBtn" aria-label="Quick calc" title="Quick calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 15.5h.01M12 15.5h.01M15.5 15.5v2"/></svg></button><button class="hbtn me" id="meBtn" aria-label="Menu" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></span></div>
   <div class="profiles" id="profiles"></div>
 </header>
 
@@ -1257,9 +1279,9 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
         <div class="sdrop card compact" id="sdrop" hidden>
-          <div class="sdhead"><button class="sdq" id="sdq" type="button" aria-label="Add items with the search bar"><b>Add items</b><span>with search bar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><span class="sdh-r"><button class="sdbtn ok" id="sdone2" type="button">Done</button></span></div>
+          <div class="sdhead"><b>Add items</b><span class="sdh-r"><button class="sdbtn ok" id="sdone2" type="button">Done</button></span></div>
           <div class="orrow" id="srcSeg" aria-label="Or add from"><span class="orl">or</span>
-            <button data-src="inv" type="button" aria-label="From my barn">📦 Barn</button><button data-src="pic" type="button" aria-label="From a picture">📷 Picture</button><button data-src="text" type="button" aria-label="From a text">📝 Text</button>
+            <button data-src="pic" type="button" aria-label="From a picture">📷 Picture</button><button data-src="text" type="button" aria-label="From a text">📝 Text</button><button data-src="inv" type="button" aria-label="From your inventory">📦 Your inventory</button>
           </div>
           <p class="srchint" id="srcHint"></p</div>
           <div id="invPick" hidden></div>
@@ -2261,7 +2283,7 @@ const store = {
 let toastT = 0;
 function toast(t) { const m = $("#toast"); m.textContent = t; m.classList.remove("act"); m.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show"), 2600); }
 /** A toast with an Undo button (6 s). */
-function toastUndo(t) { if (!UND) return toast(t); undoFlush(); toastAct(t, "Undo", undoLast); }
+function toastUndo(t) { if (!UND) return toast(t); undoFlush(); undoNudge(t); }
 /** Remove an item right from its card (Undo in the toast). */
 function removeItem(it, list) {
   const i = list.indexOf(it); if (i < 0) return;
@@ -4057,7 +4079,7 @@ $("#helpBtn").onclick = () => openSheet("How it works", h("div", { class: "help"
     h("li", null, h("b", null, "Inventory in one go:"), " record your screen while you scroll your Barn slowly from top to bottom (then the Silo), then Inventory → 📷 Screenshots / video → pick the video. Every square is read many times; the total at the top lets you check it matches the game."),
     h("li", null, h("b", null, "Style"), " (in the ☰ menu): title, username, paper colour and layout. “Custom” lets you pick rows or cards, the columns, the text size and what each item shows."),
     h("li", null, h("b", null, "Remove:"), " the × on a card removes that item, “Remove all” at the bottom of the list clears it, the × on a post tab deletes that post."),
-    h("li", null, h("b", null, "↶ Undo"), " (top right): takes back the last change, wherever it was: a post, your inventory, a deal, your History. Tap it again to go further back (up to 40 steps); “Redo” in the message puts it back."),
+    h("li", null, h("b", null, "Undo last action"), " (small red line, top right): takes back the last change, wherever it was: a post, your inventory, a deal, your History. Tap it again to go further back (up to 40 steps); “Redo” under it puts it back. Scrolled down when you remove something, the same line shows in the corner for a few seconds."),
     h("li", null, h("b", null, "Preview:"), " Download, Share or Copy the picture and post it on Discord.")),
   h("a", { class: "btn full guide", href: "guide.html", target: "_blank", rel: "noopener" }, "📖 Full guide"),
   h("p", { class: "hint" }, "Everything is saved on this device only — nobody else can see or change your posts. Use Style → Backup to move them to another device.")));
@@ -4204,7 +4226,15 @@ function dropMode() {
 }
 $("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
 $("#sdone2").onclick = () => closeDrop();
-$("#sdq").onclick = () => { if (SRC.v !== "cat") setSrc("cat"); const q = $("#q"); q.focus(); try { q.scrollIntoView({ block: "nearest" }); } catch (e) {} };   // the arrow points at the bar: tap it to type
+/* On a phone the search field lives inside the add panel, with Picture / Text / Your inventory and the groups: one menu.
+   On a computer it stays the bar at the top (typing opens the panel under it). */
+const SBOX_MQ = matchMedia("(max-width:999px)");
+function sboxPlace() {
+  const b = $("#sbox"), d = $("#sdrop"), hd = d && d.querySelector(".sdhead");
+  if (SBOX_MQ.matches) { if (b.parentNode !== d) hd.after(b); }
+  else if (b.parentNode !== $("#sbar")) $("#addBtn").after(b);
+}
+sboxPlace(); if (SBOX_MQ.addEventListener) SBOX_MQ.addEventListener("change", sboxPlace); else if (SBOX_MQ.addListener) SBOX_MQ.addListener(sboxPlace);
 $("#picImp").onclick = () => { closeDrop(); tab("imp"); };
 $("#catsT").onclick = () => { SETTINGS.catsOpen = !SETTINGS.catsOpen; saveSettings(); resLimit = baseLimit(); renderCats(); renderResults(); };
 /* ---------- unlock levels: read from the Hay Day wiki (several pages per request), kept on this device ---------- */
@@ -4538,7 +4568,7 @@ function renderLists() {
     wl.prepend(h("div", { class: "empty card starts" }, h("b", null, "Fill this post"),
       h("div", { class: "startb" },
         h("button", { class: "btn", onclick: () => q("") }, "🔍 Search an item"),
-        h("button", { class: "btn", onclick: () => { openDrop(); setSrc("inv"); } }, "📦 From my barn"),
+        h("button", { class: "btn", onclick: () => { openDrop(); setSrc("inv"); } }, "📦 From your inventory"),
         h("button", { class: "btn", onclick: () => q("level 1 to 30") }, "🔢 By level"),
         h("button", { class: "btn", onclick: () => tab("imp") }, "📥 Import a post")),
       h("small", null, "Import: a screenshot of a post (yours or another seller's) or its text — the items, quantities and prices come in at once.")));
@@ -7290,7 +7320,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 23:20";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "28 Nov 2026 · 00:15";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
@@ -10428,7 +10458,24 @@ function undoSeen(k, j) {
 /** Name the next step ("Post “Trade” deleted") — call it right before the change. */
 function undoHint(t) { if (!UND) return; UND.hint = t; UND.cut = true; }
 const undoLabel = S => S.label || "Change to " + S.keys.map(k => UNDO_WHAT[k]).join(" + ");
-function undoPaint() { const b = $("#undoBtn"); if (!b || !UND) return; const S = UND.stack[UND.stack.length - 1]; b.disabled = !S; b.title = S ? "Undo: " + undoLabel(S) : "Nothing to undo"; }
+function undoPaint() {
+  const b = $("#undoBtn"); if (!b || !UND) return; const S = UND.stack[UND.stack.length - 1];
+  b.disabled = !S; b.title = S ? "Undo: " + undoLabel(S) : "Nothing to undo"; b.setAttribute("aria-label", b.title);
+  const r = $("#redoBtn"), R = UND.redo[UND.redo.length - 1]; r.hidden = !R; if (typeof fitBrand === "function") requestAnimationFrame(fitBrand);   // the title makes room
+  r.title = R ? "Redo: " + undoLabel(R) : "Redo"; r.setAttribute("aria-label", r.title);
+}
+/** Something was just removed / reset: no message popping from the bottom — “Undo last action” is up top (or in the corner if you scrolled down). */
+let nudgeT = 0;
+function undoNudge(t) {
+  const b = $("#undoBtn"); undoPaint(); if (!b || b.disabled) return toast(t);
+  // scrolled down, the top of the page is out of view: the same small red line shows in the top corner for a few seconds
+  clearTimeout(nudgeT);
+  let f = $("#undoFloat"); if (!f) { f = h("button", { id: "undoFloat", class: "ulink", type: "button", onclick: () => { f.classList.remove("show"); undoLast(); } }, "Undo last action"); document.body.append(f); }
+  const away = b.getBoundingClientRect().bottom < 0; f.classList.toggle("show", away); f.title = b.title;
+  const sb = $("#sbar"), y = sb && document.body.dataset.tab === "items" ? sb.getBoundingClientRect().bottom : 0; f.style.top = Math.max(8, y + 6) + "px";   // under the search bar that stays at the top
+  nudgeT = setTimeout(() => f.classList.remove("show"), 5000);
+  $("#undoSay").textContent = t + ". Undo is at the top.";
+}
 /** Save now what is waiting to be saved, so the very last change can be undone too. */
 function undoFlush() { if (STATE && UND) store.set("hd5_state", STATE); }
 function undoApply(base, keys) {
@@ -10455,13 +10502,13 @@ function undoLast() {
   const S = UND.stack.pop(); if (!S) { undoPaint(); return toast("Nothing to undo"); }
   UND.redo.push({ base: Object.assign({}, UND.base), keys: S.keys, label: S.label, tab: S.tab });
   undoApply(S.base, S.keys);
-  toastAct("Undone: " + undoLabel(S), "Redo", redoLast);
+  undoDone("Undone: " + undoLabel(S));
 }
 function redoLast() {
   const R = UND.redo.pop(); if (!R) return;
   UND.stack.push({ base: Object.assign({}, UND.base), keys: R.keys, label: R.label, tab: R.tab, t: Date.now() });
   undoApply(R.base, R.keys);
-  toastAct("Redone: " + undoLabel(R), "Undo", undoLast);
+  undoDone("Redone: " + undoLabel(R));
 }
 /** A message with one button (Undo / Redo). */
 function toastAct(t, label, fn) {
@@ -10469,7 +10516,12 @@ function toastAct(t, label, fn) {
   m.append(h("span", null, t), h("button", { type: "button", class: "tundo", onclick: () => { m.classList.remove("show", "act"); clearTimeout(toastT); fn(); } }, label));
   m.classList.add("show", "act"); clearTimeout(toastT); toastT = setTimeout(() => m.classList.remove("show", "act"), 6000);
 }
-$("#undoBtn").onclick = undoLast;
+/** After ↶ / ↷: a short line up top, right under the buttons — it never covers what you work on, and goes by itself. */
+function undoDone(t) {
+  // no bubble: the line up top changes by itself (Redo appears under it); screen readers hear what was undone
+  $("#undoSay").textContent = t; const f = $("#undoFloat"); if (f) f.classList.remove("show");
+}
+$("#undoBtn").onclick = undoLast; $("#redoBtn").onclick = redoLast;
 // starts once your posts are loaded (the app starts asynchronously)
 function undoInit() { if (UND || !STATE) return; UND = { base: { state: JSON.stringify(STATE), inv: JSON.stringify(INV), hist: JSON.stringify(HIST), deals: JSON.stringify(DEALS) }, stack: [], redo: [], lastT: 0, cut: true, hint: "", busy: false }; undoPaint(); }
 if (window.hdReady) undoInit(); else addEventListener("hdready", undoInit, { once: true });
