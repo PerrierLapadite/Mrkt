@@ -1193,6 +1193,21 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
 .pickbig small{color:var(--mut);font-size:12.5px;line-height:1.35}
 .pickbig input[type=file]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 .sdrop.compact #sdone{display:none}
+/* under the title: the search is the main way; "or from" your barn, a picture, a text */
+.orrow{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:center;gap:6px}
+.orrow .orl{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-right:2px}
+.orrow button{min-height:36px;padding:0 6px;overflow:hidden;text-overflow:ellipsis;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:700 13px var(--sans);white-space:nowrap}
+.orrow button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.srchint[hidden]{display:none}
+.srchint .backsrc{border:0;background:none;padding:0;color:var(--acc);font:700 12.5px var(--sans);text-decoration:underline;cursor:pointer}
+.orrow+.srchint{margin-top:8px}
+#srcSeg.orrow{margin-bottom:10px}
+@media (max-width:360px){.orrow{gap:4px}.orrow button{font-size:12px;padding:0 2px;letter-spacing:-.01em}}
+/* the arrow at the bottom of the add panel: down = a bigger panel (a grid), up = back to the small one */
+.sdmore{display:flex;justify-content:center;align-items:center;width:100%;height:30px;margin:10px 0 -6px;border:0;background:none;color:var(--mut);cursor:pointer;padding:0}
+.sdmore svg{width:26px;height:26px;padding:2px 10px;box-sizing:content-box;border-radius:999px;background:var(--surface2);border:1px solid var(--line);transition:transform .2s var(--ease)}
+.sdmore.up svg{transform:rotate(180deg)}
+.sdmore:active svg{background:var(--line)}
 </style>
 </head>
 <body data-tab="items">
@@ -1220,12 +1235,9 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
         </div>
         <div class="target" id="target"><span class="lbl">Add to</span><div class="tchips" id="tchips"></div></div>
         <div class="sdrop card compact" id="sdrop" hidden>
-          <div class="sdhead"><b>Add items</b><span class="sdh-r"><button class="sdbtn" id="sbig" type="button" aria-label="Bigger list">⤢ Bigger</button><button class="sdbtn ok" id="sdone2" type="button">Done</button></span></div>
-          <div class="srctabs" id="srcSeg" role="tablist" aria-label="Add from">
-            <button data-src="cat" class="on" role="tab"><span class="si">🔍</span>Game items</button>
-            <button data-src="inv" role="tab"><span class="si">📦</span>My barn</button>
-            <button data-src="text" role="tab"><span class="si">📝</span>A text</button>
-            <button data-src="pic" role="tab"><span class="si">📷</span>A picture</button>
+          <div class="sdhead"><b>Add items</b><span class="sdh-r"><button class="sdbtn ok" id="sdone2" type="button">Done</button></span></div>
+          <div class="orrow" id="srcSeg" aria-label="Or add from"><span class="orl">or</span>
+            <button data-src="inv" type="button" aria-label="From my barn">📦 Barn</button><button data-src="pic" type="button" aria-label="From a picture">📷 Picture</button><button data-src="text" type="button" aria-label="From a text">📝 Text</button>
           </div>
           <p class="srchint" id="srcHint"></p</div>
           <div id="invPick" hidden></div>
@@ -1239,6 +1251,7 @@ header.top{overflow-x:clip}   /* the posts row bleeds to the edges, never past t
           <div class="grid" id="results"></div>
           <div class="two" style="margin-top:10px"><button class="btn sm" id="moreRes">Show more</button><button class="btn sm dashed" id="freeAdd" style="width:auto">＋ Custom item</button></div>
           </div>
+          <button class="sdmore" id="sbig" type="button" aria-label="Show more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
           <button class="btn pri full" id="sdone" style="margin-top:10px">Done</button>
         </div>
       </div>
@@ -4143,8 +4156,8 @@ const dropSmall = () => !SETTINGS.dropBig;
 function dropMode() {
   const d = $("#sdrop"); if (!d) return;
   d.classList.toggle("compact", dropSmall());
-  $("#sbig").textContent = dropSmall() ? "⤢ Bigger" : "⤡ Smaller";
-  $("#sbig").setAttribute("aria-label", dropSmall() ? "Bigger list" : "Smaller list");
+  $("#sbig").classList.toggle("up", !dropSmall());
+  $("#sbig").setAttribute("aria-label", dropSmall() ? "Show more" : "Show less"); $("#sbig").title = dropSmall() ? "Show more" : "Show less";
 }
 $("#sbig").onclick = () => { SETTINGS.dropBig = !SETTINGS.dropBig; saveSettings(); dropMode(); resLimit = baseLimit(); if (SRC.v === "inv") renderInvPick(); else if (SRC.v === "cat") renderResults(); };
 $("#sdone2").onclick = () => closeDrop();
@@ -4362,18 +4375,20 @@ $("#q").addEventListener("input", debounce(() => { openDrop(); if ((SRC.v === "t
 const SRC = { v: "cat", scope: "all" };
 /** One line under the four ways: what this one does. */
 function srcHint() {
-  const e = $("#srcHint"); if (!e) return;
-  e.textContent = { cat: "Every item of the game — search above, or browse by group. ✓ = already in your post.", inv: "What you have, with its quantity — tap to add it as it is.", text: "Paste a list (Discord, notes…): one item a line, with its quantity and price.", pic: "Let the site read a picture for you." }[SRC.v] || "";
+  const e = $("#srcHint"); if (!e) return; e.textContent = "";
+  const t = { inv: "What you have, with its quantity — tap to add it as it is.", text: "Paste a list (Discord, notes…): one item a line, with its quantity and price.", pic: "Let the site read a picture for you." }[SRC.v];
+  e.hidden = !t; if (!t) return;
+  e.append(t + " ", h("button", { type: "button", class: "backsrc", onclick: () => { setSrc("cat"); $("#q").focus({ preventScroll: true }); } }, "← Back to the search"));
 }
 function setSrc(v) {
   SRC.v = v; $$("#srcSeg button").forEach(b => { b.classList.toggle("on", b.dataset.src === v); b.setAttribute("aria-selected", b.dataset.src === v ? "true" : "false"); });
   $("#catPick").hidden = v !== "cat"; $("#invPick").hidden = v !== "inv"; $("#textPick").hidden = v !== "text"; $("#picPick").hidden = v !== "pic";
   $("#q").placeholder = v === "inv" ? "Search my inventory" : v === "text" ? "Search a product (or write below)" : "Search a product to add";
-  srcHint();
+  srcHint(); $("#sbig").hidden = v === "pic";
   if (v === "pic") return;
   if (v === "inv") renderInvPick(); else if (v === "text") { renderPaste(); setTimeout(() => { const t = $("#pasteIn"); if (t) t.focus({ preventScroll: true }); }, 60); } else renderResults();
 }
-$$("#srcSeg button").forEach(b => b.onclick = () => setSrc(b.dataset.src));
+$$("#srcSeg button").forEach(b => b.onclick = () => setSrc(SRC.v === b.dataset.src ? "cat" : b.dataset.src));   // tapped again: back to the search
 /** Add from your inventory: its quantity comes with it (selling posts and “I have”). */
 function addFromInv(i, quiet) {
   const p = CAT.byId[i.ref], list = targetList(), withQ = st.type !== "achat" && !(st.type === "trade" && list === st.wants);
@@ -7228,7 +7243,7 @@ function openMe() {
   renderMeMenu();
 }
 function closeMe() { const m = $("#meMenu"); if (m.hidden) return; m.hidden = true; $("#meBtn").classList.remove("open"); $("#meBtn").setAttribute("aria-expanded", "false"); }
-const APP_VER = "27 Nov 2026 · 21:40";   // shown at the bottom of the ☰ menu: tells which version the phone has
+const APP_VER = "27 Nov 2026 · 22:10";   // shown at the bottom of the ☰ menu: tells which version the phone has
 /** Tabs at the bottom, or at the top: iPhone browsers other than Safari draw their bar over the bottom of the page. */
 const tabsTop = () => SETTINGS.tabTop != null ? !!SETTINGS.tabTop : /(CriOS|FxiOS|EdgiOS|OPiOS)\//.test(navigator.userAgent);
 function tabsApply() {
